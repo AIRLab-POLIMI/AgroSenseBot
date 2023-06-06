@@ -21,8 +21,7 @@ void CANOpenSlaveNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_r
 
 // This function gets called every time a value is written to the local object dictionary by an SDO or RPDO.
 void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
-    uint32_t val = (*this)[idx][subidx];
-    RCLCPP_INFO(ros2_bridge_node_->get_logger(), "OnWrite: received 0x%X on idx: 0x%X:%X", val, idx, subidx);
+    RCLCPP_INFO(ros2_bridge_node_->get_logger(), "OnWrite: received data on idx: 0x%X:%X", idx, subidx);
 
     if (idx == IDX_MOTOR_DRIVE_DATA && (
             (subidx == SUB_IDX_FAN_controller_temperature) ||
@@ -35,7 +34,7 @@ void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
         int16_t FAN_motor_temperature = (*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_FAN_motor_temperature];
         int16_t FAN_motor_RPM = (*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_FAN_motor_RPM];
         int16_t FAN_battery_current_display = (*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_FAN_battery_current_display];
-      ros2_bridge_node_->motor_drive_canopen_callback(
+        ros2_bridge_node_->motor_drive_canopen_callback(
               FAN_controller_temperature, FAN_motor_temperature, FAN_motor_RPM, FAN_battery_current_display);
     }
 }

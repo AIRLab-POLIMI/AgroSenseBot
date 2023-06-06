@@ -15,7 +15,7 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
   active.store(true);
   motor_drive_pub->on_activate();
 
-  t = std::thread(std::bind(&ROS2BridgeNode::run_canopen_slave_node, this));
+  canopen_node_thread = std::thread(std::bind(&ROS2BridgeNode::run_canopen_slave_node, this));
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
@@ -23,7 +23,7 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BridgeNode::on_deactivate(const rclcpp_lifecycle::State &) {
   active.store(false);
-  t.join();
+  canopen_node_thread.join();
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
@@ -64,9 +64,6 @@ void ROS2BridgeNode::motor_drive_canopen_callback(int16_t FAN_controller_tempera
   msg.fan_motor_rpm = FAN_motor_RPM;
   msg.fan_battery_current_display = FAN_battery_current_display;
   motor_drive_pub->publish(msg);
-
-//  RCLCPP_INFO(this->get_logger(), "motor_drive_canopen_callback: 0x%X", value);
-
 }
 
 void ROS2BridgeNode::gcu_alive_ros2_callback(std_msgs::msg::UInt8::SharedPtr msg) const {

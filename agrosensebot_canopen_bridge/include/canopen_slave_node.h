@@ -33,8 +33,6 @@
 #define SUB_IDX_RightSpeedRef 0x01
 #define SUB_IDX_LeftSpeedRef 0x02
 
-using std::placeholders::_1;
-
 using namespace lely;
 using namespace std::chrono_literals;
 
@@ -44,21 +42,17 @@ class CANOpenSlaveNode : public canopen::BasicSlave {
 private:
     ROS2BridgeNode *ros2_bridge_node_;
 
+    void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;
+
 public:
     CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt, const std::string &dcfBin,
-                     uint8_t id, ROS2BridgeNode *ros2_bridge_node) :
-            BasicSlave(timer, chan, dcfTxt, dcfBin, id), ros2_bridge_node_(ros2_bridge_node) {
-    };
-    CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt, const std::string &dcfBin,
                      ROS2BridgeNode *ros2_bridge_node) :
-            BasicSlave(timer, chan, dcfTxt, dcfBin), ros2_bridge_node_(ros2_bridge_node) {
+            BasicSlave(timer, chan, dcfTxt, dcfBin), ros2_bridge_node_(ros2_bridge_node) { // TODO pass callback function
     };
 
-    void send_TPDO_1(uint8_t GCU_is_alive);
-    void send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref);
+    void send_TPDO_1(uint8_t);
+    void send_TPDO_2(int16_t, int16_t);
 
-protected:
-    void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;
 };
 
 #endif //TEST_ROS2_CANOPEN_BRIDGE_CANOPEN_SLAVE_NODE_H

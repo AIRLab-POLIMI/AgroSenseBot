@@ -18,9 +18,7 @@ class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
     std::string canopen_node_config_;
     std::string can_interface_name_;
     std::atomic<bool> active = false;
-    std::future<void> slave_done;
-    std::mutex a;
-    std::thread t;
+    std::thread canopen_node_thread;
     rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr gcu_alive_sub;
     rclcpp::Subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>::SharedPtr speed_ref_sub;
     rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr motor_drive_pub;
@@ -28,6 +26,7 @@ class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
 
     void gcu_alive_ros2_callback(std_msgs::msg::UInt8::SharedPtr) const ;
     void speed_ref_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::SpeedRef::SharedPtr) const ;
+
     void run_canopen_slave_node()	;
 
 public:
@@ -38,16 +37,14 @@ public:
 
       gcu_alive_sub = this->create_subscription<std_msgs::msg::UInt8>(
               "test", 10,
-              std::bind(&ROS2BridgeNode::gcu_alive_ros2_callback, this, _1));
+              std::bind(&ROS2BridgeNode::gcu_alive_ros2_callback, this, _1)); //TODO explicitly set QoS profile
 
       speed_ref_sub = this->create_subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>(
               "speed_ref", 10,
-              std::bind(&ROS2BridgeNode::speed_ref_ros2_callback, this, _1));
+              std::bind(&ROS2BridgeNode::speed_ref_ros2_callback, this, _1)); //TODO explicitly set QoS profile
 
       motor_drive_pub = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("motor_drive", rclcpp::SensorDataQoS());
     };
-
-    void motor_drive_canopen_callback(int16_t FAN_controller_temperature, int16_t FAN_motor_temperature, int16_t FAN_motor_RPM, int16_t FAN_battery_current_display);
 
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
     on_configure(const rclcpp_lifecycle::State &) override ;
@@ -63,6 +60,8 @@ public:
 
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
     on_shutdown(const rclcpp_lifecycle::State &) override ;
+
+    void motor_drive_canopen_callback(int16_t, int16_t, int16_t, int16_t);
 
 };
 
