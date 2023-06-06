@@ -15,28 +15,23 @@
 #include <mutex>
 #include <thread>
 
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "rclcpp_lifecycle/state.hpp"
-#include "std_msgs/msg/u_int32.hpp"
+// PDO register indices
+#define IDX_MOTOR_DRIVE_DATA 0x2110
+#define IDX_GCU_IS_ALIVE 0x2111
+#define IDX_MOTOR_SPEED_REF 0x2112
 
 // RPDO4
-#define IDX_FAN_controller_temperature 0x2110
 #define SUB_IDX_FAN_controller_temperature 0x09
-
-#define IDX_FAN_motor_temperature 0x2110
 #define SUB_IDX_FAN_motor_temperature 0x0A
-
-#define IDX_FAN_motor_RPM 0x2110
 #define SUB_IDX_FAN_motor_RPM 0x0B
-
-#define IDX_FAN_battery_current_display 0x2110
 #define SUB_IDX_FAN_battery_current_display 0x0C
 
 //TPDO1
-#define IDX_FAN_battery_current_display 0x2110
-#define SUB_IDX_FAN_battery_current_display 0x0C
+#define SUB_IDX_GCU_is_alive 0x01
 
+//TPDO2
+#define SUB_IDX_RightSpeedRef 0x01
+#define SUB_IDX_LeftSpeedRef 0x02
 
 using std::placeholders::_1;
 
@@ -59,7 +54,8 @@ public:
             BasicSlave(timer, chan, dcfTxt, dcfBin), ros2_bridge_node_(ros2_bridge_node) {
     };
 
-    void send_TPDO(uint32_t data);
+    void send_TPDO_1(uint8_t GCU_is_alive);
+    void send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref);
 
 protected:
     void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;

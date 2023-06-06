@@ -9,18 +9,14 @@ ROS2BridgeNode::on_configure(const rclcpp_lifecycle::State &) {
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
-  get_parameter("canopen_node_id", canopen_node_id_);
-  RCLCPP_INFO(this->get_logger(), "canopen_node_id: %i", canopen_node_id_);
-
   get_parameter("canopen_node_config", canopen_node_config_);
-  RCLCPP_INFO(this->get_logger(), "canopen_node_config: %s", canopen_node_config_.c_str());
-
   get_parameter("can_interface_name", can_interface_name_);
-  RCLCPP_INFO(this->get_logger(), "can_interface_name: %s", can_interface_name_.c_str());
 
   active.store(true);
-  int_pub->on_activate();
+  motor_drive_pub->on_activate();
+
   t = std::thread(std::bind(&ROS2BridgeNode::run_canopen_slave_node, this));
+
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
@@ -53,7 +49,6 @@ void ROS2BridgeNode::run_canopen_slave_node()	{
   chan.open(ctrl);
 
   canopen_slave_node = std::make_shared<CANOpenSlaveNode>(timer, chan, canopen_node_config_, "", this);
-//  canopen_slave_node = std::make_shared<CANOpenSlaveNode>(timer, chan, canopen_node_config_, "", canopen_node_id_, this);
   canopen_slave_node->Reset();
 
   while(active.load()) {
@@ -62,16 +57,26 @@ void ROS2BridgeNode::run_canopen_slave_node()	{
   ctx.shutdown();
 }
 
-void ROS2BridgeNode::RPDO_4_callback(uint16_t FAN_controller_temperature, uint16_t FAN_motor_temperature, uint16_t FAN_motor_RPM, uint16_t FAN_battery_current_display) {
-  std_msgs::msg::UInt32 msg;
-  msg.data = value;
-  int_pub->publish(msg);
+void ROS2BridgeNode::motor_drive_canopen_callback(int16_t FAN_controller_temperature, int16_t FAN_motor_temperature, int16_t FAN_motor_RPM, int16_t FAN_battery_current_display) {
+  agrosensebot_canopen_bridge_msgs::msg::MotorDrive msg;
+  msg.fan_controller_temperature = FAN_controller_temperature;
+  msg.fan_motor_temperature = FAN_motor_temperature;
+  msg.fan_motor_rpm = FAN_motor_RPM;
+  msg.fan_battery_current_display = FAN_battery_current_display;
+  motor_drive_pub->publish(msg);
 
-  RCLCPP_INFO(this->get_logger(), "RPDO_4_callback: 0x%X", value);
+//  RCLCPP_INFO(this->get_logger(), "motor_drive_canopen_callback: 0x%X", value);
+
 }
 
-void ROS2BridgeNode::topic_callback(const std_msgs::msg::UInt32::SharedPtr msg) const {
-    if (canopen_slave_node != nullptr) {
-        canopen_slave_node->send_TPDO(msg->data);
-    }
+void ROS2BridgeNode::gcu_alive_ros2_callback(std_msgs::msg::UInt8::SharedPtr msg) const {
+  if (canopen_slave_node != nullptr) {
+    canopen_slave_node->send_TPDO_1(msg->data);
+  }
+}
+
+void ROS2BridgeNode::speed_ref_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::SpeedRef::SharedPtr msg) const {
+  if (canopen_slave_node != nullptr) {
+    canopen_slave_node->send_TPDO_2(msg->right_speed_ref, msg->left_speed_ref);
+  }
 }

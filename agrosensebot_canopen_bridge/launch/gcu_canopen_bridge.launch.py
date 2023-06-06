@@ -23,8 +23,8 @@ def generate_launch_description():
 
     canopen_node_config_arg = DeclareLaunchArgument(
         'canopen_node_config',
-        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "test_slave.eds")),
-        description="Path to EDS file to be used for the CANOpen slave node.",
+        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "GCU.dcf")),
+        description="Path to DCF file to be used for the CANOpen GCU node.",
     )
     can_interface_arg = DeclareLaunchArgument(
         'can_interface_name',

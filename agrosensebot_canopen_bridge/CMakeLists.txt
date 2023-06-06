@@ -21,12 +21,14 @@ find_package(rclcpp REQUIRED)
 find_package(lely_core_libraries REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
+find_package(agrosensebot_canopen_bridge_msgs REQUIRED)
+
 
 add_executable(
         bridge_node
-        "src/main.cpp"
-        "src/ros2_bridge_node.cpp"
-        "src/canopen_slave_node.cpp"
+        src/main.cpp
+        src/ros2_bridge_node.cpp
+        src/canopen_slave_node.cpp
 )
 target_compile_features(
         bridge_node
@@ -40,11 +42,13 @@ target_include_directories(
 )
 ament_target_dependencies(
         bridge_node
-        "rclcpp"
-        "lely_core_libraries"
-        "rclcpp_lifecycle"
-        "lifecycle_msgs"
+        rclcpp
+        lely_core_libraries
+        rclcpp_lifecycle
+        lifecycle_msgs
+        agrosensebot_canopen_bridge_msgs
 )
+
 install(
         TARGETS
         bridge_node
