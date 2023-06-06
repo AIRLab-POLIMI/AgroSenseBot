@@ -1,0 +1,1 @@
+# AgroSenseBot CANOpen fake nodes

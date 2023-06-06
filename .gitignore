@@ -1,0 +1,4 @@
+agrosensebot_canopen_bridge/.idea
+agrosensebot_fake_canopen_nodes/.idea
+agrosensebot_canopen_bridge/cmake-build-debug
+agrosensebot_fake_canopen_nodes/cmake-build-debug
