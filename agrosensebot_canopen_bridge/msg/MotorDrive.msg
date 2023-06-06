@@ -1,4 +1,0 @@
-int16 fan_controller_temperature
-int16 fan_motor_temperature
-int16 fan_motor_rpm
-int16 fan_battery_current_display
