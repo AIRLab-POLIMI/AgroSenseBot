@@ -2,9 +2,8 @@
 #include "ros2_bridge_node.h"
 
 void CANOpenSlaveNode::send_TPDO_1(uint8_t data) {
-    RCLCPP_INFO(
-            ros2_bridge_node_->get_logger(),
-            "send_TPDO_1: writing 0x%X to 0x%X:%X", data, IDX_GCU_IS_ALIVE, SUB_IDX_GCU_is_alive);
+    RCLCPP_INFO(ros2_bridge_node_->get_logger(),
+                "send_TPDO_1: writing 0x%X to 0x%X:%X", data, IDX_GCU_IS_ALIVE, SUB_IDX_GCU_is_alive);
     (*this)[IDX_GCU_IS_ALIVE][SUB_IDX_GCU_is_alive] = data;
     this->TpdoEvent(1);
 }
@@ -13,8 +12,8 @@ void CANOpenSlaveNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_r
     RCLCPP_INFO(ros2_bridge_node_->get_logger(),
                 "send_TPDO_2: writing 0x%X to 0x%X:%X", right_speed_ref, IDX_MOTOR_SPEED_REF, SUB_IDX_RightSpeedRef);
     (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_RightSpeedRef] = right_speed_ref;
-  RCLCPP_INFO(ros2_bridge_node_->get_logger(),
-              "send_TPDO_2: writing 0x%X to 0x%X:%X", left_speed_ref, IDX_MOTOR_SPEED_REF, SUB_IDX_LeftSpeedRef);
+    RCLCPP_INFO(ros2_bridge_node_->get_logger(),
+                "send_TPDO_2: writing 0x%X to 0x%X:%X", left_speed_ref, IDX_MOTOR_SPEED_REF, SUB_IDX_LeftSpeedRef);
     (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_LeftSpeedRef] = left_speed_ref;
     this->TpdoEvent(2);
 }
