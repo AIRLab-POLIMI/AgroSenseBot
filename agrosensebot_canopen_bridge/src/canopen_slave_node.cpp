@@ -22,10 +22,7 @@ void CANOpenSlaveNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_r
 void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 
     // RPDO 1 (from VCU node)
-    if (idx == IDX_GCU_IS_ALIVE && (
-            (subidx == SUB_IDX_VCU_is_alive) ||
-            (subidx == SUB_IDX_control_mode)
-    )) {
+    if (idx == IDX_GCU_IS_ALIVE && subidx == SUB_IDX_control_mode) {
 
         RCLCPP_INFO(ros2_bridge_node_->get_logger(),
                     "RPDO_1: Received data on idx: 0x%X:%X", idx, subidx);
