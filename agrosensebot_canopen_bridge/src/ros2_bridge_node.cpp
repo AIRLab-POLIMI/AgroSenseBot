@@ -48,13 +48,26 @@ void ROS2BridgeNode::run_canopen_slave_node() {
     io::CanChannel chan(poll, exec);
     chan.open(ctrl);
 
-    canopen_slave_node = std::make_shared<CANOpenSlaveNode>(timer, chan, canopen_node_config_, "", this);
+    canopen_slave_node = std::make_shared<CANOpenSlaveNode>(timer, chan,
+                                                            canopen_node_config_, "", this);
     canopen_slave_node->Reset();
 
     while (active.load()) {
         loop.run_one_for(10ms);
     }
     ctx.shutdown();
+}
+
+void ROS2BridgeNode::vcu_alive_canopen_callback(bool VCU_is_alive_bit, bool VCU_safety_status_bit, uint8_t control_mode) {
+    RCLCPP_INFO(this->get_logger(),
+                "VCU_is_alive_bit: %i VCU_safety_status_bit: %i control_mode: %d",
+                VCU_is_alive_bit, VCU_safety_status_bit, control_mode);
+
+//    agrosensebot_canopen_bridge_msgs::msg::CANCommState VCU_state_msg;
+//    VCU_state_pub->publish(VCU_state_msg); TODO
+//    agrosensebot_canopen_bridge_msgs::msg::ControlMode control_mode_msg;
+//    control_mode_pub->publish(control_mode_msg); TODO
+
 }
 
 void ROS2BridgeNode::motor_drive_canopen_callback(int16_t FAN_controller_temperature, int16_t FAN_motor_temperature,

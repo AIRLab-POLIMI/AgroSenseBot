@@ -47,7 +47,7 @@ FAN speedRef?
 ## RPDO1 (from VCU)
 
 Defined in: `0x1400, 0x1600`
-COB-ID: `VCU_NODE_ID + ? = ?`
+COB-ID: `GCU_NODE_ID + 0x200 = 0x205`
 
 Mapping:
 ```
