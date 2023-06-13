@@ -8,25 +8,40 @@
 #include "std_msgs/msg/u_int8.hpp"
 #include "agrosensebot_canopen_bridge_msgs/msg/motor_drive.hpp"
 #include "agrosensebot_canopen_bridge_msgs/msg/speed_ref.hpp"
+#include "agrosensebot_canopen_bridge_msgs/msg/vcu_state.hpp"
 
+#include <chrono>
 
 using std::placeholders::_1;
+using namespace std::chrono_literals;
 
 class CANOpenSlaveNode;
 
 class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
     std::string canopen_node_config_;
     std::string can_interface_name_;
-    std::atomic<bool> active = false;
-    std::thread canopen_node_thread;
-    rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr gcu_alive_sub;
-    rclcpp::Subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>::SharedPtr speed_ref_sub;
-    rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr motor_drive_pub;
-    std::shared_ptr <CANOpenSlaveNode> canopen_slave_node = nullptr;
+    std::chrono::milliseconds vcu_is_alive_timeout_ = 100ms;
+    std::chrono::milliseconds speed_ref_max_age_ = 100ms;
+
+    std::thread canopen_node_thread_;
+    std::shared_ptr <CANOpenSlaveNode> canopen_slave_node_ = nullptr;
+
+    std::atomic<bool> lifecycle_node_active_ = false;
+    rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr gcu_alive_sub_;
+    rclcpp::Subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>::SharedPtr speed_ref_sub_;
+    rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr FAN_motor_drive_pub_;
+    rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::VCUState>::SharedPtr VCU_state_pub_;
+    rclcpp::TimerBase::SharedPtr vcu_is_alive_timer_;
+
+    rclcpp::Time last_VCU_message_time_ = rclcpp::Time(0);
+    rclcpp::Time last_VCU_alive_bit_change_time_ = rclcpp::Time(0);
+    bool last_VCU_alive_bit_ = false;
 
     void gcu_alive_ros2_callback(std_msgs::msg::UInt8::SharedPtr) const;
 
-    void speed_ref_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::SpeedRef::SharedPtr) const;
+    void speed_ref_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::SpeedRef::SharedPtr);
+
+    void vcu_is_alive_timer_ros2_callback();
 
     void run_canopen_slave_node();
 
@@ -37,16 +52,19 @@ public:
         this->declare_parameter<std::string>("canopen_node_config", "test_slave.eds");
         this->declare_parameter<std::string>("can_interface_name", "vcan0");
 
-        gcu_alive_sub = this->create_subscription<std_msgs::msg::UInt8>(
+        gcu_alive_sub_ = this->create_subscription<std_msgs::msg::UInt8>(
                 "gcu_alive", 10,
                 std::bind(&ROS2BridgeNode::gcu_alive_ros2_callback, this, _1)); //TODO explicitly set QoS profile
 
-        speed_ref_sub = this->create_subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>(
+        speed_ref_sub_ = this->create_subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>(
                 "speed_ref", 10,
                 std::bind(&ROS2BridgeNode::speed_ref_ros2_callback, this, _1)); //TODO explicitly set QoS profile
 
-        motor_drive_pub = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("motor_drive",
-                                                                                                    rclcpp::SensorDataQoS());
+        FAN_motor_drive_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("fan_motor_drive",
+                                                                                                         rclcpp::SensorDataQoS());
+        VCU_state_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::VCUState>("vcu_state",
+                                                                                                 rclcpp::SensorDataQoS());
+
     };
 
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
@@ -67,6 +85,7 @@ public:
     void vcu_alive_canopen_callback(bool, bool, uint8_t);
 
     void motor_drive_canopen_callback(int16_t, int16_t, int16_t, int16_t);
+
 
 };
 

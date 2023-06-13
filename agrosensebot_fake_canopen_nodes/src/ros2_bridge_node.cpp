@@ -59,10 +59,10 @@ void ROS2BridgeNode::run_canopen_slave_node()	{
 }
 
 void ROS2BridgeNode::motor_drive_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) const {
-  RCLCPP_INFO(this->get_logger(), "motor_drive_ros2_callback fan_motor_rpm: 0x%X", msg->fan_motor_rpm);
+  RCLCPP_INFO(this->get_logger(), "motor_drive_ros2_callback fan_motor_rpm: 0x%X", msg->motor_rpm);
   if (canopen_slave_node != nullptr) {
-    canopen_slave_node->send_TPDO_1(msg->fan_controller_temperature, msg->fan_motor_temperature,
-                                    msg->fan_motor_rpm, msg->fan_battery_current_display);
+    canopen_slave_node->send_TPDO_1(msg->controller_temperature, msg->motor_temperature,
+                                    msg->motor_rpm, msg->battery_current_display);
   }
 }
 

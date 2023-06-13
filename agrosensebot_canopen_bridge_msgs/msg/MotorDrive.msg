@@ -1,4 +1,5 @@
-int16 fan_controller_temperature
-int16 fan_motor_temperature
-int16 fan_motor_rpm
-int16 fan_battery_current_display
+builtin_interfaces/Time stamp
+int16 controller_temperature
+int16 motor_temperature
+int16 motor_rpm
+int16 battery_current_display

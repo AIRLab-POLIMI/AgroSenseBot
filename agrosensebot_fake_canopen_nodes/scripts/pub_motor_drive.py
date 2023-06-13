@@ -26,10 +26,11 @@ class MinimalPublisher(Node):
     def timer_callback(self):
         data = self.i % 2**15
         msg = MotorDrive()
-        msg.fan_controller_temperature = data
-        msg.fan_motor_temperature = data
-        msg.fan_motor_rpm = data
-        msg.fan_battery_current_display = data
+        msg.stamp = self.get_clock().now().to_msg()
+        msg.controller_temperature = data
+        msg.motor_temperature = data
+        msg.motor_rpm = data
+        msg.battery_current_display = data
         self.publisher_.publish(msg)
         self.get_logger().info(f"Publishing: {msg}")
         self.i += 1
