@@ -17,7 +17,7 @@ COB-ID: `GCU_NODE_ID + 0x180 = 0x185`
 
 Mapping:
 ```
-    0x2111:01 TPDO1_1 (UINT8, 1 byte)
+    0x2113:01 TPDO1_1 (UINT8, 1 byte)
         bit 0: bIsAlive
         bit 1: bReady
               TPDO1_2 (UINT8, 1 byte) not used
@@ -51,10 +51,10 @@ COB-ID: `GCU_NODE_ID + 0x200 = 0x205`
 
 Mapping:
 ```
-    0x2111:02 RPDO1_1 (UINT8, 1 byte)
+    0x2111:01 RPDO1_1 (UINT8, 1 byte)
         bit 0 -> bVcuIsAlive
         bit 1 -> bSafetyStatus
-    0x2111:03 RPDO1_2 (UINT8, 1 byte)
+    0x2111:02 RPDO1_2 (UINT8, 1 byte)
         bit 0: nControlMode
 ```
 

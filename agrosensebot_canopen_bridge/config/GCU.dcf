@@ -8,7 +8,7 @@ Description=GCU CANopen device for AgroSenseBot.
 CreationTime=12:37PM
 CreationDate=11-28-2020
 CreatedBy=Enrico Piazza
-ModificationTime=12:36PM
+ModificationTime=1:29PM
 ModificationDate=06-14-2023
 ModifiedBy=Enrico Piazza
 
@@ -1025,7 +1025,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=1
+DefaultValue=2
 ParameterValue=
 PDOMapping=0
 
@@ -1036,7 +1036,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21110208
+DefaultValue=0x21110108
 ParameterValue=
 PDOMapping=0
 
@@ -1047,7 +1047,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x21110208
 ParameterValue=
 PDOMapping=0
 

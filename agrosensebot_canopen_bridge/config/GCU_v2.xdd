@@ -15,7 +15,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="GCU_v2.xdd" fileCreator="Enrico Piazza" fileCreationDate="2020-11-28" fileCreationTime="12:37:00.0000000+01:00" fileModifiedBy="Enrico Piazza" fileModificationDate="2023-06-14" fileModificationTime="12:36:25.9188605+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q1="http://www.canopen.org/xml/1.1" xsi:type="q1:ProfileBody_Device_CANopen" formatName="CANopen" formatVersion="1.0" fileName="GCU_v2.xdd" fileCreator="Enrico Piazza" fileCreationDate="2020-11-28" fileCreationTime="12:37:00.0000000+01:00" fileModifiedBy="Enrico Piazza" fileModificationDate="2023-06-14" fileModificationTime="13:29:10.5767690+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <q1:DeviceIdentity>
         <q1:vendorName>-</q1:vendorName>
         <q1:vendorID>0</q1:vendorID>
@@ -812,17 +812,17 @@
           <q1:parameter uniqueID="UID_SUB_160000" access="readWrite">
             <label lang="en">Number of mapped application objects in PDO</label>
             <USINT />
-            <q1:defaultValue value="1" />
+            <q1:defaultValue value="2" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160001" access="readWrite">
             <label lang="en">Application object 1</label>
             <UDINT />
-            <q1:defaultValue value="0x21110208" />
+            <q1:defaultValue value="0x21110108" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160002" access="readWrite">
             <label lang="en">Application object 2</label>
             <UDINT />
-            <q1:defaultValue value="0x00000000" />
+            <q1:defaultValue value="0x21110208" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_160003" access="readWrite">
             <label lang="en">Application object 3</label>
@@ -1018,7 +1018,7 @@
           <q1:parameter uniqueID="UID_SUB_180001" access="readWrite">
             <label lang="en">COB-ID used by TPDO</label>
             <UDINT />
-            <q1:defaultValue value="$NODEID+0x180" />
+            <q1:defaultValue value="$NODEID+0x194" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180002" access="readWrite">
             <label lang="en">Transmission type</label>
@@ -1054,7 +1054,7 @@
           <q1:parameter uniqueID="UID_SUB_180101" access="readWrite">
             <label lang="en">COB-ID used by TPDO</label>
             <UDINT />
-            <q1:defaultValue value="$NODEID+0x280" />
+            <q1:defaultValue value="$NODEID+0x294" />
           </q1:parameter>
           <q1:parameter uniqueID="UID_SUB_180102" access="readWrite">
             <label lang="en">Transmission type</label>
@@ -1325,7 +1325,7 @@
         <ProfileTechnology>CANopen</ProfileTechnology>
       </ISO15745Reference>
     </ProfileHeader>
-    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="GCU_v2.xdd" fileCreator="Enrico Piazza" fileCreationDate="2020-11-28" fileCreationTime="12:37:00.0000000+01:00" fileModificationDate="2023-06-14" fileModificationTime="12:36:25.9188605+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
+    <ProfileBody xmlns:q2="http://www.canopen.org/xml/1.1" xsi:type="q2:ProfileBody_CommunicationNetwork_CANopen" formatName="CANopen" formatVersion="1.0" fileName="GCU_v2.xdd" fileCreator="Enrico Piazza" fileCreationDate="2020-11-28" fileCreationTime="12:37:00.0000000+01:00" fileModificationDate="2023-06-14" fileModificationTime="13:29:10.5767690+01:00" fileVersion="1" supportedLanguages="en" xmlns="">
       <ApplicationLayers>
         <q2:CANopenObjectList>
           <CANopenObject index="1000" name="Device type" objectType="7" PDOmapping="no" uniqueIDRef="UID_OBJ_1000" />
