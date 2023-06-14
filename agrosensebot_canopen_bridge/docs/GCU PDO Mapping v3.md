@@ -64,7 +64,7 @@ Size: 2 bytes
 ## RPDO2 (from MDL)
 
 Defined in: `0x1401, 0x1601`
-COB-ID: `MDL_NODE_ID + 0x180 = 01A7`
+COB-ID: `MDL_NODE_ID + 0x180 = 0x1A7`
 
 Mapping:
 ```
