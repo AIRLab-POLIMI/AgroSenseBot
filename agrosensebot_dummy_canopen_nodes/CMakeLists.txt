@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(agrosensebot_fake_canopen_nodes)
+project(agrosensebot_dummy_canopen_nodes)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -25,23 +25,23 @@ find_package(agrosensebot_canopen_bridge_msgs REQUIRED)
 
 
 add_executable(
-        fake_FAN_node
+        dummy_node
         src/main.cpp
         src/ros2_bridge_node.cpp
         src/canopen_slave_node.cpp
 )
 target_compile_features(
-        fake_FAN_node
+        dummy_node
         PUBLIC c_std_99 cxx_std_17  # Require C99 and C++17
 )
 target_include_directories(
-        fake_FAN_node
+        dummy_node
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 ament_target_dependencies(
-        fake_FAN_node
+        dummy_node
         rclcpp
         lely_core_libraries
         rclcpp_lifecycle
@@ -51,7 +51,7 @@ ament_target_dependencies(
 
 install(
         TARGETS
-        fake_FAN_node
+        dummy_node
         DESTINATION lib/${PROJECT_NAME}
 )
 

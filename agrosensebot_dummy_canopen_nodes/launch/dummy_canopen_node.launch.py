@@ -23,7 +23,7 @@ def generate_launch_description():
 
     canopen_node_config_arg = DeclareLaunchArgument(
         'canopen_node_config',
-        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "fake_FAN.dcf")),
+        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_node.dcf")),
         description="Path to DCF file to be used for the CANOpen node.",
     )
     can_interface_arg = DeclareLaunchArgument(
@@ -33,16 +33,16 @@ def generate_launch_description():
     )
     ros_node_name_arg = DeclareLaunchArgument(
         'ros_node_name',
-        default_value=TextSubstitution(text="fake_FAN"),
+        default_value=TextSubstitution(text="dummy_node"),
         description="Name of the ros node.",
     )
 
     ros2_canopen_bridge_node = launch_ros.actions.LifecycleNode(
         name=LaunchConfiguration("ros_node_name"),
         namespace="",
-        package="agrosensebot_fake_canopen_nodes",
+        package="agrosensebot_dummy_canopen_nodes",
         output="screen",
-        executable="fake_FAN_node",
+        executable="dummy_node",
         parameters=[
                 {
                     "canopen_node_config": LaunchConfiguration("canopen_node_config"),
