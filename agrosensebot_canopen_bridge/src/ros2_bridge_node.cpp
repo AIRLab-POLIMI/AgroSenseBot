@@ -13,7 +13,9 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
     get_parameter("can_interface_name", can_interface_name_);
 
     lifecycle_node_active_.store(true);
-    FAN_motor_drive_pub_->on_activate();
+    motor_drive_left_pub_->on_activate();
+    motor_drive_right_pub_->on_activate();
+    motor_drive_fan_pub_->on_activate();
     VCU_state_pub_->on_activate();
 
     canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_canopen_slave_node, this));
@@ -83,15 +85,37 @@ void ROS2BridgeNode::vcu_alive_canopen_callback(bool VCU_alive_bit, bool VCU_saf
     VCU_state_pub_->publish(VCU_state_msg);
 }
 
-void ROS2BridgeNode::motor_drive_canopen_callback(int16_t FAN_controller_temperature, int16_t FAN_motor_temperature,
-                                                  int16_t FAN_motor_RPM, int16_t FAN_battery_current_display) {
+void ROS2BridgeNode::motor_drive_left_canopen_callback(int16_t controller_temperature, int16_t motor_temperature,
+                                                       int16_t motor_RPM, int16_t battery_current_display) {
     agrosensebot_canopen_bridge_msgs::msg::MotorDrive msg;
     msg.stamp = this->get_clock()->now();
-    msg.controller_temperature = FAN_controller_temperature;
-    msg.motor_temperature = FAN_motor_temperature;
-    msg.motor_rpm = FAN_motor_RPM;
-    msg.battery_current_display = FAN_battery_current_display;
-    FAN_motor_drive_pub_->publish(msg);
+    msg.controller_temperature = controller_temperature;
+    msg.motor_temperature = motor_temperature;
+    msg.motor_rpm = motor_RPM;
+    msg.battery_current_display = battery_current_display;
+    motor_drive_left_pub_->publish(msg);
+}
+
+void ROS2BridgeNode::motor_drive_right_canopen_callback(int16_t controller_temperature, int16_t motor_temperature,
+                                                        int16_t motor_RPM, int16_t battery_current_display) {
+    agrosensebot_canopen_bridge_msgs::msg::MotorDrive msg;
+    msg.stamp = this->get_clock()->now();
+    msg.controller_temperature = controller_temperature;
+    msg.motor_temperature = motor_temperature;
+    msg.motor_rpm = motor_RPM;
+    msg.battery_current_display = battery_current_display;
+    motor_drive_right_pub_->publish(msg);
+}
+
+void ROS2BridgeNode::motor_drive_fan_canopen_callback(int16_t controller_temperature, int16_t motor_temperature,
+                                                      int16_t motor_RPM, int16_t battery_current_display) {
+    agrosensebot_canopen_bridge_msgs::msg::MotorDrive msg;
+    msg.stamp = this->get_clock()->now();
+    msg.controller_temperature = controller_temperature;
+    msg.motor_temperature = motor_temperature;
+    msg.motor_rpm = motor_RPM;
+    msg.battery_current_display = battery_current_display;
+    motor_drive_fan_pub_->publish(msg);
 }
 
 void ROS2BridgeNode::gcu_alive_ros2_callback(std_msgs::msg::UInt8::SharedPtr msg) const {

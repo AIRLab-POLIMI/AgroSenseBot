@@ -29,7 +29,9 @@ class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
     std::atomic<bool> lifecycle_node_active_ = false;
     rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr gcu_alive_sub_;
     rclcpp::Subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>::SharedPtr speed_ref_sub_;
-    rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr FAN_motor_drive_pub_;
+    rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr motor_drive_left_pub_;
+    rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr motor_drive_right_pub_;
+    rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr motor_drive_fan_pub_;
     rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::VCUState>::SharedPtr VCU_state_pub_;
     rclcpp::TimerBase::SharedPtr vcu_is_alive_timer_;
 
@@ -60,7 +62,11 @@ public:
                 "speed_ref", 10,
                 std::bind(&ROS2BridgeNode::speed_ref_ros2_callback, this, _1)); //TODO explicitly set QoS profile
 
-        FAN_motor_drive_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("fan_motor_drive",
+        motor_drive_left_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("motor_drive_left",
+                                                                                                         rclcpp::SensorDataQoS());
+        motor_drive_right_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("motor_drive_right",
+                                                                                                         rclcpp::SensorDataQoS());
+        motor_drive_fan_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("motor_drive_fan",
                                                                                                          rclcpp::SensorDataQoS());
         VCU_state_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::VCUState>("vcu_state",
                                                                                                  rclcpp::SensorDataQoS());
@@ -84,8 +90,11 @@ public:
 
     void vcu_alive_canopen_callback(bool, bool, uint8_t);
 
-    void motor_drive_canopen_callback(int16_t, int16_t, int16_t, int16_t);
+    void motor_drive_left_canopen_callback(int16_t, int16_t, int16_t, int16_t);
 
+    void motor_drive_right_canopen_callback(int16_t, int16_t, int16_t, int16_t);
+
+    void motor_drive_fan_canopen_callback(int16_t, int16_t, int16_t, int16_t);
 
 };
 

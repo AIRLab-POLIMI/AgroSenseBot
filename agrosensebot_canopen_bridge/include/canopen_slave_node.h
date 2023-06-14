@@ -27,6 +27,18 @@
 #define BIT_IDX_VCU_is_alive 0
 #define BIT_IDX_VCU_safety_status 1
 
+// RPDO2
+#define SUB_IDX_MDL_controller_temperature 0x01
+#define SUB_IDX_MDL_motor_temperature 0x02
+#define SUB_IDX_MDL_motor_RPM 0x03
+#define SUB_IDX_MDL_battery_current_display 0x04
+
+// RPDO3
+#define SUB_IDX_MDR_controller_temperature 0x05
+#define SUB_IDX_MDR_motor_temperature 0x06
+#define SUB_IDX_MDR_motor_RPM 0x07
+#define SUB_IDX_MDR_battery_current_display 0x08
+
 // RPDO4
 #define SUB_IDX_FAN_controller_temperature 0x09
 #define SUB_IDX_FAN_motor_temperature 0x0A
