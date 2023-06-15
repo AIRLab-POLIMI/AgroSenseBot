@@ -1,21 +1,21 @@
 [FileInfo]
-FileName=fake_FAN.dcf
+FileName=dummy_node.dcf
 FileVersion=1
 FileRevision=1
-LastEDS=X:\w\agrosensebot_ws\src\test_ros2_canopen_bridge\config\fake_FAN.eds
+LastEDS=
 EDSVersion=4.0
-Description=Fake FAN CANopen device for AgroSenseBot.
+Description=dummy CANopen device for AgroSenseBot.
 CreationTime=12:37PM
 CreationDate=11-28-2020
 CreatedBy=Enrico Piazza
-ModificationTime=4:07PM
-ModificationDate=06-05-2023
+ModificationTime=2:07PM
+ModificationDate=06-14-2023
 ModifiedBy=Enrico Piazza
 
 [DeviceInfo]
 VendorName=-
 VendorNumber=0
-ProductName=GCU
+ProductName=dummy_node
 ProductNumber=1
 RevisionNumber=0
 BaudRate_10=1
@@ -33,7 +33,7 @@ DynamicChannelsSupported=0
 CompactPDO=0
 GroupMessaging=0
 NrOfRXPDO=2
-NrOfTXPDO=1
+NrOfTXPDO=4
 LSS_Supported=1
 
 [DummyUsage]
@@ -49,8 +49,8 @@ Dummy0007=1
 Lines=0
 
 [DeviceComissioning]
-NodeID=0x28
-NodeName=FAN
+NodeID=6
+NodeName=dummy
 Baudrate=0
 NetNumber=0
 NetworkName=
@@ -148,7 +148,7 @@ ParameterValue=
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=23
+SupportedObjects=28
 1=0x1003
 2=0x1005
 3=0x1006
@@ -165,13 +165,18 @@ SupportedObjects=23
 14=0x1017
 15=0x1019
 16=0x1200
-17=0x1402
-18=0x1602
-19=0x1800
-20=0x1A00
-21=0x6200
-22=0x6401
-23=0x6411
+17=0x1400
+18=0x1401
+19=0x1600
+20=0x1601
+21=0x1800
+22=0x1801
+23=0x1802
+24=0x1803
+25=0x1A00
+26=0x1A01
+27=0x1A02
+28=0x1A03
 
 [1003]
 ParameterName=Pre-defined error field
@@ -827,7 +832,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x1A6
+DefaultValue=0x185
 ParameterValue=
 PDOMapping=0
 
@@ -853,6 +858,57 @@ DefaultValue=0
 ParameterValue=
 PDOMapping=0
 
+[1401]
+ParameterName=RPDO communication parameter
+Denotation=
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x4
+
+[1401sub0]
+ParameterName=Highest sub-index supported
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x05
+ParameterValue=
+PDOMapping=0
+
+[1401sub1]
+ParameterName=COB-ID used by RPDO
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x285
+ParameterValue=
+PDOMapping=0
+
+[1401sub2]
+ParameterName=Transmission type
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=254
+ParameterValue=
+PDOMapping=0
+
+[1401sub5]
+ParameterName=Event timer
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
 [1600]
 ParameterName=RPDO mapping parameter
 Denotation=
@@ -867,7 +923,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=4
+DefaultValue=1
 ParameterValue=
 PDOMapping=0
 
@@ -878,7 +934,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100110
+DefaultValue=0x21130108
 ParameterValue=
 PDOMapping=0
 
@@ -889,7 +945,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100210
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
@@ -900,7 +956,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100310
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
@@ -911,7 +967,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100410
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
@@ -959,120 +1015,69 @@ DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
-[1402]
-ParameterName=RPDO communication parameter
-Denotation=
-ObjectType=0x9
-;StorageLocation=PERSIST_COMM
-SubNumber=0x4
-
-[1402sub0]
-ParameterName=Highest sub-index supported
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0x05
-ParameterValue=
-PDOMapping=0
-
-[1402sub1]
-ParameterName=COB-ID used by RPDO
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x1A6
-ParameterValue=
-PDOMapping=0
-
-[1402sub2]
-ParameterName=Transmission type
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=254
-ParameterValue=
-PDOMapping=0
-
-[1402sub5]
-ParameterName=Event timer
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0006
-AccessType=rw
-DefaultValue=0
-ParameterValue=
-PDOMapping=0
-
-[1602]
+[1601]
 ParameterName=RPDO mapping parameter
 Denotation=
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
 SubNumber=0x9
 
-[1602sub0]
+[1601sub0]
 ParameterName=Number of mapped application objects in PDO
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=4
+DefaultValue=2
 ParameterValue=
 PDOMapping=0
 
-[1602sub1]
+[1601sub1]
 ParameterName=Application object 1
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100110
+DefaultValue=0x21120110
 ParameterValue=
 PDOMapping=0
 
-[1602sub2]
+[1601sub2]
 ParameterName=Application object 2
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100210
+DefaultValue=0x21120210
 ParameterValue=
 PDOMapping=0
 
-[1602sub3]
+[1601sub3]
 ParameterName=Application object 3
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100310
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
-[1602sub4]
+[1601sub4]
 ParameterName=Application object 4
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100410
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
-[1602sub5]
+[1601sub5]
 ParameterName=Application object 5
 Denotation=
 ObjectType=0x7
@@ -1083,7 +1088,7 @@ DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
-[1602sub6]
+[1601sub6]
 ParameterName=Application object 6
 Denotation=
 ObjectType=0x7
@@ -1094,7 +1099,7 @@ DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
-[1602sub7]
+[1601sub7]
 ParameterName=Application object 7
 Denotation=
 ObjectType=0x7
@@ -1105,7 +1110,7 @@ DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
-[1602sub8]
+[1601sub8]
 ParameterName=Application object 8
 Denotation=
 ObjectType=0x7
@@ -1141,7 +1146,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0x180
+DefaultValue=0x205
 ParameterValue=
 PDOMapping=0
 
@@ -1189,6 +1194,225 @@ DefaultValue=0
 ParameterValue=
 PDOMapping=0
 
+[1801]
+ParameterName=TPDO communication parameter
+Denotation=
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x6
+
+[1801sub0]
+ParameterName=Highest sub-index supported
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+ParameterValue=
+PDOMapping=0
+
+[1801sub1]
+ParameterName=COB-ID used by TPDO
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x1A7
+ParameterValue=
+PDOMapping=0
+
+[1801sub2]
+ParameterName=Transmission type
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=254
+ParameterValue=
+PDOMapping=0
+
+[1801sub3]
+ParameterName=Inhibit time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1801sub5]
+ParameterName=Event timer
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1801sub6]
+ParameterName=SYNC start value
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1802]
+ParameterName=TPDO communication parameter
+Denotation=
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x6
+
+[1802sub0]
+ParameterName=Highest sub-index supported
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+ParameterValue=
+PDOMapping=0
+
+[1802sub1]
+ParameterName=COB-ID used by TPDO
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x1A6
+ParameterValue=
+PDOMapping=0
+
+[1802sub2]
+ParameterName=Transmission type
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=254
+ParameterValue=
+PDOMapping=0
+
+[1802sub3]
+ParameterName=Inhibit time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1802sub5]
+ParameterName=Event timer
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1802sub6]
+ParameterName=SYNC start value
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1803]
+ParameterName=TPDO communication parameter
+Denotation=
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x6
+
+[1803sub0]
+ParameterName=Highest sub-index supported
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x06
+ParameterValue=
+PDOMapping=0
+
+[1803sub1]
+ParameterName=COB-ID used by TPDO
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x1A8
+ParameterValue=
+PDOMapping=0
+
+[1803sub2]
+ParameterName=Transmission type
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=254
+ParameterValue=
+PDOMapping=0
+
+[1803sub3]
+ParameterName=Inhibit time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1803sub5]
+ParameterName=Event timer
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1803sub6]
+ParameterName=SYNC start value
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
 [1A00]
 ParameterName=TPDO mapping parameter
 Denotation=
@@ -1203,7 +1427,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=5
+DefaultValue=2
 ParameterValue=
 PDOMapping=0
 
@@ -1214,7 +1438,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100910
+DefaultValue=0x21110108
 ParameterValue=
 PDOMapping=0
 
@@ -1225,7 +1449,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100A10
+DefaultValue=0x21110208
 ParameterValue=
 PDOMapping=0
 
@@ -1236,7 +1460,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100B10
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
@@ -1247,7 +1471,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x21100C10
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
@@ -1295,419 +1519,332 @@ DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
-[6200]
-ParameterName=Write digital output 8-bit
+[1A01]
+ParameterName=TPDO mapping parameter
 Denotation=
-ObjectType=0x8
-;StorageLocation=RAM
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
 SubNumber=0x9
 
-[6200sub0]
-ParameterName=Highest sub-index supported
+[1A01sub0]
+ParameterName=Number of mapped application objects in PDO
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
-AccessType=ro
-DefaultValue=0x08
+AccessType=rw
+DefaultValue=4
 ParameterValue=
 PDOMapping=0
 
-[6200sub1]
-ParameterName=Output
+[1A01sub1]
+ParameterName=Application object 1
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0005
+DataType=0x0007
 AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6200sub2]
-ParameterName=Output
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6200sub3]
-ParameterName=Output
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6200sub4]
-ParameterName=Output
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6200sub5]
-ParameterName=Output
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6200sub6]
-ParameterName=Output
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6200sub7]
-ParameterName=Output
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6200sub8]
-ParameterName=Output
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=rw
-DefaultValue=0x00
-ParameterValue=
-PDOMapping=1
-
-[6401]
-ParameterName=Read analog input 16-bit
-Denotation=
-ObjectType=0x8
-;StorageLocation=RAM
-SubNumber=0x11
-
-[6401sub0]
-ParameterName=Highest sub-index supported
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0x10
+DefaultValue=0x21100110
 ParameterValue=
 PDOMapping=0
 
-[6401sub1]
-ParameterName=Input
+[1A01sub2]
+ParameterName=Application object 2
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x21100210
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6401sub2]
-ParameterName=Input
+[1A01sub3]
+ParameterName=Application object 3
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x21100310
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6401sub3]
-ParameterName=Input
+[1A01sub4]
+ParameterName=Application object 4
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x21100410
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6401sub4]
-ParameterName=Input
+[1A01sub5]
+ParameterName=Application object 5
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6401sub5]
-ParameterName=Input
+[1A01sub6]
+ParameterName=Application object 6
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6401sub6]
-ParameterName=Input
+[1A01sub7]
+ParameterName=Application object 7
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6401sub7]
-ParameterName=Input
+[1A01sub8]
+ParameterName=Application object 8
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6401sub8]
-ParameterName=Input
+[1A02]
+ParameterName=TPDO mapping parameter
 Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401sub9]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401subA]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401subB]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401subC]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401subD]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401subE]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401subF]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6401sub10]
-ParameterName=Input
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[6411]
-ParameterName=Write analog output 16-bit
-Denotation=
-ObjectType=0x8
-;StorageLocation=RAM
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
 SubNumber=0x9
 
-[6411sub0]
-ParameterName=Highest sub-index supported
+[1A02sub0]
+ParameterName=Number of mapped application objects in PDO
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
-AccessType=ro
-DefaultValue=0x08
+AccessType=rw
+DefaultValue=4
 ParameterValue=
 PDOMapping=0
 
-[6411sub1]
-ParameterName=Output
+[1A02sub1]
+ParameterName=Application object 1
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x21100510
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6411sub2]
-ParameterName=Output
+[1A02sub2]
+ParameterName=Application object 2
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x21100610
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6411sub3]
-ParameterName=Output
+[1A02sub3]
+ParameterName=Application object 3
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x21100710
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6411sub4]
-ParameterName=Output
+[1A02sub4]
+ParameterName=Application object 4
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x21100810
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6411sub5]
-ParameterName=Output
+[1A02sub5]
+ParameterName=Application object 5
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6411sub6]
-ParameterName=Output
+[1A02sub6]
+ParameterName=Application object 6
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6411sub7]
-ParameterName=Output
+[1A02sub7]
+ParameterName=Application object 7
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[6411sub8]
-ParameterName=Output
+[1A02sub8]
+ParameterName=Application object 8
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x00000000
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
+
+[1A03]
+ParameterName=TPDO mapping parameter
+Denotation=
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x9
+
+[1A03sub0]
+ParameterName=Number of mapped application objects in PDO
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=4
+ParameterValue=
+PDOMapping=0
+
+[1A03sub1]
+ParameterName=Application object 1
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x21100910
+ParameterValue=
+PDOMapping=0
+
+[1A03sub2]
+ParameterName=Application object 2
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x21100A10
+ParameterValue=
+PDOMapping=0
+
+[1A03sub3]
+ParameterName=Application object 3
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x21100B10
+ParameterValue=
+PDOMapping=0
+
+[1A03sub4]
+ParameterName=Application object 4
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x21100C10
+ParameterValue=
+PDOMapping=0
+
+[1A03sub5]
+ParameterName=Application object 5
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1A03sub6]
+ParameterName=Application object 6
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1A03sub7]
+ParameterName=Application object 7
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1A03sub8]
+ParameterName=Application object 8
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
 
 [ManufacturerObjects]
-SupportedObjects=5
+SupportedObjects=6
 1=0x2100
 2=0x2106
 3=0x2110
 4=0x2111
 5=0x2112
+6=0x2113
 
 [2100]
 ParameterName=Error status bits
@@ -1736,7 +1873,7 @@ ParameterName=motor_drive_data
 Denotation=
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x11
+SubNumber=0xD
 
 [2110sub0]
 ParameterName=Highest sub-index supported
@@ -1881,56 +2018,12 @@ DefaultValue=0
 ParameterValue=
 PDOMapping=1
 
-[2110subD]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2110subE]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2110subF]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2110sub10]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
 [2111]
-ParameterName=GCU_is_alive
+ParameterName=VCU_is_alive
 Denotation=
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x11
+SubNumber=0x3
 
 [2111sub0]
 ParameterName=Highest sub-index supported
@@ -1939,182 +2032,28 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x03
+DefaultValue=0x02
 ParameterValue=
 PDOMapping=0
 
 [2111sub1]
-ParameterName=GCU_is_alive
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub2]
 ParameterName=VCU_is_alive
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
-AccessType=ro
+AccessType=rw
 DefaultValue=0
 ParameterValue=
 PDOMapping=1
 
-[2111sub3]
+[2111sub2]
 ParameterName=control_mode
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub4]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub5]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub6]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub7]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub8]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub9]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111subA]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111subB]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111subC]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111subD]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111subE]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111subF]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2111sub10]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0005
-AccessType=ro
+AccessType=rw
 DefaultValue=0
 ParameterValue=
 PDOMapping=1
@@ -2124,7 +2063,7 @@ ParameterName=motor_speed_ref
 Denotation=
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x11
+SubNumber=0x3
 
 [2112sub0]
 ParameterName=Highest sub-index supported
@@ -2143,7 +2082,7 @@ Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0003
-AccessType=ro
+AccessType=rw
 DefaultValue=0
 ParameterValue=
 PDOMapping=1
@@ -2154,161 +2093,36 @@ Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0003
-AccessType=ro
+AccessType=rw
 DefaultValue=0
 ParameterValue=
 PDOMapping=1
 
-[2112sub3]
-ParameterName=
+[2113]
+ParameterName=GCU_is_alive
 Denotation=
-ObjectType=0x7
+ObjectType=0x8
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
+SubNumber=0x2
 
-[2112sub4]
-ParameterName=
+[2113sub0]
+ParameterName=Highest sub-index supported
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
+DataType=0x0005
 AccessType=ro
-DefaultValue=0
+DefaultValue=0x01
 ParameterValue=
-PDOMapping=1
+PDOMapping=0
 
-[2112sub5]
-ParameterName=
+[2113sub1]
+ParameterName=GCU_is_alive
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112sub6]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112sub7]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112sub8]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112sub9]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112subA]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112subB]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112subC]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112subD]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112subE]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112subF]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
-DefaultValue=0
-ParameterValue=
-PDOMapping=1
-
-[2112sub10]
-ParameterName=
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0003
-AccessType=ro
+DataType=0x0005
+AccessType=rw
 DefaultValue=0
 ParameterValue=
 PDOMapping=1

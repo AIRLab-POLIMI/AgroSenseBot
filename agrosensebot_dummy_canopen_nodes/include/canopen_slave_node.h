@@ -14,6 +14,8 @@
 #include <atomic>
 #include <mutex>
 #include <thread>
+#include <bitset>
+
 
 // PDO register indices
 #define IDX_MOTOR_DRIVE_DATA 0x2110
@@ -21,35 +23,35 @@
 #define IDX_MOTOR_SPEED_REF 0x2112
 #define IDX_GCU_IS_ALIVE 0x2113
 
-// RPDO1
+// TPDO1
 #define SUB_IDX_VCU_is_alive 0x01
 #define SUB_IDX_control_mode 0x02
 
-#define BIT_IDX_VCU_is_alive 0
-#define BIT_IDX_VCU_safety_status 1
-
-// RPDO2
+// TPDO2
 #define SUB_IDX_MDL_controller_temperature 0x01
 #define SUB_IDX_MDL_motor_temperature 0x02
 #define SUB_IDX_MDL_motor_RPM 0x03
 #define SUB_IDX_MDL_battery_current_display 0x04
 
-// RPDO3
+// TPDO3
 #define SUB_IDX_MDR_controller_temperature 0x05
 #define SUB_IDX_MDR_motor_temperature 0x06
 #define SUB_IDX_MDR_motor_RPM 0x07
 #define SUB_IDX_MDR_battery_current_display 0x08
 
-// RPDO4
+// TPDO4
 #define SUB_IDX_FAN_controller_temperature 0x09
 #define SUB_IDX_FAN_motor_temperature 0x0A
 #define SUB_IDX_FAN_motor_RPM 0x0B
 #define SUB_IDX_FAN_battery_current_display 0x0C
 
-//TPDO1
+//RPDO1
 #define SUB_IDX_GCU_is_alive 0x01
 
-//TPDO2
+#define BIT_IDX_GCU_is_alive 0
+#define BIT_IDX_GCU_is_ready 1
+
+//RPDO2
 #define SUB_IDX_RightSpeedRef 0x01
 #define SUB_IDX_LeftSpeedRef 0x02
 
@@ -74,9 +76,13 @@ public:
             ros2_bridge_node_(ros2_bridge_node) { // TODO pass callback function
     };
 
-    void send_TPDO_1(uint8_t);
+    void send_TPDO_1(bool, bool, uint8_t);
 
-    void send_TPDO_2(int16_t, int16_t);
+    void send_TPDO_2(int16_t, int16_t, int16_t, int16_t);
+
+    void send_TPDO_3(int16_t, int16_t, int16_t, int16_t);
+
+    void send_TPDO_4(int16_t, int16_t, int16_t, int16_t);
 
 };
 

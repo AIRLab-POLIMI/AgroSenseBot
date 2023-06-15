@@ -69,10 +69,6 @@ void ROS2BridgeNode::run_canopen_slave_node() {
 }
 
 void ROS2BridgeNode::vcu_alive_canopen_callback(bool VCU_alive_bit, bool VCU_safety_status_bit, uint8_t control_mode) {
-    RCLCPP_INFO(this->get_logger(),
-                "VCU_alive_bit: %i VCU_safety_status_bit: %i control_mode: %d",
-                VCU_alive_bit, VCU_safety_status_bit, control_mode);
-
     rclcpp::Time now = this->get_clock()->now();
     last_VCU_message_time_ = now;
     if (last_VCU_alive_bit_ != VCU_alive_bit) last_VCU_alive_bit_change_time_ = now;
