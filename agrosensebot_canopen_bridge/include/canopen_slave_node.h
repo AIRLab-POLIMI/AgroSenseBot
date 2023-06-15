@@ -17,12 +17,13 @@
 
 // PDO register indices
 #define IDX_MOTOR_DRIVE_DATA 0x2110
-#define IDX_GCU_IS_ALIVE 0x2111
+#define IDX_VCU_IS_ALIVE 0x2111
 #define IDX_MOTOR_SPEED_REF 0x2112
+#define IDX_GCU_IS_ALIVE 0x2113
 
 // RPDO1
-#define SUB_IDX_VCU_is_alive 0x02
-#define SUB_IDX_control_mode 0x03
+#define SUB_IDX_VCU_is_alive 0x01
+#define SUB_IDX_control_mode 0x02
 
 #define BIT_IDX_VCU_is_alive 0
 #define BIT_IDX_VCU_safety_status 1

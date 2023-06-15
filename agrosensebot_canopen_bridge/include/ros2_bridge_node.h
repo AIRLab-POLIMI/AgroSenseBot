@@ -55,12 +55,12 @@ public:
         this->declare_parameter<std::string>("can_interface_name", "vcan0");
 
         gcu_alive_sub_ = this->create_subscription<std_msgs::msg::UInt8>(
-                "gcu_alive", 10,
-                std::bind(&ROS2BridgeNode::gcu_alive_ros2_callback, this, _1)); //TODO explicitly set QoS profile
+                "gcu_alive", rclcpp::SensorDataQoS(),
+                std::bind(&ROS2BridgeNode::gcu_alive_ros2_callback, this, _1));
 
         speed_ref_sub_ = this->create_subscription<agrosensebot_canopen_bridge_msgs::msg::SpeedRef>(
-                "speed_ref", 10,
-                std::bind(&ROS2BridgeNode::speed_ref_ros2_callback, this, _1)); //TODO explicitly set QoS profile
+                "speed_ref", rclcpp::SensorDataQoS(),
+                std::bind(&ROS2BridgeNode::speed_ref_ros2_callback, this, _1));
 
         motor_drive_left_pub_ = this->create_publisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>("motor_drive_left",
                                                                                                          rclcpp::SensorDataQoS());
