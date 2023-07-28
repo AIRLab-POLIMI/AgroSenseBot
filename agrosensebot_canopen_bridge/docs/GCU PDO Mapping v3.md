@@ -54,8 +54,7 @@ Mapping:
     0x2111:01 RPDO1_1 (UINT8, 1 byte)
         bit 0 -> bVcuIsAlive
         bit 1 -> bSafetyStatus
-    0x2111:02 RPDO1_2 (UINT8, 1 byte)
-        bit 0: nControlMode
+    0x2111:02 RPDO1_2 (UINT8, 1 byte) nControlMode
 ```
 
 Size: 2 bytes
