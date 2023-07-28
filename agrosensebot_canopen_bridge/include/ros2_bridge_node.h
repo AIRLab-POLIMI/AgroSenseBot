@@ -12,6 +12,9 @@
 
 #include <chrono>
 
+#define RAW_DATA_STEP_VALUE_temperature 0.1 // 0.1°C
+#define RAW_DATA_STEP_VALUE_current 0.1 // 0.1A
+
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 

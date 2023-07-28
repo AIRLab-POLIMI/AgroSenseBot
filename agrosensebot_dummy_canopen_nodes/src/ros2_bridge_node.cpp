@@ -9,8 +9,15 @@ ROS2BridgeNode::on_configure(const rclcpp_lifecycle::State &) {
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
-    get_parameter("canopen_node_config", canopen_node_config_);
+    get_parameter("dummy_canopen_node_config", canopen_node_config_);
     get_parameter("can_interface_name", can_interface_name_);
+    RCLCPP_INFO(this->get_logger(), "dummy_canopen_node_config: %s", canopen_node_config_.c_str());
+    RCLCPP_INFO(this->get_logger(), "can_interface_name: %s", can_interface_name_.c_str());
+
+    if(can_interface_name_ != "vcan0"){
+        RCLCPP_FATAL(this->get_logger(), "Using a CAN interface different than vcan0 for testing!");
+        return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
+    }
 
     lifecycle_node_active_.store(true);
     gcu_alive_pub_->on_activate();
@@ -76,19 +83,31 @@ void ROS2BridgeNode::vcu_alive_ros2_callback(agrosensebot_canopen_bridge_msgs::m
 
 void ROS2BridgeNode::motor_drive_left_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
     if (canopen_slave_node_ != nullptr) {
-        canopen_slave_node_->send_TPDO_2(msg->controller_temperature, msg->motor_temperature, msg->motor_rpm, msg->battery_current_display);
+        canopen_slave_node_->send_TPDO_2(
+                (int16_t)(msg->controller_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
+                (int16_t)(msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
+                msg->motor_rpm,
+                (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
     }
 }
 
 void ROS2BridgeNode::motor_drive_right_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
     if (canopen_slave_node_ != nullptr) {
-        canopen_slave_node_->send_TPDO_3(msg->controller_temperature, msg->motor_temperature, msg->motor_rpm, msg->battery_current_display);
+        canopen_slave_node_->send_TPDO_3(
+                (int16_t)(msg->controller_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
+                (int16_t)(msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
+                msg->motor_rpm,
+                (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
     }
 }
 
 void ROS2BridgeNode::motor_drive_fan_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
     if (canopen_slave_node_ != nullptr) {
-        canopen_slave_node_->send_TPDO_4(msg->controller_temperature, msg->motor_temperature, msg->motor_rpm, msg->battery_current_display);
+        canopen_slave_node_->send_TPDO_4(
+                (int16_t)(msg->controller_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
+                (int16_t)(msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
+                msg->motor_rpm,
+                (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
     }
 }
 

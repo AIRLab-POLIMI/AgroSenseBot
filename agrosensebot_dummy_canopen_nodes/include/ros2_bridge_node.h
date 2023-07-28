@@ -12,6 +12,9 @@
 
 #include <chrono>
 
+#define INVERSE_RAW_DATA_STEP_VALUE_temperature 10 // 10°C
+#define INVERSE_RAW_DATA_STEP_VALUE_current 10 // 10A
+
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
@@ -50,7 +53,7 @@ public:
     explicit ROS2BridgeNode(const std::string &node_name, bool intra_process_comms = false)
             : rclcpp_lifecycle::LifecycleNode(node_name,
                                               rclcpp::NodeOptions().use_intra_process_comms(intra_process_comms)) {
-        this->declare_parameter<std::string>("canopen_node_config", "test_slave.eds");
+        this->declare_parameter<std::string>("dummy_canopen_node_config", "test_slave.eds");
         this->declare_parameter<std::string>("can_interface_name", "vcan0");
 
         gcu_alive_pub_ = this->create_publisher<std_msgs::msg::UInt8>("test/gcu_alive", rclcpp::SensorDataQoS());

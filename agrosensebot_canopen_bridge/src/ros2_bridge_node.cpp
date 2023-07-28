@@ -11,6 +11,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
     get_parameter("canopen_node_config", canopen_node_config_);
     get_parameter("can_interface_name", can_interface_name_);
+    RCLCPP_INFO(this->get_logger(), "canopen_node_config: %s", canopen_node_config_.c_str());
+    RCLCPP_INFO(this->get_logger(), "can_interface_name: %s", can_interface_name_.c_str());
 
     lifecycle_node_active_.store(true);
     motor_drive_left_pub_->on_activate();
@@ -58,8 +60,7 @@ void ROS2BridgeNode::run_canopen_slave_node() {
     io::CanChannel chan(poll, exec);
     chan.open(ctrl);
 
-    canopen_slave_node_ = std::make_shared<CANOpenSlaveNode>(timer, chan,
-                                                             canopen_node_config_, "", this);
+    canopen_slave_node_ = std::make_shared<CANOpenSlaveNode>(timer, chan, canopen_node_config_, "", this);
     canopen_slave_node_->Reset();
 
     while (lifecycle_node_active_.load()) {
@@ -85,10 +86,10 @@ void ROS2BridgeNode::motor_drive_left_canopen_callback(int16_t controller_temper
                                                        int16_t motor_RPM, int16_t battery_current_display) {
     agrosensebot_canopen_bridge_msgs::msg::MotorDrive msg;
     msg.stamp = this->get_clock()->now();
-    msg.controller_temperature = controller_temperature;
-    msg.motor_temperature = motor_temperature;
+    msg.controller_temperature = controller_temperature * RAW_DATA_STEP_VALUE_temperature;
+    msg.motor_temperature = motor_temperature * RAW_DATA_STEP_VALUE_temperature;
     msg.motor_rpm = motor_RPM;
-    msg.battery_current_display = battery_current_display;
+    msg.battery_current_display = battery_current_display * RAW_DATA_STEP_VALUE_current;
     motor_drive_left_pub_->publish(msg);
 }
 
@@ -96,10 +97,10 @@ void ROS2BridgeNode::motor_drive_right_canopen_callback(int16_t controller_tempe
                                                         int16_t motor_RPM, int16_t battery_current_display) {
     agrosensebot_canopen_bridge_msgs::msg::MotorDrive msg;
     msg.stamp = this->get_clock()->now();
-    msg.controller_temperature = controller_temperature;
-    msg.motor_temperature = motor_temperature;
+    msg.controller_temperature = controller_temperature * RAW_DATA_STEP_VALUE_temperature;
+    msg.motor_temperature = motor_temperature * RAW_DATA_STEP_VALUE_temperature;
     msg.motor_rpm = motor_RPM;
-    msg.battery_current_display = battery_current_display;
+    msg.battery_current_display = battery_current_display * RAW_DATA_STEP_VALUE_current;
     motor_drive_right_pub_->publish(msg);
 }
 
@@ -107,10 +108,10 @@ void ROS2BridgeNode::motor_drive_fan_canopen_callback(int16_t controller_tempera
                                                       int16_t motor_RPM, int16_t battery_current_display) {
     agrosensebot_canopen_bridge_msgs::msg::MotorDrive msg;
     msg.stamp = this->get_clock()->now();
-    msg.controller_temperature = controller_temperature;
-    msg.motor_temperature = motor_temperature;
+    msg.controller_temperature = controller_temperature * RAW_DATA_STEP_VALUE_temperature;
+    msg.motor_temperature = motor_temperature * RAW_DATA_STEP_VALUE_temperature;
     msg.motor_rpm = motor_RPM;
-    msg.battery_current_display = battery_current_display;
+    msg.battery_current_display = battery_current_display * RAW_DATA_STEP_VALUE_current;
     motor_drive_fan_pub_->publish(msg);
 }
 

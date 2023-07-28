@@ -28,7 +28,7 @@ def generate_launch_description():
     )
     can_interface_arg = DeclareLaunchArgument(
         'can_interface_name',
-        default_value=TextSubstitution(text="vcan0"),
+        default_value=TextSubstitution(text="can0"),
         description="CAN interface name.",
     )
     ros_node_name_arg = DeclareLaunchArgument(
@@ -39,7 +39,6 @@ def generate_launch_description():
 
     ros2_canopen_bridge_node = launch_ros.actions.LifecycleNode(
         name=LaunchConfiguration("ros_node_name"),
-        namespace="",
         package="agrosensebot_canopen_bridge",
         output="screen",
         executable="bridge_node",
