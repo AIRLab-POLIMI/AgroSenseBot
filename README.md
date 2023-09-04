@@ -3,14 +3,14 @@
 ## Install
 
 ```bash
-sudo apt install software-properties-common libtool
+sudo apt install software-properties-common libtool python3-wheel
 sudo add-apt-repository ppa:lely/ppa -y
 sudo apt-get update
 sudo apt install liblely-coapp-dev liblely-co-tools python3-dcf-tools
 sudo apt install can-utils
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
-git clone -b foxy https://github.com/ros-industrial/ros2_canopen.git
+git clone -b humble https://github.com/ros-industrial/ros2_canopen.git
 git clone https://github.com/AIRLab-POLIMI/AgroSenseBot.git
 cd ~/w/agrosensebot_ws/
 colcon build
