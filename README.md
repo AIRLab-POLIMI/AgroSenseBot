@@ -3,7 +3,10 @@
 ## Install
 
 ```bash
-sudo apt install liblely-coapp-dev liblely-co-tools python3-dcf-tools  # maybe
+sudo apt install software-properties-common libtool
+sudo add-apt-repository ppa:lely/ppa -y
+sudo apt-get update
+sudo apt install liblely-coapp-dev liblely-co-tools python3-dcf-tools
 sudo apt install can-utils
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
