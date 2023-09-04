@@ -8,7 +8,7 @@ sudo apt install can-utils
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
 git clone -b foxy https://github.com/ros-industrial/ros2_canopen.git
-git clone git@github.com:AIRLab-POLIMI/AgroSenseBot.git
+git clone https://github.com/AIRLab-POLIMI/AgroSenseBot.git
 cd ~/w/agrosensebot_ws/
 colcon build
 ```
