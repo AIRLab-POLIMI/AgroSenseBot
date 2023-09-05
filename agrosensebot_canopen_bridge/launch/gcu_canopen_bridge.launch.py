@@ -39,6 +39,7 @@ def generate_launch_description():
 
     ros2_canopen_bridge_node = launch_ros.actions.LifecycleNode(
         name=LaunchConfiguration("ros_node_name"),
+        namespace="",
         package="agrosensebot_canopen_bridge",
         output="screen",
         executable="bridge_node",
