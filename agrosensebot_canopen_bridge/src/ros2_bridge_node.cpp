@@ -29,6 +29,12 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
     last_VCU_message_time_ = this->get_clock()->now();
     last_VCU_alive_bit_change_time_ = this->get_clock()->now();
 
+    std::chrono::duration speed_ref_timeout_timer_period_ = 10ms;
+    speed_ref_timeout_timer_ = rclcpp::create_timer(
+            this, this->get_clock(), rclcpp::Duration(speed_ref_timeout_timer_period_),
+            std::bind(&ROS2BridgeNode::speed_ref_timeout_timer_ros2_callback, this));
+    last_speed_ref_message_time_ = this->get_clock()->now();
+
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
@@ -126,11 +132,12 @@ void ROS2BridgeNode::speed_ref_ros2_callback(agrosensebot_canopen_bridge_msgs::m
     if (now - msg->stamp > rclcpp::Duration(speed_ref_max_age_)){
         RCLCPP_ERROR(this->get_logger(),
                      "SpeedRef message too old. Received message stamp: %i[s]+%i[ns], current time: %i[s]+%i[ns]",
-                     msg->stamp.sec, msg->stamp.nanosec, now.seconds(), now.nanoseconds());
+                     msg->stamp.sec, msg->stamp.nanosec, now.seconds(), now.nanoseconds());  // TODO: fix ros2 humble change
         return;
     }
 
     if (canopen_slave_node_ != nullptr) {
+        last_speed_ref_message_time_ = now;
         canopen_slave_node_->send_TPDO_2(msg->right_speed_ref, msg->left_speed_ref);
     }
 }
@@ -145,6 +152,22 @@ void ROS2BridgeNode::vcu_is_alive_timer_ros2_callback(){
 
     if(now - last_VCU_alive_bit_change_time_ > rclcpp::Duration(vcu_is_alive_timeout_)){
         RCLCPP_ERROR(this->get_logger(), "VCU ALIVE BIT CHANGE TIMEOUT");
+    }
+
+}
+
+void ROS2BridgeNode::speed_ref_timeout_timer_ros2_callback(){
+    rclcpp::Time now = this->get_clock()->now();
+
+    if(now - last_speed_ref_message_time_ > rclcpp::Duration(speed_ref_timeout_)){
+        RCLCPP_INFO(this->get_logger(), "SPEED REF TIMEOUT");
+
+        if (canopen_slave_node_ != nullptr) {
+            // reset the timeout now to avoid sending TPDOs with too high frequency
+            last_speed_ref_message_time_ = now;
+            // send a speed ref 0 to stop the motors
+            canopen_slave_node_->send_TPDO_2(0, 0);
+        }
     }
 
 }

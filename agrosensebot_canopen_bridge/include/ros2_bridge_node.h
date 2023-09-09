@@ -24,6 +24,7 @@ class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
     std::string canopen_node_config_;
     std::string can_interface_name_;
     std::chrono::milliseconds vcu_is_alive_timeout_ = 100ms;
+    std::chrono::milliseconds speed_ref_timeout_ = 100ms;
     std::chrono::milliseconds speed_ref_max_age_ = 100ms;
 
     std::thread canopen_node_thread_;
@@ -37,16 +38,21 @@ class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
     rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::MotorDrive>::SharedPtr motor_drive_fan_pub_;
     rclcpp_lifecycle::LifecyclePublisher<agrosensebot_canopen_bridge_msgs::msg::VCUState>::SharedPtr VCU_state_pub_;
     rclcpp::TimerBase::SharedPtr vcu_is_alive_timer_;
+    rclcpp::TimerBase::SharedPtr speed_ref_timeout_timer_;
 
     rclcpp::Time last_VCU_message_time_ = rclcpp::Time(0);
     rclcpp::Time last_VCU_alive_bit_change_time_ = rclcpp::Time(0);
     bool last_VCU_alive_bit_ = false;
+
+    rclcpp::Time last_speed_ref_message_time_ = rclcpp::Time(0);
 
     void gcu_alive_ros2_callback(std_msgs::msg::UInt8::SharedPtr) const;
 
     void speed_ref_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::SpeedRef::SharedPtr);
 
     void vcu_is_alive_timer_ros2_callback();
+
+    void speed_ref_timeout_timer_ros2_callback();
 
     void run_canopen_slave_node();
 
