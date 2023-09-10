@@ -1,0 +1,106 @@
+// Copyright 2021 ros2_control Development Team
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef ASB_ROS2_CONTROL__ASB_SYSTEM_HPP_
+#define ASB_ROS2_CONTROL__ASB_SYSTEM_HPP_
+
+#include "hardware_interface/handle.hpp"
+#include "hardware_interface/hardware_info.hpp"
+#include "hardware_interface/system_interface.hpp"
+#include "hardware_interface/types/hardware_interface_return_values.hpp"
+#include "rclcpp/clock.hpp"
+#include "rclcpp/duration.hpp"
+#include "rclcpp/macros.hpp"
+#include "rclcpp/time.hpp"
+#include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
+#include "rclcpp_lifecycle/state.hpp"
+
+#include "asb_ros2_control/visibility_control.h"
+#include "asb_ros2_control/canopen_slave_node.h"
+
+#include <memory>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <thread>
+
+using namespace std::chrono_literals;
+
+namespace asb_ros2_control
+{
+class ASBSystemHardware : public hardware_interface::SystemInterface
+{
+
+struct Config
+{
+    // TODO something else?
+    std::string canopen_node_config;
+    std::string can_interface_name;
+    std::chrono::seconds canopen_init_timeout = 5s;
+    int tracks_maximum_velocity_rpm_;
+};
+
+public:
+  RCLCPP_SHARED_PTR_DEFINITIONS(ASBSystemHardware);
+
+  ASB_ROS2_CONTROL_PUBLIC
+  hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
+
+  ASB_ROS2_CONTROL_PUBLIC
+  std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+
+  ASB_ROS2_CONTROL_PUBLIC
+  std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+
+  ASB_ROS2_CONTROL_PUBLIC
+  hardware_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+
+  ASB_ROS2_CONTROL_PUBLIC
+  hardware_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+
+  ASB_ROS2_CONTROL_PUBLIC
+  hardware_interface::return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+
+  ASB_ROS2_CONTROL_PUBLIC
+  hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+
+  void run_canopen_slave_node();
+
+
+private:
+  // Configuration parameters
+  Config cfg_;
+
+  // canopen node objects
+  std::atomic<bool> lifecycle_state_is_active_ = false;
+  std::atomic<bool> canopen_node_initialized_ = true;
+  std::thread canopen_node_thread_;
+  std::shared_ptr <CANOpenSlaveNode> canopen_node_ = nullptr;
+
+  // exported interface objects
+  std::string track_left_joint_name_;
+  double track_left_position_state_ = 0;
+  double track_left_velocity_state_ = 0;
+  double track_left_velocity_command_ = 0;
+
+  std::string track_right_joint_name_;
+  double track_right_position_state_ = 0;
+  double track_right_velocity_state_ = 0;
+  double track_right_velocity_command_ = 0;
+
+};
+
+}  // namespace asb_ros2_control
+
+#endif  // ASB_ROS2_CONTROL__ASB_SYSTEM_HPP_

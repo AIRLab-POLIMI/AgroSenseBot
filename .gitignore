@@ -3,3 +3,4 @@ agrosensebot_fake_canopen_nodes/.idea
 agrosensebot_canopen_bridge/cmake-build-debug
 agrosensebot_fake_canopen_nodes/cmake-build-debug
 agrosensebot_dummy_canopen_nodes/cmake-build-debug
+**/cmake-build-debug/**
