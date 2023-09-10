@@ -61,12 +61,9 @@ private:
   void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;
 
 public:
-//  CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt):
-//    BasicSlave(timer, chan, dcfTxt, "") {};
 
-  CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt,
-                   const std::string &dcfBin) :
-          BasicSlave(timer, chan, dcfTxt, dcfBin) { // TODO pass callback function
+  CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt, const std::string &dcfBin):
+          BasicSlave(timer, chan, dcfTxt, dcfBin) {
   };
 
   void send_TPDO_1(uint8_t);

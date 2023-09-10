@@ -225,7 +225,7 @@ void ASBSystemHardware::run_canopen_slave_node() {
   }
 }
 
-hardware_interface::CallbackReturn ASBSystemHardware::on_activate(
+hardware_interface::CallbackReturn ASBSystemHardware::on_activate(  // TODO move to on_configure
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Activating, initializing GCU CANOpen node");
@@ -260,11 +260,11 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_activate(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn ASBSystemHardware::on_deactivate(
+hardware_interface::CallbackReturn ASBSystemHardware::on_deactivate(  // TODO move to on_cleanup
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Deactivating, terminating CANOpen node");
-  lifecycle_state_is_active_.store(false);  // TODO set false in lifecycle transition on_configure too (maybe?)
+  lifecycle_state_is_active_.store(false);
   canopen_node_thread_.join();
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Successfully deactivated");
 
