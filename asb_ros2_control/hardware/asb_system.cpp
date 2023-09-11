@@ -146,28 +146,24 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   state_interfaces.emplace_back(
-          hardware_interface::StateInterface(
                   track_left_joint_name_,
                   hardware_interface::HW_IF_POSITION,
-                  &track_left_position_state_));
+                  &track_left_position_state_);
 
   state_interfaces.emplace_back(
-          hardware_interface::StateInterface(
                   track_left_joint_name_,
                   hardware_interface::HW_IF_VELOCITY,
-                  &track_left_velocity_state_));
+                  &track_left_velocity_state_);
 
   state_interfaces.emplace_back(
-          hardware_interface::StateInterface(
                   track_right_joint_name_,
                   hardware_interface::HW_IF_POSITION,
-                  &track_right_position_state_));
+                  &track_right_position_state_);
 
   state_interfaces.emplace_back(
-          hardware_interface::StateInterface(
                   track_right_joint_name_,
                   hardware_interface::HW_IF_VELOCITY,
-                  &track_right_velocity_state_));
+                  &track_right_velocity_state_);
 
   return state_interfaces;
 }
@@ -177,16 +173,14 @@ std::vector<hardware_interface::CommandInterface> ASBSystemHardware::export_comm
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   command_interfaces.emplace_back(
-          hardware_interface::CommandInterface(
                   track_left_joint_name_,
                   hardware_interface::HW_IF_VELOCITY,
-                  &track_left_velocity_command_));
+                  &track_left_velocity_command_);
 
   command_interfaces.emplace_back(
-          hardware_interface::CommandInterface(
                   track_right_joint_name_,
                   hardware_interface::HW_IF_VELOCITY,
-                  &track_right_velocity_command_));
+                  &track_right_velocity_command_);
 
   return command_interfaces;
 }
