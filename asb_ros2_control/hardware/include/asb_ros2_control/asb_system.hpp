@@ -34,6 +34,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <bitset>
 
 using namespace std::chrono_literals;
 
@@ -88,16 +89,45 @@ private:
   std::thread canopen_node_thread_;
   std::shared_ptr <CANOpenSlaveNode> canopen_node_ = nullptr;
 
-  // exported interface objects
+  // internal state variables
+  bool gcu_alive_bit_current_value_ = false;
+  rclcpp::Time gcu_alive_bit_last_value_change_;
+  bool first_write_ = true;
+  bool software_emergency_stop_ = false;
+
+  // exported interface for motor left
   std::string track_left_joint_name_;
   double track_left_position_state_ = 0;
   double track_left_velocity_state_ = 0;
   double track_left_velocity_command_ = 0;
 
+  // exported interface for motor right
   std::string track_right_joint_name_;
   double track_right_position_state_ = 0;
   double track_right_velocity_state_ = 0;
   double track_right_velocity_command_ = 0;
+
+  // exported interface for the control system (variables need to be doubles for ros2_control reasons)
+  // control system state and commands
+  double vcu_is_alive_bool_state_ = 0.0;
+  double vcu_safety_status_bool_state_ = 0.0;
+  double control_mode_int_state_ = 0.0;
+  // software emergency stop state and command
+  double set_software_emergency_stop_bool_command_ = 0.0;
+  double software_emergency_stop_bool_state_ = 0.0;
+  // left motor additional state
+  double track_left_controller_temperature_state_ = 0;
+  double track_left_motor_temperature_state_ = 0;
+  double track_left_battery_current_state_ = 0;
+  // right motor additional state
+  double track_right_controller_temperature_state_ = 0;
+  double track_right_motor_temperature_state_ = 0;
+  double track_right_battery_current_state_ = 0;
+  // fan motor additional state
+  double fan_controller_temperature_state_ = 0;
+  double fan_motor_temperature_state_ = 0;
+  double fan_battery_current_state_ = 0;
+  double fan_motor_rpm_state_ = 0;
 
 };
 

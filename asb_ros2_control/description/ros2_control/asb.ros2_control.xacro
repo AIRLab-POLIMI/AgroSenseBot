@@ -11,8 +11,8 @@
         <param name="tracks_maximum_velocity_rpm">2400</param>
         <!--        <param name="loop_rate">50</param>  TODO ? -->
         <!--        <param name="timeout">50</param>  TODO ? -->
-        <param name="left_track_joint_name">left_wheel_joint</param>
-        <param name="right_track_joint_name">right_wheel_joint</param>
+        <param name="${prefix}left_track_joint_name">left_wheel_joint</param>
+        <param name="${prefix}right_track_joint_name">right_wheel_joint</param>
       </hardware>
       <joint name="${prefix}left_wheel_joint">
         <state_interface name="position"/>
@@ -24,6 +24,27 @@
         <state_interface name="velocity"/>
         <command_interface name="velocity"/>
       </joint>
+      <gpio name="control_system_state">
+        <state_interface name="vcu_is_alive"/>
+        <state_interface name="vcu_safety_status"/>
+        <state_interface name="control_mode"/>
+        <state_interface name="software_emergency_stop"/>
+        <command_interface name="set_software_emergency_stop"/>
+
+        <state_interface name="left_motor_controller_temperature"/>
+        <state_interface name="left_motor_temperature"/>
+        <state_interface name="left_motor_battery_current"/>
+
+        <state_interface name="right_motor_controller_temperature"/>
+        <state_interface name="right_motor_temperature"/>
+        <state_interface name="right_motor_battery_current"/>
+
+        <state_interface name="fan_motor_rpm"/>
+        <state_interface name="fan_motor_controller_temperature"/>
+        <state_interface name="fan_motor_temperature"/>
+        <state_interface name="fan_motor_battery_current"/>
+      </gpio>
+
     </ros2_control>
 
   </xacro:macro>
