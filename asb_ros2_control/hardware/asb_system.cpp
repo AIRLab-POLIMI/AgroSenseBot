@@ -291,31 +291,42 @@ hardware_interface::return_type ASBSystemHardware::read(
 
   // control system (i.e., the VCU CANOpen node)
   vcu_is_alive_bool_state_ = canopen_node_->VCU_is_alive_bit_.load();
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read vcu_is_alive_bool_state_: %i", (bool)std::round(vcu_is_alive_bool_state_));
   vcu_safety_status_bool_state_ = canopen_node_->VCU_safety_status_bit_.load();
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read vcu_safety_status_bool_state_: %i", (bool)std::round(vcu_safety_status_bool_state_));
   control_mode_int_state_ = canopen_node_->control_mode_.load();
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read control_mode_int_state_: %i", (bool)std::round(control_mode_int_state_));
 
   // software emergency stop
   software_emergency_stop_bool_state_ = software_emergency_stop_;
 
   // left motor state
   track_left_velocity_state_ = canopen_node_->motor_RPM_left_.load();
-  track_left_controller_temperature_state_ = canopen_node_->controller_temperature_left_.load();
-  track_left_motor_temperature_state_ = canopen_node_->motor_temperature_left_.load();
-  track_left_battery_current_state_ = canopen_node_->battery_current_display_left_.load();
+  track_left_controller_temperature_state_ = canopen_node_->controller_temperature_left_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_controller_temperature_state_: %f", track_left_controller_temperature_state_);
+  track_left_motor_temperature_state_ = canopen_node_->motor_temperature_left_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_motor_temperature_state_: %f", track_left_motor_temperature_state_);
+  track_left_battery_current_state_ = canopen_node_->battery_current_display_left_.load() * RAW_DATA_STEP_VALUE_current;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_battery_current_state_: %f", track_left_battery_current_state_);
 
   // right motor state
   track_right_velocity_state_ = canopen_node_->motor_RPM_right_.load();
-  track_right_controller_temperature_state_ = canopen_node_->controller_temperature_right_.load();
-  track_right_motor_temperature_state_ = canopen_node_->motor_temperature_right_.load();
-  track_right_battery_current_state_ = canopen_node_->battery_current_display_right_.load();
+  track_right_controller_temperature_state_ = canopen_node_->controller_temperature_right_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_controller_temperature_state_: %f", track_right_controller_temperature_state_);
+  track_right_motor_temperature_state_ = canopen_node_->motor_temperature_right_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_motor_temperature_state_: %f", track_right_motor_temperature_state_);
+  track_right_battery_current_state_ = canopen_node_->battery_current_display_right_.load() * RAW_DATA_STEP_VALUE_current;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_battery_current_state_: %f", track_right_battery_current_state_);
 
   // fan motor state
   fan_motor_rpm_state_ = canopen_node_->motor_RPM_fan_.load();
-  fan_controller_temperature_state_ = canopen_node_->controller_temperature_fan_.load();
-  fan_motor_temperature_state_ = canopen_node_->motor_temperature_fan_.load();
-  fan_battery_current_state_ = canopen_node_->battery_current_display_fan_.load();
+  fan_controller_temperature_state_ = canopen_node_->controller_temperature_fan_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_controller_temperature_state_: %f", fan_controller_temperature_state_);
+  fan_motor_temperature_state_ = canopen_node_->motor_temperature_fan_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_temperature_state_: %f", fan_motor_temperature_state_);
+  fan_battery_current_state_ = canopen_node_->battery_current_display_fan_.load() * RAW_DATA_STEP_VALUE_current;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_battery_current_state_: %f", fan_battery_current_state_);
 
-  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read vcu_is_alive_bool_state_: %i", (bool)std::round(vcu_is_alive_bool_state_));
   return hardware_interface::return_type::OK;
 }
 
@@ -353,6 +364,7 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
       gcu_alive_bit_current_value_ = !gcu_alive_bit_current_value_;
       gcu_alive_bit_last_value_change_ = time;
     }
+    // TODO limit maximum frequency of TPDOs
     std::bitset<8> gcu_state_data_bitset;
     gcu_state_data_bitset[0] = gcu_alive_bit_current_value_;
     gcu_state_data_bitset[1] = true;  // bReady value of TPDO1. TODO not sure if this is used by the VCU.

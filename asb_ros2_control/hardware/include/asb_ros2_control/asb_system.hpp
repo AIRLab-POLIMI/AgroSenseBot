@@ -36,6 +36,10 @@
 #include <thread>
 #include <bitset>
 
+// Conversion values for current and temperature
+#define RAW_DATA_STEP_VALUE_temperature 0.1 // 0.1°C
+#define RAW_DATA_STEP_VALUE_current 0.1 // 0.1A
+
 using namespace std::chrono_literals;
 
 namespace asb_ros2_control

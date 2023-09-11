@@ -18,6 +18,8 @@ void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
   if (idx == IDX_VCU_IS_ALIVE && subidx == SUB_IDX_control_mode) {
     uint8_t VCU_is_alive = (*this)[IDX_VCU_IS_ALIVE][SUB_IDX_VCU_is_alive];
     VCU_is_alive_bit_.store((VCU_is_alive >> BIT_IDX_VCU_is_alive) & 1);
+    // TODO set last_VCU_is_alive_bit_change_ time and when we read the control state use it to compute the hardware interface state value
+    // std::cout << "VCU_is_alive_bit_ " << VCU_is_alive_bit_ << std::endl;
     VCU_safety_status_bit_.store((VCU_is_alive >> BIT_IDX_VCU_safety_status) & 1);
     control_mode_.store((*this)[IDX_VCU_IS_ALIVE][SUB_IDX_control_mode]);
   }

@@ -13,6 +13,6 @@
 
 <!--  <xacro:diffbot prefix="$(arg prefix)" />-->
 
-  <xacro:asb_ros2_control name="asb" prefix="$(arg prefix)" test="false" />
+  <xacro:asb_ros2_control name="asb" prefix="$(arg prefix)" test="true" />
 
 </robot>
