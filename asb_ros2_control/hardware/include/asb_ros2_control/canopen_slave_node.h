@@ -13,6 +13,7 @@
 #include <atomic>
 #include <mutex>
 #include <thread>
+#include <chrono>
 
 // PDO register indices
 #define IDX_MOTOR_DRIVE_DATA 0x2110
@@ -60,18 +61,35 @@ private:
 
   void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;
 
+  // VCU comm check variables
+  std::chrono::steady_clock::time_point last_VCU_is_alive_bit_change_;
+  bool previous_VCU_is_alive_bit_ = false;
+  bool VCU_comm_started_ = false;
+
+  //  left and right motor position hack (TODO)
+  std::chrono::steady_clock::time_point last_RPM_data_left_;
+  std::chrono::steady_clock::time_point last_RPM_data_right_;
+  std::chrono::duration<double> since_last_RPM_data_left_;
+  std::chrono::duration<double> since_last_RPM_data_right_;
+  double rotor_position_left_local_ = 0;
+  double rotor_position_right_local_ = 0;
+  bool first_data_left_ = true;
+  bool first_data_right_ = true;
+
 public:
 
   CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt, const std::string &dcfBin):
           BasicSlave(timer, chan, dcfTxt, dcfBin) {
   };
 
+  void timer();
+
   void send_TPDO_1(uint8_t);
 
   void send_TPDO_2(int16_t, int16_t);
 
   // VCU status
-  std::atomic<bool> VCU_is_alive_bit_ = false;
+  std::atomic<bool> VCU_comm_ok_ = true;
   std::atomic<bool> VCU_safety_status_bit_ = false;
   std::atomic<uint8_t> control_mode_ = 0;
 
@@ -93,6 +111,9 @@ public:
   std::atomic<int16_t> motor_RPM_fan_ = 0;
   std::atomic<int16_t> battery_current_display_fan_ = 0;
 
+  // left and right motor position hack (TODO)
+  std::atomic<double> rotor_position_left_ = 0;
+  std::atomic<double> rotor_position_right_ = 0;
 
 };
 

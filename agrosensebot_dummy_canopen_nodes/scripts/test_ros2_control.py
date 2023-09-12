@@ -54,7 +54,7 @@ class MinimalPublisher(Node):
         motor_drive_right_msg.stamp = self.get_clock().now().to_msg()
         motor_drive_right_msg.controller_temperature = self.rnd_int16 * 0.1
         motor_drive_right_msg.motor_temperature = self.rnd_int16 * 0.1
-        motor_drive_right_msg.motor_rpm = self.rnd_int16
+        motor_drive_right_msg.motor_rpm = 100
         motor_drive_right_msg.battery_current_display = self.rnd_int16 * 0.1
         self.motor_drive_right_pub.publish(motor_drive_right_msg)
         self.get_logger().info(f"Publishing motor_drive_right {motor_drive_right_msg.controller_temperature, motor_drive_right_msg.motor_temperature, motor_drive_right_msg.motor_rpm, motor_drive_right_msg.battery_current_display}")
@@ -63,7 +63,7 @@ class MinimalPublisher(Node):
         motor_drive_left_msg.stamp = self.get_clock().now().to_msg()
         motor_drive_left_msg.controller_temperature = self.rnd_int16 * 0.1
         motor_drive_left_msg.motor_temperature = self.rnd_int16 * 0.1
-        motor_drive_left_msg.motor_rpm = self.rnd_int16
+        motor_drive_left_msg.motor_rpm = 60
         motor_drive_left_msg.battery_current_display = self.rnd_int16 * 0.1
         self.motor_drive_left_pub.publish(motor_drive_left_msg)
         self.get_logger().info(f"Publishing motor_drive_left {motor_drive_left_msg.controller_temperature, motor_drive_left_msg.motor_temperature, motor_drive_left_msg.motor_rpm, motor_drive_left_msg.battery_current_display}")

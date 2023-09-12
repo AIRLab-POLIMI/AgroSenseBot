@@ -28,7 +28,7 @@
         <command_interface name="velocity"/>
       </joint>
       <gpio name="control_system_state">
-        <state_interface name="vcu_is_alive"/>
+        <state_interface name="vcu_comm_ok"/>
         <state_interface name="vcu_safety_status"/>
         <state_interface name="control_mode"/>
         <state_interface name="software_emergency_stop"/>

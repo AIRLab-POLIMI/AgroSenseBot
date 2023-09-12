@@ -49,7 +49,6 @@ class ASBSystemHardware : public hardware_interface::SystemInterface
 
 struct Config
 {
-    // TODO something else?
     std::string canopen_node_config;
     std::string can_interface_name;
     std::chrono::seconds canopen_init_timeout = 5s;
@@ -82,6 +81,8 @@ public:
 
   void run_canopen_slave_node();
 
+  void timer();
+
 
 private:
   // Configuration parameters
@@ -95,8 +96,7 @@ private:
 
   // internal state variables
   bool gcu_alive_bit_current_value_ = false;
-  rclcpp::Time gcu_alive_bit_last_value_change_;
-  bool first_write_ = true;
+  std::chrono::steady_clock::time_point gcu_alive_bit_last_value_change_;
   bool software_emergency_stop_ = false;
 
   // exported interface for motor left
@@ -113,7 +113,7 @@ private:
 
   // exported interface for the control system (variables need to be doubles for ros2_control reasons)
   // control system state and commands
-  double vcu_is_alive_bool_state_ = 0.0;
+  double vcu_comm_ok_bool_state_ = 1.0;
   double vcu_safety_status_bool_state_ = 0.0;
   double control_mode_int_state_ = 0.0;
   // software emergency stop state and command

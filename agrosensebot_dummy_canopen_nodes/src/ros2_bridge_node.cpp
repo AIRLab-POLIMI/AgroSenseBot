@@ -125,7 +125,7 @@ void ROS2BridgeNode::gcu_is_alive_timer_ros2_callback(){
 }
 
 void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool GCU_is_ready_bit) {
-    RCLCPP_INFO(this->get_logger(), "gcu_alive_canopen_callback GCU_is_alive_bit: %i, GCU_is_ready_bit: %i", GCU_is_alive_bit, GCU_is_ready_bit);
+//    RCLCPP_INFO(this->get_logger(), "gcu_alive_canopen_callback GCU_is_alive_bit: %i, GCU_is_ready_bit: %i", GCU_is_alive_bit, GCU_is_ready_bit);
 
     rclcpp::Time now = this->get_clock()->now();
     last_GCU_message_time_ = now;
@@ -135,7 +135,7 @@ void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool GCU_
 }
 
 void ROS2BridgeNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref) {
-    RCLCPP_INFO(this->get_logger(), "speed_ref_canopen_callback right_speed_ref: %i, left_speed_ref: %i", right_speed_ref, left_speed_ref);
+//    RCLCPP_INFO(this->get_logger(), "speed_ref_canopen_callback right_speed_ref: %i, left_speed_ref: %i", right_speed_ref, left_speed_ref);
 
     agrosensebot_canopen_bridge_msgs::msg::SpeedRef msg;
     msg.stamp = this->get_clock()->now();
