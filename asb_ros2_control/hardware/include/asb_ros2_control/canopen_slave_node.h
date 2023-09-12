@@ -93,19 +93,19 @@ public:
   std::atomic<bool> VCU_safety_status_bit_ = false;
   std::atomic<uint8_t> control_mode_ = 0;
 
-  // Left motor status
+  // left motor status
   std::atomic<int16_t> controller_temperature_left_ = 0;
   std::atomic<int16_t> motor_temperature_left_ = 0;
   std::atomic<int16_t> motor_RPM_left_ = 0;
   std::atomic<int16_t> battery_current_display_left_ = 0;
 
-  // Left motor status
+  // right motor status
   std::atomic<int16_t> controller_temperature_right_ = 0;
   std::atomic<int16_t> motor_temperature_right_ = 0;
   std::atomic<int16_t> motor_RPM_right_ = 0;
   std::atomic<int16_t> battery_current_display_right_ = 0;
 
-  // Left motor status
+  // fan motor status
   std::atomic<int16_t> controller_temperature_fan_ = 0;
   std::atomic<int16_t> motor_temperature_fan_ = 0;
   std::atomic<int16_t> motor_RPM_fan_ = 0;
