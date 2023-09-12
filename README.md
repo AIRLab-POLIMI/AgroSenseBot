@@ -1,9 +1,9 @@
 # AgroSenseBot
 
 ## Install
-
+After installing ROS2 Humble, run these commands:
 ```bash
-sudo apt install can-utils
+sudo apt install can-utils ros-humble-xacro ros-humble-ros2controlcli ros-humble-ros2-controllers-test-nodes ros-humble-diff-drive-controller ros-humble-joint-state-broadcaster
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
 git clone -b humble https://github.com/ros-industrial/ros2_canopen.git
@@ -12,7 +12,34 @@ cd ~/w/agrosensebot_ws/
 colcon build
 ```
 
-## Test
+## asb_ros2_control
+The ROS2 package `asb_ros2_control` provides the ros2_control hardware interface which communicates with the CANOpen control system.
+The hardware interface is meant to be used with ros2_control controllers, such as the ros2_control diff_drive_controller.
+
+
+### Test
+
+Launch ros2_control hardware interface and dummy CANOpen node
+```shell
+ros2 launch agrosensebot_dummy_canopen_nodes dummy_canopen_node_ros2_control.launch.py
+```
+
+Run script that provides and receives data to the dummy node
+```shell
+~/w/agrosensebot_ws/src/AgroSenseBot/agrosensebot_dummy_canopen_nodes/scripts/test_ros2_control.py
+```
+
+Run ROS2 node to publish cmd_vel and press forward key (i).
+```shell
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/asb_base_controller/cmd_vel_unstamped
+```
+
+
+## agrosensebot_canopen_bridge
+The ROS2 package `agrosensebot_canopen_bridge` provides a bridge between the CANOpen control system and ROS2 by translating the CANOpen data.
+`agrosensebot_canopen_bridge` and `asb_ros2_control` should not be run at the same time.
+
+### Test 
 
 ⚠️<font style='color:yellow;background-color:black;font-family:monospace'>
 DO NOT run this test on the physical CAN network (can0) by changing the parameter `can_interface_name`.
@@ -61,3 +88,4 @@ Received   speed_ref (-15350, 16433)
 If everything is working correctly, all published messages except gcu_alive should also be received,
 and the received messages should be equal to the published messages with the same name, as in the example above.
 The equality check is **NOT** performed automatically.
+
