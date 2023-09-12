@@ -19,6 +19,14 @@ The hardware interface is meant to be used with ros2_control controllers, such a
 
 ### Test
 
+In separate terminals:
+
+Set up the vcan0 virtual CAN network
+```shell
+sudo ~/w/agrosensebot_ws/src/AgroSenseBot/agrosensebot_canopen_bridge/scripts/setup_vcan0.sh
+candump -tz vcan0
+```
+
 Launch ros2_control hardware interface and dummy CANOpen node
 ```shell
 ros2 launch agrosensebot_dummy_canopen_nodes dummy_canopen_node_ros2_control.launch.py
@@ -47,7 +55,7 @@ Only use the virtual network vcan0 for testing, as set by default in the launch 
 </font>
 
 In terminal 1:
-```bash
+```shell
 sudo ~/w/agrosensebot_ws/src/AgroSenseBot/agrosensebot_canopen_bridge/scripts/setup_vcan0.sh
 candump -tz vcan0
 ```
@@ -55,14 +63,14 @@ No messages will be displayed at first.
 
 
 In terminal 2:
-```bash
+```shell
 ros2 launch agrosensebot_dummy_canopen_nodes dummy_canopen_node.launch.py
 ```
 This will launch the GCU node and a dummy node in their own ROS2 namespace (/dummy_test).
 Error messages (in red) `GCU COMM TIMEOUT` and `VCU COMM TIMEOUT` will be printed because the nodes are still not exchanging messages.
 
 In terminal 3:
-```bash
+```shell
 ~/w/agrosensebot_ws/src/AgroSenseBot/agrosensebot_dummy_canopen_nodes/scripts/test.py
 ```
 This script publishes ROS2 messages to the GCU and dummy nodes, which will communicate through the CAN network simulating the communication on the physical CAN network.
