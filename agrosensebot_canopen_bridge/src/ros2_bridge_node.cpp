@@ -131,8 +131,8 @@ void ROS2BridgeNode::speed_ref_ros2_callback(agrosensebot_canopen_bridge_msgs::m
     rclcpp::Time now = this->get_clock()->now();
     if (now - msg->stamp > rclcpp::Duration(speed_ref_max_age_)){
         RCLCPP_ERROR(this->get_logger(),
-                     "SpeedRef message too old. Received message stamp: %i[s]+%i[ns], current time: %i[s]+%i[ns]",
-                     msg->stamp.sec, msg->stamp.nanosec, now.seconds(), now.nanoseconds());  // TODO: fix ros2 humble change
+                     "SpeedRef message too old. Received message stamp: %i[s]+%i[ns], current time: %f[s]",
+                     msg->stamp.sec, msg->stamp.nanosec, now.seconds());
         return;
     }
 
