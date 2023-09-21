@@ -88,6 +88,8 @@ public:
 
   void send_TPDO_2(int16_t, int16_t);
 
+  std::string node_name_ = "";
+
   // VCU status
   std::atomic<bool> VCU_comm_ok_ = true;
   std::atomic<bool> VCU_safety_status_bit_ = false;

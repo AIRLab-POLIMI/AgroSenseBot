@@ -9,11 +9,11 @@ void CANOpenSlaveNode::timer() {
   {
     VCU_comm_ok_.store((now - last_VCU_is_alive_bit_change_ < 200ms));  // TODO make parameter
     if (!VCU_comm_ok_.load()) {
-      std::cerr << "[CANOpenSlaveNode::timer] VCU COMM TIMEOUT ("
+      std::cerr << "[" << node_name_ << "]" << "[CANOpenSlaveNode::timer] VCU COMM TIMEOUT ("
                 << chrono_duration_to_s(last_VCU_is_alive_bit_change_, now)  << "s)" << std::endl;
     }
   } else {
-    std::cout << "[CANOpenSlaveNode::timer] VCU COMM NOT STARTED YET" << std::endl;
+    std::cout << "[" << node_name_ << "]" << "[CANOpenSlaveNode::timer] VCU COMM NOT STARTED YET" << std::endl;
   }
 }
 
@@ -33,6 +33,7 @@ void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 
   // RPDO 1 (from VCU node)
   if (idx == IDX_VCU_IS_ALIVE && subidx == SUB_IDX_control_mode) {
+    std::cout << std::endl << "[" << node_name_ << "]" << " RPDO 1" << std::endl;
     uint8_t VCU_is_alive = (*this)[IDX_VCU_IS_ALIVE][SUB_IDX_VCU_is_alive];
     bool VCU_is_alive_bit = (VCU_is_alive >> BIT_IDX_VCU_is_alive) & 1;
     VCU_safety_status_bit_.store((VCU_is_alive >> BIT_IDX_VCU_safety_status) & 1);
@@ -49,6 +50,7 @@ void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 
   // RPDO 2 (from MDL node)
   if (idx == IDX_MOTOR_DRIVE_DATA && subidx == SUB_IDX_MDL_battery_current_display) {
+    std::cout << std::endl << "[" << node_name_ << "]" << " RPDO 2" << std::endl;
     controller_temperature_left_.store((*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_MDL_controller_temperature]);
     motor_temperature_left_.store((*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_MDL_motor_temperature]);
     int16_t motor_RPM_left_tmp = (*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_MDL_motor_RPM];
@@ -71,6 +73,7 @@ void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 
   // RPDO 3 (from MDR node)
   if (idx == IDX_MOTOR_DRIVE_DATA && subidx == SUB_IDX_MDR_battery_current_display) {
+    std::cout << std::endl << "[" << node_name_ << "]" << " RPDO 3" << std::endl;
     controller_temperature_right_.store((*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_MDR_controller_temperature]);
     motor_temperature_right_.store((*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_MDR_motor_temperature]);
     int16_t motor_RPM_right_tmp =(*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_MDR_motor_RPM];
@@ -93,6 +96,7 @@ void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 
   // RPDO 4 (from FAN node)
   if (idx == IDX_MOTOR_DRIVE_DATA && subidx == SUB_IDX_FAN_battery_current_display) {
+    std::cout << std::endl << "[" << node_name_ << "]" << " RPDO 4" << std::endl;
     controller_temperature_fan_.store((*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_FAN_controller_temperature]);
     motor_temperature_fan_.store((*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_FAN_motor_temperature]);
     motor_RPM_fan_.store((*this)[IDX_MOTOR_DRIVE_DATA][SUB_IDX_FAN_motor_RPM]);

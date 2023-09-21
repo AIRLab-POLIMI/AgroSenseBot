@@ -49,7 +49,8 @@ class ASBSystemHardware : public hardware_interface::SystemInterface
 
 struct Config
 {
-    std::string canopen_node_config;
+    std::string vcu_interface_canopen_node_config;
+    std::string mdl_interface_canopen_node_config;
     std::string can_interface_name;
     std::chrono::seconds canopen_init_timeout = 5s;
     int tracks_maximum_velocity_rpm_;
@@ -80,6 +81,7 @@ public:
   hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
   void run_canopen_slave_node();
+  void run_canopen_slave_node_2();
 
   void timer();
 
@@ -91,8 +93,11 @@ private:
   // canopen node objects
   std::atomic<bool> lifecycle_state_is_active_ = false;
   std::atomic<bool> canopen_node_initialized_ = true;
+  std::atomic<bool> canopen_node_initialized_2_ = true;
   std::thread canopen_node_thread_;
+  std::thread canopen_node_thread_2_;
   std::shared_ptr <CANOpenSlaveNode> canopen_node_ = nullptr;
+  std::shared_ptr <CANOpenSlaveNode> canopen_node_2_ = nullptr;
 
   // internal state variables
   bool gcu_alive_bit_current_value_ = false;
