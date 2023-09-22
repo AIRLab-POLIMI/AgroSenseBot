@@ -67,6 +67,17 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(
     return hardware_interface::CallbackReturn::ERROR;
   }
 
+  cfg_.motor_fan_receiver_canopen_node_config = info_.hardware_parameters["motor_fan_receiver_canopen_node_config"];
+  if (std::filesystem::exists(cfg_.motor_fan_receiver_canopen_node_config))
+  {
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
+                "motor_fan_receiver_canopen_node_config: '%s'", cfg_.motor_fan_receiver_canopen_node_config.c_str());
+  } else {
+    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
+                 "motor_fan_receiver_canopen_node_config FILE DOES NOT EXISTS: '%s'", cfg_.motor_fan_receiver_canopen_node_config.c_str());
+    return hardware_interface::CallbackReturn::ERROR;
+  }
+
   cfg_.can_interface_name = info_.hardware_parameters["can_interface_name"];
   if (!cfg_.can_interface_name.empty())
   {
@@ -344,8 +355,9 @@ void ASBSystemHardware::run_motor_drive_right_receiver_node() {
     motor_right_receiver_->node_name_ = "MDR_receiver";
     motor_right_receiver_->Reset();
     motor_right_receiver_initialized_.store(true);
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "MDL_receiver CANOpen node initialized");
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "MDR_receiver CANOpen node initialized");
 
+    // TODO move catch here?
     while (lifecycle_state_is_active_.load()) {
       loop.run_for(10ms);
     }
@@ -362,6 +374,43 @@ void ASBSystemHardware::run_motor_drive_right_receiver_node() {
   }
 }
 
+void ASBSystemHardware::run_motor_drive_fan_receiver_node() {
+
+  io::IoGuard io_guard;
+  io::Context ctx;
+  io::Poll poll(ctx);
+  ev::Loop loop(poll.get_poll());
+  auto exec = loop.get_executor();
+  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
+
+  try {
+    io::CanController ctrl(cfg_.can_interface_name.c_str());
+    io::CanChannel chan(poll, exec);
+    chan.open(ctrl);
+
+    motor_fan_receiver_ = std::make_shared<CANOpenMotorDriveReceiverNode>(
+            timer, chan, cfg_.motor_fan_receiver_canopen_node_config, "");
+    motor_fan_receiver_->node_name_ = "FAN_receiver";
+    motor_fan_receiver_->Reset();
+    motor_fan_receiver_initialized_.store(true);
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "FAN_receiver CANOpen node initialized");
+
+    while (lifecycle_state_is_active_.load()) {
+      loop.run_for(10ms);
+    }
+
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");  // TODO manage interrupt exception
+    ctx.shutdown();
+
+  } catch (const std::system_error& e) {
+    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
+                 "Could not open CAN network channel [%s]. Check the CAN adapter is set up and working.", e.what());
+    motor_fan_receiver_initialized_.store(false);
+    ctx.shutdown();
+    return;
+  }
+}
+
 hardware_interface::CallbackReturn ASBSystemHardware::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
@@ -371,17 +420,20 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_configure(
   GCU_initialized_.store(false);
   motor_left_receiver_initialized_.store(false);
   motor_right_receiver_initialized_.store(false);
+  motor_fan_receiver_initialized_.store(false);
   auto canopen_timeout_start = std::chrono::system_clock::now();
 
   GCU_thread_ = std::thread(std::bind(&ASBSystemHardware::run_GCU_canopen_node, this));
   motor_left_receiver_thread_ = std::thread(std::bind(&ASBSystemHardware::run_motor_drive_left_receiver_node, this));
   motor_right_receiver_thread_ = std::thread(std::bind(&ASBSystemHardware::run_motor_drive_right_receiver_node, this));
+  motor_fan_receiver_thread_ = std::thread(std::bind(&ASBSystemHardware::run_motor_drive_fan_receiver_node, this));
 
   auto now = std::chrono::system_clock::now();
   while(
           !GCU_initialized_.load() ||
           !motor_left_receiver_initialized_.load() ||
-          !motor_right_receiver_initialized_.load())
+          !motor_right_receiver_initialized_.load() ||
+          !motor_fan_receiver_initialized_.load())
   {
     now = std::chrono::system_clock::now();
     if(now - canopen_timeout_start > cfg_.canopen_init_timeout)
@@ -414,6 +466,7 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_cleanup(
   GCU_thread_.join();
   motor_left_receiver_thread_.join();
   motor_right_receiver_thread_.join();
+  motor_fan_receiver_thread_.join();
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Successfully deactivated");
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -457,15 +510,15 @@ hardware_interface::return_type ASBSystemHardware::read(
   track_right_battery_current_state_ = motor_right_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_battery_current_state_: %f", track_right_battery_current_state_);
 
-//  // fan motor state TODO
-//  fan_motor_rpm_state_ = GCU_->motor_RPM_fan_.load();
-////  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_rpm_state_: %f", fan_motor_rpm_state_);
-//  fan_controller_temperature_state_ = GCU_->controller_temperature_fan_.load() * RAW_DATA_STEP_VALUE_temperature;
-////  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_controller_temperature_state_: %f", fan_controller_temperature_state_);
-//  fan_motor_temperature_state_ = GCU_->motor_temperature_fan_.load() * RAW_DATA_STEP_VALUE_temperature;
-////  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_temperature_state_: %f", fan_motor_temperature_state_);
-//  fan_battery_current_state_ = GCU_->battery_current_display_fan_.load() * RAW_DATA_STEP_VALUE_current;
-////  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_battery_current_state_: %f", fan_battery_current_state_);
+  // fan motor state
+  fan_motor_rpm_state_ = motor_fan_receiver_->motor_RPM_.load();
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_rpm_state_: %f", fan_motor_rpm_state_);
+  fan_controller_temperature_state_ = motor_fan_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_controller_temperature_state_: %f", fan_controller_temperature_state_);
+  fan_motor_temperature_state_ = motor_fan_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_temperature_state_: %f", fan_motor_temperature_state_);
+  fan_battery_current_state_ = motor_fan_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_battery_current_state_: %f", fan_battery_current_state_);
 
   return hardware_interface::return_type::OK;
 }

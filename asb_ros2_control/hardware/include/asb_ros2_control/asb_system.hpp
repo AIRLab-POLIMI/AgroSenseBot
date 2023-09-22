@@ -54,6 +54,7 @@ struct Config
     std::string GCU_canopen_node_config;
     std::string motor_left_receiver_canopen_node_config;
     std::string motor_right_receiver_canopen_node_config;
+    std::string motor_fan_receiver_canopen_node_config;
     std::string can_interface_name;
     std::chrono::seconds canopen_init_timeout = 5s;
     int tracks_maximum_velocity_rpm_;
@@ -86,6 +87,7 @@ public:
   void run_GCU_canopen_node();
   void run_motor_drive_left_receiver_node();
   void run_motor_drive_right_receiver_node();
+  void run_motor_drive_fan_receiver_node();
 
   void timer();
 
@@ -98,12 +100,15 @@ private:
   std::atomic<bool> GCU_initialized_ = true;
   std::atomic<bool> motor_left_receiver_initialized_ = true;
   std::atomic<bool> motor_right_receiver_initialized_ = true;
+  std::atomic<bool> motor_fan_receiver_initialized_ = true;
   std::thread GCU_thread_;
   std::thread motor_left_receiver_thread_;
   std::thread motor_right_receiver_thread_;
+  std::thread motor_fan_receiver_thread_;
   std::shared_ptr <CANOpenSlaveNode> GCU_ = nullptr;
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_left_receiver_ = nullptr;
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_right_receiver_ = nullptr;
+  std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_fan_receiver_ = nullptr;
 
   // internal state variables
   bool gcu_alive_bit_current_value_ = false;
