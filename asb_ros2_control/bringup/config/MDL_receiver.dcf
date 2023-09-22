@@ -800,7 +800,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0x8000029A
+DefaultValue=0x1A7
 ParameterValue=
 PDOMapping=0
 
@@ -851,7 +851,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0x8000039A
+DefaultValue=0x2A7
 ParameterValue=
 PDOMapping=0
 
@@ -902,7 +902,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0x8000049A
+DefaultValue=0x3A7
 ParameterValue=
 PDOMapping=0
 
@@ -953,7 +953,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=$NODEID+0x223
+DefaultValue=0x4A7
 ParameterValue=
 PDOMapping=0
 

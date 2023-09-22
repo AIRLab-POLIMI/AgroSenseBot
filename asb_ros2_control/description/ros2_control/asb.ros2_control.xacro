@@ -6,8 +6,9 @@
     <ros2_control name="${name}" type="system">
       <hardware>
         <plugin>asb_ros2_control/ASBSystemHardware</plugin>
-        <param name="vcu_interface_canopen_node_config">$(find asb_ros2_control)/config/GCU_v3.dcf</param>
+        <param name="GCU_canopen_node_config">$(find asb_ros2_control)/config/GCU_v3.dcf</param>
         <param name="mdl_interface_canopen_node_config">$(find asb_ros2_control)/config/MDL_receiver.dcf</param>
+        <param name="mdr_interface_canopen_node_config">$(find asb_ros2_control)/config/MDR_receiver.dcf</param>
         <xacro:if value="${test}">
           <param name="can_interface_name">vcan0</param>
         </xacro:if>

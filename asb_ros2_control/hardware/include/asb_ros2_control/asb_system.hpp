@@ -28,6 +28,7 @@
 
 #include "asb_ros2_control/visibility_control.h"
 #include "asb_ros2_control/canopen_slave_node.h"
+#include "asb_ros2_control/canopen_motor_drive_receiver.h"
 
 #include <memory>
 #include <string>
@@ -49,7 +50,7 @@ class ASBSystemHardware : public hardware_interface::SystemInterface
 
 struct Config
 {
-    std::string vcu_interface_canopen_node_config;
+    std::string GCU_canopen_node_config;
     std::string mdl_interface_canopen_node_config;
     std::string can_interface_name;
     std::chrono::seconds canopen_init_timeout = 5s;
@@ -80,11 +81,10 @@ public:
   ASB_ROS2_CONTROL_PUBLIC
   hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  void run_canopen_slave_node();
-  void run_canopen_slave_node_2();
+  void run_GCU_canopen_node();
+  void run_motor_drive_left_receiver_node();
 
   void timer();
-
 
 private:
   // Configuration parameters
@@ -92,23 +92,41 @@ private:
 
   // canopen node objects
   std::atomic<bool> lifecycle_state_is_active_ = false;
-  std::atomic<bool> canopen_node_initialized_ = true;
-  std::atomic<bool> canopen_node_initialized_2_ = true;
-  std::thread canopen_node_thread_;
-  std::thread canopen_node_thread_2_;
-  std::shared_ptr <CANOpenSlaveNode> canopen_node_ = nullptr;
-  std::shared_ptr <CANOpenSlaveNode> canopen_node_2_ = nullptr;
+  std::atomic<bool> GCU_initialized_ = true;
+  std::atomic<bool> motor_left_receiver_initialized_ = true;
+  std::atomic<bool> motor_right_receiver_initialized_ = true;
+  std::thread GCU_thread_;
+  std::thread motor_left_receiver_thread_;
+  std::thread motor_right_receiver_thread_;
+  std::shared_ptr <CANOpenSlaveNode> GCU_ = nullptr;
+  std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_left_receiver_ = nullptr;
+  std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_right_receiver_ = nullptr;
 
   // internal state variables
   bool gcu_alive_bit_current_value_ = false;
   std::chrono::steady_clock::time_point gcu_alive_bit_last_value_change_;
   bool software_emergency_stop_ = false;
 
-  // exported interface for motor left
+  // exported interface for the control system (all variables need to be doubles for ros2_control reasons)
+  // control system state and commands
+  double vcu_comm_ok_bool_state_ = 1.0;
+  double vcu_safety_status_bool_state_ = 0.0;
+  double control_mode_int_state_ = 0.0;
+
+  // software emergency stop state and command
+  double set_software_emergency_stop_bool_command_ = 0.0;
+  double software_emergency_stop_bool_state_ = 0.0;
+
+  // exported interface for motor left control
   std::string track_left_joint_name_;
   double track_left_position_state_ = 0;
   double track_left_velocity_state_ = 0;
   double track_left_velocity_command_ = 0;
+
+  // left motor additional state
+  double track_left_controller_temperature_state_ = 0;
+  double track_left_motor_temperature_state_ = 0;
+  double track_left_battery_current_state_ = 0;
 
   // exported interface for motor right
   std::string track_right_joint_name_;
@@ -116,23 +134,12 @@ private:
   double track_right_velocity_state_ = 0;
   double track_right_velocity_command_ = 0;
 
-  // exported interface for the control system (variables need to be doubles for ros2_control reasons)
-  // control system state and commands
-  double vcu_comm_ok_bool_state_ = 1.0;
-  double vcu_safety_status_bool_state_ = 0.0;
-  double control_mode_int_state_ = 0.0;
-  // software emergency stop state and command
-  double set_software_emergency_stop_bool_command_ = 0.0;
-  double software_emergency_stop_bool_state_ = 0.0;
-  // left motor additional state
-  double track_left_controller_temperature_state_ = 0;
-  double track_left_motor_temperature_state_ = 0;
-  double track_left_battery_current_state_ = 0;
   // right motor additional state
   double track_right_controller_temperature_state_ = 0;
   double track_right_motor_temperature_state_ = 0;
   double track_right_battery_current_state_ = 0;
-  // fan motor additional state
+
+  // exported interface for motor fan
   double fan_controller_temperature_state_ = 0;
   double fan_motor_temperature_state_ = 0;
   double fan_battery_current_state_ = 0;

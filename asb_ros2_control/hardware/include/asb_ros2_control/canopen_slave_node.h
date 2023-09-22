@@ -15,13 +15,7 @@
 #include <thread>
 #include <chrono>
 
-// PDO register indices
-//#define IDX_MOTOR_DRIVE_DATA 0x2110
-//#define IDX_VCU_IS_ALIVE 0x2111
-//#define IDX_MOTOR_SPEED_REF 0x2112
-//#define IDX_GCU_IS_ALIVE 0x2113
-
-// RPDO1 GCU
+// RPDO1 in GCU.dcf
 #define IDX_RPDO1 0x3000
 #define SUB_IDX_RPDO1_1_VCU_state 0x01
 #define SUB_IDX_RPDO1_2_control_mode 0x02
@@ -32,12 +26,12 @@
 #define BIT_IDX_VCU_safety_status 1
 #define BIT_IDX_VCU_pump_status 2
 
-// TPDO1 GCU
+// TPDO1 in GCU.dcf
 #define IDX_TPDO1 0x3800
 #define SUB_IDX_TPDO1_1_GCU_state 0x01
 #define SUB_IDX_TPDO1_2 0x02
 
-// TPDO2 GCU
+// TPDO2 in GCU.dcf
 #define IDX_TPDO2 0x3801
 #define SUB_IDX_TPDO2_1_right_speed_ref 0x01
 #define SUB_IDX_TPDO2_2_left_speed_ref 0x02
@@ -82,16 +76,6 @@ private:
   bool previous_VCU_is_alive_bit_ = false;
   bool VCU_comm_started_ = false;
 
-  //  left and right motor position hack (TODO)
-  std::chrono::steady_clock::time_point last_RPM_data_left_;
-  std::chrono::steady_clock::time_point last_RPM_data_right_;
-  std::chrono::duration<double> since_last_RPM_data_left_;
-  std::chrono::duration<double> since_last_RPM_data_right_;
-  double rotor_position_left_local_ = 0;
-  double rotor_position_right_local_ = 0;
-  bool first_data_left_ = true;
-  bool first_data_right_ = true;
-
 public:
 
   CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt, const std::string &dcfBin):
@@ -111,28 +95,6 @@ public:
   std::atomic<bool> VCU_safety_status_bit_ = false;
   std::atomic<bool> VCU_pump_status_bit_ = false;
   std::atomic<uint8_t> control_mode_ = 0;
-
-  // left motor status
-  std::atomic<int16_t> controller_temperature_left_ = 0;
-  std::atomic<int16_t> motor_temperature_left_ = 0;
-  std::atomic<int16_t> motor_RPM_left_ = 0;
-  std::atomic<int16_t> battery_current_display_left_ = 0;
-
-  // right motor status
-  std::atomic<int16_t> controller_temperature_right_ = 0;
-  std::atomic<int16_t> motor_temperature_right_ = 0;
-  std::atomic<int16_t> motor_RPM_right_ = 0;
-  std::atomic<int16_t> battery_current_display_right_ = 0;
-
-  // fan motor status
-  std::atomic<int16_t> controller_temperature_fan_ = 0;
-  std::atomic<int16_t> motor_temperature_fan_ = 0;
-  std::atomic<int16_t> motor_RPM_fan_ = 0;
-  std::atomic<int16_t> battery_current_display_fan_ = 0;
-
-  // left and right motor position hack (TODO)
-  std::atomic<double> rotor_position_left_ = 0;
-  std::atomic<double> rotor_position_right_ = 0;
 
 };
 
