@@ -16,17 +16,33 @@
 #include <chrono>
 
 // PDO register indices
-#define IDX_MOTOR_DRIVE_DATA 0x2110
-#define IDX_VCU_IS_ALIVE 0x2111
-#define IDX_MOTOR_SPEED_REF 0x2112
-#define IDX_GCU_IS_ALIVE 0x2113
+//#define IDX_MOTOR_DRIVE_DATA 0x2110
+//#define IDX_VCU_IS_ALIVE 0x2111
+//#define IDX_MOTOR_SPEED_REF 0x2112
+//#define IDX_GCU_IS_ALIVE 0x2113
 
-// RPDO1
-#define SUB_IDX_VCU_is_alive 0x01
-#define SUB_IDX_control_mode 0x02
+// RPDO1 GCU
+#define IDX_RPDO1 0x3000
+#define SUB_IDX_RPDO1_1_VCU_state 0x01
+#define SUB_IDX_RPDO1_2_control_mode 0x02
+#define SUB_IDX_RPDO1_3_more_recent_alarm_id_to_confirm 0x03
+#define SUB_IDX_RPDO1_4_more_recent_active_alarm_id 0x04
 
 #define BIT_IDX_VCU_is_alive 0
 #define BIT_IDX_VCU_safety_status 1
+#define BIT_IDX_VCU_pump_status 2
+
+// TPDO1 GCU
+#define IDX_TPDO1 0x3800
+#define SUB_IDX_TPDO1_1_GCU_state 0x01
+#define SUB_IDX_TPDO1_2 0x02
+
+// TPDO2 GCU
+#define IDX_TPDO2 0x3801
+#define SUB_IDX_TPDO2_1_right_speed_ref 0x01
+#define SUB_IDX_TPDO2_2_left_speed_ref 0x02
+#define SUB_IDX_TPDO2_3_fan_speed_ref 0x03
+
 
 // RPDO2
 #define SUB_IDX_MDL_controller_temperature 0x01
@@ -93,6 +109,7 @@ public:
   // VCU status
   std::atomic<bool> VCU_comm_ok_ = true;
   std::atomic<bool> VCU_safety_status_bit_ = false;
+  std::atomic<bool> VCU_pump_status_bit_ = false;
   std::atomic<uint8_t> control_mode_ = 0;
 
   // left motor status

@@ -1,14 +1,14 @@
 [FileInfo]
 FileName=GCU_v3.dcf
 FileVersion=1
-FileRevision=0
-LastEDS=C:\Users\enry2\Downloads\PcDrive_2023_07_26_1.eds
+FileRevision=1
+LastEDS=
 EDSVersion=4.0
-Description=CANOpen node that communicates with the VCU
-CreationTime=12:02PM
-CreationDate=07-26-2023
+Description=CANOpen node that receives data from VCU
+CreationTime=3:04PM
+CreationDate=09-21-2023
 CreatedBy=Enrico Piazza
-ModificationTime=4:20PM
+ModificationTime=4:17PM
 ModificationDate=09-21-2023
 ModifiedBy=Enrico Piazza
 
@@ -17,7 +17,7 @@ VendorName=UniMi
 VendorNumber=0
 ProductName=GCU
 ProductNumber=1
-RevisionNumber=1
+RevisionNumber=0
 BaudRate_10=0
 BaudRate_20=0
 BaudRate_50=0
@@ -28,7 +28,7 @@ BaudRate_800=0
 BaudRate_1000=0
 SimpleBootUpMaster=0
 SimpleBootUpSlave=0
-Granularity=0
+Granularity=8
 DynamicChannelsSupported=0
 CompactPDO=0
 GroupMessaging=0
@@ -64,118 +64,132 @@ SupportedObjects=3
 3=0x1018
 
 [1000]
-ParameterName=Device Type
+ParameterName=Device type
 Denotation=
 ObjectType=0x7
-;StorageLocation=RAM
+;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=ro
-DefaultValue=0x0
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
 [1001]
-ParameterName=Error Register
+ParameterName=Error register
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x0
+DefaultValue=0x00
 ParameterValue=
-PDOMapping=0
+PDOMapping=1
 
 [1018]
-ParameterName=Identity Object
+ParameterName=Identity
 Denotation=
 ObjectType=0x9
-;StorageLocation=RAM
-SubNumber=0x4
+;StorageLocation=PERSIST_COMM
+SubNumber=0x5
 
 [1018sub0]
-ParameterName=Number of Entries
+ParameterName=Highest sub-index supported
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-HighLimit=0x3
-LowLimit=0x1
-DefaultValue=3
+DefaultValue=0x04
 ParameterValue=
 PDOMapping=0
 
 [1018sub1]
-ParameterName=Vendor Id
+ParameterName=Vendor-ID
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=801
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
 [1018sub2]
-ParameterName=Product Code
+ParameterName=Product code
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=1
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
 [1018sub3]
-ParameterName=Revision Number
+ParameterName=Revision number
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=1
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1018sub4]
+ParameterName=Serial number
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
 [OptionalObjects]
-SupportedObjects=15
+SupportedObjects=20
 1=0x1003
 2=0x1005
 3=0x1006
-4=0x100C
-5=0x100D
-6=0x1014
-7=0x1016
-8=0x1017
-9=0x1200
-10=0x1400
-11=0x1600
-12=0x1800
-13=0x1801
-14=0x1A00
-15=0x1A01
+4=0x1007
+5=0x1010
+6=0x1011
+7=0x1012
+8=0x1014
+9=0x1015
+10=0x1016
+11=0x1017
+12=0x1019
+13=0x1200
+14=0x1280
+15=0x1400
+16=0x1600
+17=0x1800
+18=0x1801
+19=0x1A00
+20=0x1A01
 
 [1003]
-ParameterName=Predefined Error Field
+ParameterName=Pre-defined error field
 Denotation=
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x4
+SubNumber=0x11
 
 [1003sub0]
-ParameterName=Number of Errors
+ParameterName=Number of errors
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=0
+DefaultValue=
 ParameterValue=
 PDOMapping=0
 
 [1003sub1]
-ParameterName=Standard Error Field
+ParameterName=Standard error field
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -186,7 +200,7 @@ ParameterValue=
 PDOMapping=0
 
 [1003sub2]
-ParameterName=Standard Error Field 2
+ParameterName=Standard error field
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -197,7 +211,150 @@ ParameterValue=
 PDOMapping=0
 
 [1003sub3]
-ParameterName=Standard Error Field 3
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003sub4]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003sub5]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003sub6]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003sub7]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003sub8]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003sub9]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003subA]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003subB]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003subC]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003subD]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003subE]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003subF]
+ParameterName=Standard error field
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=
+ParameterValue=
+PDOMapping=0
+
+[1003sub10]
+ParameterName=Standard error field
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
@@ -208,46 +365,170 @@ ParameterValue=
 PDOMapping=0
 
 [1005]
-ParameterName=Sync COB-ID
+ParameterName=COB-ID SYNC message
 Denotation=
 ObjectType=0x7
-;StorageLocation=RAM
+;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x80
+DefaultValue=0x00000080
 ParameterValue=
 PDOMapping=0
 
 [1006]
-ParameterName=Communication Cycle Period
+ParameterName=Communication cycle period
+Denotation=
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1007]
+ParameterName=Synchronous window length
+Denotation=
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1010]
+ParameterName=Store parameters
+Denotation=
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x5
+
+[1010sub0]
+ParameterName=Highest sub-index supported
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x04
+ParameterValue=
+PDOMapping=0
+
+[1010sub1]
+ParameterName=Save all parameters
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x0
+DefaultValue=0x00000001
 ParameterValue=
 PDOMapping=0
 
-[100C]
-ParameterName=Guard Time
+[1010sub2]
+ParameterName=Save communication parameters
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
-DataType=0x0006
+DataType=0x0007
 AccessType=rw
-DefaultValue=0x0
+DefaultValue=0x00000001
 ParameterValue=
 PDOMapping=0
 
-[100D]
-ParameterName=Life Time Factor
+[1010sub3]
+ParameterName=Save application parameters
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000001
+ParameterValue=
+PDOMapping=0
+
+[1010sub4]
+ParameterName=Save manufacturer defined parameters
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000001
+ParameterValue=
+PDOMapping=0
+
+[1011]
+ParameterName=Restore default parameters
+Denotation=
+ObjectType=0x8
+;StorageLocation=RAM
+SubNumber=0x5
+
+[1011sub0]
+ParameterName=Highest sub-index supported
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
+AccessType=ro
+DefaultValue=0x04
+ParameterValue=
+PDOMapping=0
+
+[1011sub1]
+ParameterName=Restore all default parameters
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
 AccessType=rw
-DefaultValue=0
+DefaultValue=0x00000001
+ParameterValue=
+PDOMapping=0
+
+[1011sub2]
+ParameterName=Restore communication default parameters
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000001
+ParameterValue=
+PDOMapping=0
+
+[1011sub3]
+ParameterName=Restore application default parameters
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000001
+ParameterValue=
+PDOMapping=0
+
+[1011sub4]
+ParameterName=Restore manufacturer defined default parameters
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000001
+ParameterValue=
+PDOMapping=0
+
+[1012]
+ParameterName=COB-ID time stamp object
+Denotation=
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000100
 ParameterValue=
 PDOMapping=0
 
@@ -255,92 +536,240 @@ PDOMapping=0
 ParameterName=COB-ID EMCY
 Denotation=
 ObjectType=0x7
-;StorageLocation=RAM
+;StorageLocation=PERSIST_COMM
 DataType=0x0007
 AccessType=rw
 DefaultValue=$NODEID+0x80
 ParameterValue=
 PDOMapping=0
 
+[1015]
+ParameterName=Inhibit time EMCY
+Denotation=
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0006
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
 [1016]
-ParameterName=Consumer Heartbeat Time
+ParameterName=Consumer heartbeat time
 Denotation=
 ObjectType=0x8
-;StorageLocation=RAM
-SubNumber=0x2
+;StorageLocation=PERSIST_COMM
+SubNumber=0x9
 
 [1016sub0]
-ParameterName=Number of Entries
+ParameterName=Highest sub-index supported
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x1
+DefaultValue=0x08
 ParameterValue=
 PDOMapping=0
 
 [1016sub1]
-ParameterName=Consumer Heartbeat Time
+ParameterName=Consumer heartbeat time
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x0
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1016sub2]
+ParameterName=Consumer heartbeat time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1016sub3]
+ParameterName=Consumer heartbeat time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1016sub4]
+ParameterName=Consumer heartbeat time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1016sub5]
+ParameterName=Consumer heartbeat time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1016sub6]
+ParameterName=Consumer heartbeat time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1016sub7]
+ParameterName=Consumer heartbeat time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
+ParameterValue=
+PDOMapping=0
+
+[1016sub8]
+ParameterName=Consumer heartbeat time
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
 [1017]
-ParameterName=Producer Heartbeat Time
+ParameterName=Producer heartbeat time
 Denotation=
 ObjectType=0x7
-;StorageLocation=RAM
+;StorageLocation=PERSIST_COMM
 DataType=0x0006
 AccessType=rw
-DefaultValue=0x0
+DefaultValue=0
+ParameterValue=
+PDOMapping=0
+
+[1019]
+ParameterName=Synchronous counter overflow value
+Denotation=
+ObjectType=0x7
+;StorageLocation=PERSIST_COMM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
 ParameterValue=
 PDOMapping=0
 
 [1200]
-ParameterName=ServerSdoParameter
+ParameterName=SDO server parameter
 Denotation=
 ObjectType=0x9
 ;StorageLocation=RAM
 SubNumber=0x3
 
 [1200sub0]
-ParameterName=Number of Entries
+ParameterName=Highest sub-index supported
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-HighLimit=0x2
-LowLimit=0x2
-DefaultValue=0x2
+DefaultValue=2
 ParameterValue=
 PDOMapping=0
 
 [1200sub1]
-ParameterName=COB-ID Client->Server
+ParameterName=COB-ID client to server (rx)
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=ro
-DefaultValue=$NodeId+0x600
+DefaultValue=$NODEID+0x600
+ParameterValue=
+PDOMapping=1
+
+[1200sub2]
+ParameterName=COB-ID server to client (tx)
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=ro
+DefaultValue=$NODEID+0x580
+ParameterValue=
+PDOMapping=1
+
+[1280]
+ParameterName=SDO client parameter
+Denotation=
+ObjectType=0x9
+;StorageLocation=PERSIST_COMM
+SubNumber=0x4
+
+[1280sub0]
+ParameterName=Highest sub-index supported
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=ro
+DefaultValue=0x03
 ParameterValue=
 PDOMapping=0
 
-[1200sub2]
-ParameterName=COB-ID Server->Client
+[1280sub1]
+ParameterName=COB-ID client to server (tx)
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
-AccessType=ro
-DefaultValue=$NodeId+0x580
+AccessType=rw
+DefaultValue=0x80000000
+ParameterValue=
+PDOMapping=1
+
+[1280sub2]
+ParameterName=COB-ID server to client (rx)
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0007
+AccessType=rw
+DefaultValue=0x80000000
+ParameterValue=
+PDOMapping=1
+
+[1280sub3]
+ParameterName=Node-ID of the SDO server
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0x01
 ParameterValue=
 PDOMapping=0
 
