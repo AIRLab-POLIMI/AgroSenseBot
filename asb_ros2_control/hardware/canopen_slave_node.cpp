@@ -35,6 +35,7 @@ void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 
   // RPDO 1
   if (idx == IDX_RPDO1 && subidx == SUB_IDX_RPDO1_2_control_mode) {  // TODO SUB_IDX_RPDO1_4_more_recent_active_alarm_id
+    std::cout << "[" << node_name_ << "]" << " RPDO 1 " << "COB-ID: " << (int)(uint32_t)(*this)[0x1400][0x01] << std::endl << std::endl;
     uint8_t VCU_state = (*this)[IDX_RPDO1][SUB_IDX_RPDO1_1_VCU_state];
     bool VCU_is_alive_bit = (VCU_state >> BIT_IDX_VCU_is_alive) & 1;
     VCU_safety_status_bit_.store((VCU_state >> BIT_IDX_VCU_safety_status) & 1);

@@ -40,6 +40,7 @@
 // Conversion values for current and temperature
 #define RAW_DATA_STEP_VALUE_temperature 0.1 // 0.1°C
 #define RAW_DATA_STEP_VALUE_current 0.1 // 0.1A
+#define RAW_DATA_STEP_VALUE_rotor_position 0.000244141 // 0.000244141 rotations, see documentation for Position_Rotor in "Curtis Manual AC F2-T and AC F2-D – FOS 5.0 April 2023", Section 5 — SYSTEM MONITOR MENU, page 144.
 
 using namespace std::chrono_literals;
 
@@ -51,7 +52,8 @@ class ASBSystemHardware : public hardware_interface::SystemInterface
 struct Config
 {
     std::string GCU_canopen_node_config;
-    std::string mdl_interface_canopen_node_config;
+    std::string motor_left_receiver_canopen_node_config;
+    std::string motor_right_receiver_canopen_node_config;
     std::string can_interface_name;
     std::chrono::seconds canopen_init_timeout = 5s;
     int tracks_maximum_velocity_rpm_;
@@ -83,6 +85,7 @@ public:
 
   void run_GCU_canopen_node();
   void run_motor_drive_left_receiver_node();
+  void run_motor_drive_right_receiver_node();
 
   void timer();
 

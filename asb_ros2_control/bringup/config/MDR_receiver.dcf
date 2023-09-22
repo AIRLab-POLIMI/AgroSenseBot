@@ -1,5 +1,5 @@
 [FileInfo]
-FileName=MDL_receiver.dcf
+FileName=MDR_receiver.dcf
 FileVersion=1
 FileRevision=1
 LastEDS=
@@ -15,7 +15,7 @@ ModifiedBy=Enrico Piazza
 [DeviceInfo]
 VendorName=UniMi
 VendorNumber=0
-ProductName=MDL_receiver
+ProductName=MDR_receiver
 ProductNumber=1
 RevisionNumber=0
 BaudRate_10=0
@@ -50,7 +50,7 @@ Lines=0
 
 [DeviceComissioning]
 NodeID=7
-NodeName=MDL_receiver
+NodeName=MDR_receiver
 Baudrate=0
 NetNumber=0
 NetworkName=
@@ -800,7 +800,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x1A7
+DefaultValue=0x1A6
 ParameterValue=
 PDOMapping=0
 
@@ -851,7 +851,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x2A7
+DefaultValue=0x2A6
 ParameterValue=
 PDOMapping=0
 
@@ -902,7 +902,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x3A7
+DefaultValue=0x3A6
 ParameterValue=
 PDOMapping=0
 
@@ -953,7 +953,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x4A7
+DefaultValue=0x4A6
 ParameterValue=
 PDOMapping=0
 
