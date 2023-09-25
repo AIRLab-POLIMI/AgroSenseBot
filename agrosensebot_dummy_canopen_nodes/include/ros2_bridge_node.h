@@ -97,9 +97,9 @@ public:
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
     on_shutdown(const rclcpp_lifecycle::State &) override;
 
-    void gcu_alive_canopen_callback(bool, bool);
+    void gcu_alive_canopen_callback(bool, bool, bool);
 
-    void speed_ref_canopen_callback(int16_t, int16_t);
+    void speed_ref_canopen_callback(int16_t, int16_t, int16_t);
 
     void motor_drive_left_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr);
 

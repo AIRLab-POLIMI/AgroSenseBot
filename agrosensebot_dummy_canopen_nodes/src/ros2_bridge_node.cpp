@@ -149,8 +149,15 @@ void ROS2BridgeNode::run_FAN_canopen_node() {
 void ROS2BridgeNode::vcu_alive_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::VCUState::SharedPtr VCU_state_msg) {
     last_VCU_alive_bit_ = not last_VCU_alive_bit_;
 
+    bool pump_status_bit = false;  // TODO
+    uint8_t more_recent_alarm_id_to_confirm = 0;  // TODO
+    uint8_t more_recent_active_alarm_id = 0;  // TODO
+
     if (VCU_canopen_slave_node_ != nullptr) {
-        VCU_canopen_slave_node_->send_TPDO_1(last_VCU_alive_bit_, VCU_state_msg->vcu_safety_status, VCU_state_msg->control_mode);
+        VCU_canopen_slave_node_->send_TPDO_1(last_VCU_alive_bit_, VCU_state_msg->vcu_safety_status,
+                                             pump_status_bit,
+                                             VCU_state_msg->control_mode,
+                                             more_recent_alarm_id_to_confirm, more_recent_active_alarm_id);
     }
 }
 
@@ -197,8 +204,10 @@ void ROS2BridgeNode::gcu_is_alive_timer_ros2_callback(){
     }
 }
 
-void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool /*GCU_is_ready_bit*/) {
-//    RCLCPP_INFO(this->get_logger(), "gcu_alive_canopen_callback GCU_is_alive_bit: %i, GCU_is_ready_bit: %i", GCU_is_alive_bit, GCU_is_ready_bit);
+void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool GCU_is_ready_bit, bool pump_cmd_bit) {
+    RCLCPP_INFO(this->get_logger(),
+                "gcu_alive_canopen_callback GCU_is_alive_bit: %i, GCU_is_ready_bit: %i, pump_cmd_bit: %i",
+                GCU_is_alive_bit, GCU_is_ready_bit, pump_cmd_bit);
 
     rclcpp::Time now = this->get_clock()->now();
     last_GCU_message_time_ = now;
@@ -207,7 +216,7 @@ void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool /*GC
 //  TODO pub msg
 }
 
-void ROS2BridgeNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref) {
+void ROS2BridgeNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
 //    RCLCPP_INFO(this->get_logger(), "speed_ref_canopen_callback right_speed_ref: %i, left_speed_ref: %i", right_speed_ref, left_speed_ref);
 
     agrosensebot_canopen_bridge_msgs::msg::SpeedRef msg;

@@ -1056,7 +1056,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x21120310
 ParameterValue=
 PDOMapping=0
 
@@ -1235,7 +1235,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x21110308
 ParameterValue=
 PDOMapping=0
 
@@ -1246,7 +1246,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x21110408
 ParameterValue=
 PDOMapping=0
 
@@ -1480,7 +1480,7 @@ ParameterName=VCU_is_alive
 Denotation=
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x3
+SubNumber=0x5
 
 [2111sub0]
 ParameterName=Highest sub-index supported
@@ -1489,7 +1489,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x02
+DefaultValue=0x04
 ParameterValue=
 PDOMapping=0
 
@@ -1515,12 +1515,34 @@ DefaultValue=0
 ParameterValue=
 PDOMapping=1
 
+[2111sub3]
+ParameterName=more_recent_alarm_id_to_confirm
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=1
+
+[2111sub4]
+ParameterName=more_recent_active_alarm_id
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=1
+
 [2112]
 ParameterName=motor_speed_ref
 Denotation=
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x3
+SubNumber=0x4
 
 [2112sub0]
 ParameterName=Highest sub-index supported
@@ -1529,7 +1551,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x02
+DefaultValue=0x03
 ParameterValue=
 PDOMapping=0
 
@@ -1546,6 +1568,17 @@ PDOMapping=1
 
 [2112sub2]
 ParameterName=nLeftSpeedRef
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0003
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=1
+
+[2112sub3]
+ParameterName=nFanSpeedRef
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM

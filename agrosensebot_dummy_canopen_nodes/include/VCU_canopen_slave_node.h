@@ -37,7 +37,7 @@ public:
             ros2_bridge_node_(ros2_bridge_node) { // TODO pass callback function
     };
 
-    void send_TPDO_1(bool, bool, uint8_t);
+    void send_TPDO_1(bool, bool, bool, uint8_t, uint8_t, uint8_t);
 
 };
 
