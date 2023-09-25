@@ -33,6 +33,8 @@ public:
     };
 
     void send_TPDO_1(int16_t, int16_t, int16_t, int16_t);
+    void send_TPDO_2(int16_t, int16_t, int16_t, int16_t);
+    void send_TPDO_4(int32_t);
 
 };
 

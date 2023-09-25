@@ -163,12 +163,16 @@ void ROS2BridgeNode::vcu_alive_ros2_callback(agrosensebot_canopen_bridge_msgs::m
 
 void ROS2BridgeNode::motor_drive_left_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
     if (MDL_canopen_slave_node_ != nullptr) {
-      MDL_canopen_slave_node_->send_TPDO_1(
+        MDL_canopen_slave_node_->send_TPDO_1(
                 (int16_t)(msg->controller_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
                 (int16_t)(msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
                 msg->motor_rpm,
                 (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
-    }
+        MDL_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
+
+        MDL_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
+}
+
 }
 
 void ROS2BridgeNode::motor_drive_right_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
