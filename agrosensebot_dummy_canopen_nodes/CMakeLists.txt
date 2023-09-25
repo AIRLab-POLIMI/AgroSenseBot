@@ -28,7 +28,8 @@ add_executable(
         dummy_node
         src/main.cpp
         src/ros2_bridge_node.cpp
-        src/canopen_slave_node.cpp
+        src/VCU_canopen_slave_node.cpp
+        src/motor_drive_canopen_slave_node.cpp
 )
 target_compile_features(
         dummy_node

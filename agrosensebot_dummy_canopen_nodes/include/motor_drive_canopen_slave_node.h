@@ -1,5 +1,5 @@
-#ifndef TEST_ROS2_CANOPEN_BRIDGE_CANOPEN_SLAVE_NODE_H
-#define TEST_ROS2_CANOPEN_BRIDGE_CANOPEN_SLAVE_NODE_H
+#ifndef TEST_ROS2_CANOPEN_BRIDGE_MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H
+#define TEST_ROS2_CANOPEN_BRIDGE_MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H
 
 
 #include <lely/ev/loop.hpp>
@@ -60,30 +60,19 @@ using namespace std::chrono_literals;
 
 class ROS2BridgeNode;
 
-class CANOpenSlaveNode : public canopen::BasicSlave {
+class MotorDriveCANOpenSlaveNode : public canopen::BasicSlave {
 private:
     ROS2BridgeNode *ros2_bridge_node_;
 
-    void OnWrite(uint16_t idx, uint8_t subidx)
-
-    noexcept override;
-
 public:
-    CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt,
-                     const std::string &dcfBin,
-                     ROS2BridgeNode *ros2_bridge_node) :
+    MotorDriveCANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt,
+                     const std::string &dcfBin, ROS2BridgeNode *ros2_bridge_node) :
             BasicSlave(timer, chan, dcfTxt, dcfBin),
             ros2_bridge_node_(ros2_bridge_node) { // TODO pass callback function
     };
 
-    void send_TPDO_1(bool, bool, uint8_t);
-
-    void send_TPDO_2(int16_t, int16_t, int16_t, int16_t);
-
-    void send_TPDO_3(int16_t, int16_t, int16_t, int16_t);
-
-    void send_TPDO_4(int16_t, int16_t, int16_t, int16_t);
+    void send_TPDO_1(int16_t, int16_t, int16_t, int16_t);
 
 };
 
-#endif //TEST_ROS2_CANOPEN_BRIDGE_CANOPEN_SLAVE_NODE_H
+#endif //TEST_ROS2_CANOPEN_BRIDGE_MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H

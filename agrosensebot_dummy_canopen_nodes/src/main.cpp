@@ -1,4 +1,4 @@
-#include "canopen_slave_node.h"
+#include "VCU_canopen_slave_node.h"
 #include "ros2_bridge_node.h"
 
 int main(int argc, char *argv[]) {

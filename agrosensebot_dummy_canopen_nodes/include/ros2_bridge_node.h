@@ -18,15 +18,25 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-class CANOpenSlaveNode;
+class VCUCANOpenSlaveNode;
+class MotorDriveCANOpenSlaveNode;
 
 class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
-    std::string canopen_node_config_;
+    std::string VCU_canopen_node_config_;
+    std::string MDL_canopen_node_config_;
+    std::string MDR_canopen_node_config_;
+    std::string FAN_canopen_node_config_;
     std::string can_interface_name_;
     std::chrono::milliseconds gcu_is_alive_timeout_ = 100ms;
 
-    std::thread canopen_node_thread_;
-    std::shared_ptr <CANOpenSlaveNode> canopen_slave_node_ = nullptr;
+    std::thread VCU_canopen_node_thread_;
+    std::thread MDL_canopen_node_thread_;
+    std::thread MDR_canopen_node_thread_;
+    std::thread FAN_canopen_node_thread_;
+    std::shared_ptr <VCUCANOpenSlaveNode> VCU_canopen_slave_node_ = nullptr;
+    std::shared_ptr <MotorDriveCANOpenSlaveNode> MDL_canopen_slave_node_ = nullptr;
+    std::shared_ptr <MotorDriveCANOpenSlaveNode> MDR_canopen_slave_node_ = nullptr;
+    std::shared_ptr <MotorDriveCANOpenSlaveNode> FAN_canopen_slave_node_ = nullptr;
 
     std::atomic<bool> lifecycle_node_active_ = false;
     rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::UInt8>::SharedPtr gcu_alive_pub_;
@@ -47,13 +57,16 @@ class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
 
     void gcu_is_alive_timer_ros2_callback();
 
-    void run_canopen_slave_node();
+    void run_VCU_canopen_node();
+    void run_MDL_canopen_node();
+    void run_MDR_canopen_node();
+    void run_FAN_canopen_node();
 
 public:
     explicit ROS2BridgeNode(const std::string &node_name, bool intra_process_comms = false)
-            : rclcpp_lifecycle::LifecycleNode(node_name,
-                                              rclcpp::NodeOptions().use_intra_process_comms(intra_process_comms)) {
-        this->declare_parameter<std::string>("dummy_canopen_node_config", "test_slave.eds");
+            : rclcpp_lifecycle::LifecycleNode(node_name, rclcpp::NodeOptions().use_intra_process_comms(
+                    intra_process_comms)) {
+        this->declare_parameter<std::string>("dummy_canopen_node_config", "test_slave.eds");  // TODO
         this->declare_parameter<std::string>("can_interface_name", "vcan0");
 
         gcu_alive_pub_ = this->create_publisher<std_msgs::msg::UInt8>("test/gcu_alive", rclcpp::SensorDataQoS());
