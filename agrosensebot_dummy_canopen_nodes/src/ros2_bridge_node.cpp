@@ -10,10 +10,10 @@ ROS2BridgeNode::on_configure(const rclcpp_lifecycle::State &) {
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
-    get_parameter("dummy_canopen_node_config", VCU_canopen_node_config_);
-    get_parameter("dummy_canopen_node_config", MDL_canopen_node_config_);
-    get_parameter("dummy_canopen_node_config", MDR_canopen_node_config_);
-    get_parameter("dummy_canopen_node_config", FAN_canopen_node_config_);
+    get_parameter("dummy_VCU_canopen_node_config", VCU_canopen_node_config_);
+    get_parameter("dummy_MDL_canopen_node_config", MDL_canopen_node_config_);
+    get_parameter("dummy_MDR_canopen_node_config", MDR_canopen_node_config_);
+    get_parameter("dummy_FAN_canopen_node_config", FAN_canopen_node_config_);
     get_parameter("can_interface_name", can_interface_name_);
     RCLCPP_INFO(this->get_logger(), "dummy_canopen_node_config: %s", VCU_canopen_node_config_.c_str());
     RCLCPP_INFO(this->get_logger(), "can_interface_name: %s", can_interface_name_.c_str());
@@ -29,8 +29,8 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
 
     VCU_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_VCU_canopen_node, this));
     MDL_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDL_canopen_node, this));
-    MDR_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDR_canopen_node, this));
-    FAN_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_FAN_canopen_node, this));
+//    MDR_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDR_canopen_node, this));
+//    FAN_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_FAN_canopen_node, this));
 
     std::chrono::duration gcu_is_alive_timer_period_ = 10ms;
     gcu_is_alive_timer_ = rclcpp::create_timer(

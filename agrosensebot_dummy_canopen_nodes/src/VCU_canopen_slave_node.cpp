@@ -1,6 +1,27 @@
 #include "VCU_canopen_slave_node.h"
 #include "ros2_bridge_node.h"
 
+// PDO register indices
+#define IDX_VCU_IS_ALIVE 0x2111
+#define IDX_MOTOR_SPEED_REF 0x2112
+#define IDX_GCU_IS_ALIVE 0x2113
+
+// TPDO1
+#define SUB_IDX_VCU_is_alive 0x01
+#define SUB_IDX_control_mode 0x02
+
+//RPDO1
+#define SUB_IDX_GCU_is_alive 0x01
+
+#define BIT_IDX_GCU_is_alive 0
+#define BIT_IDX_GCU_is_ready 1
+
+//RPDO2
+#define SUB_IDX_RightSpeedRef 0x01
+#define SUB_IDX_LeftSpeedRef 0x02
+// TODO
+#define SUB_IDX_FanSpeedRef 0x03
+
 void VCUCANOpenSlaveNode::send_TPDO_1(bool VCU_is_alive_bit, bool VCU_safety_status_bit, uint8_t control_mode) {
     std::bitset<8> VCU_is_alive_bitset;
     VCU_is_alive_bitset[0] = VCU_is_alive_bit;
@@ -35,6 +56,7 @@ void VCUCANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 //        RCLCPP_INFO(ros2_bridge_node_->get_logger(), "RPDO_2: Received data on idx: 0x%X:%X", idx, subidx);
         int16_t right_speed_ref = (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_RightSpeedRef];
         int16_t left_speed_ref = (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_LeftSpeedRef];
+//        int16_t fan_speed_ref = (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_FanSpeedRef];  TODO
         ros2_bridge_node_->speed_ref_canopen_callback(right_speed_ref, left_speed_ref);
     }
 

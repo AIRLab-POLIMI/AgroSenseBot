@@ -66,7 +66,10 @@ public:
     explicit ROS2BridgeNode(const std::string &node_name, bool intra_process_comms = false)
             : rclcpp_lifecycle::LifecycleNode(node_name, rclcpp::NodeOptions().use_intra_process_comms(
                     intra_process_comms)) {
-        this->declare_parameter<std::string>("dummy_canopen_node_config", "test_slave.eds");  // TODO
+        this->declare_parameter<std::string>("dummy_VCU_canopen_node_config", "test_slave.eds");
+        this->declare_parameter<std::string>("dummy_MDL_canopen_node_config", "test_slave.eds");
+        this->declare_parameter<std::string>("dummy_MDR_canopen_node_config", "test_slave.eds");
+        this->declare_parameter<std::string>("dummy_FAN_canopen_node_config", "test_slave.eds");
         this->declare_parameter<std::string>("can_interface_name", "vcan0");
 
         gcu_alive_pub_ = this->create_publisher<std_msgs::msg::UInt8>("test/gcu_alive", rclcpp::SensorDataQoS());

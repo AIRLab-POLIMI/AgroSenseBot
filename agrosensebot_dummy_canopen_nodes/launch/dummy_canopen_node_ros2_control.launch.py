@@ -26,9 +26,24 @@ import lifecycle_msgs.msg
 def generate_launch_description():
     path_to_test = os.path.dirname(__file__)
 
-    dummy_canopen_node_config_arg = DeclareLaunchArgument(
-        'dummy_canopen_node_config',
-        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_node.dcf")),
+    dummy_vcu_canopen_node_config_arg = DeclareLaunchArgument(
+        'dummy_vcu_canopen_node_config',
+        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_VCU.dcf")),
+        description="Path to DCF file to be used for the dummy CANOpen node.",
+    )
+    dummy_mdl_canopen_node_config_arg = DeclareLaunchArgument(
+        'dummy_mdl_canopen_node_config',
+        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_MDL.dcf")),
+        description="Path to DCF file to be used for the dummy CANOpen node.",
+    )
+    dummy_mdr_canopen_node_config_arg = DeclareLaunchArgument(
+        'dummy_mdr_canopen_node_config',
+        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_MDR.dcf")),
+        description="Path to DCF file to be used for the dummy CANOpen node.",
+    )
+    dummy_fan_canopen_node_config_arg = DeclareLaunchArgument(
+        'dummy_fan_canopen_node_config',
+        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_FAN.dcf")),
         description="Path to DCF file to be used for the dummy CANOpen node.",
     )
     can_interface_arg = DeclareLaunchArgument(
@@ -50,7 +65,10 @@ def generate_launch_description():
         executable="dummy_node",
         parameters=[
                 {
-                    "dummy_canopen_node_config": LaunchConfiguration("dummy_canopen_node_config"),
+                    "dummy_VCU_canopen_node_config": LaunchConfiguration("dummy_vcu_canopen_node_config"),
+                    "dummy_MDL_canopen_node_config": LaunchConfiguration("dummy_mdl_canopen_node_config"),
+                    "dummy_MDR_canopen_node_config": LaunchConfiguration("dummy_mdr_canopen_node_config"),
+                    "dummy_FAN_canopen_node_config": LaunchConfiguration("dummy_fan_canopen_node_config"),
                     "can_interface_name": LaunchConfiguration("can_interface_name"),
                 },
             ],
@@ -84,7 +102,10 @@ def generate_launch_description():
     )
 
     ld = launch.LaunchDescription()
-    ld.add_action(dummy_canopen_node_config_arg)
+    ld.add_action(dummy_vcu_canopen_node_config_arg)
+    ld.add_action(dummy_mdl_canopen_node_config_arg)
+    ld.add_action(dummy_mdr_canopen_node_config_arg)
+    ld.add_action(dummy_fan_canopen_node_config_arg)
     ld.add_action(can_interface_arg)
     ld.add_action(dummy_ros_node_name_arg)
     ld.add_action(dummy_ros2_canopen_bridge_node)
