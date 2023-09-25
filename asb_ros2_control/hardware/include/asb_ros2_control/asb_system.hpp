@@ -40,7 +40,7 @@
 // Conversion values for current and temperature
 #define RAW_DATA_STEP_VALUE_temperature 0.1 // 0.1°C
 #define RAW_DATA_STEP_VALUE_current 0.1 // 0.1A
-#define RAW_DATA_STEP_VALUE_rotor_position (1/4096) // 1/4096 = 0.000244141 rotations, see documentation for Position_Rotor in "Curtis Manual AC F2-T and AC F2-D – FOS 5.0 April 2023", Section 5 — SYSTEM MONITOR MENU, page 144.
+#define RAW_DATA_STEP_VALUE_rotor_position (1/4096.0) // 1/4096 = 0.000244141 rotations, see documentation for Position_Rotor in "Curtis Manual AC F2-T and AC F2-D – FOS 5.0 April 2023", Section 5 — SYSTEM MONITOR MENU, page 144.
 
 using namespace std::chrono_literals;
 
