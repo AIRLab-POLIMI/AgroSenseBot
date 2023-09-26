@@ -1,6 +1,6 @@
 #include <iostream>
 #include <bitset>
-#include "asb_ros2_control/canopen_slave_node.h"
+#include "asb_ros2_control/canopen_gcu_slave_node.h"
 #include "asb_ros2_control/utils.hpp"
 
 // RPDO1 in GCU.dcf
@@ -28,22 +28,22 @@
 #define SUB_IDX_TPDO2_2_left_speed_ref 0x02
 #define SUB_IDX_TPDO2_3_fan_speed_ref 0x03
 
-void CANOpenSlaveNode::timer() {
+void CANOpenGCUNode::timer() {
   std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 
   if(VCU_comm_started_)
   {
     VCU_comm_ok_.store((now - last_VCU_is_alive_bit_change_ < 200ms));  // TODO make parameter
     if (!VCU_comm_ok_.load()) {
-      std::cerr << "[" << node_name_ << "]" << "[CANOpenSlaveNode::timer] VCU COMM TIMEOUT ("
+      std::cerr << "[" << node_name_ << "]" << "[CANOpenGCUNode::timer] VCU COMM TIMEOUT ("
                 << chrono_duration_to_s(last_VCU_is_alive_bit_change_, now)  << "s)" << std::endl;
     }
   } else {
-    std::cout << "[" << node_name_ << "]" << "[CANOpenSlaveNode::timer] VCU COMM NOT STARTED YET" << std::endl;
+    std::cout << "[" << node_name_ << "]" << "[CANOpenGCUNode::timer] VCU COMM NOT STARTED YET" << std::endl;
   }
 }
 
-void CANOpenSlaveNode::send_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit) {
+void CANOpenGCUNode::send_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit) {
 //  std::cout << "[" << node_name_ << "]" << " TPDO 1 " << std::endl;
   std::bitset<8> gcu_state_data_bitset;
   gcu_state_data_bitset[BIT_IDX_GCU_is_alive] = gcu_alive_bit;
@@ -53,7 +53,7 @@ void CANOpenSlaveNode::send_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit) {
   this->TpdoEvent(1);
 }
 
-void CANOpenSlaveNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
+void CANOpenGCUNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
 //    std::cout << "[" << node_name_ << "]" << " TPDO 2 " << std::endl;
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_1_right_speed_ref] = right_speed_ref;
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_2_left_speed_ref] = left_speed_ref;
@@ -62,7 +62,7 @@ void CANOpenSlaveNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_r
 }
 
 // This function gets called every time a value is written to the local object dictionary by an SDO or RPDO.
-void CANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
+void CANOpenGCUNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
 //  std::cout << "[" << node_name_ << "]" << " OnWrite " << std::hex << (int)idx << " " << std::hex << (int)subidx << std::endl;
 
   // RPDO 1

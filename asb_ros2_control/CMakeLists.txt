@@ -26,7 +26,7 @@ add_library(
   asb_ros2_control
   SHARED
   hardware/asb_system.cpp
-  hardware/canopen_slave_node.cpp
+        hardware/canopen_gcu_slave_node.cpp
   hardware/canopen_motor_drive_receiver.cpp
 )
 target_compile_features(asb_ros2_control PUBLIC cxx_std_17)

@@ -1,5 +1,5 @@
-#ifndef TEST_ROS2_CANOPEN_BRIDGE_CANOPEN_SLAVE_NODE_H
-#define TEST_ROS2_CANOPEN_BRIDGE_CANOPEN_SLAVE_NODE_H
+#ifndef ASB_ROS2_CONTROL__CANOPEN_GCU_SLAVE_NODE_H
+#define ASB_ROS2_CONTROL__CANOPEN_GCU_SLAVE_NODE_H
 
 #include <lely/ev/loop.hpp>
 #include <lely/io2/linux/can.hpp>
@@ -18,7 +18,7 @@
 using namespace lely;
 using namespace std::chrono_literals;
 
-class CANOpenSlaveNode : public canopen::BasicSlave {
+class CANOpenGCUNode : public canopen::BasicSlave {
 private:
 
   void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;
@@ -30,7 +30,7 @@ private:
 
 public:
 
-  CANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt, const std::string &dcfBin):
+  CANOpenGCUNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt, const std::string &dcfBin):
           BasicSlave(timer, chan, dcfTxt, dcfBin) {
   };
 
@@ -52,4 +52,4 @@ public:
 
 };
 
-#endif //TEST_ROS2_CANOPEN_BRIDGE_CANOPEN_SLAVE_NODE_H
+#endif //ASB_ROS2_CONTROL__CANOPEN_GCU_SLAVE_NODE_H

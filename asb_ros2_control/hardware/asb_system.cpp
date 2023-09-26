@@ -275,7 +275,7 @@ void ASBSystemHardware::run_GCU_canopen_node() {
     io::CanChannel chan(poll, exec);
     chan.open(ctrl);
 
-    GCU_ = std::make_shared<CANOpenSlaveNode>(timer, chan, cfg_.GCU_canopen_node_config, "");
+    GCU_ = std::make_shared<CANOpenGCUNode>(timer, chan, cfg_.GCU_canopen_node_config, "");
     GCU_->node_name_ = "GCU";
     GCU_->Reset();
     GCU_initialized_.store(true);

@@ -27,7 +27,7 @@
 #include "rclcpp_lifecycle/state.hpp"
 
 #include "asb_ros2_control/visibility_control.h"
-#include "asb_ros2_control/canopen_slave_node.h"
+#include "asb_ros2_control/canopen_gcu_slave_node.h"
 #include "asb_ros2_control/canopen_motor_drive_receiver.h"
 
 #include <memory>
@@ -106,7 +106,7 @@ private:
   std::thread motor_left_receiver_thread_;
   std::thread motor_right_receiver_thread_;
   std::thread motor_fan_receiver_thread_;
-  std::shared_ptr <CANOpenSlaveNode> GCU_ = nullptr;
+  std::shared_ptr <CANOpenGCUNode> GCU_ = nullptr;
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_left_receiver_ = nullptr;
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_right_receiver_ = nullptr;
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_fan_receiver_ = nullptr;
