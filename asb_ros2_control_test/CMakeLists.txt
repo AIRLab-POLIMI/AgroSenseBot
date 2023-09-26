@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(agrosensebot_dummy_canopen_nodes)
+project(asb_ros2_control_test)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -25,24 +25,24 @@ find_package(agrosensebot_canopen_bridge_msgs REQUIRED)
 
 
 add_executable(
-        dummy_node
+        test_node
         src/main.cpp
         src/asb_system_test_node.cpp
         src/VCU_canopen_slave_node.cpp
         src/motor_drive_canopen_slave_node.cpp
 )
 target_compile_features(
-        dummy_node
+        test_node
         PUBLIC c_std_99 cxx_std_17  # Require C99 and C++17
 )
 target_include_directories(
-        dummy_node
+        test_node
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 ament_target_dependencies(
-        dummy_node
+        test_node
         rclcpp
         lely_core_libraries
         rclcpp_lifecycle
@@ -52,7 +52,7 @@ ament_target_dependencies(
 
 install(
         TARGETS
-        dummy_node
+        test_node
         DESTINATION lib/${PROJECT_NAME}
 )
 

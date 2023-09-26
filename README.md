@@ -29,12 +29,12 @@ candump -tz vcan0
 
 Launch ros2_control hardware interface and dummy CANOpen node
 ```shell
-ros2 launch agrosensebot_dummy_canopen_nodes dummy_canopen_node_ros2_control.launch.py
+ros2 launch asb_ros2_control_test test.launch.py
 ```
 
 Run script that provides and receives data to the dummy node
 ```shell
-~/w/agrosensebot_ws/src/AgroSenseBot/agrosensebot_dummy_canopen_nodes/scripts/test_ros2_control.py
+~/w/agrosensebot_ws/src/AgroSenseBot/asb_ros2_control_test/scripts/test_ros2_control.py
 ```
 
 Run ROS2 node to publish cmd_vel and press forward key (i).
@@ -64,14 +64,14 @@ No messages will be displayed at first.
 
 In terminal 2:
 ```shell
-ros2 launch agrosensebot_dummy_canopen_nodes dummy_canopen_node.launch.py
+ros2 launch asb_ros2_control_test dummy_canopen_node.launch.py
 ```
 This will launch the GCU node and a dummy node in their own ROS2 namespace (/dummy_test).
 Error messages (in red) `GCU COMM TIMEOUT` and `VCU COMM TIMEOUT` will be printed because the nodes are still not exchanging messages.
 
 In terminal 3:
 ```shell
-~/w/agrosensebot_ws/src/AgroSenseBot/agrosensebot_dummy_canopen_nodes/scripts/test.py
+~/w/agrosensebot_ws/src/AgroSenseBot/asb_ros2_control_test/scripts/test.py
 ```
 This script publishes ROS2 messages to the GCU and dummy nodes, which will communicate through the CAN network simulating the communication on the physical CAN network.
 CAN messages should be printed in terminal 1 and the error messages from terminal 2 should stop being printed.

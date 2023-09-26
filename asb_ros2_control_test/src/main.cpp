@@ -4,8 +4,8 @@
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   rclcpp::executors::SingleThreadedExecutor executor;
-  auto canopen_slave = std::make_shared<ASBSystemTestNode>("canopen_test_slave");
-  executor.add_node(canopen_slave->get_node_base_interface());
+  auto asb_system_test_node = std::make_shared<ASBSystemTestNode>("asb_system_test_node");
+  executor.add_node(asb_system_test_node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();
   return 0;
