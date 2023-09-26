@@ -24,8 +24,6 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
   }
 
   lifecycle_node_active_.store(true);
-  gcu_alive_pub_->on_activate();
-  speed_ref_pub_->on_activate();
 
   VCU_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_VCU_canopen_node, this));
   MDL_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDL_canopen_node, this));
@@ -39,16 +37,26 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
   last_GCU_message_time_ = this->get_clock()->now();
   last_GCU_alive_bit_change_time_ = this->get_clock()->now();
 
+  std::chrono::duration test_loop_timer_period_ = 50ms;
+  test_loop_timer_ = rclcpp::create_timer(
+          this, this->get_clock(), rclcpp::Duration(test_loop_timer_period_),
+          std::bind(&ROS2BridgeNode::test_loop_timer_ros2_callback, this));
+
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ROS2BridgeNode::on_deactivate(const rclcpp_lifecycle::State &) {
+
+  gcu_is_alive_timer_->cancel();
+  test_loop_timer_->cancel();
+
   lifecycle_node_active_.store(false);
   VCU_canopen_node_thread_.join();
   MDL_canopen_node_thread_.join();
   MDR_canopen_node_thread_.join();
   FAN_canopen_node_thread_.join();
+
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
@@ -149,59 +157,52 @@ void ROS2BridgeNode::run_FAN_canopen_node() {
   ctx.shutdown();
 }
 
-void ROS2BridgeNode::vcu_alive_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::VCUState::SharedPtr VCU_state_msg) {
-  last_VCU_alive_bit_ = not last_VCU_alive_bit_;
+void ROS2BridgeNode::test_loop_timer_ros2_callback() {
+  rclcpp::Time now = this->get_clock()->now();
+  rclcpp::Duration time_delta = now - last_test_loop_time_;
+  last_test_loop_time_ = now;
+  RCLCPP_INFO(this->get_logger(), "time_delta: %f", time_delta.seconds());
 
-  bool pump_status_bit = false;  // TODO
-  uint8_t more_recent_alarm_id_to_confirm = 0;  // TODO
-  uint8_t more_recent_active_alarm_id = 0;  // TODO
+  left_motor_drive_test_state_.motor_rpm = left_motor_drive_test_state_.speed_ref;
+  left_motor_drive_test_state_.rotor_position += (left_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
+  RCLCPP_INFO(this->get_logger(),
+              "left    motor_rpm: %i   rotor_position: %f",
+              left_motor_drive_test_state_.motor_rpm, left_motor_drive_test_state_.rotor_position);
 
-  if (VCU_canopen_slave_node_ != nullptr) {
-    VCU_canopen_slave_node_->send_TPDO_1(last_VCU_alive_bit_, VCU_state_msg->vcu_safety_status,
-                                         pump_status_bit,
-                                         VCU_state_msg->control_mode,
-                                         more_recent_alarm_id_to_confirm, more_recent_active_alarm_id);
-  }
-}
+  right_motor_drive_test_state_.motor_rpm = right_motor_drive_test_state_.speed_ref;
+  right_motor_drive_test_state_.rotor_position += (right_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
+  RCLCPP_INFO(this->get_logger(),
+              "right   motor_rpm: %i   rotor_position: %f",
+              right_motor_drive_test_state_.motor_rpm, right_motor_drive_test_state_.rotor_position);
 
-void ROS2BridgeNode::motor_drive_left_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
-  if (MDL_canopen_slave_node_ != nullptr) {
-    MDL_canopen_slave_node_->send_TPDO_1(
-            (int16_t) (msg->controller_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
-            (int16_t) (msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
-            msg->motor_rpm,
-            (int16_t) (msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
-    MDL_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
-    MDL_canopen_slave_node_->send_TPDO_3(false); // TODO interlock_status
-    MDL_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
-  }
+  fan_motor_drive_test_state_.motor_rpm = fan_motor_drive_test_state_.speed_ref;
+  fan_motor_drive_test_state_.rotor_position += (fan_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
+  RCLCPP_INFO(this->get_logger(),
+              "fan     motor_rpm: %i   rotor_position: %f",
+              fan_motor_drive_test_state_.motor_rpm, fan_motor_drive_test_state_.rotor_position);
 
-}
+  vcu_alive_test_callback(pump_test_state_, true,
+                          ControlMode::GCU,
+                          0, 0);
 
-void ROS2BridgeNode::motor_drive_right_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
-  if (MDR_canopen_slave_node_ != nullptr) {
-    MDR_canopen_slave_node_->send_TPDO_1(
-            (int16_t) (msg->controller_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
-            (int16_t) (msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
-            msg->motor_rpm,
-            (int16_t) (msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
-    MDR_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
-    MDR_canopen_slave_node_->send_TPDO_3(false); // TODO interlock_status
-    MDR_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
-  }
-}
+  motor_drive_left_test_callback(
+          42.5, 57.2, left_motor_drive_test_state_.motor_rpm, 0.2,
+          0, 63, 24.5, 5,
+          false,
+          left_motor_drive_test_state_.rotor_position);
 
-void ROS2BridgeNode::motor_drive_fan_ros2_callback(agrosensebot_canopen_bridge_msgs::msg::MotorDrive::SharedPtr msg) {
-  if (FAN_canopen_slave_node_ != nullptr) {
-    FAN_canopen_slave_node_->send_TPDO_1(
-            (int16_t) (msg->controller_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
-            (int16_t) (msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
-            msg->motor_rpm,
-            (int16_t) (msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
-    FAN_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
-    FAN_canopen_slave_node_->send_TPDO_3(false); // TODO interlock_status
-    FAN_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
-  }
+  motor_drive_right_test_callback(
+          42.5, 57.2, right_motor_drive_test_state_.motor_rpm, 0.2,
+          0, 63, 24.5, 5,
+          false,
+          right_motor_drive_test_state_.rotor_position);
+
+  motor_drive_fan_test_callback(
+          42.5, 57.2, fan_motor_drive_test_state_.motor_rpm, 0.2,
+          0, 63, 24.5, 5,
+          false,
+          fan_motor_drive_test_state_.rotor_position);
+
 }
 
 void ROS2BridgeNode::gcu_is_alive_timer_ros2_callback() {
@@ -217,27 +218,94 @@ void ROS2BridgeNode::gcu_is_alive_timer_ros2_callback() {
   }
 }
 
-void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool GCU_is_ready_bit, bool pump_cmd_bit) {
-  RCLCPP_INFO(this->get_logger(),
-              "gcu_alive_canopen_callback GCU_is_alive_bit: %i, GCU_is_ready_bit: %i, pump_cmd_bit: %i",
-              GCU_is_alive_bit, GCU_is_ready_bit, pump_cmd_bit);
+void ROS2BridgeNode::vcu_alive_test_callback(
+        bool pump_status_bit, bool vcu_safety_status,
+        uint8_t control_mode,
+        uint8_t more_recent_alarm_id_to_confirm, uint8_t more_recent_active_alarm_id) {
+  last_VCU_alive_bit_ = not last_VCU_alive_bit_;
 
+  if (VCU_canopen_slave_node_ != nullptr) {
+    VCU_canopen_slave_node_->send_TPDO_1(last_VCU_alive_bit_, vcu_safety_status, pump_status_bit,
+                                         control_mode,
+                                         more_recent_alarm_id_to_confirm, more_recent_active_alarm_id);
+  }
+}
+
+void ROS2BridgeNode::motor_drive_left_test_callback(
+        double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
+        double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
+        bool interlock_status,
+        double rotor_position) {
+  if (MDL_canopen_slave_node_ != nullptr) {
+    MDL_canopen_slave_node_->send_TPDO_1(
+            (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) motor_rpm,
+            (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
+    MDL_canopen_slave_node_->send_TPDO_2(
+            (int16_t) (motor_torque / RAW_DATA_STEP_VALUE_torque),
+            (int16_t) (bdi_percentage / RAW_DATA_STEP_VALUE_bdi_percentage),
+            (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
+            (int16_t) zero_speed_threshold);
+    MDL_canopen_slave_node_->send_TPDO_3(interlock_status);
+    MDL_canopen_slave_node_->send_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+  }
+
+}
+
+void ROS2BridgeNode::motor_drive_right_test_callback(
+        double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
+        double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
+        bool interlock_status,
+        double rotor_position) {
+  if (MDR_canopen_slave_node_ != nullptr) {
+    MDR_canopen_slave_node_->send_TPDO_1(
+            (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) motor_rpm,
+            (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
+    MDR_canopen_slave_node_->send_TPDO_2(
+            (int16_t) (motor_torque / RAW_DATA_STEP_VALUE_torque),
+            (int16_t) (bdi_percentage / RAW_DATA_STEP_VALUE_bdi_percentage),
+            (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
+            (int16_t) zero_speed_threshold);
+    MDR_canopen_slave_node_->send_TPDO_3(interlock_status);
+    MDR_canopen_slave_node_->send_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+  }
+}
+
+void ROS2BridgeNode::motor_drive_fan_test_callback(
+        double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
+        double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
+        bool interlock_status,
+        double rotor_position) {
+  if (FAN_canopen_slave_node_ != nullptr) {
+    FAN_canopen_slave_node_->send_TPDO_1(
+            (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) motor_rpm,
+            (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
+    FAN_canopen_slave_node_->send_TPDO_2(
+            (int16_t) (motor_torque / RAW_DATA_STEP_VALUE_torque),
+            (int16_t) (bdi_percentage / RAW_DATA_STEP_VALUE_bdi_percentage),
+            (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
+            (int16_t) zero_speed_threshold);
+    FAN_canopen_slave_node_->send_TPDO_3(interlock_status);
+    FAN_canopen_slave_node_->send_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+  }
+}
+
+void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool pump_cmd_bit) {
   rclcpp::Time now = this->get_clock()->now();
   last_GCU_message_time_ = now;
   if (last_GCU_alive_bit_ != GCU_is_alive_bit) last_GCU_alive_bit_change_time_ = now;
   last_GCU_alive_bit_ = GCU_is_alive_bit;
-//  TODO pub msg
+
+  pump_test_state_ = pump_cmd_bit;
 }
 
-void
-ROS2BridgeNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
-  RCLCPP_INFO(this->get_logger(),
-              "speed_ref_canopen_callback right_speed_ref: %i, left_speed_ref: %i, fan_speed_ref: %i",
-              right_speed_ref, left_speed_ref, fan_speed_ref);
-
-  agrosensebot_canopen_bridge_msgs::msg::SpeedRef msg;
-  msg.stamp = this->get_clock()->now();
-  msg.right_speed_ref = right_speed_ref;
-  msg.left_speed_ref = left_speed_ref;
-  speed_ref_pub_->publish(msg);
+void ROS2BridgeNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
+  right_motor_drive_test_state_.speed_ref = right_speed_ref;
+  left_motor_drive_test_state_.speed_ref = left_speed_ref;
+  fan_motor_drive_test_state_.speed_ref = fan_speed_ref;
 }

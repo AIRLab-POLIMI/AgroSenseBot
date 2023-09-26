@@ -26,7 +26,7 @@
 
 
 void MotorDriveCANOpenSlaveNode::send_TPDO_1(int16_t controller_temperature, int16_t motor_temperature, int16_t motor_rpm, int16_t battery_current_display) {
-  RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_1", node_name_.c_str());
+//  RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_1", node_name_.c_str());
   (*this)[IDX_TPDO1][SUB_IDX_TPDO1_1_controller_temperature] = controller_temperature;
   (*this)[IDX_TPDO1][SUB_IDX_TPDO1_2_motor_temperature] = motor_temperature;
   (*this)[IDX_TPDO1][SUB_IDX_TPDO1_3_motor_RPM] = motor_rpm;
@@ -37,7 +37,7 @@ void MotorDriveCANOpenSlaveNode::send_TPDO_1(int16_t controller_temperature, int
 
 
 void MotorDriveCANOpenSlaveNode::send_TPDO_2(int16_t motor_torque, int16_t bdi_percentage, int16_t keyswitch_voltage, int16_t zero_speed_threshold) {
-  RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_2", node_name_.c_str());
+//  RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_2", node_name_.c_str());
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_1_motor_torque] = motor_torque;
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_2_BDI_percentage] = bdi_percentage;
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_3_keyswitch_voltage] = keyswitch_voltage;
@@ -47,7 +47,7 @@ void MotorDriveCANOpenSlaveNode::send_TPDO_2(int16_t motor_torque, int16_t bdi_p
 }
 
 void MotorDriveCANOpenSlaveNode::send_TPDO_3(bool interlock_status_bit) {
-RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_3", node_name_.c_str());
+//RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_3", node_name_.c_str());
 
   std::bitset<8> motor_drive_status_bitset;
   motor_drive_status_bitset[BIT_IDX_interlock_status] = interlock_status_bit;
@@ -58,7 +58,7 @@ RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_3", node_name_.c_str());
 }
 
 void MotorDriveCANOpenSlaveNode::send_TPDO_4(int32_t rotor_position) {
-  RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_4", node_name_.c_str());
+//  RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_4", node_name_.c_str());
   (*this)[IDX_TPDO4][SUB_IDX_TPDO4_1_rotor_position] = rotor_position;
 
   this->TpdoEvent(4);
