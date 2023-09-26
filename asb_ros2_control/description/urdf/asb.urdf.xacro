@@ -2,6 +2,7 @@
 <!-- Basic differential drive mobile base -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="asb_robot">
   <xacro:arg name="prefix" default="" />
+  <xacro:arg name="test" default="false" />
 
 <!--  <xacro:include filename="$(find ros2_control_demo_description)/diffbot/urdf/diffbot_description.urdf.xacro" />-->
 
@@ -13,6 +14,6 @@
 
 <!--  <xacro:diffbot prefix="$(arg prefix)" />-->
 
-  <xacro:asb_ros2_control name="asb" prefix="$(arg prefix)" test="false" />
+  <xacro:asb_ros2_control name="asb" prefix="$(arg prefix)" test="$(arg test)" />
 
 </robot>

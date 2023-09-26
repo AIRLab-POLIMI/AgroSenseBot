@@ -16,7 +16,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, PythonExpression
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -24,23 +24,32 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     # Declare arguments
-    declared_arguments = [DeclareLaunchArgument(
-        "gui",
-        default_value="false",
-        description="Start RViz2 automatically with this launch file.",
-    )]
+    declared_arguments = [
+        DeclareLaunchArgument(
+            "gui",
+            default_value="false",
+            description="Start RViz2 automatically with this launch file.",
+        ),
+        DeclareLaunchArgument(
+            "test",
+            default_value="false",
+            description="Use the virtual CAN network vcan0 instead of the physical CAN network (can0).",
+        )
+    ]
 
     # Initialize Arguments
-    gui = LaunchConfiguration("gui")
+    gui_launch_configuration = LaunchConfiguration("gui")
+    test_launch_configuration = LaunchConfiguration("test")
 
     # Get URDF via xacro
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution(
-                [FindPackageShare("asb_ros2_control"), "urdf", "asb.urdf.xacro"]
-            ),
+            PathJoinSubstitution([FindPackageShare("asb_ros2_control"), "urdf", "asb.urdf.xacro"]),
+            " ",
+            "test:=",
+            test_launch_configuration,
         ]
     )
     robot_description = {"robot_description": robot_description_content}
@@ -77,7 +86,7 @@ def generate_launch_description():
         name="rviz2",
         output="log",
         arguments=["-d", rviz_config_file],
-        condition=IfCondition(gui),
+        condition=IfCondition(gui_launch_configuration),
     )
 
     joint_state_broadcaster_spawner = Node(

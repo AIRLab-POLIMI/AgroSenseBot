@@ -95,9 +95,8 @@ def generate_launch_description():
     )
 
     include_control_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('asb_ros2_control'), 'launch/asb_ros2_control_test.launch.py'))
+        launch_description_source=PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('asb_ros2_control'), 'launch/asb_ros2_control.launch.py')),
+        launch_arguments={'test': 'true'}.items(),
     )
 
     ld = launch.LaunchDescription()
