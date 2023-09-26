@@ -1,5 +1,0 @@
-builtin_interfaces/Time stamp
-float64 controller_temperature
-float64 motor_temperature
-int16 motor_rpm
-float64 battery_current_display
