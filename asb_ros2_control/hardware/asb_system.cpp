@@ -100,6 +100,17 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(
     return hardware_interface::CallbackReturn::ERROR;
   }
 
+  cfg_.fan_maximum_velocity_rpm_ = std::stoi(info_.hardware_parameters["fan_maximum_velocity_rpm"]);
+  if (cfg_.fan_maximum_velocity_rpm_ > 0)
+  {
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
+                "fan_maximum_velocity_rpm: %i", cfg_.fan_maximum_velocity_rpm_);
+  } else {
+    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
+                 "fan_maximum_velocity_rpm [%i] must be strictly positive", cfg_.fan_maximum_velocity_rpm_);
+    return hardware_interface::CallbackReturn::ERROR;
+  }
+
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
     // ASBSystem has exactly two states and one command interface on each joint
@@ -149,28 +160,6 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(
     }
   }
 
-  track_left_joint_name_ = info_.hardware_parameters["left_track_joint_name"];
-  if (info_.joints[0].name == track_left_joint_name_)
-  {
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "track_left_joint_name: '%s'", track_left_joint_name_.c_str());
-  } else {
-    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "track_left_joint_name [%s] not in ros2_control xacro configuration as first joint", track_left_joint_name_.c_str());
-    return hardware_interface::CallbackReturn::ERROR;
-  }
-
-  track_right_joint_name_ = info_.hardware_parameters["right_track_joint_name"];
-  if (info_.joints[1].name == track_right_joint_name_)
-  {
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "track_right_joint_name: '%s'", track_right_joint_name_.c_str());
-  } else {
-    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "track_right_joint_name [%s] not in ros2_control xacro configuration as second joint", track_right_joint_name_.c_str());
-    return hardware_interface::CallbackReturn::ERROR;
-  }
-
   if (info_.gpios[0].name == "control_system_state")
   {
     RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
@@ -189,12 +178,12 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   // left joint
-  state_interfaces.emplace_back(track_left_joint_name_, hardware_interface::HW_IF_POSITION, &track_left_position_state_);
-  state_interfaces.emplace_back(track_left_joint_name_, hardware_interface::HW_IF_VELOCITY, &track_left_velocity_state_);
+  state_interfaces.emplace_back("left_track_joint", hardware_interface::HW_IF_POSITION, &track_left_position_state_);
+  state_interfaces.emplace_back("left_track_joint", hardware_interface::HW_IF_VELOCITY, &track_left_velocity_state_);
 
   // right joint
-  state_interfaces.emplace_back(track_right_joint_name_, hardware_interface::HW_IF_POSITION, &track_right_position_state_);
-  state_interfaces.emplace_back(track_right_joint_name_, hardware_interface::HW_IF_VELOCITY, &track_right_velocity_state_);
+  state_interfaces.emplace_back("right_track_joint", hardware_interface::HW_IF_POSITION, &track_right_position_state_);
+  state_interfaces.emplace_back("right_track_joint", hardware_interface::HW_IF_VELOCITY, &track_right_velocity_state_);
 
   // fan motor command interface
   state_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_POSITION, &fan_position_revs_state_);
@@ -234,8 +223,8 @@ std::vector<hardware_interface::CommandInterface> ASBSystemHardware::export_comm
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
   // left and right track command interface
-  command_interfaces.emplace_back(track_left_joint_name_, hardware_interface::HW_IF_VELOCITY, &track_left_velocity_command_);
-  command_interfaces.emplace_back(track_right_joint_name_, hardware_interface::HW_IF_VELOCITY, &track_right_velocity_command_);
+  command_interfaces.emplace_back("left_track_joint", hardware_interface::HW_IF_VELOCITY, &track_left_velocity_command_);
+  command_interfaces.emplace_back("right_track_joint", hardware_interface::HW_IF_VELOCITY, &track_right_velocity_command_);
 
   // fan motor command interface
   command_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_VELOCITY, &fan_speed_ref_rpm_command_);

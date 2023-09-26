@@ -131,7 +131,6 @@ private:
   double pump_bool_state_ = 0.0;
 
   // exported interface for left track control and additional motor drive information
-  std::string track_left_joint_name_;
   double track_left_position_state_ = 0;
   double track_left_velocity_state_ = 0;
   double track_left_velocity_command_ = 0;
@@ -140,7 +139,6 @@ private:
   double track_left_battery_current_state_ = 0;
 
   // exported interface for right track control and additional motor drive information
-  std::string track_right_joint_name_;
   double track_right_position_state_ = 0;
   double track_right_velocity_state_ = 0;
   double track_right_velocity_command_ = 0;

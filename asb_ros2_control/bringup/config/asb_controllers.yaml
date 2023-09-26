@@ -10,8 +10,8 @@ controller_manager:
 
 asb_base_controller:
   ros__parameters:
-    left_wheel_names: ["left_wheel_joint"]
-    right_wheel_names: ["right_wheel_joint"]
+    left_wheel_names: ["left_track_joint"]
+    right_wheel_names: ["right_track_joint"]
 
     wheel_separation: 0.10
     #wheels_per_side: 1  # actually 2, but both are controlled by 1 signal
