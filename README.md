@@ -23,7 +23,7 @@ In separate terminals:
 
 Set up the vcan0 virtual CAN network
 ```shell
-sudo ~/w/agrosensebot_ws/src/AgroSenseBot/agrosensebot_canopen_bridge/scripts/setup_vcan0.sh
+sudo ~/w/agrosensebot_ws/src/AgroSenseBot/asb_ros2_control/scripts/setup_vcan0.sh
 candump -tz vcan0
 ```
 
@@ -42,3 +42,8 @@ ros2 launch asb_ros2_control joy.launch.py
 ```
 
 In the Rviz window, the odom frame should move according to the keyboard or joy-pad input.
+
+To shut down the vcan0 CAN network, use the following command
+```shell
+sudo ~/w/agrosensebot_ws/src/AgroSenseBot/asb_ros2_control/scripts/shutdown_vcan0.sh
+```
