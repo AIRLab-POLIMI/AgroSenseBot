@@ -172,9 +172,9 @@ void ROS2BridgeNode::motor_drive_left_ros2_callback(agrosensebot_canopen_bridge_
                 msg->motor_rpm,
                 (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
         MDL_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
-//        MDL_canopen_slave_node_->send_TPDO_3(); // TODO
+        MDL_canopen_slave_node_->send_TPDO_3(false); // TODO interlock_status
         MDL_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
-}
+    }
 
 }
 
@@ -186,7 +186,7 @@ void ROS2BridgeNode::motor_drive_right_ros2_callback(agrosensebot_canopen_bridge
                 msg->motor_rpm,
                 (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
         MDR_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
-//        MDR_canopen_slave_node_->send_TPDO_3(); // TODO
+        MDR_canopen_slave_node_->send_TPDO_3(false); // TODO interlock_status
         MDR_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
     }
 }
@@ -199,7 +199,7 @@ void ROS2BridgeNode::motor_drive_fan_ros2_callback(agrosensebot_canopen_bridge_m
                 msg->motor_rpm,
                 (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
         FAN_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
-//        FAN_canopen_slave_node_->send_TPDO_3(); // TODO
+        FAN_canopen_slave_node_->send_TPDO_3(false); // TODO interlock_status
         FAN_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
     }
 }
