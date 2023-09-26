@@ -38,9 +38,12 @@
 #include <bitset>
 
 // Conversion values for current and temperature
-#define RAW_DATA_STEP_VALUE_temperature 0.1 // 0.1°C
-#define RAW_DATA_STEP_VALUE_current 0.1 // 0.1A
-#define RAW_DATA_STEP_VALUE_rotor_position (1/4096.0) // 1/4096 = 0.000244141 rotations, see documentation for Position_Rotor in "Curtis Manual AC F2-T and AC F2-D – FOS 5.0 April 2023", Section 5 — SYSTEM MONITOR MENU, page 144.
+#define RAW_DATA_STEP_VALUE_temperature 0.1 // 0.1 °C
+#define RAW_DATA_STEP_VALUE_current 0.1 // 0.1 A
+#define RAW_DATA_STEP_VALUE_torque 1 // 1 Nm
+#define RAW_DATA_STEP_VALUE_bdi_percentage 1 // 1 %
+#define RAW_DATA_STEP_VALUE_voltage 0.01 // 0.01 V
+#define RAW_DATA_STEP_VALUE_rotor_position (1/4096.) // 2^12 revolutions
 
 using namespace std::chrono_literals;
 
@@ -137,6 +140,11 @@ private:
   double track_left_controller_temperature_state_ = 0;
   double track_left_motor_temperature_state_ = 0;
   double track_left_battery_current_state_ = 0;
+  double track_left_motor_torque_state_ = 0;
+  double track_left_BDI_percentage_state_ = 0;
+  double track_left_keyswitch_voltage_state_ = 0;
+  double track_left_zero_speed_threshold_state_ = 0;
+  double track_left_interlock_bool_state_ = 0;
 
   // exported interface for right track control and additional motor drive information
   double track_right_position_state_ = 0;
@@ -145,6 +153,11 @@ private:
   double track_right_controller_temperature_state_ = 0;
   double track_right_motor_temperature_state_ = 0;
   double track_right_battery_current_state_ = 0;
+  double track_right_motor_torque_state_ = 0;
+  double track_right_BDI_percentage_state_ = 0;
+  double track_right_keyswitch_voltage_state_ = 0;
+  double track_right_zero_speed_threshold_state_ = 0;
+  double track_right_interlock_bool_state_ = 0;
 
   // exported interface for fan control and additional motor drive information
   double fan_position_revs_state_ = 0;
@@ -153,6 +166,11 @@ private:
   double fan_controller_temperature_state_ = 0;
   double fan_motor_temperature_state_ = 0;
   double fan_battery_current_state_ = 0;
+  double fan_motor_torque_state_ = 0;
+  double fan_BDI_percentage_state_ = 0;
+  double fan_keyswitch_voltage_state_ = 0;
+  double fan_zero_speed_threshold_state_ = 0;
+  double fan_interlock_bool_state_ = 0;
 
 };
 

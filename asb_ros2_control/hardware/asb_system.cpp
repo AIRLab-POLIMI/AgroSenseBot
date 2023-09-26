@@ -204,16 +204,31 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back("control_system_state", "left_motor_controller_temperature", &track_left_controller_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "left_motor_temperature", &track_left_motor_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "left_motor_battery_current", &track_left_battery_current_state_);
+  state_interfaces.emplace_back("control_system_state", "left_motor_torque", &track_left_motor_torque_state_);
+  state_interfaces.emplace_back("control_system_state", "left_motor_BDI_percentage", &track_left_BDI_percentage_state_);
+  state_interfaces.emplace_back("control_system_state", "left_motor_keyswitch_voltage", &track_left_keyswitch_voltage_state_);
+  state_interfaces.emplace_back("control_system_state", "left_motor_zero_speed_threshold", &track_left_zero_speed_threshold_state_);
+  state_interfaces.emplace_back("control_system_state", "left_motor_interlock", &track_left_interlock_bool_state_);
 
   // right motor additional information
   state_interfaces.emplace_back("control_system_state", "right_motor_controller_temperature", &track_right_controller_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "right_motor_temperature", &track_right_motor_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "right_motor_battery_current", &track_right_battery_current_state_);
+  state_interfaces.emplace_back("control_system_state", "right_motor_torque", &track_right_motor_torque_state_);
+  state_interfaces.emplace_back("control_system_state", "right_motor_BDI_percentage", &track_right_BDI_percentage_state_);
+  state_interfaces.emplace_back("control_system_state", "right_motor_keyswitch_voltage", &track_right_keyswitch_voltage_state_);
+  state_interfaces.emplace_back("control_system_state", "right_motor_zero_speed_threshold", &track_right_zero_speed_threshold_state_);
+  state_interfaces.emplace_back("control_system_state", "right_motor_interlock", &track_right_interlock_bool_state_);
 
   // fan motor additional information
   state_interfaces.emplace_back("control_system_state", "fan_motor_controller_temperature", &fan_controller_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "fan_motor_temperature", &fan_motor_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "fan_motor_battery_current", &fan_battery_current_state_);
+  state_interfaces.emplace_back("control_system_state", "fan_motor_torque", &fan_motor_torque_state_);
+  state_interfaces.emplace_back("control_system_state", "fan_motor_BDI_percentage", &fan_BDI_percentage_state_);
+  state_interfaces.emplace_back("control_system_state", "fan_motor_keyswitch_voltage", &fan_keyswitch_voltage_state_);
+  state_interfaces.emplace_back("control_system_state", "fan_motor_zero_speed_threshold", &fan_zero_speed_threshold_state_);
+  state_interfaces.emplace_back("control_system_state", "fan_motor_interlock", &fan_interlock_bool_state_);
 
   return state_interfaces;
 }
@@ -491,37 +506,55 @@ hardware_interface::return_type ASBSystemHardware::read(
 
   // left motor state
   track_left_velocity_state_ = motor_left_receiver_->motor_RPM_.load() * 2 * M_PI / 60.0;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_velocity_state_: %f", track_left_velocity_state_);
   track_left_position_state_ = motor_left_receiver_->rotor_position_.load() * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_position_state_: %f", track_left_position_state_);
   track_left_controller_temperature_state_ = motor_left_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_controller_temperature_state_: %f", track_left_controller_temperature_state_);
   track_left_motor_temperature_state_ = motor_left_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_motor_temperature_state_: %f", track_left_motor_temperature_state_);
   track_left_battery_current_state_ = motor_left_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;
+  track_left_motor_torque_state_ = motor_left_receiver_->motor_torque_.load() * RAW_DATA_STEP_VALUE_torque;
+  track_left_BDI_percentage_state_ = motor_left_receiver_->BDI_percentage_.load() * RAW_DATA_STEP_VALUE_bdi_percentage;
+  track_left_keyswitch_voltage_state_ = motor_left_receiver_->keyswitch_voltage_.load() * RAW_DATA_STEP_VALUE_voltage;
+  track_left_zero_speed_threshold_state_ = motor_left_receiver_->zero_speed_threshold_.load();
+  track_left_interlock_bool_state_ = motor_left_receiver_->interlock_status_.load();
+
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_velocity_state_: %f", track_left_velocity_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_position_state_: %f", track_left_position_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_controller_temperature_state_: %f", track_left_controller_temperature_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_motor_temperature_state_: %f", track_left_motor_temperature_state_);
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_battery_current_state_: %f", track_left_battery_current_state_);
 
 //   right motor state
   track_right_velocity_state_ = motor_right_receiver_->motor_RPM_.load() * 2 * M_PI / 60;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_velocity_state_: %f", track_right_velocity_state_);
   track_right_position_state_ = motor_right_receiver_->rotor_position_.load() * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_position_state_: %f", track_right_position_state_);
   track_right_controller_temperature_state_ = motor_right_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_controller_temperature_state_: %f", track_right_controller_temperature_state_);
   track_right_motor_temperature_state_ = motor_right_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_motor_temperature_state_: %f", track_right_motor_temperature_state_);
   track_right_battery_current_state_ = motor_right_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;
+  track_right_motor_torque_state_ = motor_right_receiver_->motor_torque_.load() * RAW_DATA_STEP_VALUE_torque;
+  track_right_BDI_percentage_state_ = motor_right_receiver_->BDI_percentage_.load() * RAW_DATA_STEP_VALUE_bdi_percentage;
+  track_right_keyswitch_voltage_state_ = motor_right_receiver_->keyswitch_voltage_.load() * RAW_DATA_STEP_VALUE_voltage;
+  track_right_zero_speed_threshold_state_ = motor_right_receiver_->zero_speed_threshold_.load();
+  track_right_interlock_bool_state_ = motor_right_receiver_->interlock_status_.load();
+
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_velocity_state_: %f", track_right_velocity_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_position_state_: %f", track_right_position_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_controller_temperature_state_: %f", track_right_controller_temperature_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_motor_temperature_state_: %f", track_right_motor_temperature_state_);
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_battery_current_state_: %f", track_right_battery_current_state_);
 
   // fan motor state
   fan_speed_rpm_state_ = motor_fan_receiver_->motor_RPM_.load();
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_speed_rpm_state_: %f", fan_speed_rpm_state_);
   fan_position_revs_state_ = motor_fan_receiver_->rotor_position_.load() * RAW_DATA_STEP_VALUE_rotor_position;
   fan_controller_temperature_state_ = motor_fan_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_controller_temperature_state_: %f", fan_controller_temperature_state_);
   fan_motor_temperature_state_ = motor_fan_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_temperature_state_: %f", fan_motor_temperature_state_);
   fan_battery_current_state_ = motor_fan_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;
+  fan_motor_torque_state_ = motor_fan_receiver_->motor_torque_.load() * RAW_DATA_STEP_VALUE_torque;
+  fan_BDI_percentage_state_ = motor_fan_receiver_->BDI_percentage_.load() * RAW_DATA_STEP_VALUE_bdi_percentage;
+  fan_keyswitch_voltage_state_ = motor_fan_receiver_->keyswitch_voltage_.load() * RAW_DATA_STEP_VALUE_voltage;
+  fan_zero_speed_threshold_state_ = motor_fan_receiver_->zero_speed_threshold_.load();
+  fan_interlock_bool_state_ = motor_fan_receiver_->interlock_status_.load();
+
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_speed_rpm_state_: %f", fan_speed_rpm_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_controller_temperature_state_: %f", fan_controller_temperature_state_);
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_temperature_state_: %f", fan_motor_temperature_state_);
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_battery_current_state_: %f", fan_battery_current_state_);
 
   return hardware_interface::return_type::OK;
