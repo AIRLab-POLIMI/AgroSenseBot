@@ -30,7 +30,7 @@ def generate_launch_description():
         executable="teleop_node",
         output="screen",
         parameters=[
-                {
+                {  # these keybindings are for a G-LAB K-PAD-THORIUM joy-pad (SHANWAN Android Gamepad)
                     "enable_button": 7,
                     "axis_linear.x": 1,
                     "scale_linear.x": 0.5,
