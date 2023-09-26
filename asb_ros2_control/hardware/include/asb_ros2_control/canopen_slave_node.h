@@ -36,11 +36,11 @@ public:
 
   void timer();
 
-  void send_TPDO_1(uint8_t);
+  void send_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit);
 
-  void send_TPDO_2(int16_t, int16_t);
+  void send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref);
 
-  std::string node_name_ = "";
+  std::string node_name_;
 
   // VCU status
   std::atomic<bool> VCU_comm_ok_ = true;

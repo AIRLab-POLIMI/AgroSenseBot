@@ -30,12 +30,21 @@
         <state_interface name="velocity"/>
         <command_interface name="velocity"/>
       </joint>
+      <joint name="fan_motor_joint"> <!-- in fan_motor_joint the velocity is in RPM and the position in revolutions -->
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <command_interface name="velocity"/>
+      </joint>
       <gpio name="control_system_state">
         <state_interface name="vcu_comm_ok"/>
         <state_interface name="vcu_safety_status"/>
         <state_interface name="control_mode"/>
+
         <state_interface name="software_emergency_stop"/>
         <command_interface name="set_software_emergency_stop"/>
+
+        <state_interface name="pump_state"/>
+        <command_interface name="pump_command"/>
 
         <state_interface name="left_motor_controller_temperature"/>
         <state_interface name="left_motor_temperature"/>
@@ -45,7 +54,6 @@
         <state_interface name="right_motor_temperature"/>
         <state_interface name="right_motor_battery_current"/>
 
-        <state_interface name="fan_motor_rpm"/>
         <state_interface name="fan_motor_controller_temperature"/>
         <state_interface name="fan_motor_temperature"/>
         <state_interface name="fan_motor_battery_current"/>

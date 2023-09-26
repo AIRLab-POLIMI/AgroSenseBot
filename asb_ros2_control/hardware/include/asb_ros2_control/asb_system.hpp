@@ -58,6 +58,7 @@ struct Config
     std::string can_interface_name;
     std::chrono::seconds canopen_init_timeout = 5s;
     int tracks_maximum_velocity_rpm_;
+    int fan_maximum_velocity_rpm_;
 };
 
 public:
@@ -125,33 +126,35 @@ private:
   double set_software_emergency_stop_bool_command_ = 0.0;
   double software_emergency_stop_bool_state_ = 0.0;
 
-  // exported interface for motor left control
+  // exported interface for pump control
+  double pump_bool_command_ = 0.0;
+  double pump_bool_state_ = 0.0;
+
+  // exported interface for left track control and additional motor drive information
   std::string track_left_joint_name_;
   double track_left_position_state_ = 0;
   double track_left_velocity_state_ = 0;
   double track_left_velocity_command_ = 0;
-
-  // left motor additional state
   double track_left_controller_temperature_state_ = 0;
   double track_left_motor_temperature_state_ = 0;
   double track_left_battery_current_state_ = 0;
 
-  // exported interface for motor right
+  // exported interface for right track control and additional motor drive information
   std::string track_right_joint_name_;
   double track_right_position_state_ = 0;
   double track_right_velocity_state_ = 0;
   double track_right_velocity_command_ = 0;
-
-  // right motor additional state
   double track_right_controller_temperature_state_ = 0;
   double track_right_motor_temperature_state_ = 0;
   double track_right_battery_current_state_ = 0;
 
-  // exported interface for motor fan
+  // exported interface for fan control and additional motor drive information
+  double fan_position_revs_state_ = 0;
+  double fan_speed_rpm_state_ = 0;
+  double fan_speed_ref_rpm_command_ = 0;
   double fan_controller_temperature_state_ = 0;
   double fan_motor_temperature_state_ = 0;
   double fan_battery_current_state_ = 0;
-  double fan_motor_rpm_state_ = 0;
 
 };
 

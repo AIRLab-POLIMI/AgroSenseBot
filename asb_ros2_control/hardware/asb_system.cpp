@@ -196,6 +196,10 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back(track_right_joint_name_, hardware_interface::HW_IF_POSITION, &track_right_position_state_);
   state_interfaces.emplace_back(track_right_joint_name_, hardware_interface::HW_IF_VELOCITY, &track_right_velocity_state_);
 
+  // fan motor command interface
+  state_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_POSITION, &fan_position_revs_state_);
+  state_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_VELOCITY, &fan_speed_rpm_state_);
+
   // control system state
   state_interfaces.emplace_back("control_system_state", "vcu_comm_ok", &vcu_comm_ok_bool_state_);
   state_interfaces.emplace_back("control_system_state", "vcu_safety_status", &vcu_safety_status_bool_state_);
@@ -203,6 +207,9 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
 
   // software emergency stop
   state_interfaces.emplace_back("control_system_state", "software_emergency_stop", &software_emergency_stop_bool_state_);
+
+  // pump
+  state_interfaces.emplace_back("control_system_state", "pump_state", &pump_bool_state_);
 
   // left motor additional information
   state_interfaces.emplace_back("control_system_state", "left_motor_controller_temperature", &track_left_controller_temperature_state_);
@@ -218,7 +225,6 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back("control_system_state", "fan_motor_controller_temperature", &fan_controller_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "fan_motor_temperature", &fan_motor_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "fan_motor_battery_current", &fan_battery_current_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_rpm", &fan_motor_rpm_state_);
 
   return state_interfaces;
 }
@@ -227,10 +233,18 @@ std::vector<hardware_interface::CommandInterface> ASBSystemHardware::export_comm
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
+  // left and right track command interface
   command_interfaces.emplace_back(track_left_joint_name_, hardware_interface::HW_IF_VELOCITY, &track_left_velocity_command_);
   command_interfaces.emplace_back(track_right_joint_name_, hardware_interface::HW_IF_VELOCITY, &track_right_velocity_command_);
 
+  // fan motor command interface
+  command_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_VELOCITY, &fan_speed_ref_rpm_command_);
+
+  // software emergency stop command interface
   command_interfaces.emplace_back("control_system_state", "set_software_emergency_stop", &set_software_emergency_stop_bool_command_);
+
+  // pump command interface
+  command_interfaces.emplace_back("control_system_state", "pump_command", &pump_bool_command_);
 
   return command_interfaces;
 }
@@ -253,10 +267,7 @@ void ASBSystemHardware::timer() {
       gcu_alive_bit_current_value_ = !gcu_alive_bit_current_value_;
       gcu_alive_bit_last_value_change_ = now;
 
-      std::bitset<8> gcu_state_data_bitset;
-      gcu_state_data_bitset[0] = gcu_alive_bit_current_value_;
-      gcu_state_data_bitset[1] = true;  // bReady value of TPDO1. For now, it is not used and always true
-      GCU_->send_TPDO_1(gcu_state_data_bitset.to_ulong());
+      GCU_->send_TPDO_1(gcu_alive_bit_current_value_, (bool)std::round(pump_bool_command_));
     }
   }
 }
@@ -486,6 +497,9 @@ hardware_interface::return_type ASBSystemHardware::read(
   // software emergency stop
   software_emergency_stop_bool_state_ = software_emergency_stop_;
 
+  // pump
+  pump_bool_state_ = GCU_->VCU_pump_status_bit_.load();
+
   // left motor state
   track_left_velocity_state_ = motor_left_receiver_->motor_RPM_.load() * 2 * M_PI / 60.0;
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_velocity_state_: %f", track_left_velocity_state_);
@@ -511,8 +525,9 @@ hardware_interface::return_type ASBSystemHardware::read(
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_battery_current_state_: %f", track_right_battery_current_state_);
 
   // fan motor state
-  fan_motor_rpm_state_ = motor_fan_receiver_->motor_RPM_.load();
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_rpm_state_: %f", fan_motor_rpm_state_);
+  fan_speed_rpm_state_ = motor_fan_receiver_->motor_RPM_.load();
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_speed_rpm_state_: %f", fan_speed_rpm_state_);
+  fan_position_revs_state_ = motor_fan_receiver_->rotor_position_.load() * RAW_DATA_STEP_VALUE_rotor_position;
   fan_controller_temperature_state_ = motor_fan_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_controller_temperature_state_: %f", fan_controller_temperature_state_);
   fan_motor_temperature_state_ = motor_fan_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
@@ -532,9 +547,11 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
   software_emergency_stop_ = (bool)std::round(set_software_emergency_stop_bool_command_);
   if (software_emergency_stop_ && !prev_software_emergency_stop_)
   {
-    int16_t left_speed_ref_percentage = 0;
-    int16_t right_speed_ref_percentage = 0;
-    GCU_->send_TPDO_2(right_speed_ref_percentage, left_speed_ref_percentage);
+    int16_t left_speed_ref = 0;
+    int16_t right_speed_ref = 0;
+    int16_t fan_speed_ref = 0;
+    GCU_->send_TPDO_1(gcu_alive_bit_current_value_, false);
+    GCU_->send_TPDO_2(right_speed_ref, left_speed_ref, fan_speed_ref);
     RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "SOFTWARE EMERGENCY STOP ENABLED");
   }
   if (!software_emergency_stop_ && prev_software_emergency_stop_)
@@ -546,16 +563,19 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
     // send the velocity data through TPDO2 of the GCU CANOpen node
     double left_speed_ref_rpm = track_left_velocity_command_ * 60 / (2*M_PI);
     double right_speed_ref_rpm = track_right_velocity_command_ * 60 / (2*M_PI);
-    auto left_speed_ref_percentage = (int16_t)std::round(100 * left_speed_ref_rpm / cfg_.tracks_maximum_velocity_rpm_);
-    auto right_speed_ref_percentage = (int16_t)std::round(100 * right_speed_ref_rpm / cfg_.tracks_maximum_velocity_rpm_);
-    GCU_->send_TPDO_2(right_speed_ref_percentage, left_speed_ref_percentage);
+    auto left_speed_ref_rpm_clipped = std::min(
+            (int16_t)std::round(left_speed_ref_rpm), (int16_t)cfg_.tracks_maximum_velocity_rpm_);
+    auto right_speed_ref_rpm_clipped = std::min(
+            (int16_t)std::round(right_speed_ref_rpm), (int16_t)cfg_.tracks_maximum_velocity_rpm_);
+    auto fan_speed_ref_rpm_clipped = std::min(
+            (int16_t)std::round(fan_speed_ref_rpm_command_), (int16_t)cfg_.fan_maximum_velocity_rpm_);
+    GCU_->send_TPDO_2(
+            right_speed_ref_rpm_clipped, left_speed_ref_rpm_clipped, fan_speed_ref_rpm_clipped);
 
-//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-//                "write rad/s      l: %f  r: %f", track_left_velocity_command_, track_right_velocity_command_);
-//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-//                "write rpm        l: %f  r: %f", left_speed_ref_rpm, right_speed_ref_rpm);
-//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-//                "write percentage l: %i  r: %i", left_speed_ref_percentage, right_speed_ref_percentage);
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
+                "write track vel   l: %f  r: %f   [rad/s]", track_left_velocity_command_, track_right_velocity_command_);
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
+                "write track vel   l: %i  r: %i   [rpm]", left_speed_ref_rpm_clipped, right_speed_ref_rpm_clipped);
   }
 
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
