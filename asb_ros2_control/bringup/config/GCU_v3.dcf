@@ -815,7 +815,7 @@ DataType=0x0005
 AccessType=rw
 HighLimit=0xFF
 LowLimit=0x00
-DefaultValue=0xFF
+DefaultValue=0xFE
 ParameterValue=
 PDOMapping=0
 
@@ -933,7 +933,7 @@ DataType=0x0005
 AccessType=rw
 HighLimit=0xFF
 LowLimit=0x00
-DefaultValue=0xFF
+DefaultValue=0xFE
 ParameterValue=
 PDOMapping=0
 
@@ -1012,7 +1012,7 @@ DataType=0x0005
 AccessType=rw
 HighLimit=0xFF
 LowLimit=0x00
-DefaultValue=0xFF
+DefaultValue=0xFE
 ParameterValue=
 PDOMapping=0
 

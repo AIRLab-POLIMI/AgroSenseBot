@@ -27,20 +27,16 @@
 void VCUCANOpenSlaveNode::send_TPDO_1(bool VCU_is_alive_bit, bool VCU_safety_status_bit, bool pump_status_bit,
                                       uint8_t control_mode,
                                       uint8_t more_recent_alarm_id_to_confirm, uint8_t more_recent_active_alarm_id) {
+    RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[dummy_VCU] TPDO_1");
     std::bitset<8> VCU_status_bitset;
-  VCU_status_bitset[0] = VCU_is_alive_bit;
-  VCU_status_bitset[1] = VCU_safety_status_bit;
-  VCU_status_bitset[2] = pump_status_bit;
+    VCU_status_bitset[0] = VCU_is_alive_bit;
+    VCU_status_bitset[1] = VCU_safety_status_bit;
+    VCU_status_bitset[2] = pump_status_bit;
     uint8_t VCU_is_alive = VCU_status_bitset.to_ulong();
 
-//    RCLCPP_INFO(ros2_bridge_node_->get_logger(), "TPDO_1: writing 0x%X to 0x%X:%X", VCU_is_alive, IDX_TPDO1_VCU_STATUS, SUB_IDX_TPDO1_1_VCU_is_alive);
     (*this)[IDX_TPDO1_VCU_STATUS][SUB_IDX_TPDO1_1_VCU_is_alive] = VCU_is_alive;
-
-//    RCLCPP_INFO(ros2_bridge_node_->get_logger(), "TPDO_1: writing 0x%X to 0x%X:%X", control_mode, IDX_TPDO1_VCU_STATUS, SUB_IDX_TPDO1_2_control_mode);
     (*this)[IDX_TPDO1_VCU_STATUS][SUB_IDX_TPDO1_2_control_mode] = control_mode;
-
     (*this)[IDX_TPDO1_VCU_STATUS][SUB_IDX_TPDO1_3_more_recent_alarm_id_to_confirm] = more_recent_alarm_id_to_confirm;
-
     (*this)[IDX_TPDO1_VCU_STATUS][SUB_IDX_TPDO1_4_more_recent_active_alarm_id] = more_recent_active_alarm_id;
 
     this->TpdoEvent(1);
@@ -52,7 +48,7 @@ void VCUCANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
     // RPDO 1 (from GCU node)
     if (idx == IDX_GCU_IS_ALIVE && subidx == SUB_IDX_GCU_state) {
 
-//        RCLCPP_INFO(ros2_bridge_node_->get_logger(), "RPDO_1: Received data on idx: 0x%X:%X", idx, subidx);
+        RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[dummy_VCU] RPDO_1");
         uint8_t GCU_state = (*this)[IDX_GCU_IS_ALIVE][SUB_IDX_GCU_state];
         bool GCU_is_alive_bit = (GCU_state >> BIT_IDX_GCU_is_alive) & 1;
         bool GCU_is_ready_bit = (GCU_state >> BIT_IDX_GCU_is_ready) & 1;
@@ -63,7 +59,7 @@ void VCUCANOpenSlaveNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
     // RPDO 2 (from GCU node)
     if (idx == IDX_MOTOR_SPEED_REF && subidx == SUB_IDX_FanSpeedRef) {
 
-//        RCLCPP_INFO(ros2_bridge_node_->get_logger(), "RPDO_2: Received data on idx: 0x%X:%X", idx, subidx);
+        RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[dummy_VCU] RPDO_2");
         int16_t right_speed_ref = (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_RightSpeedRef];
         int16_t left_speed_ref = (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_LeftSpeedRef];
         int16_t fan_speed_ref = (*this)[IDX_MOTOR_SPEED_REF][SUB_IDX_FanSpeedRef];

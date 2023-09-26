@@ -29,8 +29,8 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
 
     VCU_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_VCU_canopen_node, this));
     MDL_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDL_canopen_node, this));
-//    MDR_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDR_canopen_node, this));
-//    FAN_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_FAN_canopen_node, this));
+    MDR_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDR_canopen_node, this));
+    FAN_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_FAN_canopen_node, this));
 
     std::chrono::duration gcu_is_alive_timer_period_ = 10ms;
     gcu_is_alive_timer_ = rclcpp::create_timer(
@@ -96,6 +96,7 @@ void ROS2BridgeNode::run_MDL_canopen_node() {
 
   MDL_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(timer, chan,
                                                                          MDL_canopen_node_config_, "", this);
+  MDL_canopen_slave_node_->node_name_ = "dummy_MDL";
   MDL_canopen_slave_node_->Reset();
 
   while (lifecycle_node_active_.load()) {
@@ -117,6 +118,7 @@ void ROS2BridgeNode::run_MDR_canopen_node() {
 
   MDR_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(timer, chan,
                                                                          MDR_canopen_node_config_, "", this);
+  MDR_canopen_slave_node_->node_name_ = "dummy_MDR";
   MDR_canopen_slave_node_->Reset();
 
   while (lifecycle_node_active_.load()) {
@@ -138,6 +140,7 @@ void ROS2BridgeNode::run_FAN_canopen_node() {
 
   FAN_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(timer, chan,
                                                                          FAN_canopen_node_config_, "", this);
+  FAN_canopen_slave_node_->node_name_ = "dummy_FAN";
   FAN_canopen_slave_node_->Reset();
 
   while (lifecycle_node_active_.load()) {
@@ -169,7 +172,7 @@ void ROS2BridgeNode::motor_drive_left_ros2_callback(agrosensebot_canopen_bridge_
                 msg->motor_rpm,
                 (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
         MDL_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
-
+//        MDL_canopen_slave_node_->send_TPDO_3(); // TODO
         MDL_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
 }
 
@@ -182,6 +185,9 @@ void ROS2BridgeNode::motor_drive_right_ros2_callback(agrosensebot_canopen_bridge
                 (int16_t)(msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
                 msg->motor_rpm,
                 (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
+        MDR_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
+//        MDR_canopen_slave_node_->send_TPDO_3(); // TODO
+        MDR_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
     }
 }
 
@@ -192,6 +198,9 @@ void ROS2BridgeNode::motor_drive_fan_ros2_callback(agrosensebot_canopen_bridge_m
                 (int16_t)(msg->motor_temperature * INVERSE_RAW_DATA_STEP_VALUE_temperature),
                 msg->motor_rpm,
                 (int16_t)(msg->battery_current_display * INVERSE_RAW_DATA_STEP_VALUE_current));
+        FAN_canopen_slave_node_->send_TPDO_2(0, 0, 0, 0);
+//        FAN_canopen_slave_node_->send_TPDO_3(); // TODO
+        FAN_canopen_slave_node_->send_TPDO_4(0); // TODO rotor_position
     }
 }
 
@@ -221,7 +230,9 @@ void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool GCU_
 }
 
 void ROS2BridgeNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
-//    RCLCPP_INFO(this->get_logger(), "speed_ref_canopen_callback right_speed_ref: %i, left_speed_ref: %i", right_speed_ref, left_speed_ref);
+    RCLCPP_INFO(this->get_logger(),
+                "speed_ref_canopen_callback right_speed_ref: %i, left_speed_ref: %i, fan_speed_ref: %i",
+                right_speed_ref, left_speed_ref, fan_speed_ref);
 
     agrosensebot_canopen_bridge_msgs::msg::SpeedRef msg;
     msg.stamp = this->get_clock()->now();

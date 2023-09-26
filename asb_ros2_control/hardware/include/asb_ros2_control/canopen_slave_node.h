@@ -15,54 +15,6 @@
 #include <thread>
 #include <chrono>
 
-// RPDO1 in GCU.dcf
-#define IDX_RPDO1 0x3000
-#define SUB_IDX_RPDO1_1_VCU_state 0x01
-#define SUB_IDX_RPDO1_2_control_mode 0x02
-#define SUB_IDX_RPDO1_3_more_recent_alarm_id_to_confirm 0x03
-#define SUB_IDX_RPDO1_4_more_recent_active_alarm_id 0x04
-
-#define BIT_IDX_VCU_is_alive 0
-#define BIT_IDX_VCU_safety_status 1
-#define BIT_IDX_VCU_pump_status 2
-
-// TPDO1 in GCU.dcf
-#define IDX_TPDO1 0x3800
-#define SUB_IDX_TPDO1_1_GCU_state 0x01
-#define SUB_IDX_TPDO1_2 0x02
-
-// TPDO2 in GCU.dcf
-#define IDX_TPDO2 0x3801
-#define SUB_IDX_TPDO2_1_right_speed_ref 0x01
-#define SUB_IDX_TPDO2_2_left_speed_ref 0x02
-#define SUB_IDX_TPDO2_3_fan_speed_ref 0x03
-
-
-// RPDO2
-#define SUB_IDX_MDL_controller_temperature 0x01
-#define SUB_IDX_MDL_motor_temperature 0x02
-#define SUB_IDX_MDL_motor_RPM 0x03
-#define SUB_IDX_MDL_battery_current_display 0x04
-
-// RPDO3
-#define SUB_IDX_MDR_controller_temperature 0x05
-#define SUB_IDX_MDR_motor_temperature 0x06
-#define SUB_IDX_MDR_motor_RPM 0x07
-#define SUB_IDX_MDR_battery_current_display 0x08
-
-// RPDO4
-#define SUB_IDX_FAN_controller_temperature 0x09
-#define SUB_IDX_FAN_motor_temperature 0x0A
-#define SUB_IDX_FAN_motor_RPM 0x0B
-#define SUB_IDX_FAN_battery_current_display 0x0C
-
-//TPDO1
-#define SUB_IDX_GCU_is_alive 0x01
-
-//TPDO2
-#define SUB_IDX_RightSpeedRef 0x01
-#define SUB_IDX_LeftSpeedRef 0x02
-
 using namespace lely;
 using namespace std::chrono_literals;
 
@@ -95,6 +47,8 @@ public:
   std::atomic<bool> VCU_safety_status_bit_ = false;
   std::atomic<bool> VCU_pump_status_bit_ = false;
   std::atomic<uint8_t> control_mode_ = 0;
+  std::atomic<uint8_t> more_recent_alarm_id_to_confirm_ = false;
+  std::atomic<uint8_t> more_recent_active_alarm_id_ = false;
 
 };
 

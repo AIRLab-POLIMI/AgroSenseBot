@@ -49,7 +49,7 @@ Dummy0007=1
 Lines=0
 
 [DeviceComissioning]
-NodeID=6
+NodeID=3
 NodeName=dummy_VCU
 Baudrate=0
 NetNumber=0
@@ -1014,7 +1014,7 @@ ParameterName=RPDO mapping parameter
 Denotation=
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
-SubNumber=0x9
+SubNumber=0x4
 
 [1601sub0]
 ParameterName=Number of mapped application objects in PDO
@@ -1023,7 +1023,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=2
+DefaultValue=3
 ParameterValue=
 PDOMapping=0
 
@@ -1057,61 +1057,6 @@ ObjectType=0x7
 DataType=0x0007
 AccessType=rw
 DefaultValue=0x21120310
-ParameterValue=
-PDOMapping=0
-
-[1601sub4]
-ParameterName=Application object 4
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1601sub5]
-ParameterName=Application object 5
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1601sub6]
-ParameterName=Application object 6
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1601sub7]
-ParameterName=Application object 7
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1601sub8]
-ParameterName=Application object 8
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
 ParameterValue=
 PDOMapping=0
 
@@ -1202,7 +1147,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=2
+DefaultValue=4
 ParameterValue=
 PDOMapping=0
 
