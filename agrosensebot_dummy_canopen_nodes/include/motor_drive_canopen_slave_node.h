@@ -1,5 +1,5 @@
-#ifndef TEST_ROS2_CANOPEN_BRIDGE_MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H
-#define TEST_ROS2_CANOPEN_BRIDGE_MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H
+#ifndef ASB_ROS2_CONTROL_TEST__MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H
+#define ASB_ROS2_CONTROL_TEST__MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H
 
 
 #include <lely/ev/loop.hpp>
@@ -19,15 +19,15 @@
 using namespace lely;
 using namespace std::chrono_literals;
 
-class ROS2BridgeNode;
+class ASBSystemTestNode;
 
 class MotorDriveCANOpenSlaveNode : public canopen::BasicSlave {
 private:
-    ROS2BridgeNode *ros2_bridge_node_;
+    ASBSystemTestNode *ros2_bridge_node_;
 
 public:
     MotorDriveCANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt,
-                     const std::string &dcfBin, ROS2BridgeNode *ros2_bridge_node) :
+                               const std::string &dcfBin, ASBSystemTestNode *ros2_bridge_node) :
             BasicSlave(timer, chan, dcfTxt, dcfBin),
             ros2_bridge_node_(ros2_bridge_node) { // TODO pass callback function
     };
@@ -41,4 +41,4 @@ public:
 
 };
 
-#endif //TEST_ROS2_CANOPEN_BRIDGE_MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H
+#endif //ASB_ROS2_CONTROL_TEST__MOTOR_DRIVE_CANOPEN_SLAVE_NODE_H

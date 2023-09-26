@@ -1,15 +1,15 @@
-#include "ros2_bridge_node.h"
+#include "asb_system_test_node.h"
 #include "VCU_canopen_slave_node.h"
 #include "motor_drive_canopen_slave_node.h"
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-ROS2BridgeNode::on_configure(const rclcpp_lifecycle::State &) {
+ASBSystemTestNode::on_configure(const rclcpp_lifecycle::State &) {
   lifecycle_node_active_.store(false);
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
+ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   get_parameter("dummy_VCU_canopen_node_config", VCU_canopen_node_config_);
   get_parameter("dummy_MDL_canopen_node_config", MDL_canopen_node_config_);
   get_parameter("dummy_MDR_canopen_node_config", MDR_canopen_node_config_);
@@ -25,28 +25,28 @@ ROS2BridgeNode::on_activate(const rclcpp_lifecycle::State &) {
 
   lifecycle_node_active_.store(true);
 
-  VCU_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_VCU_canopen_node, this));
-  MDL_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDL_canopen_node, this));
-  MDR_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_MDR_canopen_node, this));
-  FAN_canopen_node_thread_ = std::thread(std::bind(&ROS2BridgeNode::run_FAN_canopen_node, this));
+  VCU_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_VCU_canopen_node, this));
+  MDL_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_MDL_canopen_node, this));
+  MDR_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_MDR_canopen_node, this));
+  FAN_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_FAN_canopen_node, this));
 
   std::chrono::duration gcu_is_alive_timer_period_ = 10ms;
   gcu_is_alive_timer_ = rclcpp::create_timer(
           this, this->get_clock(), rclcpp::Duration(gcu_is_alive_timer_period_),
-          std::bind(&ROS2BridgeNode::gcu_is_alive_timer_ros2_callback, this));
+          std::bind(&ASBSystemTestNode::gcu_is_alive_timer_ros2_callback, this));
   last_GCU_message_time_ = this->get_clock()->now();
   last_GCU_alive_bit_change_time_ = this->get_clock()->now();
 
   std::chrono::duration test_loop_timer_period_ = 50ms;
   test_loop_timer_ = rclcpp::create_timer(
           this, this->get_clock(), rclcpp::Duration(test_loop_timer_period_),
-          std::bind(&ROS2BridgeNode::test_loop_timer_ros2_callback, this));
+          std::bind(&ASBSystemTestNode::test_loop_timer_ros2_callback, this));
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-ROS2BridgeNode::on_deactivate(const rclcpp_lifecycle::State &) {
+ASBSystemTestNode::on_deactivate(const rclcpp_lifecycle::State &) {
 
   gcu_is_alive_timer_->cancel();
   test_loop_timer_->cancel();
@@ -61,16 +61,16 @@ ROS2BridgeNode::on_deactivate(const rclcpp_lifecycle::State &) {
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-ROS2BridgeNode::on_cleanup(const rclcpp_lifecycle::State &) {
+ASBSystemTestNode::on_cleanup(const rclcpp_lifecycle::State &) {
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
-ROS2BridgeNode::on_shutdown(const rclcpp_lifecycle::State &) {
+ASBSystemTestNode::on_shutdown(const rclcpp_lifecycle::State &) {
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
-void ROS2BridgeNode::run_VCU_canopen_node() {
+void ASBSystemTestNode::run_VCU_canopen_node() {
   io::IoGuard io_guard;
   io::Context ctx;
   io::Poll poll(ctx);
@@ -91,7 +91,7 @@ void ROS2BridgeNode::run_VCU_canopen_node() {
   ctx.shutdown();
 }
 
-void ROS2BridgeNode::run_MDL_canopen_node() {
+void ASBSystemTestNode::run_MDL_canopen_node() {
   io::IoGuard io_guard;
   io::Context ctx;
   io::Poll poll(ctx);
@@ -113,7 +113,7 @@ void ROS2BridgeNode::run_MDL_canopen_node() {
   ctx.shutdown();
 }
 
-void ROS2BridgeNode::run_MDR_canopen_node() {
+void ASBSystemTestNode::run_MDR_canopen_node() {
   io::IoGuard io_guard;
   io::Context ctx;
   io::Poll poll(ctx);
@@ -135,7 +135,7 @@ void ROS2BridgeNode::run_MDR_canopen_node() {
   ctx.shutdown();
 }
 
-void ROS2BridgeNode::run_FAN_canopen_node() {
+void ASBSystemTestNode::run_FAN_canopen_node() {
   io::IoGuard io_guard;
   io::Context ctx;
   io::Poll poll(ctx);
@@ -157,29 +157,28 @@ void ROS2BridgeNode::run_FAN_canopen_node() {
   ctx.shutdown();
 }
 
-void ROS2BridgeNode::test_loop_timer_ros2_callback() {
+void ASBSystemTestNode::test_loop_timer_ros2_callback() {
   rclcpp::Time now = this->get_clock()->now();
   rclcpp::Duration time_delta = now - last_test_loop_time_;
   last_test_loop_time_ = now;
-  RCLCPP_INFO(this->get_logger(), "time_delta: %f", time_delta.seconds());
 
   left_motor_drive_test_state_.motor_rpm = left_motor_drive_test_state_.speed_ref;
   left_motor_drive_test_state_.rotor_position += (left_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
-  RCLCPP_INFO(this->get_logger(),
-              "left    motor_rpm: %i   rotor_position: %f",
-              left_motor_drive_test_state_.motor_rpm, left_motor_drive_test_state_.rotor_position);
+//  RCLCPP_INFO(this->get_logger(),
+//              "left    motor_rpm: %i   rotor_position: %f",
+//              left_motor_drive_test_state_.motor_rpm, left_motor_drive_test_state_.rotor_position);
 
   right_motor_drive_test_state_.motor_rpm = right_motor_drive_test_state_.speed_ref;
   right_motor_drive_test_state_.rotor_position += (right_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
-  RCLCPP_INFO(this->get_logger(),
-              "right   motor_rpm: %i   rotor_position: %f",
-              right_motor_drive_test_state_.motor_rpm, right_motor_drive_test_state_.rotor_position);
+//  RCLCPP_INFO(this->get_logger(),
+//              "right   motor_rpm: %i   rotor_position: %f",
+//              right_motor_drive_test_state_.motor_rpm, right_motor_drive_test_state_.rotor_position);
 
   fan_motor_drive_test_state_.motor_rpm = fan_motor_drive_test_state_.speed_ref;
   fan_motor_drive_test_state_.rotor_position += (fan_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
-  RCLCPP_INFO(this->get_logger(),
-              "fan     motor_rpm: %i   rotor_position: %f",
-              fan_motor_drive_test_state_.motor_rpm, fan_motor_drive_test_state_.rotor_position);
+//  RCLCPP_INFO(this->get_logger(),
+//              "fan     motor_rpm: %i   rotor_position: %f",
+//              fan_motor_drive_test_state_.motor_rpm, fan_motor_drive_test_state_.rotor_position);
 
   vcu_alive_test_callback(pump_test_state_, true,
                           ControlMode::GCU,
@@ -205,7 +204,7 @@ void ROS2BridgeNode::test_loop_timer_ros2_callback() {
 
 }
 
-void ROS2BridgeNode::gcu_is_alive_timer_ros2_callback() {
+void ASBSystemTestNode::gcu_is_alive_timer_ros2_callback() {
   rclcpp::Time now = this->get_clock()->now();
 
   if (now - last_GCU_message_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
@@ -218,7 +217,7 @@ void ROS2BridgeNode::gcu_is_alive_timer_ros2_callback() {
   }
 }
 
-void ROS2BridgeNode::vcu_alive_test_callback(
+void ASBSystemTestNode::vcu_alive_test_callback(
         bool pump_status_bit, bool vcu_safety_status,
         uint8_t control_mode,
         uint8_t more_recent_alarm_id_to_confirm, uint8_t more_recent_active_alarm_id) {
@@ -231,7 +230,7 @@ void ROS2BridgeNode::vcu_alive_test_callback(
   }
 }
 
-void ROS2BridgeNode::motor_drive_left_test_callback(
+void ASBSystemTestNode::motor_drive_left_test_callback(
         double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
         double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
         bool interlock_status,
@@ -253,7 +252,7 @@ void ROS2BridgeNode::motor_drive_left_test_callback(
 
 }
 
-void ROS2BridgeNode::motor_drive_right_test_callback(
+void ASBSystemTestNode::motor_drive_right_test_callback(
         double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
         double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
         bool interlock_status,
@@ -274,7 +273,7 @@ void ROS2BridgeNode::motor_drive_right_test_callback(
   }
 }
 
-void ROS2BridgeNode::motor_drive_fan_test_callback(
+void ASBSystemTestNode::motor_drive_fan_test_callback(
         double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
         double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
         bool interlock_status,
@@ -295,7 +294,7 @@ void ROS2BridgeNode::motor_drive_fan_test_callback(
   }
 }
 
-void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool pump_cmd_bit) {
+void ASBSystemTestNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool pump_cmd_bit) {
   rclcpp::Time now = this->get_clock()->now();
   last_GCU_message_time_ = now;
   if (last_GCU_alive_bit_ != GCU_is_alive_bit) last_GCU_alive_bit_change_time_ = now;
@@ -304,7 +303,7 @@ void ROS2BridgeNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool pump
   pump_test_state_ = pump_cmd_bit;
 }
 
-void ROS2BridgeNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
+void ASBSystemTestNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
   right_motor_drive_test_state_.speed_ref = right_speed_ref;
   left_motor_drive_test_state_.speed_ref = left_speed_ref;
   fan_motor_drive_test_state_.speed_ref = fan_speed_ref;

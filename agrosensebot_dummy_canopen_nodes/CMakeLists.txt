@@ -27,7 +27,7 @@ find_package(agrosensebot_canopen_bridge_msgs REQUIRED)
 add_executable(
         dummy_node
         src/main.cpp
-        src/ros2_bridge_node.cpp
+        src/asb_system_test_node.cpp
         src/VCU_canopen_slave_node.cpp
         src/motor_drive_canopen_slave_node.cpp
 )

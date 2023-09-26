@@ -1,5 +1,5 @@
 #include "VCU_canopen_slave_node.h"
-#include "ros2_bridge_node.h"
+#include "asb_system_test_node.h"
 
 // PDO register indices
 

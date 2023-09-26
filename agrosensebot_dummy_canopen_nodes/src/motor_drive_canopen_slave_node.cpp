@@ -1,5 +1,5 @@
 #include "motor_drive_canopen_slave_node.h"
-#include "ros2_bridge_node.h"
+#include "asb_system_test_node.h"
 
 // TPDO1 in [MDL/MDR/FAN]_receiver.dcf
 #define IDX_TPDO1 0x3800

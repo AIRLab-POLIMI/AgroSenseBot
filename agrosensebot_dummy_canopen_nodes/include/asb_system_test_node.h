@@ -1,14 +1,9 @@
-#ifndef TEST_ROS2_CANOPEN_BRIDGE_ROS2_BRIDGE_NODE_H
-#define TEST_ROS2_CANOPEN_BRIDGE_ROS2_BRIDGE_NODE_H
+#ifndef ASB_ROS2_CONTROL_TEST__ASB_SYSTEM_TEST_NODE_H_H
+#define ASB_ROS2_CONTROL_TEST__ASB_SYSTEM_TEST_NODE_H_H
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp/qos.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-#include "std_msgs/msg/u_int8.hpp"
-#include "agrosensebot_canopen_bridge_msgs/msg/motor_drive.hpp"
-#include "agrosensebot_canopen_bridge_msgs/msg/speed_ref.hpp"
-#include "agrosensebot_canopen_bridge_msgs/msg/vcu_state.hpp"
 
 #include <chrono>
 
@@ -39,7 +34,7 @@ enum ControlMode {
   WAIT = 3,
 };
 
-class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
+class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
 
   std::string VCU_canopen_node_config_;
   std::string MDL_canopen_node_config_;
@@ -91,7 +86,7 @@ class ROS2BridgeNode : public rclcpp_lifecycle::LifecycleNode {
   void run_FAN_canopen_node();
 
 public:
-  explicit ROS2BridgeNode(const std::string &node_name, bool intra_process_comms = false)
+  explicit ASBSystemTestNode(const std::string &node_name, bool intra_process_comms = false)
           : rclcpp_lifecycle::LifecycleNode(node_name, rclcpp::NodeOptions().use_intra_process_comms(
           intra_process_comms)) {
     this->declare_parameter<std::string>("dummy_VCU_canopen_node_config", "test_slave.eds");
@@ -142,4 +137,4 @@ public:
 
 };
 
-#endif //TEST_ROS2_CANOPEN_BRIDGE_ROS2_BRIDGE_NODE_H
+#endif //ASB_ROS2_CONTROL_TEST__ASB_SYSTEM_TEST_NODE_H_H
