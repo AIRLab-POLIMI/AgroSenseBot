@@ -25,10 +25,7 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
 
   lifecycle_node_active_.store(true);
 
-  VCU_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_VCU_canopen_node, this));
-  MDL_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_MDL_canopen_node, this));
-  MDR_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_MDR_canopen_node, this));
-  FAN_canopen_node_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_FAN_canopen_node, this));
+  canopen_nodes_thread_ = std::thread(std::bind(&ASBSystemTestNode::run_canopen_nodes, this));
 
   std::chrono::duration gcu_is_alive_timer_period_ = 10ms;
   gcu_is_alive_timer_ = rclcpp::create_timer(
@@ -52,10 +49,7 @@ ASBSystemTestNode::on_deactivate(const rclcpp_lifecycle::State &) {
   test_loop_timer_->cancel();
 
   lifecycle_node_active_.store(false);
-  VCU_canopen_node_thread_.join();
-  MDL_canopen_node_thread_.join();
-  MDR_canopen_node_thread_.join();
-  FAN_canopen_node_thread_.join();
+  canopen_nodes_thread_.join();
 
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
@@ -70,89 +64,55 @@ ASBSystemTestNode::on_shutdown(const rclcpp_lifecycle::State &) {
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
-void ASBSystemTestNode::run_VCU_canopen_node() {
+void ASBSystemTestNode::run_canopen_nodes() {
   io::IoGuard io_guard;
   io::Context ctx;
   io::Poll poll(ctx);
   ev::Loop loop(poll.get_poll());
   auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
-  io::CanController ctrl(can_interface_name_.c_str());
-  io::CanChannel chan(poll, exec);
-  chan.open(ctrl);
+
+  io::Timer timer_VCU(poll, exec, CLOCK_MONOTONIC);
+  io::CanController ctrl_VCU(can_interface_name_.c_str());
+  io::CanChannel chan_VCU(poll, exec);
+  chan_VCU.open(ctrl_VCU);
+
+  io::Timer timer_MDL(poll, exec, CLOCK_MONOTONIC);
+  io::CanController ctrl_MDL(can_interface_name_.c_str());
+  io::CanChannel chan_MDL(poll, exec);
+  chan_MDL.open(ctrl_MDL);
+
+  io::Timer timer_MDR(poll, exec, CLOCK_MONOTONIC);
+  io::CanController ctrl_MDR(can_interface_name_.c_str());
+  io::CanChannel chan_MDR(poll, exec);
+  chan_MDR.open(ctrl_MDR);
+
+  io::Timer timer_FAN(poll, exec, CLOCK_MONOTONIC);
+  io::CanController ctrl_FAN(can_interface_name_.c_str());
+  io::CanChannel chan_FAN(poll, exec);
+  chan_FAN.open(ctrl_FAN);
 
   VCU_canopen_slave_node_ = std::make_shared<VCUCANOpenSlaveNode>(
-          timer, chan, VCU_canopen_node_config_, "", this);
-  VCU_canopen_slave_node_->Reset();
-
-  while (lifecycle_node_active_.load()) {
-    loop.run_one_for(10ms);
-  }
-  ctx.shutdown();
-}
-
-void ASBSystemTestNode::run_MDL_canopen_node() {
-  io::IoGuard io_guard;
-  io::Context ctx;
-  io::Poll poll(ctx);
-  ev::Loop loop(poll.get_poll());
-  auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
-  io::CanController ctrl(can_interface_name_.c_str());
-  io::CanChannel chan(poll, exec);
-  chan.open(ctrl);
+          timer_VCU, chan_VCU, VCU_canopen_node_config_, "", this);
 
   MDL_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
-          timer, chan, MDL_canopen_node_config_, "", this);
+          timer_MDL, chan_MDL, MDL_canopen_node_config_, "", this);
   MDL_canopen_slave_node_->node_name_ = "dummy_MDL";
+
+  MDR_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
+          timer_MDR, chan_MDR, MDR_canopen_node_config_, "", this);
+  MDR_canopen_slave_node_->node_name_ = "dummy_MDR";
+
+  FAN_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
+          timer_FAN, chan_FAN, FAN_canopen_node_config_, "", this);
+  FAN_canopen_slave_node_->node_name_ = "dummy_FAN";
+
+  FAN_canopen_slave_node_->Reset();
+  MDR_canopen_slave_node_->Reset();
+  VCU_canopen_slave_node_->Reset();
   MDL_canopen_slave_node_->Reset();
 
   while (lifecycle_node_active_.load()) {
-    loop.run_one_for(10ms);
-  }
-  ctx.shutdown();
-}
-
-void ASBSystemTestNode::run_MDR_canopen_node() {
-  io::IoGuard io_guard;
-  io::Context ctx;
-  io::Poll poll(ctx);
-  ev::Loop loop(poll.get_poll());
-  auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
-  io::CanController ctrl(can_interface_name_.c_str());
-  io::CanChannel chan(poll, exec);
-  chan.open(ctrl);
-
-  MDR_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
-          timer, chan, MDR_canopen_node_config_, "", this);
-  MDR_canopen_slave_node_->node_name_ = "dummy_MDR";
-  MDR_canopen_slave_node_->Reset();
-
-  while (lifecycle_node_active_.load()) {
-    loop.run_one_for(10ms);
-  }
-  ctx.shutdown();
-}
-
-void ASBSystemTestNode::run_FAN_canopen_node() {
-  io::IoGuard io_guard;
-  io::Context ctx;
-  io::Poll poll(ctx);
-  ev::Loop loop(poll.get_poll());
-  auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
-  io::CanController ctrl(can_interface_name_.c_str());
-  io::CanChannel chan(poll, exec);
-  chan.open(ctrl);
-
-  FAN_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
-          timer, chan, FAN_canopen_node_config_, "", this);
-  FAN_canopen_slave_node_->node_name_ = "dummy_FAN";
-  FAN_canopen_slave_node_->Reset();
-
-  while (lifecycle_node_active_.load()) {
-    loop.run_one_for(10ms);
+    loop.run_for(10ms);
   }
   ctx.shutdown();
 }
@@ -208,12 +168,12 @@ void ASBSystemTestNode::gcu_is_alive_timer_ros2_callback() {
   rclcpp::Time now = this->get_clock()->now();
 
   if (now - last_GCU_message_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
-    RCLCPP_ERROR(this->get_logger(), "GCU COMM TIMEOUT");
+    RCLCPP_ERROR(this->get_logger(), "GCU COMM TIMEOUT (%f s)", (now - last_GCU_message_time_).seconds());
     return;
   }
 
   if (now - last_GCU_alive_bit_change_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
-    RCLCPP_ERROR(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT");
+    RCLCPP_ERROR(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
   }
 }
 
@@ -296,6 +256,8 @@ void ASBSystemTestNode::motor_drive_fan_test_callback(
 
 void ASBSystemTestNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool pump_cmd_bit) {
   rclcpp::Time now = this->get_clock()->now();
+//  RCLCPP_INFO(this->get_logger(), "           GCU COMM AGE (%f s)", (now - last_GCU_message_time_).seconds());
+//  RCLCPP_INFO(this->get_logger(), "           GCU ALIVE BIT CHANGE AGE (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
   last_GCU_message_time_ = now;
   if (last_GCU_alive_bit_ != GCU_is_alive_bit) last_GCU_alive_bit_change_time_ = now;
   last_GCU_alive_bit_ = GCU_is_alive_bit;

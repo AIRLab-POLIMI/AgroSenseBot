@@ -43,10 +43,7 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   std::string can_interface_name_;
   std::chrono::milliseconds gcu_is_alive_timeout_ = 100ms;
 
-  std::thread VCU_canopen_node_thread_;
-  std::thread MDL_canopen_node_thread_;
-  std::thread MDR_canopen_node_thread_;
-  std::thread FAN_canopen_node_thread_;
+  std::thread canopen_nodes_thread_;
   std::shared_ptr<VCUCANOpenSlaveNode> VCU_canopen_slave_node_ = nullptr;
   std::shared_ptr<MotorDriveCANOpenSlaveNode> MDL_canopen_slave_node_ = nullptr;
   std::shared_ptr<MotorDriveCANOpenSlaveNode> MDR_canopen_slave_node_ = nullptr;
@@ -77,13 +74,8 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
                                uint8_t control_mode,
                                uint8_t more_recent_alarm_id_to_confirm, uint8_t more_recent_active_alarm_id);
 
-  void run_VCU_canopen_node();
+  void run_canopen_nodes();
 
-  void run_MDL_canopen_node();
-
-  void run_MDR_canopen_node();
-
-  void run_FAN_canopen_node();
 
 public:
   explicit ASBSystemTestNode(const std::string &node_name, bool intra_process_comms = false)

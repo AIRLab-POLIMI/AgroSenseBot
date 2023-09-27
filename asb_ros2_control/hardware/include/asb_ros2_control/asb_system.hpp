@@ -88,10 +88,7 @@ public:
   ASB_ROS2_CONTROL_PUBLIC
   hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  void run_GCU_canopen_node();
-  void run_motor_drive_left_receiver_node();
-  void run_motor_drive_right_receiver_node();
-  void run_motor_drive_fan_receiver_node();
+  void run_canopen_nodes();
 
   void timer();
 
@@ -101,14 +98,9 @@ private:
 
   // canopen node objects
   std::atomic<bool> lifecycle_state_is_active_ = false;
-  std::atomic<bool> GCU_initialized_ = true;
-  std::atomic<bool> motor_left_receiver_initialized_ = true;
-  std::atomic<bool> motor_right_receiver_initialized_ = true;
-  std::atomic<bool> motor_fan_receiver_initialized_ = true;
-  std::thread GCU_thread_;
-  std::thread motor_left_receiver_thread_;
-  std::thread motor_right_receiver_thread_;
-  std::thread motor_fan_receiver_thread_;
+  std::atomic<bool> canopen_nodes_initialized_ = false;
+  std::atomic<bool> canopen_initialization_error_ = false;
+  std::thread canopen_nodes_thread_;
   std::shared_ptr <CANOpenGCUNode> GCU_ = nullptr;
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_left_receiver_ = nullptr;
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_right_receiver_ = nullptr;

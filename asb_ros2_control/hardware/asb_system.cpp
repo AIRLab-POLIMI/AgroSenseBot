@@ -276,154 +276,94 @@ void ASBSystemHardware::timer() {
   }
 }
 
-void ASBSystemHardware::run_GCU_canopen_node() {
+void ASBSystemHardware::run_canopen_nodes() {
 
   io::IoGuard io_guard;
   io::Context ctx;
   io::Poll poll(ctx);
   ev::Loop loop(poll.get_poll());
   auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
 
   try {
-    io::CanController ctrl(cfg_.can_interface_name.c_str());
-    io::CanChannel chan(poll, exec);
-    chan.open(ctrl);
+    io::Timer timer_GCU(poll, exec, CLOCK_MONOTONIC);
+    io::CanController ctrl_GCU(cfg_.can_interface_name.c_str());
+    io::CanChannel chan_GCU(poll, exec);
+    chan_GCU.open(ctrl_GCU);
 
-    GCU_ = std::make_shared<CANOpenGCUNode>(timer, chan, cfg_.GCU_canopen_node_config, "");
-    GCU_->node_name_ = "GCU";
-    GCU_->Reset();
-    GCU_initialized_.store(true);
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "GCU CANOpen node initialized");
+    io::Timer timer_MDL_receiver(poll, exec, CLOCK_MONOTONIC);
+    io::CanController ctrl_MDL_receiver(cfg_.can_interface_name.c_str());
+    io::CanChannel chan_MDL_receiver(poll, exec);
+    chan_MDL_receiver.open(ctrl_MDL_receiver);
 
-    while (lifecycle_state_is_active_.load()) {
-      loop.run_for(10ms);
-      GCU_->timer();
-      this->timer();
+    io::Timer timer_MDR_receiver(poll, exec, CLOCK_MONOTONIC);
+    io::CanController ctrl_MDR_receiver(cfg_.can_interface_name.c_str());
+    io::CanChannel chan_MDR_receiver(poll, exec);
+    chan_MDR_receiver.open(ctrl_MDR_receiver);
+
+    io::Timer timer_FAN_receiver(poll, exec, CLOCK_MONOTONIC);
+    io::CanController ctrl_FAN_receiver(cfg_.can_interface_name.c_str());
+    io::CanChannel chan_FAN_receiver(poll, exec);
+    chan_FAN_receiver.open(ctrl_FAN_receiver);
+
+    try{
+      GCU_ = std::make_shared<CANOpenGCUNode>(timer_GCU, chan_GCU, cfg_.GCU_canopen_node_config, "");
+      GCU_->node_name_ = "GCU";
+      GCU_->Reset();
+      RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "GCU CANOpen node initialized");
+
+      motor_left_receiver_ = std::make_shared<CANOpenMotorDriveReceiverNode>(
+              timer_MDL_receiver, chan_MDL_receiver, cfg_.motor_left_receiver_canopen_node_config, "");
+      motor_left_receiver_->node_name_ = "MDL_receiver";
+      motor_left_receiver_->Reset();
+      RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "MDL_receiver CANOpen node initialized");
+
+      motor_right_receiver_ = std::make_shared<CANOpenMotorDriveReceiverNode>(
+              timer_MDR_receiver, chan_MDR_receiver, cfg_.motor_right_receiver_canopen_node_config, "");
+      motor_right_receiver_->node_name_ = "MDR_receiver";
+      motor_right_receiver_->Reset();
+      RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "MDR_receiver CANOpen node initialized");
+
+      motor_fan_receiver_ = std::make_shared<CANOpenMotorDriveReceiverNode>(
+              timer_FAN_receiver, chan_FAN_receiver, cfg_.motor_fan_receiver_canopen_node_config, "");
+      motor_fan_receiver_->node_name_ = "FAN_receiver";
+      motor_fan_receiver_->Reset();
+      RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "FAN_receiver CANOpen node initialized");
+
+      canopen_nodes_initialized_.store(true);
+
+      try {
+        while (lifecycle_state_is_active_.load()) {
+          loop.run_for(10ms);
+          GCU_->timer();
+          this->timer();
+        }
+      } catch (const std::system_error& e) {
+        RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
+                     "An exception occurred in the CANOpen loop function [%s].", e.what());
+        ctx.shutdown();
+        exit(1);  // TODO: this may be too brutal, it kills the ros2_control_node (package: controller_manager)
+      }
+
+    } catch (const std::system_error& e) {
+      RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
+                   "An exception occurred while initializing the CANOpen nodes [%s].", e.what());
+      RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");
+      canopen_initialization_error_.store(true);
+      ctx.shutdown();
+      return;
     }
-
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");  // TODO manage interrupt exception
-    ctx.shutdown();
 
   } catch (const std::system_error& e) {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                  "Could not open CAN network channel [%s]. Check the CAN adapter is set up and working.", e.what());
-    GCU_initialized_.store(false);
+    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");
+    canopen_initialization_error_.store(true);
     ctx.shutdown();
     return;
   }
-}
 
-void ASBSystemHardware::run_motor_drive_left_receiver_node() {
-
-  io::IoGuard io_guard;
-  io::Context ctx;
-  io::Poll poll(ctx);
-  ev::Loop loop(poll.get_poll());
-  auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
-
-  try {
-    io::CanController ctrl(cfg_.can_interface_name.c_str());
-    io::CanChannel chan(poll, exec);
-    chan.open(ctrl);
-
-    motor_left_receiver_ = std::make_shared<CANOpenMotorDriveReceiverNode>(
-            timer, chan, cfg_.motor_left_receiver_canopen_node_config, "");
-    motor_left_receiver_->node_name_ = "MDL_receiver";
-    motor_left_receiver_->Reset();
-    motor_left_receiver_initialized_.store(true);
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "MDL_receiver CANOpen node initialized");
-
-    while (lifecycle_state_is_active_.load()) {
-      loop.run_for(10ms);
-    }
-
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");  // TODO manage interrupt exception
-    ctx.shutdown();
-
-  } catch (const std::system_error& e) {
-    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "Could not open CAN network channel [%s]. Check the CAN adapter is set up and working.", e.what());
-    motor_left_receiver_initialized_.store(false);
-    ctx.shutdown();
-    return;
-  }
-}
-
-void ASBSystemHardware::run_motor_drive_right_receiver_node() {
-
-  io::IoGuard io_guard;
-  io::Context ctx;
-  io::Poll poll(ctx);
-  ev::Loop loop(poll.get_poll());
-  auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
-
-  try {
-    io::CanController ctrl(cfg_.can_interface_name.c_str());
-    io::CanChannel chan(poll, exec);
-    chan.open(ctrl);
-
-    motor_right_receiver_ = std::make_shared<CANOpenMotorDriveReceiverNode>(
-            timer, chan, cfg_.motor_right_receiver_canopen_node_config, "");
-    motor_right_receiver_->node_name_ = "MDR_receiver";
-    motor_right_receiver_->Reset();
-    motor_right_receiver_initialized_.store(true);
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "MDR_receiver CANOpen node initialized");
-
-    // TODO move catch here?
-    while (lifecycle_state_is_active_.load()) {
-      loop.run_for(10ms);
-    }
-
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");  // TODO manage interrupt exception
-    ctx.shutdown();
-
-  } catch (const std::system_error& e) {
-    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "Could not open CAN network channel [%s]. Check the CAN adapter is set up and working.", e.what());
-    motor_right_receiver_initialized_.store(false);
-    ctx.shutdown();
-    return;
-  }
-}
-
-void ASBSystemHardware::run_motor_drive_fan_receiver_node() {
-
-  io::IoGuard io_guard;
-  io::Context ctx;
-  io::Poll poll(ctx);
-  ev::Loop loop(poll.get_poll());
-  auto exec = loop.get_executor();
-  io::Timer timer(poll, exec, CLOCK_MONOTONIC);
-
-  try {
-    io::CanController ctrl(cfg_.can_interface_name.c_str());
-    io::CanChannel chan(poll, exec);
-    chan.open(ctrl);
-
-    motor_fan_receiver_ = std::make_shared<CANOpenMotorDriveReceiverNode>(
-            timer, chan, cfg_.motor_fan_receiver_canopen_node_config, "");
-    motor_fan_receiver_->node_name_ = "FAN_receiver";
-    motor_fan_receiver_->Reset();
-    motor_fan_receiver_initialized_.store(true);
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "FAN_receiver CANOpen node initialized");
-
-    while (lifecycle_state_is_active_.load()) {
-      loop.run_for(10ms);
-    }
-
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");  // TODO manage interrupt exception
-    ctx.shutdown();
-
-  } catch (const std::system_error& e) {
-    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "Could not open CAN network channel [%s]. Check the CAN adapter is set up and working.", e.what());
-    motor_fan_receiver_initialized_.store(false);
-    ctx.shutdown();
-    return;
-  }
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");  // TODO manage interrupt exception
+  ctx.shutdown();
 }
 
 hardware_interface::CallbackReturn ASBSystemHardware::on_configure(
@@ -432,23 +372,12 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_configure(
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
               "Configuring hardware interface, initializing GCU CANOpen node");
   lifecycle_state_is_active_.store(true);
-  GCU_initialized_.store(false);
-  motor_left_receiver_initialized_.store(false);
-  motor_right_receiver_initialized_.store(false);
-  motor_fan_receiver_initialized_.store(false);
   auto canopen_timeout_start = std::chrono::system_clock::now();
 
-  GCU_thread_ = std::thread(std::bind(&ASBSystemHardware::run_GCU_canopen_node, this));
-  motor_left_receiver_thread_ = std::thread(std::bind(&ASBSystemHardware::run_motor_drive_left_receiver_node, this));
-  motor_right_receiver_thread_ = std::thread(std::bind(&ASBSystemHardware::run_motor_drive_right_receiver_node, this));
-  motor_fan_receiver_thread_ = std::thread(std::bind(&ASBSystemHardware::run_motor_drive_fan_receiver_node, this));
+  canopen_nodes_thread_ = std::thread(std::bind(&ASBSystemHardware::run_canopen_nodes, this));
 
   auto now = std::chrono::system_clock::now();
-  while(
-          !GCU_initialized_.load() ||
-          !motor_left_receiver_initialized_.load() ||
-          !motor_right_receiver_initialized_.load() ||
-          !motor_fan_receiver_initialized_.load())
+  while(!canopen_nodes_initialized_.load() && !canopen_initialization_error_.load())
   {
     now = std::chrono::system_clock::now();
     if(now - canopen_timeout_start > cfg_.canopen_init_timeout)
@@ -462,6 +391,12 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_configure(
       return hardware_interface::CallbackReturn::ERROR;
     }
     rclcpp::sleep_for(10ms);
+  }
+
+  if(canopen_initialization_error_.load()) {
+    RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "Failed to initialize CANOpen nodes");
+    lifecycle_state_is_active_.store(false);
+    return hardware_interface::CallbackReturn::ERROR;
   }
 
   auto canopen_init_duration_milliseconds =
@@ -478,10 +413,7 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_cleanup(
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
               "Cleaning up hardware interface, terminating CANOpen node");
   lifecycle_state_is_active_.store(false);
-  GCU_thread_.join();
-  motor_left_receiver_thread_.join();
-  motor_right_receiver_thread_.join();
-  motor_fan_receiver_thread_.join();
+  canopen_nodes_thread_.join();
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Successfully deactivated");
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -494,8 +426,9 @@ hardware_interface::return_type ASBSystemHardware::read(
   // control system (i.e., the VCU CANOpen node)
   vcu_comm_ok_bool_state_ = GCU_->VCU_comm_ok_.load();
   vcu_safety_status_bool_state_ = GCU_->VCU_safety_status_bit_.load();
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read vcu_safety_status_bool_state_: %i", (bool)std::round(vcu_safety_status_bool_state_));
   control_mode_int_state_ = GCU_->control_mode_.load();
+
+//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read vcu_safety_status_bool_state_: %i", (bool)std::round(vcu_safety_status_bool_state_));
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read control_mode_int_state_: %i", (bool)std::round(control_mode_int_state_));
 
   // software emergency stop
@@ -594,10 +527,10 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
     GCU_->send_TPDO_2(
             right_speed_ref_rpm_clipped, left_speed_ref_rpm_clipped, fan_speed_ref_rpm_clipped);
 
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "write track vel   l: %f  r: %f   [rad/s]", track_left_velocity_command_, track_right_velocity_command_);
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "write track vel   l: %i  r: %i   [rpm]", left_speed_ref_rpm_clipped, right_speed_ref_rpm_clipped);
+//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
+//                "write track vel   l: %f  r: %f   [rad/s]", track_left_velocity_command_, track_right_velocity_command_);
+//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
+//                "write track vel   l: %i  r: %i   [rpm]", left_speed_ref_rpm_clipped, right_speed_ref_rpm_clipped);
   }
 
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
