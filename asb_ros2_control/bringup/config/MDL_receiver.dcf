@@ -49,7 +49,7 @@ Dummy0007=0
 Lines=0
 
 [DeviceComissioning]
-NodeID=7
+NodeID=6
 NodeName=MDL_receiver
 Baudrate=0
 NetNumber=0
