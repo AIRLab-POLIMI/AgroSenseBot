@@ -47,7 +47,7 @@ void MotorDriveCANOpenSlaveNode::send_TPDO_2(int16_t motor_torque, int16_t bdi_p
 }
 
 void MotorDriveCANOpenSlaveNode::send_TPDO_3(bool interlock_status_bit) {
-//RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_3", node_name_.c_str());
+//  RCLCPP_INFO(ros2_bridge_node_->get_logger(), "[%s] TPDO_3", node_name_.c_str());
 
   std::bitset<8> motor_drive_status_bitset;
   motor_drive_status_bitset[BIT_IDX_interlock_status] = interlock_status_bit;

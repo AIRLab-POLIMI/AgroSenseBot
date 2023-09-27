@@ -21,7 +21,7 @@ using namespace std::chrono_literals;
 class CANOpenGCUNode : public canopen::BasicSlave {
 private:
 
-  void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;
+  void OnRpdo(int num, ::std::error_code ec, const void* p, ::std::size_t n) noexcept override;
 
   // VCU comm check variables
   std::chrono::steady_clock::time_point last_VCU_is_alive_bit_change_;

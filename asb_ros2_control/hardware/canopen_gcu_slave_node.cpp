@@ -61,12 +61,12 @@ void CANOpenGCUNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref
   this->TpdoEvent(2);
 }
 
-// This function gets called every time a value is written to the local object dictionary by an SDO or RPDO.
-void CANOpenGCUNode::OnWrite(uint16_t idx, uint8_t subidx) noexcept {
+// This function gets called every time an RPDO is received.
+void CANOpenGCUNode::OnRpdo(int num, ::std::error_code /*ec*/, const void* /*p*/, ::std::size_t /*n*/) noexcept {
 //  std::cout << "[" << node_name_ << "]" << " OnWrite " << std::hex << (int)idx << " " << std::hex << (int)subidx << std::endl;
 
   // RPDO 1
-  if (idx == IDX_RPDO1 && subidx == SUB_IDX_RPDO1_4_more_recent_active_alarm_id) {
+  if (num == 1) {
 //    std::cout << "[" << node_name_ << "]" << " RPDO 1 " << "COB-ID: " << (int)(uint32_t)(*this)[0x1400][0x01] << std::endl;
 
     uint8_t VCU_state = (*this)[IDX_RPDO1][SUB_IDX_RPDO1_1_VCU_state];

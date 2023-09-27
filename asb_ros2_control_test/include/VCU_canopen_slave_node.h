@@ -25,9 +25,7 @@ class VCUCANOpenSlaveNode : public canopen::BasicSlave {
 private:
     ASBSystemTestNode *ros2_bridge_node_;
 
-    void OnWrite(uint16_t idx, uint8_t subidx)
-
-    noexcept override;
+    void OnRpdo(int num, ::std::error_code ec, const void* p, ::std::size_t n) noexcept override;
 
 public:
     VCUCANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt,
