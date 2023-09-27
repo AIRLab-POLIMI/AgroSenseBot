@@ -908,7 +908,7 @@ ParameterName=RPDO mapping parameter
 Denotation=
 ObjectType=0x9
 ;StorageLocation=PERSIST_COMM
-SubNumber=0x9
+SubNumber=0x3
 
 [1600sub0]
 ParameterName=Number of mapped application objects in PDO
@@ -917,7 +917,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=rw
-DefaultValue=1
+DefaultValue=2
 ParameterValue=
 PDOMapping=0
 
@@ -939,73 +939,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0007
 AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1600sub3]
-ParameterName=Application object 3
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1600sub4]
-ParameterName=Application object 4
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1600sub5]
-ParameterName=Application object 5
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1600sub6]
-ParameterName=Application object 6
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1600sub7]
-ParameterName=Application object 7
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
-ParameterValue=
-PDOMapping=0
-
-[1600sub8]
-ParameterName=Application object 8
-Denotation=
-ObjectType=0x7
-;StorageLocation=RAM
-DataType=0x0007
-AccessType=rw
-DefaultValue=0x00000000
+DefaultValue=0x21130208
 ParameterValue=
 PDOMapping=0
 
@@ -1538,7 +1472,7 @@ ParameterName=GCU_is_alive
 Denotation=
 ObjectType=0x8
 ;StorageLocation=RAM
-SubNumber=0x2
+SubNumber=0x3
 
 [2113sub0]
 ParameterName=Highest sub-index supported
@@ -1547,12 +1481,23 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x0005
 AccessType=ro
-DefaultValue=0x01
+DefaultValue=0x02
 ParameterValue=
 PDOMapping=0
 
 [2113sub1]
 ParameterName=GCU_is_alive
+Denotation=
+ObjectType=0x7
+;StorageLocation=RAM
+DataType=0x0005
+AccessType=rw
+DefaultValue=0
+ParameterValue=
+PDOMapping=1
+
+[2113sub2]
+ParameterName=Not used
 Denotation=
 ObjectType=0x7
 ;StorageLocation=RAM
