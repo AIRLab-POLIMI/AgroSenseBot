@@ -21,8 +21,6 @@ find_package(rclcpp REQUIRED)
 find_package(lely_core_libraries REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
-find_package(agrosensebot_canopen_bridge_msgs REQUIRED)
-
 
 add_executable(
         test_node
@@ -47,7 +45,6 @@ ament_target_dependencies(
         lely_core_libraries
         rclcpp_lifecycle
         lifecycle_msgs
-        agrosensebot_canopen_bridge_msgs
 )
 
 install(

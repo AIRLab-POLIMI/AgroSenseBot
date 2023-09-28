@@ -4,14 +4,15 @@
   <name>asb_ros2_control_test</name>
   <version>0.0.1</version>
   <description>Dummy CANOpen node which sends and receives PDOs on a CAN interface for AgroSenseBot</description>
+
   <author email="enrico.piazza@unimi.it">Enrico Piazza</author>
   <author email="enrico.piazza@polimi.it">Enrico Piazza</author>
+  <maintainer email="enrico.piazza@polimi.it">Enrico Piazza</maintainer>
 
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>agrosensebot_canopen_bridge_msgs</depend>
   <depend>lely_core_libraries</depend>
 
   <test_depend>ament_lint_auto</test_depend>
