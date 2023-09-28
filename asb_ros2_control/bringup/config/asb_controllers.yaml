@@ -13,9 +13,11 @@ asb_base_controller:
     left_wheel_names: ["left_track_joint"]
     right_wheel_names: ["right_track_joint"]
 
-    wheel_separation: 0.10
-    #wheels_per_side: 1  # actually 2, but both are controlled by 1 signal
-    wheel_radius: 0.015
+    wheel_separation: 1.0
+
+    # The motor has a gearbox with a 40.61 reduction, attached to a wheel with radius r_w = 0.151 m.
+    # The equivalent wheel radius is 0.151 m / 40.61
+    wheel_radius: 0.003718296
 
     wheel_separation_multiplier: 1.0
     left_wheel_radius_multiplier: 1.0
@@ -27,31 +29,30 @@ asb_base_controller:
     pose_covariance_diagonal : [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
     twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
 
-    open_loop: true
+    open_loop: false
     enable_odom_tf: true
 
-    cmd_vel_timeout: 0.5
+    cmd_vel_timeout: 0.2
     #publish_limited_velocity: true
     use_stamped_vel: false
     #velocity_rolling_window_size: 10
 
-    # Velocity and acceleration limits
-    # Whenever a min_* is unspecified, default to -max_*
+    # Velocity and acceleration limits. Whenever a min_* is unspecified, default to -max_*
     linear.x.has_velocity_limits: true
     linear.x.has_acceleration_limits: true
     linear.x.has_jerk_limits: false
-    linear.x.max_velocity: 1.0
-    linear.x.min_velocity: -1.0
+
+    # The maximum motor vel is 2400 RPM = 40 RPS. The maximum track velocity is 40 RPS * C_eq,
+    # where C_eq is the equivalent circumference of the wheel when factoring the gearbox, C_eq = 2 π r_W / 40.61
+    linear.x.max_velocity: 0.9345
     linear.x.max_acceleration: 1.0
     linear.x.max_jerk: 0.0
-    linear.x.min_jerk: 0.0
 
     angular.z.has_velocity_limits: true
     angular.z.has_acceleration_limits: true
     angular.z.has_jerk_limits: false
+
+    # TODO compute with the real wheel separation
     angular.z.max_velocity: 1.0
-    angular.z.min_velocity: -1.0
     angular.z.max_acceleration: 1.0
-    angular.z.min_acceleration: -1.0
     angular.z.max_jerk: 0.0
-    angular.z.min_jerk: 0.0
