@@ -5,8 +5,8 @@
   <version>0.0.0</version>
   <description>ros2_control hardware interface for AgroSenseBot.</description>
 
-  <maintainer email="enrico.piazza@unimi.it">Enrico Piazza</maintainer>
   <author email="enrico.piazza@unimi.it">Enrico Piazza</author>
+  <author email="enrico.piazza@polimi.it">Enrico Piazza</author>
 
   <license>Apache-2.0</license>
 
