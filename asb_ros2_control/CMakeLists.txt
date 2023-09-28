@@ -56,7 +56,7 @@ install(
   DESTINATION share/asb_ros2_control
 )
 install(
-  DIRECTORY bringup/launch bringup/config
+  DIRECTORY bringup/launch bringup/config bringup/rviz
   DESTINATION share/asb_ros2_control
 )
 install(TARGETS asb_ros2_control
