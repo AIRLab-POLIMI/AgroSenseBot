@@ -21,12 +21,25 @@ using namespace std::chrono_literals;
 class CANOpenGCUNode : public canopen::BasicSlave {
 private:
 
-  void OnRpdo(int num, ::std::error_code ec, const void* p, ::std::size_t n) noexcept override;
+  // TPDO data
+  bool new_TPDO_1_ = false;
+  bool new_TPDO_2_ = false;
+  bool gcu_alive_bit_ = false;
+  bool pump_cmd_bit_ = false;
+  int16_t right_speed_ref_ = 0;
+  int16_t left_speed_ref_ = 0;
+  int16_t fan_speed_ref_ = 0;
 
   // VCU comm check variables
   std::chrono::steady_clock::time_point last_VCU_is_alive_bit_change_;
   bool previous_VCU_is_alive_bit_ = false;
   bool VCU_comm_started_ = false;
+
+  void send_TPDO_1();
+
+  void send_TPDO_2();
+
+  void OnRpdo(int num, ::std::error_code ec, const void* p, ::std::size_t n) noexcept override;
 
 public:
 
@@ -36,9 +49,10 @@ public:
 
   void timer();
 
-  void send_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit);
+  void set_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit);
 
-  void send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref);
+  void set_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref);
+
 
   std::string node_name_;
 

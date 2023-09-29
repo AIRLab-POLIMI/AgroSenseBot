@@ -23,21 +23,53 @@ class ASBSystemTestNode;
 
 class MotorDriveCANOpenSlaveNode : public canopen::BasicSlave {
 private:
-    ASBSystemTestNode *ros2_bridge_node_;
+
+  // TPDO data
+  bool new_TPDO_1_ = false;
+  bool new_TPDO_2_ = false;
+  bool new_TPDO_3_ = false;
+  bool new_TPDO_4_ = false;
+  int16_t controller_temperature_ = 0;
+  int16_t motor_temperature_ = 0;
+  int16_t motor_rpm_ = 0;
+  int16_t battery_current_display_ = 0;
+  int16_t motor_torque_ = 0;
+  int16_t bdi_percentage_ = 0;
+  int16_t keyswitch_voltage_ = 0;
+  int16_t zero_speed_threshold_ = 0;
+  bool interlock_status_bit_ = false;
+  int32_t rotor_position_ = 0;
+
+  void send_TPDO_1();
+
+  void send_TPDO_2();
+
+  void send_TPDO_3();
+
+  void send_TPDO_4();
 
 public:
-    MotorDriveCANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt,
-                               const std::string &dcfBin, ASBSystemTestNode *ros2_bridge_node) :
-            BasicSlave(timer, chan, dcfTxt, dcfBin),
-            ros2_bridge_node_(ros2_bridge_node) { // TODO pass callback function
-    };
+  MotorDriveCANOpenSlaveNode(io::TimerBase &timer, io::CanChannelBase &chan, const std::string &dcfTxt,
+                             const std::string &dcfBin) :
+          BasicSlave(timer, chan, dcfTxt, dcfBin) {
+  };
 
-    std::string node_name_;
+  std::string node_name_;
 
-    void send_TPDO_1(int16_t, int16_t, int16_t, int16_t);
-    void send_TPDO_2(int16_t, int16_t, int16_t, int16_t);
-    void send_TPDO_3(bool);
-    void send_TPDO_4(int32_t);
+  void timer();
+
+  void set_TPDO_1(int16_t controller_temperature, int16_t motor_temperature,
+                  int16_t motor_rpm, int16_t battery_current_display);
+
+
+  void set_TPDO_2(int16_t motor_torque, int16_t bdi_percentage,
+                  int16_t keyswitch_voltage, int16_t zero_speed_threshold);
+
+  void set_TPDO_3(bool interlock_status_bit);
+
+
+  void set_TPDO_4(int32_t rotor_position);
+
 
 };
 

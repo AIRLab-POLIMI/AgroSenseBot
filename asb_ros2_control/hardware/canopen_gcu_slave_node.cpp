@@ -31,8 +31,10 @@
 void CANOpenGCUNode::timer() {
   std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 
-  if(VCU_comm_started_)
-  {
+  send_TPDO_1();
+  send_TPDO_2();
+
+  if(VCU_comm_started_) {
     VCU_comm_ok_.store((now - last_VCU_is_alive_bit_change_ < 200ms));  // TODO make parameter
     if (!VCU_comm_ok_.load()) {
       std::cerr << "[" << node_name_ << "]" << "[CANOpenGCUNode::timer] VCU COMM TIMEOUT ("
@@ -43,21 +45,38 @@ void CANOpenGCUNode::timer() {
   }
 }
 
-void CANOpenGCUNode::send_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit) {
+void CANOpenGCUNode::set_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit) {
+  gcu_alive_bit_ = gcu_alive_bit;
+  pump_cmd_bit_ = pump_cmd_bit;
+  new_TPDO_1_ = true;
+}
+
+void CANOpenGCUNode::send_TPDO_1() {
+  if(!new_TPDO_1_) return;
+  new_TPDO_1_ = false;
 //  std::cout << "[" << node_name_ << "]" << " TPDO 1 " << std::endl;
   std::bitset<8> gcu_state_data_bitset;
-  gcu_state_data_bitset[BIT_IDX_GCU_is_alive] = gcu_alive_bit;
-  gcu_state_data_bitset[BIT_IDX_VCU_pump_cmd] = pump_cmd_bit;
+  gcu_state_data_bitset[BIT_IDX_GCU_is_alive] = gcu_alive_bit_;
+  gcu_state_data_bitset[BIT_IDX_VCU_pump_cmd] = pump_cmd_bit_;
   (*this)[IDX_TPDO1][SUB_IDX_TPDO1_1_GCU_state] = (uint8_t) gcu_state_data_bitset.to_ulong();
   (*this)[IDX_TPDO1][SUB_IDX_TPDO1_2] = (uint8_t)0;  // TPDO1_2 is not used
   this->TpdoEvent(1);
 }
 
-void CANOpenGCUNode::send_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
+void CANOpenGCUNode::set_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
+  right_speed_ref_ = right_speed_ref;
+  left_speed_ref_ = left_speed_ref;
+  fan_speed_ref_ = fan_speed_ref;
+  new_TPDO_2_ = true;
+}
+
+void CANOpenGCUNode::send_TPDO_2() {
+  if(!new_TPDO_2_) return;
+  new_TPDO_2_ = false;
 //    std::cout << "[" << node_name_ << "]" << " TPDO 2 " << std::endl;
-  (*this)[IDX_TPDO2][SUB_IDX_TPDO2_1_right_speed_ref] = right_speed_ref;
-  (*this)[IDX_TPDO2][SUB_IDX_TPDO2_2_left_speed_ref] = left_speed_ref;
-  (*this)[IDX_TPDO2][SUB_IDX_TPDO2_3_fan_speed_ref] = fan_speed_ref;
+  (*this)[IDX_TPDO2][SUB_IDX_TPDO2_1_right_speed_ref] = right_speed_ref_;
+  (*this)[IDX_TPDO2][SUB_IDX_TPDO2_2_left_speed_ref] = left_speed_ref_;
+  (*this)[IDX_TPDO2][SUB_IDX_TPDO2_3_fan_speed_ref] = fan_speed_ref_;
   this->TpdoEvent(2);
 }
 

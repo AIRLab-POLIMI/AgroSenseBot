@@ -264,15 +264,22 @@ void ASBSystemHardware::timer() {
   // The VCU CANOpen node considers the received data correct only if the bIsAlive bit in the TPDO1 of the GCU is
   // flipped with a period between 20ms and 100ms. Therefore, we sent the TPDO1 to the VCU periodically, but only if the
   // software_emergency_stop is not enabled.
-  if (!software_emergency_stop_)
+  if (!software_emergency_stop_.load())
   {
     if (now - gcu_alive_bit_last_value_change_ >= 50ms)
     {
-      gcu_alive_bit_current_value_ = !gcu_alive_bit_current_value_;
+      gcu_alive_bit_current_value_.store(!gcu_alive_bit_current_value_.load());
       gcu_alive_bit_last_value_change_ = now;
 
-      GCU_->send_TPDO_1(gcu_alive_bit_current_value_, (bool)std::round(pump_bool_command_));
+      GCU_->set_TPDO_1(gcu_alive_bit_current_value_.load(), (bool)std::round(pump_bool_command_));
     }
+  } else {
+    // if a software emergency is requested, send a 0 velocity command to the control system, disable the pump, and stop doing anything
+    int16_t left_speed_ref = 0;
+    int16_t right_speed_ref = 0;
+    int16_t fan_speed_ref = 0;
+    GCU_->set_TPDO_1(gcu_alive_bit_current_value_.load(), false);
+    GCU_->set_TPDO_2(right_speed_ref, left_speed_ref, fan_speed_ref);
   }
 }
 
@@ -334,8 +341,8 @@ void ASBSystemHardware::run_canopen_nodes() {
       try {
         while (lifecycle_state_is_active_.load()) {
           loop.run_for(10ms);
-          GCU_->timer();
           this->timer();
+          GCU_->timer();
         }
       } catch (const std::system_error& e) {
         RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
@@ -432,7 +439,7 @@ hardware_interface::return_type ASBSystemHardware::read(
 //  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read control_mode_int_state_: %i", (bool)std::round(control_mode_int_state_));
 
   // software emergency stop
-  software_emergency_stop_bool_state_ = software_emergency_stop_;
+  software_emergency_stop_bool_state_ = software_emergency_stop_.load();
 
   // pump
   pump_bool_state_ = GCU_->VCU_pump_status_bit_.load();
@@ -497,23 +504,17 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
 
-  // if a software emergency is requested, send a 0 velocity command to the control system and stop doing anything
-  bool prev_software_emergency_stop_ = software_emergency_stop_;
-  software_emergency_stop_ = (bool)std::round(set_software_emergency_stop_bool_command_);
-  if (software_emergency_stop_ && !prev_software_emergency_stop_)
+  bool prev_software_emergency_stop_ = software_emergency_stop_.load();
+  software_emergency_stop_.store((bool)std::round(set_software_emergency_stop_bool_command_));
+  if (software_emergency_stop_.load() && !prev_software_emergency_stop_)
   {
-    int16_t left_speed_ref = 0;
-    int16_t right_speed_ref = 0;
-    int16_t fan_speed_ref = 0;
-    GCU_->send_TPDO_1(gcu_alive_bit_current_value_, false);
-    GCU_->send_TPDO_2(right_speed_ref, left_speed_ref, fan_speed_ref);
     RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "SOFTWARE EMERGENCY STOP ENABLED");
   }
-  if (!software_emergency_stop_ && prev_software_emergency_stop_)
+  if (!software_emergency_stop_.load() && prev_software_emergency_stop_)
   {
     RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "SOFTWARE EMERGENCY STOP DISABLED");
   }
-  if (!software_emergency_stop_)
+  if (!software_emergency_stop_.load())
   {
     // send the velocity data through TPDO2 of the GCU CANOpen node
     double left_speed_ref_rpm = track_left_velocity_command_ * 60 / (2*M_PI);
@@ -524,8 +525,7 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
             (int16_t)std::round(right_speed_ref_rpm), (int16_t)cfg_.tracks_maximum_velocity_rpm_);
     auto fan_speed_ref_rpm_clipped = std::min(
             (int16_t)std::round(fan_speed_ref_rpm_command_), (int16_t)cfg_.fan_maximum_velocity_rpm_);
-    GCU_->send_TPDO_2(
-            right_speed_ref_rpm_clipped, left_speed_ref_rpm_clipped, fan_speed_ref_rpm_clipped);
+    GCU_->set_TPDO_2(right_speed_ref_rpm_clipped, left_speed_ref_rpm_clipped, fan_speed_ref_rpm_clipped);
 
 //    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
 //                "write track vel   l: %f  r: %f   [rad/s]", track_left_velocity_command_, track_right_velocity_command_);

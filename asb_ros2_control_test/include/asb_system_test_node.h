@@ -54,7 +54,7 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
 
   std::atomic<bool> lifecycle_node_active_ = false;
 
-  bool last_VCU_alive_bit_ = false;
+  bool VCU_alive_bit_ = false;
 
   rclcpp::Time last_GCU_message_time_ = rclcpp::Time(0);
   rclcpp::Time last_GCU_alive_bit_change_time_ = rclcpp::Time(0);
@@ -65,6 +65,8 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   MotorDriveTestState right_motor_drive_test_state_;
   MotorDriveTestState fan_motor_drive_test_state_;
   bool pump_test_state_ = false;
+
+//  void timer();
 
   void test_loop_timer_ros2_callback();
 

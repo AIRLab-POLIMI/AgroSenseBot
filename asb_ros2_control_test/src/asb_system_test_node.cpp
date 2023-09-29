@@ -34,7 +34,7 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   last_GCU_message_time_ = this->get_clock()->now();
   last_GCU_alive_bit_change_time_ = this->get_clock()->now();
 
-  std::chrono::duration test_loop_timer_period_ = 50ms;
+  std::chrono::duration test_loop_timer_period_ = 5ms;
   test_loop_timer_ = rclcpp::create_timer(
           this, this->get_clock(), rclcpp::Duration(test_loop_timer_period_),
           std::bind(&ASBSystemTestNode::test_loop_timer_ros2_callback, this));
@@ -95,27 +95,59 @@ void ASBSystemTestNode::run_canopen_nodes() {
           timer_VCU, chan_VCU, VCU_canopen_node_config_, "", this);
 
   MDL_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
-          timer_MDL, chan_MDL, MDL_canopen_node_config_, "", this);
+          timer_MDL, chan_MDL, MDL_canopen_node_config_, "");
   MDL_canopen_slave_node_->node_name_ = "dummy_MDL";
 
   MDR_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
-          timer_MDR, chan_MDR, MDR_canopen_node_config_, "", this);
+          timer_MDR, chan_MDR, MDR_canopen_node_config_, "");
   MDR_canopen_slave_node_->node_name_ = "dummy_MDR";
 
   FAN_canopen_slave_node_ = std::make_shared<MotorDriveCANOpenSlaveNode>(
-          timer_FAN, chan_FAN, FAN_canopen_node_config_, "", this);
+          timer_FAN, chan_FAN, FAN_canopen_node_config_, "");
   FAN_canopen_slave_node_->node_name_ = "dummy_FAN";
 
-  FAN_canopen_slave_node_->Reset();
-  MDR_canopen_slave_node_->Reset();
   VCU_canopen_slave_node_->Reset();
   MDL_canopen_slave_node_->Reset();
+  MDR_canopen_slave_node_->Reset();
+  FAN_canopen_slave_node_->Reset();
 
   while (lifecycle_node_active_.load()) {
     loop.run_for(10ms);
+//    this->timer();
+    VCU_canopen_slave_node_->timer();
+    MDL_canopen_slave_node_->timer();
+    MDR_canopen_slave_node_->timer();
+    FAN_canopen_slave_node_->timer();
   }
   ctx.shutdown();
 }
+
+//void ASBSystemTestNode::timer() {
+//  if(VCU_canopen_slave_node_ != nullptr) {
+//    VCU_canopen_slave_node_->send_TPDO_1();
+//  }
+//
+//  if(MDL_canopen_slave_node_ != nullptr) {
+//    MDL_canopen_slave_node_->send_TPDO_1();
+//    MDL_canopen_slave_node_->send_TPDO_2();
+//    MDL_canopen_slave_node_->send_TPDO_3();
+//    MDL_canopen_slave_node_->send_TPDO_4();
+//  }
+//
+//  if(MDR_canopen_slave_node_ != nullptr) {
+//    MDR_canopen_slave_node_->send_TPDO_1();
+//    MDR_canopen_slave_node_->send_TPDO_2();
+//    MDR_canopen_slave_node_->send_TPDO_3();
+//    MDR_canopen_slave_node_->send_TPDO_4();
+//  }
+//
+//  if(FAN_canopen_slave_node_ != nullptr) {
+//    FAN_canopen_slave_node_->send_TPDO_1();
+//    FAN_canopen_slave_node_->send_TPDO_2();
+//    FAN_canopen_slave_node_->send_TPDO_3();
+//    FAN_canopen_slave_node_->send_TPDO_4();
+//  }
+//}
 
 void ASBSystemTestNode::test_loop_timer_ros2_callback() {
   rclcpp::Time now = this->get_clock()->now();
@@ -181,10 +213,10 @@ void ASBSystemTestNode::vcu_alive_test_callback(
         bool pump_status_bit, bool vcu_safety_status,
         uint8_t control_mode,
         uint8_t more_recent_alarm_id_to_confirm, uint8_t more_recent_active_alarm_id) {
-  last_VCU_alive_bit_ = not last_VCU_alive_bit_;
+  VCU_alive_bit_ = not VCU_alive_bit_;
 
   if (VCU_canopen_slave_node_ != nullptr) {
-    VCU_canopen_slave_node_->send_TPDO_1(last_VCU_alive_bit_, vcu_safety_status, pump_status_bit,
+    VCU_canopen_slave_node_->set_TPDO_1(VCU_alive_bit_, vcu_safety_status, pump_status_bit,
                                          control_mode,
                                          more_recent_alarm_id_to_confirm, more_recent_active_alarm_id);
   }
@@ -196,18 +228,18 @@ void ASBSystemTestNode::motor_drive_left_test_callback(
         bool interlock_status,
         double rotor_position) {
   if (MDL_canopen_slave_node_ != nullptr) {
-    MDL_canopen_slave_node_->send_TPDO_1(
+    MDL_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
             (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
             (int16_t) motor_rpm,
             (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
-    MDL_canopen_slave_node_->send_TPDO_2(
+    MDL_canopen_slave_node_->set_TPDO_2(
             (int16_t) (motor_torque / RAW_DATA_STEP_VALUE_torque),
             (int16_t) (bdi_percentage / RAW_DATA_STEP_VALUE_bdi_percentage),
             (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
             (int16_t) zero_speed_threshold);
-    MDL_canopen_slave_node_->send_TPDO_3(interlock_status);
-    MDL_canopen_slave_node_->send_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+    MDL_canopen_slave_node_->set_TPDO_3(interlock_status);
+    MDL_canopen_slave_node_->set_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
   }
 
 }
@@ -218,18 +250,18 @@ void ASBSystemTestNode::motor_drive_right_test_callback(
         bool interlock_status,
         double rotor_position) {
   if (MDR_canopen_slave_node_ != nullptr) {
-    MDR_canopen_slave_node_->send_TPDO_1(
+    MDR_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
             (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
             (int16_t) motor_rpm,
             (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
-    MDR_canopen_slave_node_->send_TPDO_2(
+    MDR_canopen_slave_node_->set_TPDO_2(
             (int16_t) (motor_torque / RAW_DATA_STEP_VALUE_torque),
             (int16_t) (bdi_percentage / RAW_DATA_STEP_VALUE_bdi_percentage),
             (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
             (int16_t) zero_speed_threshold);
-    MDR_canopen_slave_node_->send_TPDO_3(interlock_status);
-    MDR_canopen_slave_node_->send_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+    MDR_canopen_slave_node_->set_TPDO_3(interlock_status);
+    MDR_canopen_slave_node_->set_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
   }
 }
 
@@ -239,18 +271,18 @@ void ASBSystemTestNode::motor_drive_fan_test_callback(
         bool interlock_status,
         double rotor_position) {
   if (FAN_canopen_slave_node_ != nullptr) {
-    FAN_canopen_slave_node_->send_TPDO_1(
+    FAN_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
             (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
             (int16_t) motor_rpm,
             (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
-    FAN_canopen_slave_node_->send_TPDO_2(
+    FAN_canopen_slave_node_->set_TPDO_2(
             (int16_t) (motor_torque / RAW_DATA_STEP_VALUE_torque),
             (int16_t) (bdi_percentage / RAW_DATA_STEP_VALUE_bdi_percentage),
             (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
             (int16_t) zero_speed_threshold);
-    FAN_canopen_slave_node_->send_TPDO_3(interlock_status);
-    FAN_canopen_slave_node_->send_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+    FAN_canopen_slave_node_->set_TPDO_3(interlock_status);
+    FAN_canopen_slave_node_->set_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
   }
 }
 
