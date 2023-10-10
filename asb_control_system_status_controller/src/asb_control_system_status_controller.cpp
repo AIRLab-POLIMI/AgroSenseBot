@@ -71,22 +71,27 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_config
           DEFAULT_HEARTBEAT_TOPIC, rclcpp::SystemDefaultsQoS(),
           std::bind(&ASBControlSystemStatusController::heartbeat_callback, this, _1));
 
+  emergency_stop_subscriber_ = get_node()->create_subscription<std_msgs::msg::Empty>(
+          "~/emergency_stop_cmd", rclcpp::SystemDefaultsQoS(),
+          std::bind(&ASBControlSystemStatusController::emergency_stop_cmd_callback, this, _1));
+
   test_publisher_ = get_node()->create_publisher<std_msgs::msg::Header>(DEFAULT_TEST_TOPIC, rclcpp::SystemDefaultsQoS());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_activate(const rclcpp_lifecycle::State &) {
+  startup_time_ = get_node()->get_clock()->now();
 
-//  std::string prefix_name = "control_system_state";
-//  std::string interface_name = "software_emergency_stop";
-//
-//  for (auto& in : state_interfaces_) {
-//    RCLCPP_INFO(get_node()->get_logger(), "prefix_name: %s interface_name: %s", in.get_prefix_name().c_str(), in.get_interface_name().c_str());
-//    if (in.get_prefix_name() == prefix_name && in.get_interface_name() == interface_name) {
-//      software_emergency_stop_state_interface_ = static_cast<std::shared_ptr<hardware_interface::LoanedStateInterface>>(&in);
-//    }
-//  }
+  for (hardware_interface::LoanedStateInterface& loaned_state_interface : state_interfaces_) {
+    RCLCPP_INFO(get_node()->get_logger(), "STATE   prefix_name: %s interface_name: %s, get_interface_name", loaned_state_interface.get_prefix_name().c_str(), loaned_state_interface.get_interface_name().c_str());
+    named_state_interface_[loaned_state_interface.get_interface_name()] = static_cast<std::shared_ptr<hardware_interface::LoanedStateInterface>>(&loaned_state_interface);
+  }
+
+  for (hardware_interface::LoanedCommandInterface& loaned_command_interface : command_interfaces_) {
+    RCLCPP_INFO(get_node()->get_logger(), "COMMAND prefix_name: %s interface_name: %s, get_interface_name", loaned_command_interface.get_prefix_name().c_str(), loaned_command_interface.get_interface_name().c_str());
+    named_command_interface_[loaned_command_interface.get_interface_name()] = static_cast<std::shared_ptr<hardware_interface::LoanedCommandInterface>>(&loaned_command_interface);
+  }
 
   is_halted = false;
   subscriber_is_active_ = true;
@@ -105,14 +110,23 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
     return controller_interface::return_type::OK;
   }
 
-  RCLCPP_INFO(logger, "vcu_comm_ok: %i", (bool)std::round(state_interfaces_[vcu_comm_ok].get_value()));
-  RCLCPP_INFO(logger, "software_emergency_stop: %i", (bool)std::round(state_interfaces_[software_emergency_stop].get_value()));
+//  RCLCPP_INFO(get_node()->get_logger(), "up time: %f", (time - startup_time_).seconds());
 
-  const auto age_of_last_heartbeat = time - last_heartbeat_msg_.stamp;
-  if (age_of_last_heartbeat > heartbeat_timeout_) {
-//    RCLCPP_WARN(logger, "Heartbeat message timeout.");
-//    SOFTWARE EMERGENCY STOP !
+  // check the heartbeat
+  const auto heartbeat_age = time - last_heartbeat_msg_.stamp;
+  if((last_heartbeat_msg_.stamp.sec == 0) && (last_heartbeat_msg_.stamp.nanosec == 0)) {
+//    RCLCPP_WARN(logger, "No Heartbeat received yet");
+  } else if (heartbeat_age > heartbeat_timeout_) {  // TODO set software emergency stop !
+//    RCLCPP_WARN(logger, "Heartbeat age: %f", heartbeat_age.seconds());
   }
+
+  // set the command interfaces from the controller state variables
+  named_command_interface_["set_software_emergency_stop"]->set_value(emergency_stop_cmd_);
+
+  // publish the state interface values variables
+  // TODO
+  // RCLCPP_INFO(logger, "vcu_comm_ok: %i", (bool)std::round(named_state_interface_["vcu_comm_ok"]->get_value()));
+  // RCLCPP_INFO(logger, "software_emergency_stop: %i", (bool)std::round(named_state_interface_["software_emergency_stop"]->get_value()));
 
   return controller_interface::return_type::OK;
 }
@@ -123,9 +137,23 @@ void ASBControlSystemStatusController::heartbeat_callback(const std::shared_ptr<
     return;
   }
   if ((msg->stamp.sec == 0) && (msg->stamp.nanosec == 0)) {
-    RCLCPP_WARN(get_node()->get_logger(), "Received TwistStamped with zero timestamp");
+    RCLCPP_WARN(get_node()->get_logger(), "Received Header with zero timestamp");
   }
   last_heartbeat_msg_ = *msg;
+}
+
+void ASBControlSystemStatusController::emergency_stop_cmd_callback(const std::shared_ptr<std_msgs::msg::Empty> /*msg*/) {
+  if (!subscriber_is_active_) {
+    RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+    return;
+  }
+
+  emergency_stop_cmd_ = true;
+
+}
+
+void ASBControlSystemStatusController::halt() {
+  //  TODO set emergency stop?
 }
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_deactivate( const rclcpp_lifecycle::State &) {
@@ -158,32 +186,6 @@ bool ASBControlSystemStatusController::reset() {
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_shutdown(const rclcpp_lifecycle::State &) {
   return controller_interface::CallbackReturn::SUCCESS;
 }
-
-void ASBControlSystemStatusController::halt() {
-//  TODO emergency stop?
-}
-
-//controller_interface::CallbackReturn ASBControlSystemStatusController::configure_state_interface(
-//        const std::string & prefix_name, const std::string & interface_name,
-//        hardware_interface::LoanedStateInterface & loaned_state_interface) {
-//  auto logger = get_node()->get_logger();
-//
-//
-//  const auto state_handle = std::find_if(
-//          state_interfaces_.cbegin(), state_interfaces_.cend(),
-//          [&prefix_name, &interface_name](const auto & interface) {
-//            return interface.get_prefix_name() == prefix_name && interface.get_interface_name() == interface_name;
-//          });
-//
-//  if (state_handle == state_interfaces_.cend()) {
-//    RCLCPP_ERROR(logger, "Unable to obtain joint state handle for %s/%s", prefix_name.c_str(), interface_name.c_str());
-//    return controller_interface::CallbackReturn::ERROR;
-//  }
-//
-//  loaned_state_interface = std::ref(*state_handle);
-//
-//  return controller_interface::CallbackReturn::SUCCESS;
-//}
 
 }  // namespace asb_control_system_status_controller
 

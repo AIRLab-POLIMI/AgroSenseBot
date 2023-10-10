@@ -27,6 +27,8 @@
 #include <vector>
 
 #include "std_msgs/msg/header.hpp"
+#include "std_msgs/msg/empty.hpp"
+#include "std_msgs/msg/bool.hpp"
 
 #include "controller_interface/controller_interface.hpp"
 #include "asb_control_system_status_controller/visibility_control.h"
@@ -38,14 +40,10 @@
 #include "realtime_tools/realtime_publisher.h"
 
 using std::placeholders::_1;
+using namespace std::chrono_literals;
 
 namespace asb_control_system_status_controller
 {
-
-enum StateInterfaces {
-  vcu_comm_ok = 0u,
-  software_emergency_stop = 1,
-};
 
 class ASBControlSystemStatusController : public controller_interface::ControllerInterface {
 
@@ -92,27 +90,34 @@ public:
 
 protected:
 
-//  std::shared_ptr<hardware_interface::LoanedStateInterface> software_emergency_stop_state_interface_ = nullptr;
-//  std::reference_wrapper<hardware_interface::LoanedCommandInterface> set_software_emergency_stop_command_interface_;
+  void heartbeat_callback(std::shared_ptr<std_msgs::msg::Header> msg);
 
-//  controller_interface::CallbackReturn configure_state_interface(
-//          const std::string & side, hardware_interface::LoanedStateInterface & registered_handles);
+  void emergency_stop_cmd_callback(std::shared_ptr<std_msgs::msg::Empty> msg);
+
+  bool reset();
+
+  void halt();
+
+  std::map<std::string, std::shared_ptr<hardware_interface::LoanedStateInterface>> named_state_interface_;
+  std::map<std::string, std::shared_ptr<hardware_interface::LoanedCommandInterface>> named_command_interface_;
 
   // Timeout to consider heartbeat too old
-  std::chrono::milliseconds heartbeat_timeout_{500};
+  std::chrono::milliseconds heartbeat_timeout_ = 500ms;
 
   std::shared_ptr<rclcpp::Publisher<std_msgs::msg::Header>> test_publisher_ = nullptr;
 
   bool subscriber_is_active_ = false;
   rclcpp::Subscription<std_msgs::msg::Header>::SharedPtr heartbeat_subscriber_ = nullptr;
+  rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr emergency_stop_subscriber_ = nullptr;
 
+  // state variables
   std_msgs::msg::Header last_heartbeat_msg_;
+  rclcpp::Time startup_time_;
+
+  bool emergency_stop_cmd_ = false;
 
   bool is_halted = false;
 
-  void heartbeat_callback(std::shared_ptr<std_msgs::msg::Header> msg);
-  bool reset();
-  void halt();
 };
 }  // namespace asb_control_system_status_controller
 #endif  // ASB_CONTROL_SYSTEM_STATUS_CONTROLLER__ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_HPP_
