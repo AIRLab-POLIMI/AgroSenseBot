@@ -25,11 +25,6 @@
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
 
-namespace
-{
-constexpr auto DEFAULT_HEARTBEAT_TOPIC = "~/heartbeat";
-constexpr auto DEFAULT_TEST_TOPIC = "~/test_info";
-}  // namespace
 
 namespace asb_control_system_status_controller
 {
@@ -51,14 +46,61 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_init()
 
 InterfaceConfiguration ASBControlSystemStatusController::command_interface_configuration() const {
   std::vector<std::string> conf_names;
+
   conf_names.push_back("control_system_state/set_software_emergency_stop");
+
+  conf_names.push_back("control_system_state/pump_command");
+
+  conf_names.push_back("fan_motor_joint/velocity");
+
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
 InterfaceConfiguration ASBControlSystemStatusController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
+
+  conf_names.push_back("left_track_joint/position");
+  conf_names.push_back("left_track_joint/velocity");
+
+  conf_names.push_back("right_track_joint/position");
+  conf_names.push_back("right_track_joint/velocity");
+
+  conf_names.push_back("fan_motor_joint/position");
+  conf_names.push_back("fan_motor_joint/velocity");
+
   conf_names.push_back("control_system_state/vcu_comm_ok");
+  conf_names.push_back("control_system_state/vcu_safety_status");
+  conf_names.push_back("control_system_state/control_mode");
+
   conf_names.push_back("control_system_state/software_emergency_stop");
+
+  conf_names.push_back("control_system_state/pump_state");
+
+  conf_names.push_back("control_system_state/left_motor_controller_temperature");
+  conf_names.push_back("control_system_state/left_motor_temperature");
+  conf_names.push_back("control_system_state/left_motor_battery_current");
+  conf_names.push_back("control_system_state/left_motor_torque");
+  conf_names.push_back("control_system_state/left_motor_BDI_percentage");
+  conf_names.push_back("control_system_state/left_motor_keyswitch_voltage");
+  conf_names.push_back("control_system_state/left_motor_zero_speed_threshold");
+
+  conf_names.push_back("control_system_state/right_motor_controller_temperature");
+  conf_names.push_back("control_system_state/right_motor_temperature");
+  conf_names.push_back("control_system_state/right_motor_battery_current");
+  conf_names.push_back("control_system_state/right_motor_torque");
+  conf_names.push_back("control_system_state/right_motor_BDI_percentage");
+  conf_names.push_back("control_system_state/right_motor_keyswitch_voltage");
+  conf_names.push_back("control_system_state/right_motor_zero_speed_threshold");
+
+  conf_names.push_back("control_system_state/fan_motor_controller_temperature");
+  conf_names.push_back("control_system_state/fan_motor_temperature");
+  conf_names.push_back("control_system_state/fan_motor_battery_current");
+  conf_names.push_back("control_system_state/fan_motor_torque");
+  conf_names.push_back("control_system_state/fan_motor_BDI_percentage");
+  conf_names.push_back("control_system_state/fan_motor_keyswitch_voltage");
+  conf_names.push_back("control_system_state/fan_motor_zero_speed_threshold");
+
+
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
@@ -68,14 +110,23 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_config
   reset();
 
   heartbeat_subscriber_ = get_node()->create_subscription<std_msgs::msg::Header>(
-          DEFAULT_HEARTBEAT_TOPIC, rclcpp::SystemDefaultsQoS(),
+          "~/heartbeat", rclcpp::SystemDefaultsQoS(),
           std::bind(&ASBControlSystemStatusController::heartbeat_callback, this, _1));
 
-  emergency_stop_subscriber_ = get_node()->create_subscription<std_msgs::msg::Empty>(
+  emergency_stop_cmd_subscriber_ = get_node()->create_subscription<asb_msgs::msg::EmergencyStopCmd>(
           "~/emergency_stop_cmd", rclcpp::SystemDefaultsQoS(),
           std::bind(&ASBControlSystemStatusController::emergency_stop_cmd_callback, this, _1));
 
-  test_publisher_ = get_node()->create_publisher<std_msgs::msg::Header>(DEFAULT_TEST_TOPIC, rclcpp::SystemDefaultsQoS());
+  pump_cmd_subscriber_ = get_node()->create_subscription<asb_msgs::msg::PumpCmd>(
+          "~/pump_cmd", rclcpp::SystemDefaultsQoS(),
+          std::bind(&ASBControlSystemStatusController::pump_cmd_callback, this, _1));
+
+  fan_cmd_subscriber_ = get_node()->create_subscription<asb_msgs::msg::FanCmd>(
+          "~/fan_cmd", rclcpp::SystemDefaultsQoS(),
+          std::bind(&ASBControlSystemStatusController::fan_cmd_callback, this, _1));
+
+  control_system_state_publisher_ = get_node()->create_publisher<asb_msgs::msg::ControlSystemState>(
+          "~/control_system_state", rclcpp::SystemDefaultsQoS());
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -84,13 +135,13 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_activa
   startup_time_ = get_node()->get_clock()->now();
 
   for (hardware_interface::LoanedStateInterface& loaned_state_interface : state_interfaces_) {
-    RCLCPP_INFO(get_node()->get_logger(), "STATE   prefix_name: %s interface_name: %s, get_interface_name", loaned_state_interface.get_prefix_name().c_str(), loaned_state_interface.get_interface_name().c_str());
-    named_state_interface_[loaned_state_interface.get_interface_name()] = static_cast<std::shared_ptr<hardware_interface::LoanedStateInterface>>(&loaned_state_interface);
+    std::string name = loaned_state_interface.get_prefix_name() + "/" + loaned_state_interface.get_interface_name();
+    named_state_interface_[name] = static_cast<std::shared_ptr<hardware_interface::LoanedStateInterface>>(&loaned_state_interface);
   }
 
   for (hardware_interface::LoanedCommandInterface& loaned_command_interface : command_interfaces_) {
-    RCLCPP_INFO(get_node()->get_logger(), "COMMAND prefix_name: %s interface_name: %s, get_interface_name", loaned_command_interface.get_prefix_name().c_str(), loaned_command_interface.get_interface_name().c_str());
-    named_command_interface_[loaned_command_interface.get_interface_name()] = static_cast<std::shared_ptr<hardware_interface::LoanedCommandInterface>>(&loaned_command_interface);
+    std::string name = loaned_command_interface.get_prefix_name() + "/" + loaned_command_interface.get_interface_name();
+    named_command_interface_[name] = static_cast<std::shared_ptr<hardware_interface::LoanedCommandInterface>>(&loaned_command_interface);
   }
 
   is_halted = false;
@@ -121,12 +172,55 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   }
 
   // set the command interfaces from the controller state variables
-  named_command_interface_["set_software_emergency_stop"]->set_value(emergency_stop_cmd_);
+  named_command_interface_["control_system_state/set_software_emergency_stop"]->set_value(emergency_stop_cmd_);
+  named_command_interface_["control_system_state/pump_command"]->set_value(pump_cmd_);
+  named_command_interface_["fan_motor_joint/velocity"]->set_value(fan_cmd_);
 
-  // publish the state interface values variables
-  // TODO
-  // RCLCPP_INFO(logger, "vcu_comm_ok: %i", (bool)std::round(named_state_interface_["vcu_comm_ok"]->get_value()));
-  // RCLCPP_INFO(logger, "software_emergency_stop: %i", (bool)std::round(named_state_interface_["software_emergency_stop"]->get_value()));
+  // publish the state interface values
+  asb_msgs::msg::ControlSystemState control_system_state_msg;
+  control_system_state_msg.stamp = time;
+  control_system_state_msg.vcu_comm_ok = (bool)std::round(named_state_interface_["control_system_state/vcu_comm_ok"]->get_value());
+  control_system_state_msg.vcu_safety_status = (bool)std::round(named_state_interface_["control_system_state/vcu_safety_status"]->get_value());
+  control_system_state_msg.control_mode = (uint8_t)std::round(named_state_interface_["control_system_state/control_mode"]->get_value());
+
+  control_system_state_msg.software_emergency_stop = (uint8_t)std::round(named_state_interface_["control_system_state/software_emergency_stop"]->get_value());
+
+  control_system_state_msg.pump_state = (bool)std::round(named_state_interface_["control_system_state/pump_state"]->get_value());
+
+  control_system_state_msg.left_motor_controller_temperature = named_state_interface_["control_system_state/left_motor_controller_temperature"]->get_value();
+  control_system_state_msg.left_motor_temperature = named_state_interface_["control_system_state/left_motor_temperature"]->get_value();
+  control_system_state_msg.left_motor_battery_current = named_state_interface_["control_system_state/left_motor_battery_current"]->get_value();
+  control_system_state_msg.left_motor_torque = named_state_interface_["control_system_state/left_motor_torque"]->get_value();
+  control_system_state_msg.left_motor_bdi_percentage = named_state_interface_["control_system_state/left_motor_BDI_percentage"]->get_value();
+  control_system_state_msg.left_motor_keyswitch_voltage = named_state_interface_["control_system_state/left_motor_keyswitch_voltage"]->get_value();
+  control_system_state_msg.left_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/left_motor_zero_speed_threshold"]->get_value();
+
+  control_system_state_msg.left_motor_position = named_state_interface_["left_track_joint/position"]->get_value();
+  control_system_state_msg.left_motor_velocity = named_state_interface_["left_track_joint/velocity"]->get_value();
+
+  control_system_state_msg.right_motor_controller_temperature = named_state_interface_["control_system_state/right_motor_controller_temperature"]->get_value();
+  control_system_state_msg.right_motor_temperature = named_state_interface_["control_system_state/right_motor_temperature"]->get_value();
+  control_system_state_msg.right_motor_battery_current = named_state_interface_["control_system_state/right_motor_battery_current"]->get_value();
+  control_system_state_msg.right_motor_torque = named_state_interface_["control_system_state/right_motor_torque"]->get_value();
+  control_system_state_msg.right_motor_bdi_percentage = named_state_interface_["control_system_state/right_motor_BDI_percentage"]->get_value();
+  control_system_state_msg.right_motor_keyswitch_voltage = named_state_interface_["control_system_state/right_motor_keyswitch_voltage"]->get_value();
+  control_system_state_msg.right_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/right_motor_zero_speed_threshold"]->get_value();
+
+  control_system_state_msg.right_motor_position = named_state_interface_["right_track_joint/position"]->get_value();
+  control_system_state_msg.right_motor_velocity = named_state_interface_["right_track_joint/velocity"]->get_value();
+
+  control_system_state_msg.fan_motor_controller_temperature = named_state_interface_["control_system_state/fan_motor_controller_temperature"]->get_value();
+  control_system_state_msg.fan_motor_temperature = named_state_interface_["control_system_state/fan_motor_temperature"]->get_value();
+  control_system_state_msg.fan_motor_battery_current = named_state_interface_["control_system_state/fan_motor_battery_current"]->get_value();
+  control_system_state_msg.fan_motor_torque = named_state_interface_["control_system_state/fan_motor_torque"]->get_value();
+  control_system_state_msg.fan_motor_bdi_percentage = named_state_interface_["control_system_state/fan_motor_BDI_percentage"]->get_value();
+  control_system_state_msg.fan_motor_keyswitch_voltage = named_state_interface_["control_system_state/fan_motor_keyswitch_voltage"]->get_value();
+  control_system_state_msg.fan_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/fan_motor_zero_speed_threshold"]->get_value();
+
+  control_system_state_msg.fan_motor_position = named_state_interface_["fan_motor_joint/position"]->get_value();
+  control_system_state_msg.fan_motor_velocity_rpm = named_state_interface_["fan_motor_joint/velocity"]->get_value();
+
+  control_system_state_publisher_->publish(control_system_state_msg);
 
   return controller_interface::return_type::OK;
 }
@@ -142,13 +236,57 @@ void ASBControlSystemStatusController::heartbeat_callback(const std::shared_ptr<
   last_heartbeat_msg_ = *msg;
 }
 
-void ASBControlSystemStatusController::emergency_stop_cmd_callback(const std::shared_ptr<std_msgs::msg::Empty> /*msg*/) {
+void ASBControlSystemStatusController::emergency_stop_cmd_callback(const std::shared_ptr<asb_msgs::msg::EmergencyStopCmd> msg) {
   if (!subscriber_is_active_) {
     RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
     return;
   }
 
-  emergency_stop_cmd_ = true;
+  rclcpp::Time now = get_node()->get_clock()->now();
+  rclcpp::Duration msg_age = now - msg->stamp;
+  if (msg_age > emergency_stop_cmd_timeout_) {
+    RCLCPP_WARN(get_node()->get_logger(), "Emergency stop message too old (%f s), enabling emergency stop.", msg_age.seconds());
+    emergency_stop_cmd_ = true;
+    return;
+  }
+
+  emergency_stop_cmd_ = msg->set_software_emergency_stop;
+
+}
+
+void ASBControlSystemStatusController::pump_cmd_callback(const std::shared_ptr<asb_msgs::msg::PumpCmd> msg) {
+  if (!subscriber_is_active_) {
+    RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+    return;
+  }
+
+  rclcpp::Time now = get_node()->get_clock()->now();
+  rclcpp::Duration msg_age = now - msg->stamp;
+  if (msg_age > pump_cmd_timeout_) {
+    RCLCPP_WARN(get_node()->get_logger(), "Pump command message too old (%f s), disabling pump.", msg_age.seconds());
+    pump_cmd_ = false;
+    return;
+  }
+
+  pump_cmd_ = msg->pump_cmd;
+
+}
+
+void ASBControlSystemStatusController::fan_cmd_callback(const std::shared_ptr<asb_msgs::msg::FanCmd> msg) {
+  if (!subscriber_is_active_) {
+    RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
+    return;
+  }
+
+  rclcpp::Time now = get_node()->get_clock()->now();
+  rclcpp::Duration msg_age = now - msg->stamp;
+  if (msg_age > fan_cmd_timeout_) {
+    RCLCPP_WARN(get_node()->get_logger(), "Fan command message too old (%f s), setting fan speed to 0 RPM.", msg_age.seconds());
+    fan_cmd_ = 0;
+    return;
+  }
+
+  fan_cmd_ = msg->velocity_rpm;
 
 }
 

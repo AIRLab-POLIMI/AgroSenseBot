@@ -8,16 +8,13 @@ endif()
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   controller_interface
   generate_parameter_library
-  geometry_msgs
+  asb_msgs
   hardware_interface
-  nav_msgs
   pluginlib
   rclcpp
   rclcpp_lifecycle
   rcpputils
   realtime_tools
-  tf2
-  tf2_msgs
 )
 
 find_package(ament_cmake REQUIRED)
