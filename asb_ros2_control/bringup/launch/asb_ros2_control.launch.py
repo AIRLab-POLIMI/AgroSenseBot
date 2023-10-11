@@ -101,6 +101,12 @@ def generate_launch_description():
         arguments=["asb_base_controller", "--controller-manager", "/controller_manager"],
     )
 
+    control_system_status_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["asb_control_system_status_controller", "--controller-manager", "/controller_manager"],
+    )
+
     # Delay rviz start after `joint_state_broadcaster`
     delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -109,19 +115,28 @@ def generate_launch_description():
         )
     )
 
-    # Delay start of robot_controller after `joint_state_broadcaster`
-    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+    # Delay start of control_system_status_controller_spawner after `joint_state_broadcaster`
+    delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
+            on_exit=[control_system_status_controller_spawner],
+        )
+    )
+
+    # Delay start of robot_controller after `control_system_status_controller_spawner`
+    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=control_system_status_controller_spawner,
             on_exit=[robot_controller_spawner],
         )
     )
 
     nodes = [
         control_node,
-        robot_state_pub_node,
+        # robot_state_pub_node,
         joint_state_broadcaster_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
+        delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
     ]
 
