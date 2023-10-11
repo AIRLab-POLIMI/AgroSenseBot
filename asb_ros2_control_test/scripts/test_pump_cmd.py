@@ -37,18 +37,23 @@ class MinimalPublisher(Node):
     def timer_callback(self):
         now_s = self.get_clock().now().nanoseconds * 1e-9
         elapsed_time_s = (now_s - self.start_time_s)
+        print(f"elapsed_time:                             {elapsed_time_s}")
 
-        # set pump_cmd to True between 5 and 10 seconds from start time
-        pump_cmd = True if 5 < elapsed_time_s < 10 else False
+        # set pump_cmd to True after 5 seconds from start time
+        pump_cmd = True if 5 < elapsed_time_s else False
 
-        msg = PumpCmd(
-            stamp=self.get_clock().now().to_msg(),
-            pump_cmd=pump_cmd)
-        self.pub.publish(msg)
+        # after 10 seconds, stop publishing
+        if elapsed_time_s < 10:
+            msg = PumpCmd(
+                stamp=self.get_clock().now().to_msg(),
+                pump_cmd=pump_cmd)
+            self.pub.publish(msg)
 
-        print(f"elapsed_time:                             {elapsed_time_s} \n"
-              f"published pump_cmd:                       {msg.pump_cmd} \n"
-              f"received control_system_state.pump_state: {self.pump_state} \n")
+            print(f"published pump_cmd:                       {msg.pump_cmd}")
+        else:
+            print(f"published pump_cmd:                       ")
+
+        print(f"received control_system_state.pump_state: {self.pump_state} \n")
 
     def control_system_state_callback(self, msg):
         self.pump_state = msg.pump_state

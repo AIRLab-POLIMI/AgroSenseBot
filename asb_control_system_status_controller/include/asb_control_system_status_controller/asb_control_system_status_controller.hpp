@@ -126,7 +126,9 @@ protected:
 
   bool emergency_stop_cmd_ = false;
   bool pump_cmd_ = false;
+  rclcpp::Time pump_cmd_time_;
   int16_t fan_cmd_ = 0;
+  rclcpp::Time fan_cmd_time_;
 
   bool is_halted = false;
 

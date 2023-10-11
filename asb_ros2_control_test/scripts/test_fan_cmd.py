@@ -38,18 +38,23 @@ class MinimalPublisher(Node):
     def timer_callback(self):
         now_s = self.get_clock().now().nanoseconds * 1e-9
         elapsed_time_s = (now_s - self.start_time_s)
+        print(f"elapsed_time:                             {elapsed_time_s}")
 
-        # increase velocity_rpm from 0 to 2400, at 400 RPM/s, from 5 seconds after start time
-        velocity_rpm = int(min(max(0, 400*(elapsed_time_s - 5)), 2400))
+        # increase velocity_rpm from 0 to 2400, at 400 RPM/s, from 2 seconds after start time
+        velocity_rpm = int(min(max(0, 400*(elapsed_time_s - 2)), 2400))
 
-        msg = FanCmd(
-            stamp=self.get_clock().now().to_msg(),
-            velocity_rpm=velocity_rpm)
-        self.pub.publish(msg)
+        # after 10 seconds, stop publishing
+        if elapsed_time_s < 10:
+            msg = FanCmd(
+                stamp=self.get_clock().now().to_msg(),
+                velocity_rpm=velocity_rpm)
+            self.pub.publish(msg)
 
-        print(f"elapsed_time:                                         {elapsed_time_s} \n"
-              f"published velocity_rpm:                               {msg.velocity_rpm} \n"
-              f"received control_system_state.fan_motor_position:     {self.fan_motor_position} \n"
+            print(f"published velocity_rpm:                               {msg.velocity_rpm}")
+        else:
+            print(f"published velocity_rpm:                               ")
+
+        print(f"received control_system_state.fan_motor_position:     {self.fan_motor_position} \n"
               f"received control_system_state.fan_motor_velocity_rpm: {self.fan_motor_velocity_rpm} \n")
 
     def control_system_state_callback(self, msg):

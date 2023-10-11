@@ -133,6 +133,8 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_config
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_activate(const rclcpp_lifecycle::State &) {
   startup_time_ = get_node()->get_clock()->now();
+  pump_cmd_time_ = get_node()->get_clock()->now();
+  fan_cmd_time_ = get_node()->get_clock()->now();
 
   for (hardware_interface::LoanedStateInterface& loaned_state_interface : state_interfaces_) {
     std::string name = loaned_state_interface.get_prefix_name() + "/" + loaned_state_interface.get_interface_name();
@@ -173,8 +175,18 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
 
   // set the command interfaces from the controller state variables
   named_command_interface_["control_system_state/set_software_emergency_stop"]->set_value(emergency_stop_cmd_);
-  named_command_interface_["control_system_state/pump_command"]->set_value(pump_cmd_);
-  named_command_interface_["fan_motor_joint/velocity"]->set_value(fan_cmd_);
+
+  if(time - pump_cmd_time_ < pump_cmd_timeout_) {
+    named_command_interface_["control_system_state/pump_command"]->set_value(pump_cmd_);
+  } else {
+    named_command_interface_["control_system_state/pump_command"]->set_value(false);
+  }
+
+  if(time - fan_cmd_time_ < fan_cmd_timeout_) {
+    named_command_interface_["fan_motor_joint/velocity"]->set_value(fan_cmd_);
+  } else {
+    named_command_interface_["fan_motor_joint/velocity"]->set_value(0);
+  }
 
   // publish the state interface values
   asb_msgs::msg::ControlSystemState control_system_state_msg;
@@ -269,6 +281,7 @@ void ASBControlSystemStatusController::pump_cmd_callback(const std::shared_ptr<a
   }
 
   pump_cmd_ = msg->pump_cmd;
+  pump_cmd_time_ = msg->stamp;
 
 }
 
@@ -287,6 +300,7 @@ void ASBControlSystemStatusController::fan_cmd_callback(const std::shared_ptr<as
   }
 
   fan_cmd_ = msg->velocity_rpm;
+  fan_cmd_time_ = msg->stamp;
 
 }
 
