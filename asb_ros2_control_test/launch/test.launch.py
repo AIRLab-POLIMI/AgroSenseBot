@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'launch')
 import launch
 import launch.actions
 import launch.events
-from launch.substitutions import LaunchConfiguration, TextSubstitution
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.substitutions import LaunchConfiguration, TextSubstitution, Command
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from ament_index_python import get_package_share_directory
@@ -54,6 +54,12 @@ def generate_launch_description():
         'test_node_name',
         default_value=TextSubstitution(text="test_node"),
         description="Name of the ros node.",
+    )
+
+    setup_vcan0_script = launch_ros.actions.Node(
+        package='asb_ros2_control',
+        executable='setup_vcan0.sh',
+        name='setup_vcan0_script',
     )
 
     system_test_node = launch_ros.actions.LifecycleNode(
@@ -105,6 +111,7 @@ def generate_launch_description():
     ld.add_action(dummy_mdr_canopen_node_config_arg)
     ld.add_action(dummy_fan_canopen_node_config_arg)
     ld.add_action(can_interface_arg)
+    ld.add_action(setup_vcan0_script)
     ld.add_action(test_node_name_arg)
     ld.add_action(system_test_node)
     ld.add_action(lifecycle_inactive_state_handler)
