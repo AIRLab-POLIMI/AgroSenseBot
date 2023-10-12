@@ -1,1 +1,2 @@
-ip link set can0 down
+#!/bin/bash
+sudo ip link set can0 down

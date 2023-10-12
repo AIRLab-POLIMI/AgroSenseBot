@@ -51,13 +51,19 @@ install(
   DIRECTORY hardware/include/
   DESTINATION include/asb_ros2_control
 )
+
+install(
+        DIRECTORY scripts/
+        DESTINATION lib/${PROJECT_NAME}
+)
+
 install(
   DIRECTORY description/launch description/ros2_control description/urdf
-  DESTINATION share/asb_ros2_control
+  DESTINATION share/${PROJECT_NAME}
 )
 install(
   DIRECTORY bringup/launch bringup/config bringup/rviz
-  DESTINATION share/asb_ros2_control
+  DESTINATION share/${PROJECT_NAME}
 )
 install(TARGETS asb_ros2_control
   EXPORT export_asb_ros2_control

@@ -1,2 +1,3 @@
-ip link set vcan0 down
-ip link delete vcan0
+#!/bin/bash
+sudo ip link set vcan0 down
+sudo ip link delete vcan0

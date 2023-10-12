@@ -48,19 +48,20 @@ ament_target_dependencies(
 )
 
 install(
-        TARGETS
-        test_node
+        TARGETS test_node
+        DESTINATION lib/${PROJECT_NAME}
+)
+install(
+        DIRECTORY scripts/
         DESTINATION lib/${PROJECT_NAME}
 )
 
 install(
-        DIRECTORY
-        launch/
+        DIRECTORY launch/
         DESTINATION share/${PROJECT_NAME}/launch/
 )
 install(
-        DIRECTORY
-        config/
+        DIRECTORY config/
         DESTINATION share/${PROJECT_NAME}/config/
 )
 
