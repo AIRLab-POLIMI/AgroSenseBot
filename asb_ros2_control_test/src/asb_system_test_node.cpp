@@ -230,7 +230,7 @@ void ASBSystemTestNode::motor_drive_left_test_callback(
   if (MDL_canopen_slave_node_ != nullptr) {
     MDL_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
-            (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) (motor_temperature / RAW_DATA_STEP_VALUE_temperature),
             (int16_t) motor_rpm,
             (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
     MDL_canopen_slave_node_->set_TPDO_2(
@@ -252,7 +252,7 @@ void ASBSystemTestNode::motor_drive_right_test_callback(
   if (MDR_canopen_slave_node_ != nullptr) {
     MDR_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
-            (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) (motor_temperature / RAW_DATA_STEP_VALUE_temperature),
             (int16_t) motor_rpm,
             (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
     MDR_canopen_slave_node_->set_TPDO_2(
@@ -273,7 +273,7 @@ void ASBSystemTestNode::motor_drive_fan_test_callback(
   if (FAN_canopen_slave_node_ != nullptr) {
     FAN_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
-            (int16_t) (motor_temperature * RAW_DATA_STEP_VALUE_temperature),
+            (int16_t) (motor_temperature / RAW_DATA_STEP_VALUE_temperature),
             (int16_t) motor_rpm,
             (int16_t) (battery_current_display / RAW_DATA_STEP_VALUE_current));
     FAN_canopen_slave_node_->set_TPDO_2(
