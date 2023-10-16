@@ -56,12 +56,6 @@ def generate_launch_description():
         description="Name of the ros node.",
     )
 
-    setup_vcan0_script = launch_ros.actions.Node(
-        package='asb_ros2_control',
-        executable='setup_vcan0.sh',
-        name='setup_vcan0_script',
-    )
-
     system_test_node = launch_ros.actions.LifecycleNode(
         name=LaunchConfiguration("test_node_name"),
         namespace="system_test",
@@ -111,7 +105,6 @@ def generate_launch_description():
     ld.add_action(dummy_mdr_canopen_node_config_arg)
     ld.add_action(dummy_fan_canopen_node_config_arg)
     ld.add_action(can_interface_arg)
-    ld.add_action(setup_vcan0_script)
     ld.add_action(test_node_name_arg)
     ld.add_action(system_test_node)
     ld.add_action(lifecycle_inactive_state_handler)
