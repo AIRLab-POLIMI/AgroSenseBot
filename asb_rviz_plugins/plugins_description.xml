@@ -1,0 +1,10 @@
+<library path="asb_rviz_plugins">
+
+  <class name="asb_rviz_plugins/AgroSenseBot panel"
+         type="asb_rviz_plugins::ASBPanel"
+         base_class_type="rviz_common::Panel">
+    <description>The AgroSenseBot rviz panel.</description>
+  </class>
+
+
+</library>
