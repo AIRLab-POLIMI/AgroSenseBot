@@ -113,7 +113,6 @@ void ASBSystemTestNode::run_canopen_nodes() {
 
   while (lifecycle_node_active_.load()) {
     loop.run_for(10ms);
-//    this->timer();
     VCU_canopen_slave_node_->timer();
     MDL_canopen_slave_node_->timer();
     MDR_canopen_slave_node_->timer();
@@ -121,33 +120,6 @@ void ASBSystemTestNode::run_canopen_nodes() {
   }
   ctx.shutdown();
 }
-
-//void ASBSystemTestNode::timer() {
-//  if(VCU_canopen_slave_node_ != nullptr) {
-//    VCU_canopen_slave_node_->send_TPDO_1();
-//  }
-//
-//  if(MDL_canopen_slave_node_ != nullptr) {
-//    MDL_canopen_slave_node_->send_TPDO_1();
-//    MDL_canopen_slave_node_->send_TPDO_2();
-//    MDL_canopen_slave_node_->send_TPDO_3();
-//    MDL_canopen_slave_node_->send_TPDO_4();
-//  }
-//
-//  if(MDR_canopen_slave_node_ != nullptr) {
-//    MDR_canopen_slave_node_->send_TPDO_1();
-//    MDR_canopen_slave_node_->send_TPDO_2();
-//    MDR_canopen_slave_node_->send_TPDO_3();
-//    MDR_canopen_slave_node_->send_TPDO_4();
-//  }
-//
-//  if(FAN_canopen_slave_node_ != nullptr) {
-//    FAN_canopen_slave_node_->send_TPDO_1();
-//    FAN_canopen_slave_node_->send_TPDO_2();
-//    FAN_canopen_slave_node_->send_TPDO_3();
-//    FAN_canopen_slave_node_->send_TPDO_4();
-//  }
-//}
 
 void ASBSystemTestNode::test_loop_timer_ros2_callback() {
   rclcpp::Time now = this->get_clock()->now();
