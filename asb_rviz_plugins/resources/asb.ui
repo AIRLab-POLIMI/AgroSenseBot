@@ -12,7 +12,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>513</width>
+    <width>1162</width>
     <height>1202</height>
    </rect>
   </property>
@@ -91,41 +91,472 @@
      <item>
       <layout class="QHBoxLayout" name="motors_layout">
        <item>
-        <layout class="QVBoxLayout" name="motor_left_layout">
+        <layout class="QVBoxLayout" name="left_motor_main_layout">
          <item>
-          <widget class="QLabel" name="motor_left_label">
+          <widget class="QLabel" name="left_motor_label">
            <property name="text">
-            <string>LEFT MOTOR</string>
+            <string>LEFT</string>
            </property>
           </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout"/>
-         </item>
-         <item>
-          <widget class="QwtThermo" name="batt_soc_2"/>
+          <layout class="QHBoxLayout" name="left_motor_layout">
+           <item>
+            <layout class="QVBoxLayout" name="left_motor_current_layout">
+             <item>
+              <widget class="QLabel" name="left_motor_current_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>CURRENT</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="left_motor_current"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="left_torque_layout">
+             <item>
+              <widget class="QLabel" name="left_torque_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>TORQUE</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="left_torque"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="left_motor_temperature_layout">
+             <item>
+              <widget class="QLabel" name="left_motor_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>MOT TEMP</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="left_motor_temperature"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="left_controller_temperature_layout">
+             <item>
+              <widget class="QLabel" name="left_controller_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>CTRL TEMP</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="left_controller_temperature"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="left_velocity_layout">
+             <item>
+              <widget class="QLabel" name="left_velocity_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>VEL</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="left_velocity"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="motor_right_layout">
+        <widget class="Line" name="line">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
+         <property name="midLineWidth">
+          <number>1</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="right_motor_main_layout">
          <item>
-          <widget class="QLabel" name="motor_right_label">
+          <widget class="QLabel" name="right_motor_label">
            <property name="text">
-            <string>RIGHT MOTOR</string>
+            <string>RIGHT</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="right_motor_layout">
+           <item>
+            <layout class="QVBoxLayout" name="right_motor_current_layout">
+             <item>
+              <widget class="QLabel" name="right_motor_current_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>CURRENT</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="right_motor_current"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="right_torque_layout">
+             <item>
+              <widget class="QLabel" name="right_torque_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>TORQUE</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="right_torque"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="right_motor_temperature_layout">
+             <item>
+              <widget class="QLabel" name="right_motor_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>MOT TEMP</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="right_motor_temperature"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="right_controller_temperature_layout">
+             <item>
+              <widget class="QLabel" name="right_controller_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>CTRL TEMP</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="right_controller_temperature"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="right_velocity_layout">
+             <item>
+              <widget class="QLabel" name="right_velocity_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>VEL</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="right_velocity"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="motor_fan_layout">
+        <widget class="Line" name="line_2">
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>2</number>
+         </property>
+         <property name="midLineWidth">
+          <number>1</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="fan_motor_main_layout">
          <item>
-          <widget class="QLabel" name="motor_fan_label">
+          <widget class="QLabel" name="fan_motor_label">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
-            <string>FAN MOTOR</string>
+            <string>FAN</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="fan_motor_layout">
+           <item>
+            <layout class="QVBoxLayout" name="fan_motor_current_layout">
+             <item>
+              <widget class="QLabel" name="fan_motor_current_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>CURRENT</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_motor_current"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="fan_torque_layout">
+             <item>
+              <widget class="QLabel" name="fan_torque_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>TORQUE</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_torque"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="fan_motor_temperature_layout">
+             <item>
+              <widget class="QLabel" name="fan_motor_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>MOT TEMP</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_motor_temperature"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="fan_controller_temperature_layout">
+             <item>
+              <widget class="QLabel" name="fan_controller_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>CTRL TEMP</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_controller_temperature"/>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="fan_velocity_layout">
+             <item>
+              <widget class="QLabel" name="fan_velocity_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>VEL</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_velocity"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
