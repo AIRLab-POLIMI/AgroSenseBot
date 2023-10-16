@@ -54,14 +54,14 @@ class ASBSystemHardware : public hardware_interface::SystemInterface
 
 struct Config
 {
-    std::string GCU_canopen_node_config;
-    std::string motor_left_receiver_canopen_node_config;
-    std::string motor_right_receiver_canopen_node_config;
-    std::string motor_fan_receiver_canopen_node_config;
-    std::string can_interface_name;
-    std::chrono::seconds canopen_init_timeout = 5s;
-    int tracks_maximum_velocity_rpm_;
-    int fan_maximum_velocity_rpm_;
+  std::string GCU_canopen_node_config;
+  std::string motor_left_receiver_canopen_node_config;
+  std::string motor_right_receiver_canopen_node_config;
+  std::string motor_fan_receiver_canopen_node_config;
+  std::string can_interface_name;
+  std::chrono::seconds canopen_init_timeout = 5s;
+  int16_t tracks_maximum_velocity_rpm;
+  int16_t fan_maximum_velocity_rpm;
 };
 
 public:
@@ -91,6 +91,8 @@ public:
   void run_canopen_nodes();
 
   void timer();
+
+  template<typename T> static T clip(T x, T min, T max);
 
 private:
   // Configuration parameters

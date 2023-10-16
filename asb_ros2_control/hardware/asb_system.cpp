@@ -89,25 +89,25 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(
     return hardware_interface::CallbackReturn::ERROR;
   }
 
-  cfg_.tracks_maximum_velocity_rpm_ = std::stoi(info_.hardware_parameters["tracks_maximum_velocity_rpm"]);
-  if (cfg_.tracks_maximum_velocity_rpm_ > 0)
+  cfg_.tracks_maximum_velocity_rpm = (int16_t)std::stoi(info_.hardware_parameters["tracks_maximum_velocity_rpm"]);
+  if (cfg_.tracks_maximum_velocity_rpm > 0)
   {
     RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "tracks_maximum_velocity_rpm: %i", cfg_.tracks_maximum_velocity_rpm_);
+                "tracks_maximum_velocity_rpm: %i", cfg_.tracks_maximum_velocity_rpm);
   } else {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "tracks_maximum_velocity_rpm [%i] must be strictly positive", cfg_.tracks_maximum_velocity_rpm_);
+                 "tracks_maximum_velocity_rpm [%i] must be strictly positive", cfg_.tracks_maximum_velocity_rpm);
     return hardware_interface::CallbackReturn::ERROR;
   }
 
-  cfg_.fan_maximum_velocity_rpm_ = std::stoi(info_.hardware_parameters["fan_maximum_velocity_rpm"]);
-  if (cfg_.fan_maximum_velocity_rpm_ > 0)
+  cfg_.fan_maximum_velocity_rpm = (int16_t)std::stoi(info_.hardware_parameters["fan_maximum_velocity_rpm"]);
+  if (cfg_.fan_maximum_velocity_rpm > 0)
   {
     RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "fan_maximum_velocity_rpm: %i", cfg_.fan_maximum_velocity_rpm_);
+                "fan_maximum_velocity_rpm: %i", cfg_.fan_maximum_velocity_rpm);
   } else {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "fan_maximum_velocity_rpm [%i] must be strictly positive", cfg_.fan_maximum_velocity_rpm_);
+                 "fan_maximum_velocity_rpm [%i] must be strictly positive", cfg_.fan_maximum_velocity_rpm);
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -499,17 +499,27 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
     // send the velocity data through TPDO2 of the GCU CANOpen node
     double left_speed_ref_rpm = track_left_velocity_command_ * 60 / (2*M_PI);
     double right_speed_ref_rpm = track_right_velocity_command_ * 60 / (2*M_PI);
-    auto left_speed_ref_rpm_clipped = std::min(
-            (int16_t)std::round(left_speed_ref_rpm), (int16_t)cfg_.tracks_maximum_velocity_rpm_);
-    auto right_speed_ref_rpm_clipped = std::min(
-            (int16_t)std::round(right_speed_ref_rpm), (int16_t)cfg_.tracks_maximum_velocity_rpm_);
-    auto fan_speed_ref_rpm_clipped = std::min(
-            (int16_t)std::round(fan_speed_ref_rpm_command_), (int16_t)cfg_.fan_maximum_velocity_rpm_);
+    auto left_speed_ref_rpm_clipped = clip<int16_t>(
+            (int16_t)std::round(left_speed_ref_rpm),
+            (int16_t)-cfg_.tracks_maximum_velocity_rpm,
+            (int16_t)cfg_.tracks_maximum_velocity_rpm);
+    auto right_speed_ref_rpm_clipped = clip<int16_t>(
+            (int16_t)std::round(right_speed_ref_rpm),
+            (int16_t)-cfg_.tracks_maximum_velocity_rpm,
+            (int16_t)cfg_.tracks_maximum_velocity_rpm);
+    auto fan_speed_ref_rpm_clipped = clip<int16_t>(
+            (int16_t)std::round(fan_speed_ref_rpm_command_),
+            0,
+            (int16_t)cfg_.fan_maximum_velocity_rpm);
     GCU_->set_TPDO_2(right_speed_ref_rpm_clipped, left_speed_ref_rpm_clipped, fan_speed_ref_rpm_clipped);
 
   }
 
   return hardware_interface::return_type::OK;
+}
+
+template<typename T> T ASBSystemHardware::clip(T x, T min, T max) {
+  return (x < max) ? ((x > min) ? x : min) : max;
 }
 
 }  // namespace asb_ros2_control

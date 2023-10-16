@@ -40,8 +40,8 @@ class MinimalPublisher(Node):
         elapsed_time_s = (now_s - self.start_time_s)
         print(f"elapsed_time:                             {elapsed_time_s}")
 
-        # increase velocity_rpm from 0 to 2400, at 400 RPM/s, from 2 seconds after start time
-        velocity_rpm = int(min(max(0, 400*(elapsed_time_s - 2)), 2400))
+        # increase velocity_rpm from -100 to 2500, at 400 RPM/s, from 2 seconds after start time
+        velocity_rpm = int(min(max(-100, 400*(elapsed_time_s - 2)), 2500))
 
         # after 10 seconds, stop publishing
         if elapsed_time_s < 10:
