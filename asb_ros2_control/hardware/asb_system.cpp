@@ -435,9 +435,6 @@ hardware_interface::return_type ASBSystemHardware::read(
   vcu_safety_status_bool_state_ = GCU_->VCU_safety_status_bit_.load();
   control_mode_int_state_ = GCU_->control_mode_.load();
 
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read vcu_safety_status_bool_state_: %i", (bool)std::round(vcu_safety_status_bool_state_));
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read control_mode_int_state_: %i", (bool)std::round(control_mode_int_state_));
-
   // software emergency stop
   software_emergency_stop_bool_state_ = software_emergency_stop_.load();
 
@@ -456,12 +453,6 @@ hardware_interface::return_type ASBSystemHardware::read(
   track_left_zero_speed_threshold_state_ = motor_left_receiver_->zero_speed_threshold_.load();
   track_left_interlock_bool_state_ = motor_left_receiver_->interlock_status_.load();
 
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_velocity_state_: %f", track_left_velocity_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_position_state_: %f", track_left_position_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_controller_temperature_state_: %f", track_left_controller_temperature_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_motor_temperature_state_: %f", track_left_motor_temperature_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_left_battery_current_state_: %f", track_left_battery_current_state_);
-
 //   right motor state
   track_right_velocity_state_ = motor_right_receiver_->motor_RPM_.load() * 2 * M_PI / 60;
   track_right_position_state_ = motor_right_receiver_->rotor_position_.load() * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
@@ -474,12 +465,6 @@ hardware_interface::return_type ASBSystemHardware::read(
   track_right_zero_speed_threshold_state_ = motor_right_receiver_->zero_speed_threshold_.load();
   track_right_interlock_bool_state_ = motor_right_receiver_->interlock_status_.load();
 
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_velocity_state_: %f", track_right_velocity_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_position_state_: %f", track_right_position_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_controller_temperature_state_: %f", track_right_controller_temperature_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_motor_temperature_state_: %f", track_right_motor_temperature_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read track_right_battery_current_state_: %f", track_right_battery_current_state_);
-
   // fan motor state
   fan_speed_rpm_state_ = motor_fan_receiver_->motor_RPM_.load();
   fan_position_revs_state_ = motor_fan_receiver_->rotor_position_.load() * RAW_DATA_STEP_VALUE_rotor_position;
@@ -491,11 +476,6 @@ hardware_interface::return_type ASBSystemHardware::read(
   fan_keyswitch_voltage_state_ = motor_fan_receiver_->keyswitch_voltage_.load() * RAW_DATA_STEP_VALUE_voltage;
   fan_zero_speed_threshold_state_ = motor_fan_receiver_->zero_speed_threshold_.load();
   fan_interlock_bool_state_ = motor_fan_receiver_->interlock_status_.load();
-
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_speed_rpm_state_: %f", fan_speed_rpm_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_controller_temperature_state_: %f", fan_controller_temperature_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_motor_temperature_state_: %f", fan_motor_temperature_state_);
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "read fan_battery_current_state_: %f", fan_battery_current_state_);
 
   return hardware_interface::return_type::OK;
 }
@@ -527,16 +507,7 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
             (int16_t)std::round(fan_speed_ref_rpm_command_), (int16_t)cfg_.fan_maximum_velocity_rpm_);
     GCU_->set_TPDO_2(right_speed_ref_rpm_clipped, left_speed_ref_rpm_clipped, fan_speed_ref_rpm_clipped);
 
-//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-//                "write track vel   l: %f  r: %f   [rad/s]", track_left_velocity_command_, track_right_velocity_command_);
-//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-//                "write track vel   l: %i  r: %i   [rpm]", left_speed_ref_rpm_clipped, right_speed_ref_rpm_clipped);
   }
-
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-//              "write set_software_emergency_stop: %i", (int)std::round(set_software_emergency_stop_bool_command_));
-//  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-//              "write gcu_alive_bit_current_value: %i", gcu_alive_bit_current_value_);
 
   return hardware_interface::return_type::OK;
 }

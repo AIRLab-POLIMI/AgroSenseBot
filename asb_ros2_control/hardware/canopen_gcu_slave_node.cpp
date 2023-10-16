@@ -54,7 +54,6 @@ void CANOpenGCUNode::set_TPDO_1(bool gcu_alive_bit, bool pump_cmd_bit) {
 void CANOpenGCUNode::send_TPDO_1() {
   if(!new_TPDO_1_) return;
   new_TPDO_1_ = false;
-//  std::cout << "[" << node_name_ << "]" << " TPDO 1 " << std::endl;
   std::bitset<8> gcu_state_data_bitset;
   gcu_state_data_bitset[BIT_IDX_GCU_is_alive] = gcu_alive_bit_;
   gcu_state_data_bitset[BIT_IDX_VCU_pump_cmd] = pump_cmd_bit_;
@@ -73,7 +72,6 @@ void CANOpenGCUNode::set_TPDO_2(int16_t right_speed_ref, int16_t left_speed_ref,
 void CANOpenGCUNode::send_TPDO_2() {
   if(!new_TPDO_2_) return;
   new_TPDO_2_ = false;
-//    std::cout << "[" << node_name_ << "]" << " TPDO 2 " << std::endl;
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_1_right_speed_ref] = right_speed_ref_;
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_2_left_speed_ref] = left_speed_ref_;
   (*this)[IDX_TPDO2][SUB_IDX_TPDO2_3_fan_speed_ref] = fan_speed_ref_;
@@ -82,12 +80,9 @@ void CANOpenGCUNode::send_TPDO_2() {
 
 // This function gets called every time an RPDO is received.
 void CANOpenGCUNode::OnRpdo(int num, ::std::error_code /*ec*/, const void* /*p*/, ::std::size_t /*n*/) noexcept {
-//  std::cout << "[" << node_name_ << "]" << " OnWrite " << std::hex << (int)idx << " " << std::hex << (int)subidx << std::endl;
 
   // RPDO 1
   if (num == 1) {
-//    std::cout << "[" << node_name_ << "]" << " RPDO 1 " << "COB-ID: " << (int)(uint32_t)(*this)[0x1400][0x01] << std::endl;
-
     uint8_t VCU_state = (*this)[IDX_RPDO1][SUB_IDX_RPDO1_1_VCU_state];
     bool VCU_is_alive_bit = (VCU_state >> BIT_IDX_VCU_is_alive) & 1;
     VCU_safety_status_bit_.store((VCU_state >> BIT_IDX_VCU_safety_status) & 1);
