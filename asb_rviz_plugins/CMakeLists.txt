@@ -72,15 +72,6 @@ foreach(header "${${PROJECT_NAME}_HDRS}")
     qt5_wrap_cpp(${PROJECT_NAME}_MOCS ${header})
 endforeach()
 
-message(
-        "2
-        SRCS:  ${${PROJECT_NAME}_SRCS}
-        HDRS:  ${${PROJECT_NAME}_HDRS}
-        UIS_H: ${${PROJECT_NAME}_UIS_H}
-        MOCS:  ${${PROJECT_NAME}_MOCS}"
-)
-
-
 ## Add library is needed in order to generate the header file from ui file.
 add_library(${PROJECT_NAME} SHARED
         ${${PROJECT_NAME}_SRCS}

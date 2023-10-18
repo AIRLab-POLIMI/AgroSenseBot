@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "ui_asb.h"
-//#include "asb_rviz_plugins/ui_asb.h"
 
 #ifndef Q_MOC_RUN
 #include <rclcpp/rclcpp.hpp>
