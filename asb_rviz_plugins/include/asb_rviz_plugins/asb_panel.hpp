@@ -24,7 +24,8 @@ namespace asb_rviz_plugins
 
 
   private:
-    ASBWidget *_widget;
+    ASBWidget *widget_;
+    rclcpp::Subscription<asb_msgs::msg::ControlSystemState> ::SharedPtr control_system_state_subscriber_;
 
   };
 }

@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1366</width>
-    <height>993</height>
+    <width>982</width>
+    <height>1037</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -238,7 +238,7 @@
            <item>
             <layout class="QVBoxLayout" name="battery_soc_layout">
              <item>
-              <widget class="QLabel" name="batt_soc_label_2">
+              <widget class="QLabel" name="battery_soc_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -260,7 +260,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_16">
+              <widget class="QLabel" name="battery_soc_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -283,7 +283,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="batt_soc">
+              <widget class="QwtThermo" name="battery_soc">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -304,9 +304,9 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="batt_voltage_layout">
+            <layout class="QVBoxLayout" name="battery_voltage_layout">
              <item>
-              <widget class="QLabel" name="label">
+              <widget class="QLabel" name="battery_voltage_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                  <horstretch>0</horstretch>
@@ -328,7 +328,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_17">
+              <widget class="QLabel" name="battery_voltage_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -351,7 +351,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="batt_v">
+              <widget class="QwtThermo" name="battery_voltage">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -478,7 +478,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_11">
+              <widget class="QLabel" name="fan_motor_current_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -522,7 +522,7 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="fan_torque_layout">
+            <layout class="QVBoxLayout" name="fan_motor_torque_layout">
              <item>
               <widget class="QLabel" name="fan_torque_label">
                <property name="sizePolicy">
@@ -552,7 +552,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_12">
+              <widget class="QLabel" name="fan_motor_torque_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -575,7 +575,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="fan_torque">
+              <widget class="QwtThermo" name="fan_motor_torque">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -626,7 +626,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_13">
+              <widget class="QLabel" name="fan_motor_temperature_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -721,7 +721,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_14">
+              <widget class="QLabel" name="fan_controller_temperature_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -786,9 +786,9 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="fan_velocity_layout">
+            <layout class="QVBoxLayout" name="fan_motor_velocity_layout">
              <item>
-              <widget class="QLabel" name="fan_velocity_label">
+              <widget class="QLabel" name="fan_motor_velocity_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -816,7 +816,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_15">
+              <widget class="QLabel" name="fan_motor_velocity_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -839,7 +839,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="fan_velocity">
+              <widget class="QwtThermo" name="fan_motor_velocity">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -1029,9 +1029,9 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="left_torque_layout">
+            <layout class="QVBoxLayout" name="left_motor_torque_layout">
              <item>
-              <widget class="QLabel" name="left_torque_label">
+              <widget class="QLabel" name="left_motor_torque_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1059,7 +1059,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_2">
+              <widget class="QLabel" name="left_motor_torque_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1082,7 +1082,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="left_torque">
+              <widget class="QwtThermo" name="left_motor_torque">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -1133,7 +1133,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_3">
+              <widget class="QLabel" name="left_motor_temperature_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1234,7 +1234,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_4">
+              <widget class="QLabel" name="left_controller_temperature_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1299,9 +1299,9 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="left_velocity_layout">
+            <layout class="QVBoxLayout" name="left_motor_velocity_layout">
              <item>
-              <widget class="QLabel" name="left_velocity_label">
+              <widget class="QLabel" name="left_motor_velocity_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1329,7 +1329,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_5">
+              <widget class="QLabel" name="left_motor_velocity_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1352,7 +1352,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="left_velocity">
+              <widget class="QwtThermo" name="left_motor_velocity">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -1503,7 +1503,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_6">
+              <widget class="QLabel" name="right_motor_current_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1547,9 +1547,9 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="right_torque_layout">
+            <layout class="QVBoxLayout" name="right_motor_torque_layout">
              <item>
-              <widget class="QLabel" name="right_torque_label">
+              <widget class="QLabel" name="right_motor_torque_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1577,7 +1577,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_7">
+              <widget class="QLabel" name="right_motor_torque_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1600,7 +1600,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="right_torque">
+              <widget class="QwtThermo" name="right_motor_torque">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -1654,7 +1654,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_8">
+              <widget class="QLabel" name="right_motor_temperature_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1749,7 +1749,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_9">
+              <widget class="QLabel" name="right_controller_temperature_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1814,9 +1814,9 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="right_velocity_layout">
+            <layout class="QVBoxLayout" name="right_motor_velocity_layout">
              <item>
-              <widget class="QLabel" name="right_velocity_label">
+              <widget class="QLabel" name="right_motor_velocity_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1844,7 +1844,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_current_disp_10">
+              <widget class="QLabel" name="right_motor_velocity_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1867,7 +1867,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="right_velocity">
+              <widget class="QwtThermo" name="right_motor_velocity">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
