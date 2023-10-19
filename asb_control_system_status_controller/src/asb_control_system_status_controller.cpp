@@ -203,7 +203,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.left_motor_temperature = named_state_interface_["control_system_state/left_motor_temperature"]->get_value();
   control_system_state_msg.left_motor_battery_current = named_state_interface_["control_system_state/left_motor_battery_current"]->get_value();
   control_system_state_msg.left_motor_torque = named_state_interface_["control_system_state/left_motor_torque"]->get_value();
-  control_system_state_msg.left_motor_bdi_percentage = named_state_interface_["control_system_state/left_motor_BDI_percentage"]->get_value();
+  control_system_state_msg.left_motor_bdi_percentage = std::round(named_state_interface_["control_system_state/left_motor_BDI_percentage"]->get_value());
   control_system_state_msg.left_motor_keyswitch_voltage = named_state_interface_["control_system_state/left_motor_keyswitch_voltage"]->get_value();
   control_system_state_msg.left_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/left_motor_zero_speed_threshold"]->get_value();
 
@@ -214,7 +214,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.right_motor_temperature = named_state_interface_["control_system_state/right_motor_temperature"]->get_value();
   control_system_state_msg.right_motor_battery_current = named_state_interface_["control_system_state/right_motor_battery_current"]->get_value();
   control_system_state_msg.right_motor_torque = named_state_interface_["control_system_state/right_motor_torque"]->get_value();
-  control_system_state_msg.right_motor_bdi_percentage = named_state_interface_["control_system_state/right_motor_BDI_percentage"]->get_value();
+  control_system_state_msg.right_motor_bdi_percentage = std::round(named_state_interface_["control_system_state/right_motor_BDI_percentage"]->get_value());
   control_system_state_msg.right_motor_keyswitch_voltage = named_state_interface_["control_system_state/right_motor_keyswitch_voltage"]->get_value();
   control_system_state_msg.right_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/right_motor_zero_speed_threshold"]->get_value();
 
@@ -225,7 +225,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.fan_motor_temperature = named_state_interface_["control_system_state/fan_motor_temperature"]->get_value();
   control_system_state_msg.fan_motor_battery_current = named_state_interface_["control_system_state/fan_motor_battery_current"]->get_value();
   control_system_state_msg.fan_motor_torque = named_state_interface_["control_system_state/fan_motor_torque"]->get_value();
-  control_system_state_msg.fan_motor_bdi_percentage = named_state_interface_["control_system_state/fan_motor_BDI_percentage"]->get_value();
+  control_system_state_msg.fan_motor_bdi_percentage = std::round(named_state_interface_["control_system_state/fan_motor_BDI_percentage"]->get_value());
   control_system_state_msg.fan_motor_keyswitch_voltage = named_state_interface_["control_system_state/fan_motor_keyswitch_voltage"]->get_value();
   control_system_state_msg.fan_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/fan_motor_zero_speed_threshold"]->get_value();
 
