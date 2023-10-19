@@ -40,7 +40,7 @@
        <item>
         <layout class="QVBoxLayout" name="vcu_comm_layout">
          <item>
-          <widget class="QLabel" name="vcu_comm_label">
+          <widget class="QLabel" name="system_status_label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -69,67 +69,7 @@
            <property name="verticalSpacing">
             <number>20</number>
            </property>
-           <item row="0" column="1">
-            <widget class="QLabel" name="comm_disp">
-             <property name="text">
-              <string>DOWN</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
-            <widget class="QLabel" name="comm_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>VCU COMM</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="vcu_safety_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>SAFETY STATUS</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="vcu_safety_disp">
-             <property name="text">
-              <string>UNKWN</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="control_mode_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>CTRL MODE</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="control_mode_disp">
-             <property name="text">
-              <string>UNKWN</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
             <widget class="QLabel" name="sw_emergency_stop_label">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -142,10 +82,70 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
+           <item row="0" column="1">
             <widget class="QLabel" name="sw_emergency_stop_disp">
              <property name="text">
               <string>OFF</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="vcu_comm_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>VCU COMM</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="vcu_comm_disp">
+             <property name="text">
+              <string>DOWN</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="vcu_safety_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>SAFETY STATUS</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="vcu_safety_disp">
+             <property name="text">
+              <string>UNKWN</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="control_mode_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>CTRL MODE</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="control_mode_disp">
+             <property name="text">
+              <string>UNKWN</string>
              </property>
             </widget>
            </item>
@@ -275,7 +275,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0 %</string>
+                <string>---.- %</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -343,7 +343,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.00 V</string>
+                <string>--.-- V</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -493,7 +493,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0A</string>
+                <string>---.- A</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -567,7 +567,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0Nm</string>
+                <string>---- Nm</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -641,7 +641,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0C</string>
+                <string>---.- °C</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -736,7 +736,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0C</string>
+                <string>---.- °C</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -831,7 +831,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0 kRPM</string>
+                <string>-.- kRPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1000,7 +1000,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0 A</string>
+                <string>---.- A</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1074,7 +1074,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0 Nm</string>
+                <string>---- Nm</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1148,7 +1148,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0 °C</string>
+                <string>---.- °C</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1249,7 +1249,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0 °C</string>
+                <string>---.- °C</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1344,7 +1344,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0 kRPM</string>
+                <string>-.- kRPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1518,7 +1518,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0A</string>
+                <string>---.- A</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1592,7 +1592,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0Nm</string>
+                <string>---- Nm</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1669,7 +1669,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0C</string>
+                <string>---.- °C</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1764,7 +1764,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0C</string>
+                <string>---.- °C</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1859,7 +1859,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>0.0 kRPM</string>
+                <string>-.- kRPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

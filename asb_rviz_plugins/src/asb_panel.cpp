@@ -29,9 +29,10 @@ namespace asb_rviz_plugins
   void ASBPanel::onInitialize() {
     auto node = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
     control_system_state_subscriber_ = node->create_subscription<asb_msgs::msg::ControlSystemState>(
-            "/asb_control_system_status_controller/control_system_state", rclcpp::SystemDefaultsQoS(),
+            "/asb_control_system_status_controller/control_system_state", rclcpp::SensorDataQoS(),
             std::bind(&ASBWidget::control_system_state_callback, widget_, _1));
-    RCLCPP_INFO(node->get_logger(), "ASBPanel::onInitialize");
+
+    RCLCPP_INFO(node->get_logger(), "AgroSenseBot Panel initialized");
   }
 
   ASBPanel::~ASBPanel() = default;

@@ -41,6 +41,7 @@ namespace asb_rviz_plugins
     std::unique_ptr<Ui::ASBWidgetUI> ui_;
 
   private:
+    std::vector<QString> control_mode_string = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};
 
   };
 }
