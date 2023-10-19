@@ -16,7 +16,9 @@ namespace asb_rviz_plugins
       ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status?"LOCK":"OK"));
       ui_->control_mode_disp->setText(control_mode_string[control_system_state->control_mode]);
       ui_->pump_disp->setText(QString(control_system_state->pump_state?"ON":"OFF"));
-      ui_->errors_disp->setText(QString("TODO"));
+      control_system_state->more_recent_active_alarm_id ?
+        ui_->errors_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)):
+        ui_->errors_disp->setText(QString("NONE"));
     } else {
       ui_->vcu_comm_disp->setText(QString("DOWN"));
       ui_->vcu_safety_disp->setText(QString("UNKNOWN"));
@@ -51,10 +53,9 @@ namespace asb_rviz_plugins
     ui_->fan_controller_temperature_disp->setText(QString("%1 °C").arg(
             control_system_state->fan_motor_controller_temperature, 0, 'f', 1));
 
-    double fan_motor_velocity_kRPM = control_system_state->fan_motor_velocity_rpm / 1000.0;
-    ui_->fan_motor_velocity->setValue(fan_motor_velocity_kRPM);
-    ui_->fan_motor_velocity_disp->setText(QString("%1 kRPM").arg(
-            fan_motor_velocity_kRPM, 0, 'f', 1));
+    ui_->fan_motor_velocity->setValue(control_system_state->fan_motor_velocity_rpm);
+    ui_->fan_motor_velocity_disp->setText(QString("%1 RPM").arg(
+            control_system_state->fan_motor_velocity_rpm, 0, 'f', 0));
 
 //    Left Motor
     ui_->left_motor_current->setValue(control_system_state->left_motor_battery_current);
@@ -73,10 +74,10 @@ namespace asb_rviz_plugins
     ui_->left_controller_temperature_disp->setText(QString("%1 °C").arg(
             control_system_state->left_motor_controller_temperature, 0, 'f', 1));
 
-    double left_motor_velocity_kRPM = control_system_state->left_motor_velocity * 60 / (2 * M_PI) / 1000.0;
+    double left_motor_velocity_kRPM = control_system_state->left_motor_velocity * 60 / (2 * M_PI);
     ui_->left_motor_velocity->setValue(left_motor_velocity_kRPM);
-    ui_->left_motor_velocity_disp->setText(QString("%1 kRPM").arg(
-            left_motor_velocity_kRPM, 0, 'f', 1));
+    ui_->left_motor_velocity_disp->setText(QString("%1 RPM").arg(
+            left_motor_velocity_kRPM, 0, 'f', 0));
 
 //    Right Motor
     ui_->right_motor_current->setValue(control_system_state->right_motor_battery_current);
@@ -95,10 +96,10 @@ namespace asb_rviz_plugins
     ui_->right_controller_temperature_disp->setText(QString("%1 °C").arg(
             control_system_state->right_motor_controller_temperature, 0, 'f', 1));
 
-    double right_motor_velocity_kRPM = control_system_state->right_motor_velocity * 60 / (2 * M_PI) / 1000.0;
+    double right_motor_velocity_kRPM = control_system_state->right_motor_velocity * 60 / (2 * M_PI);
     ui_->right_motor_velocity->setValue(right_motor_velocity_kRPM);
-    ui_->right_motor_velocity_disp->setText(QString("%1 kRPM").arg(
-            right_motor_velocity_kRPM, 0, 'f', 1));
+    ui_->right_motor_velocity_disp->setText(QString("%1 RPM").arg(
+            right_motor_velocity_kRPM, 0, 'f', 0));
 
   }
 

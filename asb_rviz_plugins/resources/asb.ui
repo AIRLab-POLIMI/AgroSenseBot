@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1032</width>
-    <height>699</height>
+    <width>858</width>
+    <height>786</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -77,13 +77,28 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
-              <string>SW EMCY STOP</string>
+              <string>SW E-STOP</string>
              </property>
             </widget>
            </item>
            <item row="0" column="1">
             <widget class="QLabel" name="sw_emergency_stop_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>UNKNOWN</string>
              </property>
@@ -97,6 +112,13 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>VCU COMM</string>
              </property>
@@ -104,6 +126,14 @@
            </item>
            <item row="1" column="1">
             <widget class="QLabel" name="vcu_comm_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>UNKNOWN</string>
              </property>
@@ -117,13 +147,28 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
-              <string>SAFETY STATUS</string>
+              <string>VCU SAFETY</string>
              </property>
             </widget>
            </item>
            <item row="2" column="1">
             <widget class="QLabel" name="vcu_safety_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>UNKNOWN</string>
              </property>
@@ -137,6 +182,13 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>CTRL MODE</string>
              </property>
@@ -144,6 +196,14 @@
            </item>
            <item row="3" column="1">
             <widget class="QLabel" name="control_mode_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>UNKNOWN</string>
              </property>
@@ -157,6 +217,13 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>PUMP</string>
              </property>
@@ -164,6 +231,14 @@
            </item>
            <item row="4" column="1">
             <widget class="QLabel" name="pump_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>UNKNOWN</string>
              </property>
@@ -171,6 +246,13 @@
            </item>
            <item row="5" column="0">
             <widget class="QLabel" name="errors_label">
+             <property name="font">
+              <font>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>ERRORS</string>
              </property>
@@ -178,6 +260,14 @@
            </item>
            <item row="5" column="1">
             <widget class="QLabel" name="errors_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>11</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>UNKNOWN</string>
              </property>
@@ -844,7 +934,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>-.- kRPM</string>
+                <string>---- RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -867,14 +957,15 @@
                </property>
                <property name="font">
                 <font>
-                 <family>FreeMono</family>
+                 <family>Ubuntu</family>
+                 <pointsize>11</pointsize>
                 </font>
                </property>
                <property name="lowerBound">
                 <double>0.000000000000000</double>
                </property>
                <property name="upperBound">
-                <double>3.600000000000000</double>
+                <double>2900.000000000000000</double>
                </property>
                <property name="scaleMaxMajor">
                 <number>0</number>
@@ -883,7 +974,7 @@
                 <number>0</number>
                </property>
                <property name="scaleStepSize">
-                <double>2.400000000000000</double>
+                <double>2400.000000000000000</double>
                </property>
                <property name="scalePosition">
                 <enum>QwtThermo::TrailingScale</enum>
@@ -1357,7 +1448,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>-.- kRPM</string>
+                <string>---- RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1380,14 +1471,14 @@
                </property>
                <property name="font">
                 <font>
-                 <family>FreeMono</family>
+                 <family>Ubuntu</family>
                 </font>
                </property>
                <property name="lowerBound">
-                <double>-3.500000000000000</double>
+                <double>-2900.000000000000000</double>
                </property>
                <property name="upperBound">
-                <double>3.500000000000000</double>
+                <double>2900.000000000000000</double>
                </property>
                <property name="scaleMaxMajor">
                 <number>0</number>
@@ -1396,7 +1487,7 @@
                 <number>0</number>
                </property>
                <property name="scaleStepSize">
-                <double>2.400000000000000</double>
+                <double>2400.000000000000000</double>
                </property>
                <property name="scalePosition">
                 <enum>QwtThermo::TrailingScale</enum>
@@ -1872,7 +1963,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>-.- kRPM</string>
+                <string>---- RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1895,14 +1986,14 @@
                </property>
                <property name="font">
                 <font>
-                 <family>FreeMono</family>
+                 <family>Ubuntu</family>
                 </font>
                </property>
                <property name="lowerBound">
-                <double>-3.500000000000000</double>
+                <double>-2900.000000000000000</double>
                </property>
                <property name="upperBound">
-                <double>3.500000000000000</double>
+                <double>2900.000000000000000</double>
                </property>
                <property name="scaleMaxMajor">
                 <number>0</number>
@@ -1911,7 +2002,7 @@
                 <number>0</number>
                </property>
                <property name="scaleStepSize">
-                <double>2.400000000000000</double>
+                <double>2400.000000000000000</double>
                </property>
                <property name="scalePosition">
                 <enum>QwtThermo::TrailingScale</enum>

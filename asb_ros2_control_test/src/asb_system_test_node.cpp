@@ -146,7 +146,7 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
 
   vcu_alive_test_callback(pump_test_state_, true,
                           ControlMode::GCU,
-                          0, 0);
+                          2, 3);
 
   motor_drive_left_test_callback(
           42.5, 57.2, left_motor_drive_test_state_.motor_rpm, 0.2,

@@ -193,6 +193,8 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back("control_system_state", "vcu_comm_ok", &vcu_comm_ok_bool_state_);
   state_interfaces.emplace_back("control_system_state", "vcu_safety_status", &vcu_safety_status_bool_state_);
   state_interfaces.emplace_back("control_system_state", "control_mode", &control_mode_int_state_);
+  state_interfaces.emplace_back("control_system_state", "more_recent_alarm_id_to_confirm", &more_recent_alarm_id_to_confirm_int_state_);
+  state_interfaces.emplace_back("control_system_state", "more_recent_active_alarm_id", &more_recent_active_alarm_id_int_state_);
 
   // software emergency stop
   state_interfaces.emplace_back("control_system_state", "software_emergency_stop", &software_emergency_stop_bool_state_);
@@ -434,6 +436,8 @@ hardware_interface::return_type ASBSystemHardware::read(
   vcu_comm_ok_bool_state_ = GCU_->VCU_comm_ok_.load();
   vcu_safety_status_bool_state_ = GCU_->VCU_safety_status_bit_.load();
   control_mode_int_state_ = GCU_->control_mode_.load();
+  more_recent_alarm_id_to_confirm_int_state_ = GCU_->more_recent_alarm_id_to_confirm_.load();
+  more_recent_active_alarm_id_int_state_ = GCU_->more_recent_active_alarm_id_.load();
 
   // software emergency stop
   software_emergency_stop_bool_state_ = software_emergency_stop_.load();

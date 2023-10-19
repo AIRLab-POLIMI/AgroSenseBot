@@ -71,6 +71,8 @@ InterfaceConfiguration ASBControlSystemStatusController::state_interface_configu
   conf_names.push_back("control_system_state/vcu_comm_ok");
   conf_names.push_back("control_system_state/vcu_safety_status");
   conf_names.push_back("control_system_state/control_mode");
+  conf_names.push_back("control_system_state/more_recent_alarm_id_to_confirm");
+  conf_names.push_back("control_system_state/more_recent_active_alarm_id");
 
   conf_names.push_back("control_system_state/software_emergency_stop");
 
@@ -163,13 +165,11 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
     return controller_interface::return_type::OK;
   }
 
-//  RCLCPP_INFO(get_node()->get_logger(), "up time: %f", (time - startup_time_).seconds());
-
   // check the heartbeat
   const auto heartbeat_age = time - last_heartbeat_msg_.stamp;
   if((last_heartbeat_msg_.stamp.sec == 0) && (last_heartbeat_msg_.stamp.nanosec == 0)) {
 //    RCLCPP_WARN(logger, "No Heartbeat received yet");
-  } else if (heartbeat_age > heartbeat_timeout_) {  // TODO set software emergency stop !
+  } else if (heartbeat_age > heartbeat_timeout_) {  // TODO use heartbeat to set software emergency stop !
 //    RCLCPP_WARN(logger, "Heartbeat age: %f", heartbeat_age.seconds());
   }
 
@@ -194,6 +194,8 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.vcu_comm_ok = (bool)std::round(named_state_interface_["control_system_state/vcu_comm_ok"]->get_value());
   control_system_state_msg.vcu_safety_status = (bool)std::round(named_state_interface_["control_system_state/vcu_safety_status"]->get_value());
   control_system_state_msg.control_mode = (uint8_t)std::round(named_state_interface_["control_system_state/control_mode"]->get_value());
+  control_system_state_msg.more_recent_alarm_id_to_confirm = (uint8_t)std::round(named_state_interface_["control_system_state/more_recent_alarm_id_to_confirm"]->get_value());
+  control_system_state_msg.more_recent_active_alarm_id = (uint8_t)std::round(named_state_interface_["control_system_state/more_recent_active_alarm_id"]->get_value());
 
   control_system_state_msg.software_emergency_stop = (uint8_t)std::round(named_state_interface_["control_system_state/software_emergency_stop"]->get_value());
 
@@ -203,7 +205,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.left_motor_temperature = named_state_interface_["control_system_state/left_motor_temperature"]->get_value();
   control_system_state_msg.left_motor_battery_current = named_state_interface_["control_system_state/left_motor_battery_current"]->get_value();
   control_system_state_msg.left_motor_torque = named_state_interface_["control_system_state/left_motor_torque"]->get_value();
-  control_system_state_msg.left_motor_bdi_percentage = std::round(named_state_interface_["control_system_state/left_motor_BDI_percentage"]->get_value());
+  control_system_state_msg.left_motor_bdi_percentage = (int)std::round(named_state_interface_["control_system_state/left_motor_BDI_percentage"]->get_value());
   control_system_state_msg.left_motor_keyswitch_voltage = named_state_interface_["control_system_state/left_motor_keyswitch_voltage"]->get_value();
   control_system_state_msg.left_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/left_motor_zero_speed_threshold"]->get_value();
 
@@ -214,7 +216,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.right_motor_temperature = named_state_interface_["control_system_state/right_motor_temperature"]->get_value();
   control_system_state_msg.right_motor_battery_current = named_state_interface_["control_system_state/right_motor_battery_current"]->get_value();
   control_system_state_msg.right_motor_torque = named_state_interface_["control_system_state/right_motor_torque"]->get_value();
-  control_system_state_msg.right_motor_bdi_percentage = std::round(named_state_interface_["control_system_state/right_motor_BDI_percentage"]->get_value());
+  control_system_state_msg.right_motor_bdi_percentage = (int)std::round(named_state_interface_["control_system_state/right_motor_BDI_percentage"]->get_value());
   control_system_state_msg.right_motor_keyswitch_voltage = named_state_interface_["control_system_state/right_motor_keyswitch_voltage"]->get_value();
   control_system_state_msg.right_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/right_motor_zero_speed_threshold"]->get_value();
 
@@ -225,7 +227,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.fan_motor_temperature = named_state_interface_["control_system_state/fan_motor_temperature"]->get_value();
   control_system_state_msg.fan_motor_battery_current = named_state_interface_["control_system_state/fan_motor_battery_current"]->get_value();
   control_system_state_msg.fan_motor_torque = named_state_interface_["control_system_state/fan_motor_torque"]->get_value();
-  control_system_state_msg.fan_motor_bdi_percentage = std::round(named_state_interface_["control_system_state/fan_motor_BDI_percentage"]->get_value());
+  control_system_state_msg.fan_motor_bdi_percentage = (int)std::round(named_state_interface_["control_system_state/fan_motor_BDI_percentage"]->get_value());
   control_system_state_msg.fan_motor_keyswitch_voltage = named_state_interface_["control_system_state/fan_motor_keyswitch_voltage"]->get_value();
   control_system_state_msg.fan_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/fan_motor_zero_speed_threshold"]->get_value();
 

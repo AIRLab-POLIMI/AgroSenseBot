@@ -6,6 +6,8 @@ uint8 control_mode  # 0 = STOP: vehicle stopped;
                     # 1 = RCU: vehicle controlled by RCU;
                     # 2 = GCU: vehicle controlled by GCU;
                     # 3 = WAIT: waiting to receive commands to transition from 2 to 1;
+uint8 more_recent_alarm_id_to_confirm
+uint8 more_recent_active_alarm_id
 
 bool software_emergency_stop
 
