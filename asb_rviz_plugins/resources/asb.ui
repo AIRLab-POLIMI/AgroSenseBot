@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>982</width>
-    <height>1037</height>
+    <width>1032</width>
+    <height>699</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,7 +49,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>268</width>
+             <width>219</width>
              <height>0</height>
             </size>
            </property>
@@ -85,7 +85,7 @@
            <item row="0" column="1">
             <widget class="QLabel" name="sw_emergency_stop_disp">
              <property name="text">
-              <string>OFF</string>
+              <string>UNKNOWN</string>
              </property>
             </widget>
            </item>
@@ -105,7 +105,7 @@
            <item row="1" column="1">
             <widget class="QLabel" name="vcu_comm_disp">
              <property name="text">
-              <string>DOWN</string>
+              <string>UNKNOWN</string>
              </property>
             </widget>
            </item>
@@ -125,7 +125,7 @@
            <item row="2" column="1">
             <widget class="QLabel" name="vcu_safety_disp">
              <property name="text">
-              <string>UNKWN</string>
+              <string>UNKNOWN</string>
              </property>
             </widget>
            </item>
@@ -145,7 +145,7 @@
            <item row="3" column="1">
             <widget class="QLabel" name="control_mode_disp">
              <property name="text">
-              <string>UNKWN</string>
+              <string>UNKNOWN</string>
              </property>
             </widget>
            </item>
@@ -165,7 +165,7 @@
            <item row="4" column="1">
             <widget class="QLabel" name="pump_disp">
              <property name="text">
-              <string>UNKWN</string>
+              <string>UNKNOWN</string>
              </property>
             </widget>
            </item>
@@ -179,11 +179,24 @@
            <item row="5" column="1">
             <widget class="QLabel" name="errors_disp">
              <property name="text">
-              <string>NONE</string>
+              <string>UNKNOWN</string>
              </property>
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -247,7 +260,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -315,7 +328,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -459,7 +472,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -533,7 +546,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -607,7 +620,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -702,7 +715,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -797,7 +810,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -966,7 +979,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1040,7 +1053,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1114,7 +1127,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1215,7 +1228,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1310,7 +1323,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1484,7 +1497,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1558,7 +1571,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1635,7 +1648,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1730,7 +1743,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1825,7 +1838,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>86</width>
+                 <width>71</width>
                  <height>0</height>
                 </size>
                </property>
