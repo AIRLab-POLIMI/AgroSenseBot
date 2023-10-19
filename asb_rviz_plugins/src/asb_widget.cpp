@@ -9,22 +9,31 @@ namespace asb_rviz_plugins
   void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {
 
 //    System status
-    ui_->sw_emergency_stop_disp->setText(QString(control_system_state->software_emergency_stop?"ENABLED":"OK"));
+    ui_->sw_emergency_stop_disp->setText(QString(control_system_state->software_emergency_stop ? "ENABLED":"OK"));
+    ui_->sw_emergency_stop_disp->setStyleSheet(control_system_state->software_emergency_stop ? "QLabel {background-color: yellow;}":"QLabel {}");
 
     if(control_system_state->vcu_comm_ok) {
       ui_->vcu_comm_disp->setText(QString("OK"));
-      ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status?"LOCK":"OK"));
+      ui_->vcu_comm_disp->setStyleSheet("QLabel {}");
+      ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status ? "LOCK":"OK"));
+      ui_->vcu_safety_disp->setStyleSheet(control_system_state->vcu_safety_status ? "QLabel {background-color: yellow;}":"QLabel {}");
       ui_->control_mode_disp->setText(control_mode_string[control_system_state->control_mode]);
-      ui_->pump_disp->setText(QString(control_system_state->pump_state?"ON":"OFF"));
+      ui_->pump_disp->setText(QString(control_system_state->pump_state ? "ON":"OFF"));
       control_system_state->more_recent_active_alarm_id ?
-        ui_->errors_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)):
+        ui_->errors_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)) :
         ui_->errors_disp->setText(QString("NONE"));
+      control_system_state->more_recent_active_alarm_id ?
+        ui_->errors_disp->setStyleSheet("QLabel {background-color: yellow;}") :
+        ui_->errors_disp->setStyleSheet("QLabel {}");
     } else {
       ui_->vcu_comm_disp->setText(QString("DOWN"));
+      ui_->vcu_comm_disp->setStyleSheet("QLabel {background-color: yellow;}");
       ui_->vcu_safety_disp->setText(QString("UNKNOWN"));
+      ui_->vcu_safety_disp->setStyleSheet("QLabel {}");
       ui_->control_mode_disp->setText(QString("UNKNOWN"));
       ui_->pump_disp->setText(QString("UNKNOWN"));
       ui_->errors_disp->setText(QString("UNKNOWN"));
+      ui_->errors_disp->setStyleSheet("QLabel {}");
     }
 
 //    Battery
