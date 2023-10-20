@@ -30,6 +30,9 @@ private:
   int16_t left_speed_ref_ = 0;
   int16_t fan_speed_ref_ = 0;
 
+  // just a variable to throttle terminal output
+  std::chrono::steady_clock::time_point last_throttled_output_;
+
   // VCU comm check variables
   std::chrono::steady_clock::time_point last_VCU_is_alive_bit_change_;
   bool previous_VCU_is_alive_bit_ = false;

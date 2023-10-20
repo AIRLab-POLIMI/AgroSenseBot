@@ -109,8 +109,9 @@ private:
   std::shared_ptr <CANOpenMotorDriveReceiverNode> motor_fan_receiver_ = nullptr;
 
   // internal state variables
+  std::atomic<bool> first_heartbeat_received_ = false;
   std::atomic<bool> gcu_alive_bit_current_value_ = false;
-  std::chrono::steady_clock::time_point gcu_alive_bit_last_value_change_;
+  std::atomic<std::chrono::steady_clock::time_point> gcu_alive_bit_last_value_change_;
   std::atomic<bool> software_emergency_stop_ = false;
 
   // exported interface for the control system (all variables need to be doubles for ros2_control reasons)
@@ -120,6 +121,9 @@ private:
   double control_mode_int_state_ = 0.0;
   double more_recent_alarm_id_to_confirm_int_state_ = 0.0;
   double more_recent_active_alarm_id_int_state_ = 0.0;
+
+  // heartbeat alive bit command interface
+  double heartbeat_alive_bit_bool_command_ = 0.0;
 
   // software emergency stop state and command
   double set_software_emergency_stop_bool_command_ = 0.0;

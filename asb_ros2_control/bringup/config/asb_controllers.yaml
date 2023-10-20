@@ -11,10 +11,6 @@ controller_manager:
     asb_control_system_status_controller:
       type: asb_control_system_status_controller/ASBControlSystemStatusController
 
-asb_control_system_status_controller:
-  ros__parameters:
-    heartbeat_timeout: 300
-
 asb_base_controller:
   ros__parameters:
     left_wheel_names: ["left_track_joint"]

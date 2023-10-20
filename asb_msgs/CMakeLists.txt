@@ -26,6 +26,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         msg/PumpCmd.msg
         msg/EmergencyStopCmd.msg
         msg/FanCmd.msg
+        msg/Heartbeat.msg
     DEPENDENCIES std_msgs builtin_interfaces
     )
 

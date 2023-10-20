@@ -246,6 +246,9 @@ std::vector<hardware_interface::CommandInterface> ASBSystemHardware::export_comm
   // fan motor command interface
   command_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_VELOCITY, &fan_speed_ref_rpm_command_);
 
+  // heartbeat alive bit command interface
+  command_interfaces.emplace_back("control_system_state", "heartbeat_alive_bit", &heartbeat_alive_bit_bool_command_);
+
   // software emergency stop command interface
   command_interfaces.emplace_back("control_system_state", "set_software_emergency_stop", &set_software_emergency_stop_bool_command_);
 
@@ -263,18 +266,26 @@ void ASBSystemHardware::timer() {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "VCU COMM TIMEOUT");
   }
 
-  // The VCU CANOpen node considers the received data correct only if the bIsAlive bit in the TPDO1 of the GCU is
-  // flipped with a period between 20ms and 100ms. Therefore, we sent the TPDO1 to the VCU periodically, but only if the
-  // software_emergency_stop is not enabled.
-  if (!software_emergency_stop_.load())
+  if(first_heartbeat_received_.load())
   {
-    if (now - gcu_alive_bit_last_value_change_ >= 50ms)
+    if (now - gcu_alive_bit_last_value_change_.load() >= 200ms)
     {
-      gcu_alive_bit_current_value_.store(!gcu_alive_bit_current_value_.load());
-      gcu_alive_bit_last_value_change_ = now;
-
-      GCU_->set_TPDO_1(gcu_alive_bit_current_value_.load(), (bool)std::round(pump_bool_command_));
+      RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD TOO LOW, VCU WILL REJECT COMMANDS");
+    } else if (now - gcu_alive_bit_last_value_change_.load() >= 100ms) {
+      RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD LOWER THAN EXPECTED");
     }
+  } else {
+    auto throttle_clock = rclcpp::Clock();
+    RCLCPP_INFO_THROTTLE(rclcpp::get_logger("ASBSystemHardware"), throttle_clock, 1000, "WAITING FIRST HEARTBEAT");
+//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "WAITING FIRST HEARTBEAT");
+  }
+
+  // The VCU CANOpen node considers the received data correct only if the bIsAlive bit in the TPDO1 of the GCU is
+  // flipped with a period between 20ms and 100ms. Therefore, we send the TPDO1 to the VCU periodically, but only if the
+  // software_emergency_stop is not enabled.
+  if (!software_emergency_stop_.load() && first_heartbeat_received_.load())
+  {
+    GCU_->set_TPDO_1(gcu_alive_bit_current_value_.load(), (bool)std::round(pump_bool_command_));
   } else {
     // if a software emergency is requested, send a 0 velocity command to the control system, disable the pump, and stop doing anything
     int16_t left_speed_ref = 0;
@@ -488,6 +499,18 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
 
+  // Pass the heartbeat alive bit to the VCU in TPDO1
+  auto gcu_alive_bit_prev_value_ = gcu_alive_bit_current_value_.load();
+  gcu_alive_bit_current_value_.store((bool)std::round(heartbeat_alive_bit_bool_command_));
+
+  // Check when the alive bit changes, so we can print a warning in the timer if the change period is too low.
+  std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+  if (gcu_alive_bit_prev_value_ != gcu_alive_bit_current_value_.load())
+  {
+    first_heartbeat_received_.store(true);
+    gcu_alive_bit_last_value_change_.store(now);
+  }
+
   bool prev_software_emergency_stop_ = software_emergency_stop_.load();
   software_emergency_stop_.store((bool)std::round(set_software_emergency_stop_bool_command_));
   if (software_emergency_stop_.load() && !prev_software_emergency_stop_)
@@ -516,7 +539,6 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
             0,
             (int16_t)cfg_.fan_maximum_velocity_rpm);
     GCU_->set_TPDO_2(right_speed_ref_rpm_clipped, left_speed_ref_rpm_clipped, fan_speed_ref_rpm_clipped);
-
   }
 
   return hardware_interface::return_type::OK;

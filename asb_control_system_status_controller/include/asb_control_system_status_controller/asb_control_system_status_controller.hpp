@@ -31,6 +31,7 @@
 #include "asb_msgs/msg/emergency_stop_cmd.hpp"
 #include "asb_msgs/msg/pump_cmd.hpp"
 #include "asb_msgs/msg/fan_cmd.hpp"
+#include "asb_msgs/msg/heartbeat.hpp"
 
 #include "controller_interface/controller_interface.hpp"
 #include "asb_control_system_status_controller/visibility_control.h"
@@ -93,8 +94,7 @@ public:
 
 protected:
 
-  void heartbeat_callback(std::shared_ptr<std_msgs::msg::Header> msg);
-
+  void heartbeat_callback(std::shared_ptr<asb_msgs::msg::Heartbeat> msg);
   void emergency_stop_cmd_callback(std::shared_ptr<asb_msgs::msg::EmergencyStopCmd> msg);
   void pump_cmd_callback(std::shared_ptr<asb_msgs::msg::PumpCmd> msg);
   void fan_cmd_callback(std::shared_ptr<asb_msgs::msg::FanCmd> msg);
@@ -107,7 +107,7 @@ protected:
   std::map<std::string, std::shared_ptr<hardware_interface::LoanedCommandInterface>> named_command_interface_;
 
   // Timeout to consider messages too old
-  std::chrono::milliseconds heartbeat_timeout_ = 500ms;
+  std::chrono::milliseconds heartbeat_timeout_ = 200ms;
   std::chrono::milliseconds emergency_stop_cmd_timeout_ = 100ms;
   std::chrono::milliseconds pump_cmd_timeout_ = 100ms;
   std::chrono::milliseconds fan_cmd_timeout_ = 100ms;
@@ -115,13 +115,13 @@ protected:
   std::shared_ptr<rclcpp::Publisher<asb_msgs::msg::ControlSystemState>> control_system_state_publisher_ = nullptr;
 
   bool subscriber_is_active_ = false;
-  rclcpp::Subscription<std_msgs::msg::Header>::SharedPtr heartbeat_subscriber_ = nullptr;
+  rclcpp::Subscription<asb_msgs::msg::Heartbeat>::SharedPtr heartbeat_subscriber_ = nullptr;
   rclcpp::Subscription<asb_msgs::msg::EmergencyStopCmd>::SharedPtr emergency_stop_cmd_subscriber_ = nullptr;
   rclcpp::Subscription<asb_msgs::msg::PumpCmd>::SharedPtr pump_cmd_subscriber_ = nullptr;
   rclcpp::Subscription<asb_msgs::msg::FanCmd>::SharedPtr fan_cmd_subscriber_ = nullptr;
 
   // state variables
-  std_msgs::msg::Header last_heartbeat_msg_;
+  asb_msgs::msg::Heartbeat last_heartbeat_msg_;
   rclcpp::Time startup_time_;
 
   bool emergency_stop_cmd_ = false;

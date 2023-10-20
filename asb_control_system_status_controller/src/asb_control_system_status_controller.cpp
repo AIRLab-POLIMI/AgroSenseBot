@@ -37,8 +37,6 @@ using lifecycle_msgs::msg::State;
 ASBControlSystemStatusController::ASBControlSystemStatusController() : controller_interface::ControllerInterface() {}
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_init() {
-  auto heartbeat_timeout_ms = auto_declare("heartbeat_timeout", 200);
-  heartbeat_timeout_ = std::chrono::milliseconds(heartbeat_timeout_ms);
   RCLCPP_INFO(get_node()->get_logger(), "heartbeat_timeout_ms: %li", heartbeat_timeout_.count());
 
   return controller_interface::CallbackReturn::SUCCESS;
@@ -46,6 +44,8 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_init()
 
 InterfaceConfiguration ASBControlSystemStatusController::command_interface_configuration() const {
   std::vector<std::string> conf_names;
+
+  conf_names.push_back("control_system_state/heartbeat_alive_bit");
 
   conf_names.push_back("control_system_state/set_software_emergency_stop");
 
@@ -111,7 +111,7 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_config
 
   reset();
 
-  heartbeat_subscriber_ = get_node()->create_subscription<std_msgs::msg::Header>(
+  heartbeat_subscriber_ = get_node()->create_subscription<asb_msgs::msg::Heartbeat>(
           "~/heartbeat", rclcpp::SystemDefaultsQoS(),
           std::bind(&ASBControlSystemStatusController::heartbeat_callback, this, _1));
 
@@ -168,12 +168,15 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   // check the heartbeat
   const auto heartbeat_age = time - last_heartbeat_msg_.stamp;
   if((last_heartbeat_msg_.stamp.sec == 0) && (last_heartbeat_msg_.stamp.nanosec == 0)) {
-//    RCLCPP_WARN(logger, "No Heartbeat received yet");
-  } else if (heartbeat_age > heartbeat_timeout_) {  // TODO use heartbeat to set software emergency stop !
-//    RCLCPP_WARN(logger, "Heartbeat age: %f", heartbeat_age.seconds());
+    auto throttle_clock = rclcpp::Clock();
+    RCLCPP_INFO_THROTTLE(logger, throttle_clock, 1000, "WAITING FIRST HEARTBEAT");
+  } else if (heartbeat_age > heartbeat_timeout_) {
+    RCLCPP_WARN(logger, "Heartbeat period too low [%fs]. Control system will reject commands.", heartbeat_age.seconds());
   }
 
   // set the command interfaces from the controller state variables
+  named_command_interface_["control_system_state/heartbeat_alive_bit"]->set_value(last_heartbeat_msg_.alive_bit);
+
   named_command_interface_["control_system_state/set_software_emergency_stop"]->set_value(emergency_stop_cmd_);
 
   if(time - pump_cmd_time_ < pump_cmd_timeout_) {
@@ -239,13 +242,14 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   return controller_interface::return_type::OK;
 }
 
-void ASBControlSystemStatusController::heartbeat_callback(const std::shared_ptr<std_msgs::msg::Header> msg) {
+void ASBControlSystemStatusController::heartbeat_callback(const std::shared_ptr<asb_msgs::msg::Heartbeat> msg) {
   if (!subscriber_is_active_) {
     RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
     return;
   }
   if ((msg->stamp.sec == 0) && (msg->stamp.nanosec == 0)) {
-    RCLCPP_WARN(get_node()->get_logger(), "Received Header with zero timestamp");
+    RCLCPP_ERROR(get_node()->get_logger(), "Received heartbeat header with zero timestamp. Ignoring message.");
+    return;
   }
   last_heartbeat_msg_ = *msg;
 }
@@ -317,16 +321,20 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_deacti
     is_halted = true;
   }
 //  TODO: release hw interfaces?
+  std::cout << "ASBControlSystemStatusController::on_deactivate" << std::endl;
+
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_cleanup(const rclcpp_lifecycle::State &) {
 //  TODO do something here?
+  std::cout << "ASBControlSystemStatusController::on_cleanup" << std::endl;
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_error(const rclcpp_lifecycle::State &) {
 //  TODO do something here?
+  std::cout << "ASBControlSystemStatusController::on_error" << std::endl;
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -338,6 +346,7 @@ bool ASBControlSystemStatusController::reset() {
 }
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_shutdown(const rclcpp_lifecycle::State &) {
+  std::cout << "ASBControlSystemStatusController::on_shutdown" << std::endl;
   return controller_interface::CallbackReturn::SUCCESS;
 }
 

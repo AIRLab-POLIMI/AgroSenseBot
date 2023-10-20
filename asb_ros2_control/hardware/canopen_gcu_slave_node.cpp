@@ -41,7 +41,10 @@ void CANOpenGCUNode::timer() {
                 << chrono_duration_to_s(last_VCU_is_alive_bit_change_, now)  << "s)" << std::endl;
     }
   } else {
-    std::cout << "[" << node_name_ << "]" << "[CANOpenGCUNode::timer] VCU COMM NOT STARTED YET" << std::endl;
+    if(now - last_throttled_output_ > 1s) {
+      std::cout << "[" << node_name_ << "]" << "[CANOpenGCUNode::timer] VCU COMM NOT STARTED YET" << std::endl;
+      last_throttled_output_ = now;
+    }
   }
 }
 

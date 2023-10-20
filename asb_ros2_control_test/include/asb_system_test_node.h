@@ -56,6 +56,7 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
 
   bool VCU_alive_bit_ = false;
 
+  bool comm_started_ = false;
   rclcpp::Time last_GCU_message_time_ = rclcpp::Time(0);
   rclcpp::Time last_GCU_alive_bit_change_time_ = rclcpp::Time(0);
   bool last_GCU_alive_bit_ = false;

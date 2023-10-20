@@ -171,14 +171,20 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
 void ASBSystemTestNode::gcu_is_alive_timer_ros2_callback() {
   rclcpp::Time now = this->get_clock()->now();
 
-  if (now - last_GCU_message_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
-    RCLCPP_ERROR(this->get_logger(), "GCU COMM TIMEOUT (%f s)", (now - last_GCU_message_time_).seconds());
-    return;
+  if(comm_started_) {
+    if (now - last_GCU_message_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
+      RCLCPP_ERROR(this->get_logger(), "GCU COMM TIMEOUT (%f s)", (now - last_GCU_message_time_).seconds());
+      return;
+    }
+
+    if (now - last_GCU_alive_bit_change_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
+      RCLCPP_ERROR(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
+    }
+  } else {
+    auto& throttle_clock = *this->get_clock();
+    RCLCPP_INFO_THROTTLE(this->get_logger(), throttle_clock, 1000, "WAITING FOR GCU COMM (first GCU alive bit change)");
   }
 
-  if (now - last_GCU_alive_bit_change_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
-    RCLCPP_ERROR(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
-  }
 }
 
 void ASBSystemTestNode::vcu_alive_test_callback(
@@ -263,7 +269,10 @@ void ASBSystemTestNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool p
 //  RCLCPP_INFO(this->get_logger(), "           GCU COMM AGE (%f s)", (now - last_GCU_message_time_).seconds());
 //  RCLCPP_INFO(this->get_logger(), "           GCU ALIVE BIT CHANGE AGE (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
   last_GCU_message_time_ = now;
-  if (last_GCU_alive_bit_ != GCU_is_alive_bit) last_GCU_alive_bit_change_time_ = now;
+  if (last_GCU_alive_bit_ != GCU_is_alive_bit) {
+    last_GCU_alive_bit_change_time_ = now;
+    comm_started_ = true;
+  }
   last_GCU_alive_bit_ = GCU_is_alive_bit;
 
   pump_test_state_ = pump_cmd_bit;
