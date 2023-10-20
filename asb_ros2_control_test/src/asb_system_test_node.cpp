@@ -34,7 +34,7 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   last_GCU_message_time_ = this->get_clock()->now();
   last_GCU_alive_bit_change_time_ = this->get_clock()->now();
 
-  std::chrono::duration test_loop_timer_period_ = 5ms;
+  std::chrono::duration test_loop_timer_period_ = 50ms;  // must be higher than the timer loop period of the VCU
   test_loop_timer_ = rclcpp::create_timer(
           this, this->get_clock(), rclcpp::Duration(test_loop_timer_period_),
           std::bind(&ASBSystemTestNode::test_loop_timer_ros2_callback, this));
@@ -144,9 +144,9 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
 //              "fan     motor_rpm: %i   rotor_position: %f",
 //              fan_motor_drive_test_state_.motor_rpm, fan_motor_drive_test_state_.rotor_position);
 
-  vcu_alive_test_callback(pump_test_state_, true,
+  vcu_alive_test_callback(pump_test_state_, false,
                           ControlMode::GCU,
-                          2, 3);
+                          0, 0);
 
   motor_drive_left_test_callback(
           42.5, 57.2, left_motor_drive_test_state_.motor_rpm, 0.2,
