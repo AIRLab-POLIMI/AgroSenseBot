@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="asb_ros2_control" params="name prefix test">
+
+    <ros2_control name="${name}" type="system">
+      <hardware>
+        <plugin>asb_ros2_control/ASBSystemHardware</plugin>
+        <param name="GCU_canopen_node_config">$(find asb_ros2_control)/config/GCU_v3.dcf</param>
+        <param name="motor_left_receiver_canopen_node_config">$(find asb_ros2_control)/config/MDL_receiver.dcf</param>
+        <param name="motor_right_receiver_canopen_node_config">$(find asb_ros2_control)/config/MDR_receiver.dcf</param>
+        <param name="motor_fan_receiver_canopen_node_config">$(find asb_ros2_control)/config/FAN_receiver.dcf</param>
+        <xacro:if value="${test}">
+          <param name="can_interface_name">vcan0</param>
+        </xacro:if>
+        <xacro:unless value="${test}">
+          <param name="can_interface_name">can0</param>
+        </xacro:unless>
+        <param name="tracks_maximum_velocity_rpm">2400</param>
+        <param name="fan_maximum_velocity_rpm">2400</param>
+      </hardware>
+      <joint name="left_track_joint">
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <command_interface name="velocity"/>
+      </joint>
+      <joint name="right_track_joint">
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <command_interface name="velocity"/>
+      </joint>
+      <joint name="fan_motor_joint"> <!-- in fan_motor_joint the velocity is in RPM and the position in revolutions -->
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <command_interface name="velocity"/>
+      </joint>
+      <gpio name="control_system_state">
+        <state_interface name="vcu_comm_ok"/>
+        <state_interface name="vcu_safety_status"/>
+        <state_interface name="control_mode"/>
+        <state_interface name="more_recent_alarm_id_to_confirm"/>
+        <state_interface name="more_recent_active_alarm_id"/>
+
+        <state_interface name="software_emergency_stop"/>
+        <command_interface name="set_software_emergency_stop"/>
+
+        <state_interface name="pump_state"/>
+        <command_interface name="pump_command"/>
+
+        <state_interface name="left_motor_controller_temperature"/>
+        <state_interface name="left_motor_temperature"/>
+        <state_interface name="left_motor_battery_current"/>
+        <state_interface name="left_motor_torque"/>
+        <state_interface name="left_motor_BDI_percentage"/>
+        <state_interface name="left_motor_keyswitch_voltage"/>
+        <state_interface name="left_motor_zero_speed_threshold"/>
+
+        <state_interface name="right_motor_controller_temperature"/>
+        <state_interface name="right_motor_temperature"/>
+        <state_interface name="right_motor_battery_current"/>
+        <state_interface name="right_motor_torque"/>
+        <state_interface name="right_motor_BDI_percentage"/>
+        <state_interface name="right_motor_keyswitch_voltage"/>
+        <state_interface name="right_motor_zero_speed_threshold"/>
+
+        <state_interface name="fan_motor_controller_temperature"/>
+        <state_interface name="fan_motor_temperature"/>
+        <state_interface name="fan_motor_battery_current"/>
+        <state_interface name="fan_motor_torque"/>
+        <state_interface name="fan_motor_BDI_percentage"/>
+        <state_interface name="fan_motor_keyswitch_voltage"/>
+        <state_interface name="fan_motor_zero_speed_threshold"/>
+      </gpio>
+
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

@@ -1,3 +1,0 @@
-builtin_interfaces/Time stamp
-bool vcu_safety_status
-uint8 control_mode

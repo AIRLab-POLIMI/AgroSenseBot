@@ -1,1 +1,0 @@
-# AgroSenseBot CANOpen bridge
