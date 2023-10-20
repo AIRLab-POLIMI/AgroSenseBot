@@ -3,7 +3,7 @@
 ## Install
 After installing ROS2 Humble, run these commands:
 ```bash
-sudo apt install can-utils ros-humble-xacro ros-humble-ros2controlcli ros-humble-ros2-controllers-test-nodes ros-humble-diff-drive-controller ros-humble-joint-state-broadcaster
+sudo apt install can-utils ros-humble-xacro ros-humble-ros2controlcli ros-humble-ros2-controllers-test-nodes ros-humble-diff-drive-controller ros-humble-joint-state-broadcaster libqwt-qt5-dev
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
 git clone -b humble https://github.com/ros-industrial/ros2_canopen.git

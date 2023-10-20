@@ -38,6 +38,8 @@
         <state_interface name="vcu_comm_ok"/>
         <state_interface name="vcu_safety_status"/>
         <state_interface name="control_mode"/>
+        <state_interface name="more_recent_alarm_id_to_confirm"/>
+        <state_interface name="more_recent_active_alarm_id"/>
 
         <state_interface name="software_emergency_stop"/>
         <command_interface name="set_software_emergency_stop"/>

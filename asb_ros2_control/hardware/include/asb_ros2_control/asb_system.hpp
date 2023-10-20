@@ -118,6 +118,8 @@ private:
   double vcu_comm_ok_bool_state_ = 1.0;
   double vcu_safety_status_bool_state_ = 0.0;
   double control_mode_int_state_ = 0.0;
+  double more_recent_alarm_id_to_confirm_int_state_ = 0.0;
+  double more_recent_active_alarm_id_int_state_ = 0.0;
 
   // software emergency stop state and command
   double set_software_emergency_stop_bool_command_ = 0.0;

@@ -37,7 +37,7 @@ class MinimalPublisher(Node):
 
     def timer_callback(self):
         now_s = self.get_clock().now().nanoseconds * 1e-9
-        elapsed_time_s = (now_s - self.start_time_s)
+        elapsed_time_s = (now_s - self.start_time_s) % 12.0
         print(f"elapsed_time:                             {elapsed_time_s}")
 
         # increase velocity_rpm from -100 to 2500, at 400 RPM/s, from 2 seconds after start time
