@@ -39,6 +39,7 @@ namespace asb_rviz_plugins
   private Q_SLOTS:
   protected:
     std::unique_ptr<Ui::ASBWidgetUI> ui_;
+    QwtThermo* left_motor_velocity_;
 
   private:
     std::vector<QString> control_mode_string = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};

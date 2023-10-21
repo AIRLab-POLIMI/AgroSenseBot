@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>681</width>
-    <height>1197</height>
+    <width>858</width>
+    <height>786</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,9 +23,9 @@
    <item>
     <layout class="QVBoxLayout" name="main_vertical_layout">
      <item>
-      <layout class="QHBoxLayout" name="system_battery_motors_setpoint_h_layout">
+      <layout class="QHBoxLayout" name="top_hbox">
        <item>
-        <spacer name="system_battery_motors_setpoint_spacer">
+        <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -38,23 +38,7 @@
         </spacer>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="system_status_v_layout">
-         <item>
-          <widget class="Line" name="system_status_top_line">
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <property name="lineWidth">
-            <number>2</number>
-           </property>
-           <property name="midLineWidth">
-            <number>1</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
+        <layout class="QVBoxLayout" name="vcu_comm_layout">
          <item>
           <widget class="QLabel" name="system_status_label">
            <property name="sizePolicy">
@@ -78,7 +62,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QFormLayout" name="system_status_form_layout">
+          <layout class="QFormLayout" name="vcu_comm_form_layout">
            <property name="horizontalSpacing">
             <number>20</number>
            </property>
@@ -292,7 +276,7 @@
           </layout>
          </item>
          <item>
-          <spacer name="system_status_spacer">
+          <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -307,7 +291,7 @@
         </layout>
        </item>
        <item>
-        <widget class="Line" name="system_battery_motors_setpoint_v_line_2">
+        <widget class="Line" name="line_3">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -330,22 +314,6 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="battery_main_layout">
-         <item>
-          <widget class="Line" name="battery_top_line">
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <property name="lineWidth">
-            <number>2</number>
-           </property>
-           <property name="midLineWidth">
-            <number>1</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QLabel" name="battery_label">
            <property name="sizePolicy">
@@ -532,7 +500,7 @@
         </layout>
        </item>
        <item>
-        <widget class="Line" name="system_battery_motors_setpoint_v_line_1">
+        <widget class="Line" name="line_2">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -554,27 +522,26 @@
         </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="motors_setpoint_layout">
+        <layout class="QVBoxLayout" name="fan_motor_main_layout">
          <item>
-          <widget class="Line" name="motors_setpoint_top_line">
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
+          <widget class="QLabel" name="fan_motor_label">
+           <property name="enabled">
+            <bool>true</bool>
            </property>
-           <property name="lineWidth">
-            <number>2</number>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-           <property name="midLineWidth">
-            <number>1</number>
+           <property name="minimumSize">
+            <size>
+             <width>75</width>
+             <height>0</height>
+            </size>
            </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="motors_setpoint_label">
            <property name="text">
-            <string>MOTORS SETPOINT</string>
+            <string>FAN</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -582,11 +549,11 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="motors_setpoint_layout_2">
+          <layout class="QHBoxLayout" name="fan_motor_layout">
            <item>
-            <layout class="QVBoxLayout" name="left_motor_velocity_layout">
+            <layout class="QVBoxLayout" name="fan_motor_current_layout">
              <item>
-              <widget class="QLabel" name="left_motor_velocity_label">
+              <widget class="QLabel" name="fan_motor_current_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -606,7 +573,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>LEFT</string>
+                <string>CURRENT</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -614,42 +581,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="left_motor_velocity_unit_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>71</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="baseSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>FreeMono</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>RPM ×100</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="left_motor_velocity_disp">
+              <widget class="QLabel" name="fan_motor_current_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -664,39 +596,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>-----</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="right_motor_velocity_layout">
-             <item>
-              <widget class="QLabel" name="right_motor_velocity_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>71</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="baseSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>RIGHT</string>
+                <string>---.- A</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -704,65 +604,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="right_motor_velocity_unit_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>71</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="baseSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>FreeMono</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>RPM ×100</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="right_motor_velocity_disp">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <family>FreeMono</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>-----</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QwtThermo" name="right_motor_velocity">
+              <widget class="QwtThermo" name="fan_motor_current">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -775,37 +617,269 @@
                  <height>250</height>
                 </size>
                </property>
+               <property name="scalePosition">
+                <enum>QwtThermo::TrailingScale</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="fan_motor_torque_layout">
+             <item>
+              <widget class="QLabel" name="fan_torque_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>71</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>TORQUE</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="fan_motor_torque_disp">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="font">
                 <font>
-                 <family>Ubuntu</family>
+                 <family>FreeMono</family>
+                 <weight>75</weight>
+                 <bold>true</bold>
                 </font>
                </property>
-               <property name="lowerBound">
-                <double>-2900.000000000000000</double>
+               <property name="text">
+                <string>---- Nm</string>
                </property>
-               <property name="upperBound">
-                <double>2900.000000000000000</double>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
-               <property name="scaleMaxMajor">
-                <number>0</number>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_motor_torque">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
-               <property name="scaleMaxMinor">
-                <number>0</number>
-               </property>
-               <property name="scaleStepSize">
-                <double>2400.000000000000000</double>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>250</height>
+                </size>
                </property>
                <property name="scalePosition">
                 <enum>QwtThermo::TrailingScale</enum>
                </property>
-               <property name="originMode">
-                <enum>QwtThermo::OriginCustom</enum>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="fan_motor_temperature_layout">
+             <item>
+              <widget class="QLabel" name="fan_motor_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>71</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>MOTOR T</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="fan_motor_temperature_disp">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <family>FreeMono</family>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>---.- °C</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_motor_temperature">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>250</height>
+                </size>
+               </property>
+               <property name="lowerBound">
+                <double>-20.000000000000000</double>
+               </property>
+               <property name="scaleMaxMajor">
+                <number>20</number>
+               </property>
+               <property name="scaleMaxMinor">
+                <number>2</number>
+               </property>
+               <property name="scalePosition">
+                <enum>QwtThermo::TrailingScale</enum>
                </property>
                <property name="alarmEnabled">
                 <bool>true</bool>
                </property>
                <property name="alarmLevel">
+                <double>70.000000000000000</double>
+               </property>
+               <property name="value">
                 <double>0.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="fan_controller_temperature_layout">
+             <item>
+              <widget class="QLabel" name="fan_controller_temperature_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>71</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>CTRL T</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="fan_controller_temperature_disp">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <family>FreeMono</family>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>---.- °C</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="fan_controller_temperature">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>250</height>
+                </size>
+               </property>
+               <property name="lowerBound">
+                <double>-20.000000000000000</double>
+               </property>
+               <property name="scaleMaxMajor">
+                <number>20</number>
+               </property>
+               <property name="scaleMaxMinor">
+                <number>2</number>
+               </property>
+               <property name="scalePosition">
+                <enum>QwtThermo::TrailingScale</enum>
+               </property>
+               <property name="alarmEnabled">
+                <bool>true</bool>
+               </property>
+               <property name="alarmLevel">
+                <double>70.000000000000000</double>
                </property>
                <property name="value">
                 <double>0.000000000000000</double>
@@ -837,42 +911,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>FAN</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="fan_motor_velocity_unit_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>71</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="baseSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>FreeMono</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>RPM ×100</string>
+                <string>VEL</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -895,7 +934,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>-----</string>
+                <string>---- RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -963,9 +1002,9 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="left_right_motor_info_h_main_layout">
+      <layout class="QHBoxLayout" name="motors_layout">
        <item>
-        <spacer name="left_right_motor_info_spacer">
+        <spacer name="horizontalSpacer_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -978,9 +1017,9 @@
         </spacer>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="left_motor_info_v_layout">
+        <layout class="QVBoxLayout" name="left_motor_main_layout">
          <item>
-          <widget class="Line" name="left_motor_info_top_line">
+          <widget class="Line" name="line_5">
            <property name="frameShadow">
             <enum>QFrame::Plain</enum>
            </property>
@@ -1018,7 +1057,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="left_motor_info_h_layout">
+          <layout class="QHBoxLayout" name="left_motor_layout">
            <item>
             <layout class="QVBoxLayout" name="left_motor_current_layout">
              <item>
@@ -1363,12 +1402,118 @@
              </item>
             </layout>
            </item>
+           <item>
+            <layout class="QVBoxLayout" name="left_motor_velocity_layout">
+             <item>
+              <widget class="QLabel" name="left_motor_velocity_label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>71</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>VEL</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="left_motor_velocity_disp">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="font">
+                <font>
+                 <family>FreeMono</family>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>---- RPM</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QwtThermo" name="left_motor_velocity">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>250</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Ubuntu</family>
+                </font>
+               </property>
+               <property name="lowerBound">
+                <double>-2900.000000000000000</double>
+               </property>
+               <property name="upperBound">
+                <double>2900.000000000000000</double>
+               </property>
+               <property name="scaleMaxMajor">
+                <number>0</number>
+               </property>
+               <property name="scaleMaxMinor">
+                <number>0</number>
+               </property>
+               <property name="scaleStepSize">
+                <double>2400.000000000000000</double>
+               </property>
+               <property name="scalePosition">
+                <enum>QwtThermo::TrailingScale</enum>
+               </property>
+               <property name="originMode">
+                <enum>QwtThermo::OriginCustom</enum>
+               </property>
+               <property name="alarmEnabled">
+                <bool>true</bool>
+               </property>
+               <property name="alarmLevel">
+                <double>0.000000000000000</double>
+               </property>
+               <property name="value">
+                <double>0.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
           </layout>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="Line" name="left_right_motor_info_v_line">
+        <widget class="Line" name="line">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -1390,9 +1535,9 @@
         </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="right_motor_info_v_layout">
+        <layout class="QVBoxLayout" name="right_motor_main_layout">
          <item>
-          <widget class="Line" name="right_motor_info_top_line">
+          <widget class="Line" name="line_6">
            <property name="frameShadow">
             <enum>QFrame::Plain</enum>
            </property>
@@ -1430,7 +1575,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="right_motor_info_h_layout">
+          <layout class="QHBoxLayout" name="right_motor_layout">
            <item>
             <layout class="QVBoxLayout" name="right_motor_current_layout">
              <item>
@@ -1772,76 +1917,10 @@
              </item>
             </layout>
            </item>
-          </layout>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="fan_motor_info_h_main_layout">
-       <item>
-        <spacer name="fan_motor_info_spacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>10000</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="fan_motor_info_v_layout">
-         <item>
-          <widget class="Line" name="left_right_motor_info_top_line">
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <property name="lineWidth">
-            <number>2</number>
-           </property>
-           <property name="midLineWidth">
-            <number>1</number>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="fan_motor_label">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>75</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>FAN</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="fan_motor_info_h_layout">
            <item>
-            <layout class="QVBoxLayout" name="fan_motor_current_layout">
+            <layout class="QVBoxLayout" name="right_motor_velocity_layout">
              <item>
-              <widget class="QLabel" name="fan_motor_current_label">
+              <widget class="QLabel" name="right_motor_velocity_label">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1861,7 +1940,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>CURRENT</string>
+                <string>VEL</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1869,7 +1948,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="fan_motor_current_disp">
+              <widget class="QLabel" name="right_motor_velocity_disp">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -1884,7 +1963,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>---.- A</string>
+                <string>---- RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1892,7 +1971,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QwtThermo" name="fan_motor_current">
+              <widget class="QwtThermo" name="right_motor_velocity">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                  <horstretch>0</horstretch>
@@ -1904,270 +1983,38 @@
                  <width>0</width>
                  <height>250</height>
                 </size>
-               </property>
-               <property name="scalePosition">
-                <enum>QwtThermo::TrailingScale</enum>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="fan_motor_torque_layout">
-             <item>
-              <widget class="QLabel" name="fan_torque_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>71</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="baseSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>TORQUE</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="fan_motor_torque_disp">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
                </property>
                <property name="font">
                 <font>
-                 <family>FreeMono</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
+                 <family>Ubuntu</family>
                 </font>
-               </property>
-               <property name="text">
-                <string>---- Nm</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QwtThermo" name="fan_motor_torque">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>250</height>
-                </size>
-               </property>
-               <property name="scalePosition">
-                <enum>QwtThermo::TrailingScale</enum>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="fan_motor_temperature_layout">
-             <item>
-              <widget class="QLabel" name="fan_motor_temperature_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>71</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="baseSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>MOTOR T</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="fan_motor_temperature_disp">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <family>FreeMono</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>---.- °C</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QwtThermo" name="fan_motor_temperature">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>250</height>
-                </size>
                </property>
                <property name="lowerBound">
-                <double>-20.000000000000000</double>
+                <double>-2900.000000000000000</double>
+               </property>
+               <property name="upperBound">
+                <double>2900.000000000000000</double>
                </property>
                <property name="scaleMaxMajor">
-                <number>20</number>
+                <number>0</number>
                </property>
                <property name="scaleMaxMinor">
-                <number>2</number>
+                <number>0</number>
+               </property>
+               <property name="scaleStepSize">
+                <double>2400.000000000000000</double>
                </property>
                <property name="scalePosition">
                 <enum>QwtThermo::TrailingScale</enum>
+               </property>
+               <property name="originMode">
+                <enum>QwtThermo::OriginCustom</enum>
                </property>
                <property name="alarmEnabled">
                 <bool>true</bool>
                </property>
                <property name="alarmLevel">
-                <double>70.000000000000000</double>
-               </property>
-               <property name="value">
                 <double>0.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="fan_controller_temperature_layout">
-             <item>
-              <widget class="QLabel" name="fan_controller_temperature_label">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>71</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="baseSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>CTRL T</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="fan_controller_temperature_disp">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <family>FreeMono</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>---.- °C</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QwtThermo" name="fan_controller_temperature">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>250</height>
-                </size>
-               </property>
-               <property name="lowerBound">
-                <double>-20.000000000000000</double>
-               </property>
-               <property name="scaleMaxMajor">
-                <number>20</number>
-               </property>
-               <property name="scaleMaxMinor">
-                <number>2</number>
-               </property>
-               <property name="scalePosition">
-                <enum>QwtThermo::TrailingScale</enum>
-               </property>
-               <property name="alarmEnabled">
-                <bool>true</bool>
-               </property>
-               <property name="alarmLevel">
-                <double>70.000000000000000</double>
                </property>
                <property name="value">
                 <double>0.000000000000000</double>
@@ -2183,7 +2030,7 @@
       </layout>
      </item>
      <item>
-      <spacer name="main_vertical_layout_spacer">
+      <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
