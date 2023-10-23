@@ -22,7 +22,7 @@ class MinimalPublisher(Node):
             '/asb_control_system_status_controller/heartbeat',
             qos_profile=qos)
 
-        timer_period = 0.05  # seconds
+        timer_period = 0.025  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.last_timer_time_s = self.get_clock().now().nanoseconds * 1e-9
