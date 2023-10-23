@@ -64,8 +64,8 @@ public:
           spacing(3),
           borderWidth(2),
           pipeWidth(10),
-          alarmLevel(0.0),
-          alarmEnabled(false),
+          upperAlarmLevel(0.0),
+          upperAlarmEnabled(false),
           autoFillPipe(true),
           originMode(ASBThermo::OriginMinimum),
           origin(0.0),
@@ -86,8 +86,8 @@ public:
   int pipeWidth;
 
   QwtInterval::BorderFlags rangeFlags;
-  double alarmLevel;
-  bool alarmEnabled;
+  double upperAlarmLevel;
+  bool upperAlarmEnabled;
   bool autoFillPipe;
   ASBThermo::OriginMode originMode;
   double origin;
@@ -493,7 +493,7 @@ void ASBThermo::drawAlarmPipe(
 
   QRect filledAlarmRect = alarmPipeRegionRect(alarmPipeRect);
 
-  if (!filledAlarmRect.isEmpty() && d_data->alarmEnabled) {
+  if (!filledAlarmRect.isEmpty() && d_data->upperAlarmEnabled) {
     painter->fillRect(filledAlarmRect, palette().brush(QPalette::Highlight));
   }
 
@@ -554,7 +554,7 @@ void ASBThermo::drawLiquid(
       from = to;
     }
   } else {
-    if (!liquidRect.isEmpty() && d_data->alarmEnabled && (d_data->value > d_data->alarmLevel)) {
+    if (!liquidRect.isEmpty() && d_data->upperAlarmEnabled && (d_data->value > d_data->upperAlarmLevel)) {
       painter->fillRect(liquidRect, palette().brush(QPalette::Highlight));
     } else {
       painter->fillRect(liquidRect, palette().brush(QPalette::ButtonText));
@@ -672,14 +672,14 @@ QBrush ASBThermo::fillBrush() const {
 }
 
 /*!
-  \brief Specify the liquid brush above the alarm threshold
+  \brief Specify the liquid brush above or below the alarm thresholds
 
   Changes the QPalette::Highlight brush of the palette.
 
   \param brush New brush.
   \sa alarmBrush(), QWidget::setPalette()
 
-  \warning The alarm threshold has no effect, when
+  \warning The alarm thresholds have no effect, when
            a color map has been assigned
 */
 void ASBThermo::setAlarmBrush(const QBrush &brush) {
@@ -689,10 +689,10 @@ void ASBThermo::setAlarmBrush(const QBrush &brush) {
 }
 
 /*!
-  \return Liquid brush ( QPalette::Highlight ) above the alarm threshold.
+  \return Liquid brush ( QPalette::Highlight ) above or below the alarm thresholds.
   \sa setAlarmBrush(), QWidget::palette()
 
-  \warning The alarm threshold has no effect, when
+  \warning The alarm thresholds have no effect, when
            a color map has been assigned
 */
 QBrush ASBThermo::alarmBrush() const {
@@ -700,29 +700,29 @@ QBrush ASBThermo::alarmBrush() const {
 }
 
 /*!
-  Specify the alarm threshold.
+  Specify the upper alarm threshold.
 
-  \param level Alarm threshold
-  \sa alarmLevel()
+  \param level upper alarm threshold
+  \sa upperAlarmLevel()
 
-  \warning The alarm threshold has no effect, when
+  \warning The alarm thresholds have no effect, when
            a color map has been assigned
 */
-void ASBThermo::setAlarmLevel(double level) {
-  d_data->alarmLevel = level;
-  d_data->alarmEnabled = 1;
+void ASBThermo::setUpperAlarmLevel(double level) {
+  d_data->upperAlarmLevel = level;
+  d_data->upperAlarmEnabled = 1;
   update();
 }
 
 /*!
   \return Alarm threshold.
-  \sa setAlarmLevel()
+  \sa setUpperAlarmLevel()
 
   \warning The alarm threshold has no effect, when
            a color map has been assigned
 */
-double ASBThermo::alarmLevel() const {
-  return d_data->alarmLevel;
+double ASBThermo::upperAlarmLevel() const {
+  return d_data->upperAlarmLevel;
 }
 
 /*!
@@ -747,25 +747,25 @@ int ASBThermo::pipeWidth() const {
 }
 
 /*!
-  \brief Enable or disable the alarm threshold
+  \brief Enable or disable the upper alarm threshold
   \param on true (disabled) or false (enabled)
 
-  \warning The alarm threshold has no effect, when
+  \warning The upper alarm threshold has no effect, when
            a color map has been assigned
 */
-void ASBThermo::setAlarmEnabled(bool on) {
-  d_data->alarmEnabled = on;
+void ASBThermo::setUpperAlarmEnabled(bool on) {
+  d_data->upperAlarmEnabled = on;
   update();
 }
 
 /*!
-  \return True, when the alarm threshold is enabled.
+  \return True, when the upper alarm threshold is enabled.
 
-  \warning The alarm threshold has no effect, when
+  \warning The upper alarm threshold has no effect, when
            a color map has been assigned
 */
-bool ASBThermo::alarmEnabled() const {
-  return d_data->alarmEnabled;
+bool ASBThermo::upperAlarmEnabled() const {
+  return d_data->upperAlarmEnabled;
 }
 
 /*!
@@ -854,84 +854,23 @@ QRect ASBThermo::fillRect(const QRect &pipeRect) const {
 }
 
 /*!
-  \brief Calculate the alarm rectangle of the pipe
-
-  \param fillRect Filled rectangle in the pipe
-  \return Rectangle to be filled with the alarm brush
-
-  \sa pipeRect(), fillRect(), alarmLevel(), alarmBrush()
- */
-QRect ASBThermo::alarmRect(const QRect &fillRect) const {
-  QRect alarmRect(0, 0, -1, -1); // something invalid
-
-  if (!d_data->alarmEnabled)
-    return alarmRect;
-
-  const bool inverted = (upperBound() < lowerBound());
-
-  bool increasing;
-  if (d_data->originMode == OriginCustom) {
-    increasing = d_data->value > d_data->origin;
-  } else {
-    increasing = d_data->originMode == OriginMinimum;
-  }
-
-  const QwtScaleMap map = scaleDraw()->scaleMap();
-  const int alarmPos = qRound(map.transform(d_data->alarmLevel));
-  const int valuePos = qRound(map.transform(d_data->value));
-
-  if (d_data->orientation == Qt::Horizontal) {
-    int v1, v2;
-    if (inverted) {
-      v1 = fillRect.left();
-
-      v2 = alarmPos - 1;
-      v2 = qMin(v2, increasing ? fillRect.right() : valuePos);
-    } else {
-      v1 = alarmPos + 1;
-      v1 = qMax(v1, increasing ? fillRect.left() : valuePos);
-
-      v2 = fillRect.right();
-
-    }
-    alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
-  } else {
-    int v1, v2;
-    if (inverted) {
-      v1 = alarmPos + 1;
-      v1 = qMax(v1, increasing ? fillRect.top() : valuePos);
-
-      v2 = fillRect.bottom();
-    } else {
-      v1 = fillRect.top();
-
-      v2 = alarmPos - 1;
-      v2 = qMin(v2, increasing ? fillRect.bottom() : valuePos);
-    }
-    alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);
-  }
-
-  return alarmRect;
-}
-
-/*!
   \brief Calculate the alarm region rectangle of the alarm pipe
 
   \param fillRect Filled rectangle in the alarm pipe
   \return Rectangle to be filled with the alarm brush
 
-  \sa pipeRect(), fillRect(), alarmLevel(), alarmBrush()
+  \sa pipeRect(), fillRect(), upperAlarmLevel(), alarmBrush()
  */
 QRect ASBThermo::alarmPipeRegionRect(const QRect &fillRect) const {
   QRect alarmRect(0, 0, -1, -1); // something invalid
 
-  if (!d_data->alarmEnabled)
+  if (!d_data->upperAlarmEnabled)
     return alarmRect;
 
   const bool inverted = (upperBound() < lowerBound());
 
   const QwtScaleMap map = scaleDraw()->scaleMap();
-  const int alarmPos = qRound(map.transform(d_data->alarmLevel));
+  const int alarmPos = qRound(map.transform(d_data->upperAlarmLevel));
 
   if (d_data->orientation == Qt::Horizontal) {
     int v1, v2;

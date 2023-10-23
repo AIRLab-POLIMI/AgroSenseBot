@@ -51,8 +51,8 @@ Q_OBJECT
                       READ scalePosition WRITE setScalePosition )
   Q_PROPERTY( OriginMode originMode READ originMode WRITE setOriginMode )
 
-  Q_PROPERTY( bool alarmEnabled READ alarmEnabled WRITE setAlarmEnabled )
-  Q_PROPERTY( double alarmLevel READ alarmLevel WRITE setAlarmLevel )
+  Q_PROPERTY( bool upperAlarmEnabled READ upperAlarmEnabled WRITE setUpperAlarmEnabled )
+  Q_PROPERTY( double upperAlarmLevel READ upperAlarmLevel WRITE setUpperAlarmLevel )
   Q_PROPERTY( double origin READ origin WRITE setOrigin )
   Q_PROPERTY( int spacing READ spacing WRITE setSpacing )
   Q_PROPERTY( int borderWidth READ borderWidth WRITE setBorderWidth )
@@ -122,11 +122,11 @@ public:
   void setAlarmBrush( const QBrush & );
   QBrush alarmBrush() const;
 
-  void setAlarmLevel( double );
-  double alarmLevel() const;
+  void setUpperAlarmLevel(double );
+  double upperAlarmLevel() const;
 
-  void setAlarmEnabled( bool );
-  bool alarmEnabled() const;
+  void setUpperAlarmEnabled(bool );
+  bool upperAlarmEnabled() const;
 
   void setColorMap( QwtColorMap * );
   QwtColorMap *colorMap();
@@ -164,7 +164,6 @@ protected:
 
   QRect pipeRect() const;
   QRect fillRect( const QRect & ) const;
-  QRect alarmRect( const QRect & ) const;
   QRect alarmPipeRegionRect( const QRect & ) const;
 
 private:
