@@ -9,9 +9,6 @@
 #include "qwt_abstract_scale.h"
 #include "qwt_interval.h"
 
-//namespace asb_linear_dial
-//{
-
 class QwtScaleDraw;
 class QwtColorMap;
 
@@ -176,6 +173,5 @@ private:
   class PrivateData;
   PrivateData *d_data;
 };
-//}
 
 #endif //ASB_RVIZ_PLUGINS_ASB_LINEAR_DIAL_H
