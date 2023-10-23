@@ -16,11 +16,14 @@ namespace asb_rviz_plugins
     left_motor_velocity_->setOriginMode(ASBThermo::OriginMode::OriginCustom);
     left_motor_velocity_->setOrigin(0);
     left_motor_velocity_->setAlarmEnabled(true);
-    left_motor_velocity_->setAlarmLevel(2400);
+    left_motor_velocity_->setAlarmLevel(2200);
     left_motor_velocity_->setSpacing(5);
-
+//    left_motor_velocity_->setSpacing(5);
+    auto palette = QPalette();
+    palette.setColor(QPalette::Highlight, Qt::red);
+    left_motor_velocity_->setPalette(palette);
     ui_->left_motor_velocity_layout->addWidget(left_motor_velocity_);
-    left_motor_velocity_->setValue(2200);
+
   }
 
   void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {
@@ -100,10 +103,10 @@ namespace asb_rviz_plugins
     ui_->left_controller_temperature_disp->setText(QString("%1 °C").arg(
             control_system_state->left_motor_controller_temperature, 0, 'f', 1));
 
-    double left_motor_velocity_kRPM = control_system_state->left_motor_velocity * 60 / (2 * M_PI);
-//    left_motor_velocity_->setValue(left_motor_velocity_kRPM);
+    double left_motor_velocity_RPM = control_system_state->left_motor_velocity * 60 / (2 * M_PI);
+    left_motor_velocity_->setValue(left_motor_velocity_RPM);
     ui_->left_motor_velocity_disp->setText(QString("%1").arg(
-            left_motor_velocity_kRPM, 0, 'f', 0));
+            left_motor_velocity_RPM, 0, 'f', 0));
 
 //    Right Motor
     ui_->right_motor_current->setValue(control_system_state->right_motor_battery_current);

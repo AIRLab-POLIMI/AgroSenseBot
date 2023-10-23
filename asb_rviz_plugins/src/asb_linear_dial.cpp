@@ -937,44 +937,27 @@ QRect ASBThermo::alarmPipeRegionRect(const QRect &fillRect) const {
 
   const bool inverted = (upperBound() < lowerBound());
 
-  bool increasing;
-  if (d_data->originMode == OriginCustom) {
-    increasing = d_data->value > d_data->origin;
-  } else {
-    increasing = d_data->originMode == OriginMinimum;
-  }
-
   const QwtScaleMap map = scaleDraw()->scaleMap();
   const int alarmPos = qRound(map.transform(d_data->alarmLevel));
-  const int upperBoundPos = qRound(map.transform(upperBound()));
 
   if (d_data->orientation == Qt::Horizontal) {
     int v1, v2;
     if (inverted) {
       v1 = fillRect.left();
-
       v2 = alarmPos - 1;
-      v2 = qMin(v2, increasing ? fillRect.right() : upperBoundPos);
     } else {
       v1 = alarmPos + 1;
-      v1 = qMax(v1, increasing ? fillRect.left() : upperBoundPos);
-
       v2 = fillRect.right();
-
     }
     alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
   } else {
     int v1, v2;
     if (inverted) {
       v1 = alarmPos + 1;
-      v1 = qMax(v1, increasing ? fillRect.top() : upperBoundPos);
-
       v2 = fillRect.bottom();
     } else {
       v1 = fillRect.top();
-
       v2 = alarmPos - 1;
-      v2 = qMin(v2, increasing ? fillRect.bottom() : upperBoundPos);
     }
     alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);
   }

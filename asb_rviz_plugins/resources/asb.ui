@@ -521,7 +521,7 @@
                 <double>20.000000000000000</double>
                </property>
                <property name="value">
-                <double>5.000000000000000</double>
+                <double>18.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -641,7 +641,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>RPM ×100</string>
+                <string>RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -731,7 +731,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>RPM ×100</string>
+                <string>RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -872,7 +872,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>RPM ×100</string>
+                <string>RPM</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
