@@ -17,9 +17,10 @@ namespace asb_rviz_plugins
     left_motor_velocity_->setOrigin(0);
     left_motor_velocity_->setAlarmEnabled(true);
     left_motor_velocity_->setAlarmLevel(2400);
+    left_motor_velocity_->setSpacing(5);
 
     ui_->left_motor_velocity_layout->addWidget(left_motor_velocity_);
-    left_motor_velocity_->setValue(2600);
+    left_motor_velocity_->setValue(2200);
   }
 
   void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {

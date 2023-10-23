@@ -154,6 +154,9 @@ public Q_SLOTS:
 
 protected:
   virtual void drawLiquid( QPainter *, const QRect & ) const;
+
+  virtual void drawAlarmPipe(QPainter *painter, const QRect &alarmPipeRect) const;
+
   virtual void scaleChange();
 
   virtual void paintEvent( QPaintEvent * );
@@ -165,6 +168,7 @@ protected:
   QRect pipeRect() const;
   QRect fillRect( const QRect & ) const;
   QRect alarmRect( const QRect & ) const;
+  QRect alarmPipeRegionRect( const QRect & ) const;
 
 private:
   void layoutThermo( bool );

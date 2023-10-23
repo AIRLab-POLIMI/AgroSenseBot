@@ -16,7 +16,6 @@
 #include <qstyleoption.h>
 #include <qmath.h>
 
-//namespace asb_linear_dial {
   static inline void qwtDrawLine(QPainter *painter, int pos,
                                  const QColor &color, const QRect &pipeRect, const QRect &liquidRect,
                                  Qt::Orientation orientation) {
@@ -227,6 +226,10 @@
                     tRect.adjusted(-bw, -bw, bw, bw),
                     palette(), true, bw,
                     d_data->autoFillPipe ? &brush : NULL);
+
+    QRect alarmPipeRect = tRect.adjusted(-d_data->spacing - bw, 0, -d_data->spacing - bw, 0);
+    alarmPipeRect.setWidth(d_data->spacing);
+    drawAlarmPipe(&painter, alarmPipeRect);
 
     drawLiquid(&painter, tRect);
   }
@@ -477,6 +480,26 @@
     layoutThermo(true);
   }
 
+  /*!
+     Redraw the alarm region beside the thermometer pipe.
+     \param painter Painter
+     \param drawRegionRect Bounding rectangle of the alarm region
+  */
+  void ASBThermo::drawAlarmPipe(
+          QPainter *painter, const QRect &alarmPipeRect) const {
+    painter->save();
+    painter->setClipRect(alarmPipeRect, Qt::IntersectClip);
+    painter->setPen(Qt::NoPen);
+
+    QRect filledAlarmRect = alarmPipeRegionRect(alarmPipeRect);
+
+    if (!filledAlarmRect.isEmpty() && d_data->alarmEnabled) {
+      painter->fillRect(filledAlarmRect, palette().brush(QPalette::Highlight));
+    }
+
+    painter->restore();
+  }
+
 /*!
    Redraw the liquid in thermometer pipe.
    \param painter Painter
@@ -540,6 +563,10 @@
       }
 
       painter->fillRect(liquidRect, palette().brush(QPalette::ButtonText));
+
+//      QRect alarmSideRect = alarmRect(liquidRect);
+//      alarmSideRect.adjust(-5, 0, -5, 0);
+//      painter->fillRect(alarmSideRect, palette().brush(QPalette::Highlight));
     }
 
     painter->restore();
@@ -841,56 +868,116 @@
 
   \sa pipeRect(), fillRect(), alarmLevel(), alarmBrush()
  */
-  QRect ASBThermo::alarmRect(const QRect &fillRect) const {
-    QRect alarmRect(0, 0, -1, -1); // something invalid
+QRect ASBThermo::alarmRect(const QRect &fillRect) const {
+  QRect alarmRect(0, 0, -1, -1); // something invalid
 
-    if (!d_data->alarmEnabled)
-      return alarmRect;
-
-    const bool inverted = (upperBound() < lowerBound());
-
-    bool increasing;
-    if (d_data->originMode == OriginCustom) {
-      increasing = d_data->value > d_data->origin;
-    } else {
-      increasing = d_data->originMode == OriginMinimum;
-    }
-
-    const QwtScaleMap map = scaleDraw()->scaleMap();
-    const int alarmPos = qRound(map.transform(d_data->alarmLevel));
-    const int valuePos = qRound(map.transform(d_data->value));
-
-    if (d_data->orientation == Qt::Horizontal) {
-      int v1, v2;
-      if (inverted) {
-        v1 = fillRect.left();
-
-        v2 = alarmPos - 1;
-        v2 = qMin(v2, increasing ? fillRect.right() : valuePos);
-      } else {
-        v1 = alarmPos + 1;
-        v1 = qMax(v1, increasing ? fillRect.left() : valuePos);
-
-        v2 = fillRect.right();
-
-      }
-      alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
-    } else {
-      int v1, v2;
-      if (inverted) {
-        v1 = alarmPos + 1;
-        v1 = qMax(v1, increasing ? fillRect.top() : valuePos);
-
-        v2 = fillRect.bottom();
-      } else {
-        v1 = fillRect.top();
-
-        v2 = alarmPos - 1;
-        v2 = qMin(v2, increasing ? fillRect.bottom() : valuePos);
-      }
-      alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);
-    }
-
+  if (!d_data->alarmEnabled)
     return alarmRect;
+
+  const bool inverted = (upperBound() < lowerBound());
+
+  bool increasing;
+  if (d_data->originMode == OriginCustom) {
+    increasing = d_data->value > d_data->origin;
+  } else {
+    increasing = d_data->originMode == OriginMinimum;
   }
-//}
+
+  const QwtScaleMap map = scaleDraw()->scaleMap();
+  const int alarmPos = qRound(map.transform(d_data->alarmLevel));
+  const int valuePos = qRound(map.transform(d_data->value));
+
+  if (d_data->orientation == Qt::Horizontal) {
+    int v1, v2;
+    if (inverted) {
+      v1 = fillRect.left();
+
+      v2 = alarmPos - 1;
+      v2 = qMin(v2, increasing ? fillRect.right() : valuePos);
+    } else {
+      v1 = alarmPos + 1;
+      v1 = qMax(v1, increasing ? fillRect.left() : valuePos);
+
+      v2 = fillRect.right();
+
+    }
+    alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
+  } else {
+    int v1, v2;
+    if (inverted) {
+      v1 = alarmPos + 1;
+      v1 = qMax(v1, increasing ? fillRect.top() : valuePos);
+
+      v2 = fillRect.bottom();
+    } else {
+      v1 = fillRect.top();
+
+      v2 = alarmPos - 1;
+      v2 = qMin(v2, increasing ? fillRect.bottom() : valuePos);
+    }
+    alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);
+  }
+
+  return alarmRect;
+}
+
+/*!
+  \brief Calculate the alarm region rectangle of the alarm pipe
+
+  \param fillRect Filled rectangle in the alarm pipe
+  \return Rectangle to be filled with the alarm brush
+
+  \sa pipeRect(), fillRect(), alarmLevel(), alarmBrush()
+ */
+QRect ASBThermo::alarmPipeRegionRect(const QRect &fillRect) const {
+  QRect alarmRect(0, 0, -1, -1); // something invalid
+
+  if (!d_data->alarmEnabled)
+    return alarmRect;
+
+  const bool inverted = (upperBound() < lowerBound());
+
+  bool increasing;
+  if (d_data->originMode == OriginCustom) {
+    increasing = d_data->value > d_data->origin;
+  } else {
+    increasing = d_data->originMode == OriginMinimum;
+  }
+
+  const QwtScaleMap map = scaleDraw()->scaleMap();
+  const int alarmPos = qRound(map.transform(d_data->alarmLevel));
+  const int upperBoundPos = qRound(map.transform(upperBound()));
+
+  if (d_data->orientation == Qt::Horizontal) {
+    int v1, v2;
+    if (inverted) {
+      v1 = fillRect.left();
+
+      v2 = alarmPos - 1;
+      v2 = qMin(v2, increasing ? fillRect.right() : upperBoundPos);
+    } else {
+      v1 = alarmPos + 1;
+      v1 = qMax(v1, increasing ? fillRect.left() : upperBoundPos);
+
+      v2 = fillRect.right();
+
+    }
+    alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
+  } else {
+    int v1, v2;
+    if (inverted) {
+      v1 = alarmPos + 1;
+      v1 = qMax(v1, increasing ? fillRect.top() : upperBoundPos);
+
+      v2 = fillRect.bottom();
+    } else {
+      v1 = fillRect.top();
+
+      v2 = alarmPos - 1;
+      v2 = qMin(v2, increasing ? fillRect.bottom() : upperBoundPos);
+    }
+    alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);
+  }
+
+  return alarmRect;
+}
