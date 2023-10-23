@@ -8,6 +8,8 @@ namespace asb_rviz_plugins
     ui_->setupUi(this);
 
     left_motor_velocity_ = new ASBThermo;
+//    left_motor_velocity_->setUpperBound(-2900);
+//    left_motor_velocity_->setLowerBound(2900);
     left_motor_velocity_->setUpperBound(2900);
     left_motor_velocity_->setLowerBound(-2900);
     left_motor_velocity_->setScaleMaxMajor(0);

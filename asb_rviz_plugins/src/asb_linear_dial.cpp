@@ -554,19 +554,12 @@ void ASBThermo::drawLiquid(
       from = to;
     }
   } else {
-    if (!liquidRect.isEmpty() && d_data->alarmEnabled) {
-      const QRect r = alarmRect(liquidRect);
-      if (!r.isEmpty()) {
-        painter->fillRect(r, palette().brush(QPalette::Highlight));
-        liquidRect = QRegion(liquidRect).subtracted(r).boundingRect();
-      }
+    if (!liquidRect.isEmpty() && d_data->alarmEnabled && (d_data->value > d_data->alarmLevel)) {
+      painter->fillRect(liquidRect, palette().brush(QPalette::Highlight));
+    } else {
+      painter->fillRect(liquidRect, palette().brush(QPalette::ButtonText));
     }
 
-    painter->fillRect(liquidRect, palette().brush(QPalette::ButtonText));
-
-//      QRect alarmSideRect = alarmRect(liquidRect);
-//      alarmSideRect.adjust(-5, 0, -5, 0);
-//      painter->fillRect(alarmSideRect, palette().brush(QPalette::Highlight));
   }
 
   painter->restore();
