@@ -1,5 +1,4 @@
 #include <asb_rviz_plugins/asb_widget.h>
-#include <qwt/qwt_thermo.h>
 #include <qwt/qwt_scale_widget.h>
 #include "qwt/qwt_color_map.h"
 
@@ -8,28 +7,19 @@ namespace asb_rviz_plugins
   ASBWidget::ASBWidget(QWidget *parent): QWidget(parent), ui_(new Ui::ASBWidgetUI) {
     ui_->setupUi(this);
 
-//    auto* scale_w = new QwtScaleWidget;
-//    scale_w->setColorBarEnabled(true);
-    auto* color_map = new QwtLinearColorMap;
-    color_map->setMode(QwtLinearColorMap::Mode::FixedColors);
-    color_map->addColorStop(0, Qt::transparent);
-    color_map->addColorStop(.3, Qt::black);
-    color_map->addColorStop(.9, Qt::red);
-//    scale_w->setColorMap(
-//            QwtInterval(10, 100, QwtInterval::BorderFlags(QwtInterval::ExcludeBorders)),
-//            color_map);
-//    ui_->fan_motor_info_h_main_layout->addWidget(scale_w);
-
-    left_motor_velocity_ = new QwtThermo;
+    left_motor_velocity_ = new ASBThermo;
     left_motor_velocity_->setUpperBound(2900);
     left_motor_velocity_->setLowerBound(-2900);
     left_motor_velocity_->setScaleMaxMajor(0);
     left_motor_velocity_->setScaleMaxMinor(0);
     left_motor_velocity_->setScaleStepSize(2400);
-    left_motor_velocity_->setOriginMode(QwtThermo::OriginMode::OriginCustom);
+    left_motor_velocity_->setOriginMode(ASBThermo::OriginMode::OriginCustom);
     left_motor_velocity_->setOrigin(0);
-    left_motor_velocity_->setColorMap(color_map);
+    left_motor_velocity_->setAlarmEnabled(true);
+    left_motor_velocity_->setAlarmLevel(2400);
+
     ui_->left_motor_velocity_layout->addWidget(left_motor_velocity_);
+    left_motor_velocity_->setValue(2600);
   }
 
   void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {
@@ -89,7 +79,7 @@ namespace asb_rviz_plugins
             control_system_state->fan_motor_controller_temperature, 0, 'f', 1));
 
     ui_->fan_motor_velocity->setValue(control_system_state->fan_motor_velocity_rpm);
-    ui_->fan_motor_velocity_disp->setText(QString("%1 RPM").arg(
+    ui_->fan_motor_velocity_disp->setText(QString("%1").arg(
             control_system_state->fan_motor_velocity_rpm, 0, 'f', 0));
 
 //    Left Motor
@@ -110,8 +100,8 @@ namespace asb_rviz_plugins
             control_system_state->left_motor_controller_temperature, 0, 'f', 1));
 
     double left_motor_velocity_kRPM = control_system_state->left_motor_velocity * 60 / (2 * M_PI);
-    left_motor_velocity_->setValue(left_motor_velocity_kRPM);
-    ui_->left_motor_velocity_disp->setText(QString("%1 RPM").arg(
+//    left_motor_velocity_->setValue(left_motor_velocity_kRPM);
+    ui_->left_motor_velocity_disp->setText(QString("%1").arg(
             left_motor_velocity_kRPM, 0, 'f', 0));
 
 //    Right Motor
@@ -133,7 +123,7 @@ namespace asb_rviz_plugins
 
     double right_motor_velocity_kRPM = control_system_state->right_motor_velocity * 60 / (2 * M_PI);
     ui_->right_motor_velocity->setValue(right_motor_velocity_kRPM);
-    ui_->right_motor_velocity_disp->setText(QString("%1 RPM").arg(
+    ui_->right_motor_velocity_disp->setText(QString("%1").arg(
             right_motor_velocity_kRPM, 0, 'f', 0));
 
   }

@@ -18,7 +18,7 @@ class QwtColorMap;
 /*!
   \brief The Thermometer Widget
 
-  QwtThermo is a widget which displays a value in an interval. It supports:
+  ASBThermo is a widget which displays a value in an interval. It supports:
   - a horizontal or vertical layout;
   - a range;
   - a scale;
@@ -27,7 +27,7 @@ class QwtColorMap;
   \image html sysinfo.png
 
   The fill colors might be calculated from an optional color map
-  If no color map has been assigned QwtThermo uses the
+  If no color map has been assigned ASBThermo uses the
   following colors/brushes from the widget palette:
 
   - QPalette::Base
@@ -41,7 +41,7 @@ class QwtColorMap;
   - QPalette::Text
     For the labels of the scale
 */
-class QWT_EXPORT QwtThermo: public QwtAbstractScale
+class QWT_EXPORT ASBThermo: public QwtAbstractScale
 {
 Q_OBJECT
 
@@ -98,8 +98,8 @@ public:
     OriginCustom
   };
 
-  explicit QwtThermo( QWidget *parent = NULL );
-  virtual ~QwtThermo();
+  explicit ASBThermo( QWidget *parent = NULL );
+  virtual ~ASBThermo();
 
   void setOrientation( Qt::Orientation );
   Qt::Orientation orientation() const;
