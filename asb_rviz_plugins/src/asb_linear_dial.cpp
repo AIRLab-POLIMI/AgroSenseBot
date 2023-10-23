@@ -66,6 +66,8 @@ public:
           pipeWidth(10),
           upperAlarmLevel(0.0),
           upperAlarmEnabled(false),
+          lowerAlarmLevel(0.0),
+          lowerAlarmEnabled(false),
           autoFillPipe(true),
           originMode(ASBThermo::OriginMinimum),
           origin(0.0),
@@ -88,6 +90,8 @@ public:
   QwtInterval::BorderFlags rangeFlags;
   double upperAlarmLevel;
   bool upperAlarmEnabled;
+  double lowerAlarmLevel;
+  bool lowerAlarmEnabled;
   bool autoFillPipe;
   ASBThermo::OriginMode originMode;
   double origin;
@@ -491,10 +495,14 @@ void ASBThermo::drawAlarmPipe(
   painter->setClipRect(alarmPipeRect, Qt::IntersectClip);
   painter->setPen(Qt::NoPen);
 
-  QRect filledAlarmRect = alarmPipeRegionRect(alarmPipeRect);
+  QRect filledUpperAlarmRect = upperAlarmPipeRegionRect(alarmPipeRect);
+  if (!filledUpperAlarmRect.isEmpty() && d_data->upperAlarmEnabled) {
+    painter->fillRect(filledUpperAlarmRect, palette().brush(QPalette::Highlight));
+  }
 
-  if (!filledAlarmRect.isEmpty() && d_data->upperAlarmEnabled) {
-    painter->fillRect(filledAlarmRect, palette().brush(QPalette::Highlight));
+  QRect filledLowerAlarmRect = lowerAlarmPipeRegionRect(alarmPipeRect);
+  if (!filledLowerAlarmRect.isEmpty() && d_data->lowerAlarmEnabled) {
+    painter->fillRect(filledLowerAlarmRect, palette().brush(QPalette::Highlight));
   }
 
   painter->restore();
@@ -554,7 +562,10 @@ void ASBThermo::drawLiquid(
       from = to;
     }
   } else {
-    if (!liquidRect.isEmpty() && d_data->upperAlarmEnabled && (d_data->value > d_data->upperAlarmLevel)) {
+
+    if (d_data->upperAlarmEnabled && (d_data->value > d_data->upperAlarmLevel)) {
+      painter->fillRect(liquidRect, palette().brush(QPalette::Highlight));
+    } else if (d_data->lowerAlarmEnabled && (d_data->value < d_data->lowerAlarmLevel)) {
       painter->fillRect(liquidRect, palette().brush(QPalette::Highlight));
     } else {
       painter->fillRect(liquidRect, palette().brush(QPalette::ButtonText));
@@ -726,6 +737,32 @@ double ASBThermo::upperAlarmLevel() const {
 }
 
 /*!
+  Specify the lower alarm threshold.
+
+  \param level lower alarm threshold
+  \sa lowerAlarmLevel()
+
+  \warning The alarm thresholds have no effect, when
+           a color map has been assigned
+*/
+void ASBThermo::setLowerAlarmLevel(double level) {
+  d_data->lowerAlarmLevel = level;
+  d_data->lowerAlarmEnabled = 1;
+  update();
+}
+
+/*!
+  \return Alarm threshold.
+  \sa setLowerAlarmLevel()
+
+  \warning The alarm threshold has no effect, when
+           a color map has been assigned
+*/
+double ASBThermo::lowerAlarmLevel() const {
+  return d_data->lowerAlarmLevel;
+}
+
+/*!
   Change the width of the pipe.
 
   \param width Width of the pipe
@@ -766,6 +803,28 @@ void ASBThermo::setUpperAlarmEnabled(bool on) {
 */
 bool ASBThermo::upperAlarmEnabled() const {
   return d_data->upperAlarmEnabled;
+}
+
+/*!
+  \brief Enable or disable the lower alarm threshold
+  \param on true (disabled) or false (enabled)
+
+  \warning The lower alarm threshold has no effect, when
+           a color map has been assigned
+*/
+void ASBThermo::setLowerAlarmEnabled(bool on) {
+  d_data->lowerAlarmEnabled = on;
+  update();
+}
+
+/*!
+  \return True, when the lower alarm threshold is enabled.
+
+  \warning The lower alarm threshold has no effect, when
+           a color map has been assigned
+*/
+bool ASBThermo::lowerAlarmEnabled() const {
+  return d_data->lowerAlarmEnabled;
 }
 
 /*!
@@ -854,14 +913,14 @@ QRect ASBThermo::fillRect(const QRect &pipeRect) const {
 }
 
 /*!
-  \brief Calculate the alarm region rectangle of the alarm pipe
+  \brief Calculate the upper alarm region rectangle of the alarm pipe
 
   \param fillRect Filled rectangle in the alarm pipe
   \return Rectangle to be filled with the alarm brush
 
   \sa pipeRect(), fillRect(), upperAlarmLevel(), alarmBrush()
  */
-QRect ASBThermo::alarmPipeRegionRect(const QRect &fillRect) const {
+QRect ASBThermo::upperAlarmPipeRegionRect(const QRect &fillRect) const {
   QRect alarmRect(0, 0, -1, -1); // something invalid
 
   if (!d_data->upperAlarmEnabled)
@@ -870,26 +929,70 @@ QRect ASBThermo::alarmPipeRegionRect(const QRect &fillRect) const {
   const bool inverted = (upperBound() < lowerBound());
 
   const QwtScaleMap map = scaleDraw()->scaleMap();
-  const int alarmPos = qRound(map.transform(d_data->upperAlarmLevel));
+  const int upperAlarmPos = qRound(map.transform(d_data->upperAlarmLevel));
 
   if (d_data->orientation == Qt::Horizontal) {
     int v1, v2;
     if (inverted) {
       v1 = fillRect.left();
-      v2 = alarmPos - 1;
+      v2 = upperAlarmPos - 1;
     } else {
-      v1 = alarmPos + 1;
+      v1 = upperAlarmPos + 1;
       v2 = fillRect.right();
     }
     alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
   } else {
     int v1, v2;
     if (inverted) {
-      v1 = alarmPos + 1;
+      v1 = upperAlarmPos + 1;
       v2 = fillRect.bottom();
     } else {
       v1 = fillRect.top();
-      v2 = alarmPos - 1;
+      v2 = upperAlarmPos - 1;
+    }
+    alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);
+  }
+
+  return alarmRect;
+}
+
+/*!
+  \brief Calculate the lower alarm region rectangle of the alarm pipe
+
+  \param fillRect Filled rectangle in the alarm pipe
+  \return Rectangle to be filled with the alarm brush
+
+  \sa pipeRect(), fillRect(), lowerAlarmLevel(), alarmBrush()
+ */
+QRect ASBThermo::lowerAlarmPipeRegionRect(const QRect &fillRect) const {
+  QRect alarmRect(0, 0, -1, -1); // something invalid
+
+  if (!d_data->lowerAlarmEnabled)
+    return alarmRect;
+
+  const bool inverted = (upperBound() < lowerBound());
+
+  const QwtScaleMap map = scaleDraw()->scaleMap();
+  const int lowerAlarmPos = qRound(map.transform(d_data->lowerAlarmLevel));
+
+  if (d_data->orientation == Qt::Horizontal) {
+    int v1, v2;
+    if (inverted) {
+      v1 = lowerAlarmPos - 1;
+      v2 = fillRect.right();
+    } else {
+      v1 = fillRect.left();
+      v2 = lowerAlarmPos + 1;
+    }
+    alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
+  } else {
+    int v1, v2;
+    if (inverted) {
+      v1 = fillRect.top();
+      v2 = lowerAlarmPos + 1;
+    } else {
+      v1 = lowerAlarmPos - 1;
+      v2 = fillRect.bottom();
     }
     alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);
   }

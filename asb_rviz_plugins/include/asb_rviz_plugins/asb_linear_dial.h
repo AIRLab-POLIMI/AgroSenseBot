@@ -53,6 +53,8 @@ Q_OBJECT
 
   Q_PROPERTY( bool upperAlarmEnabled READ upperAlarmEnabled WRITE setUpperAlarmEnabled )
   Q_PROPERTY( double upperAlarmLevel READ upperAlarmLevel WRITE setUpperAlarmLevel )
+  Q_PROPERTY( bool lowerAlarmEnabled READ lowerAlarmEnabled WRITE setLowerAlarmEnabled )
+  Q_PROPERTY( double lowerAlarmLevel READ lowerAlarmLevel WRITE setLowerAlarmLevel )
   Q_PROPERTY( double origin READ origin WRITE setOrigin )
   Q_PROPERTY( int spacing READ spacing WRITE setSpacing )
   Q_PROPERTY( int borderWidth READ borderWidth WRITE setBorderWidth )
@@ -128,6 +130,12 @@ public:
   void setUpperAlarmEnabled(bool );
   bool upperAlarmEnabled() const;
 
+  void setLowerAlarmLevel(double );
+  double lowerAlarmLevel() const;
+
+  void setLowerAlarmEnabled(bool );
+  bool lowerAlarmEnabled() const;
+
   void setColorMap( QwtColorMap * );
   QwtColorMap *colorMap();
   const QwtColorMap *colorMap() const;
@@ -164,7 +172,8 @@ protected:
 
   QRect pipeRect() const;
   QRect fillRect( const QRect & ) const;
-  QRect alarmPipeRegionRect( const QRect & ) const;
+  QRect upperAlarmPipeRegionRect(const QRect &fillRect) const;
+  QRect lowerAlarmPipeRegionRect(const QRect &fillRect) const;
 
 private:
   void layoutThermo( bool );

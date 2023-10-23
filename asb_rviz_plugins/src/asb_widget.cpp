@@ -16,16 +16,10 @@ namespace asb_rviz_plugins
     left_motor_velocity_->setScaleMaxMinor(0);
     left_motor_velocity_->setScaleStepSize(2400);
     left_motor_velocity_->setOriginMode(ASBThermo::OriginMode::OriginCustom);
-    left_motor_velocity_->setOrigin(0);
-    left_motor_velocity_->setUpperAlarmEnabled(true);
     left_motor_velocity_->setUpperAlarmLevel(2200);
+    left_motor_velocity_->setLowerAlarmLevel(-2200);
     left_motor_velocity_->setSpacing(5);
     left_motor_velocity_->setAlarmBrush(QBrush(Qt::red));
-//    left_motor_velocity_->setSpacing(5);
-//    auto palette = QPalette();
-//    palette.setColor(QPalette::Highlight, Qt::red);
-//    left_motor_velocity_->setPalette(palette);
-
     ui_->left_motor_velocity_layout->addWidget(left_motor_velocity_);
 
   }
