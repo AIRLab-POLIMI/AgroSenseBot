@@ -40,6 +40,8 @@ namespace asb_rviz_plugins
     static void substitute_widget(ASBThermo* widget, QwtThermo* orig_widget, QLayout* layout,
                                   double upper_alarm_level, double lower_alarm_level, bool setpoint_enabled = false);
 
+    static bool is_alarm_on(ASBThermo* widget);
+
     void control_system_state_callback(asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const;
 
   public Q_SLOTS:
@@ -75,6 +77,9 @@ namespace asb_rviz_plugins
 
   private:
     std::vector<QString> control_mode_string = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};
+    QString yel_bg = "QLabel {background-color: yellow;}";
+    QString red_bg = "QLabel {background-color: red;}";
+    QString no_bg = "QLabel {}";
 
   };
 }
