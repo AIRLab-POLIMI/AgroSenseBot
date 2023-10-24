@@ -1,9 +1,14 @@
 #include <asb_rviz_plugins/asb_widget.h>
-#include <qlayout.h>
 
 namespace asb_rviz_plugins {
 
   ASBWidget::ASBWidget(QWidget *parent): QWidget(parent), ui_(new Ui::ASBWidgetUI) {
+
+//  remove comma as a thousand separator from scales in ASB/Qwt Thermo widgets
+    QLocale locale;
+    locale.setNumberOptions(QLocale::OmitGroupSeparator);
+    QLocale::setDefault(locale);
+
     ui_->setupUi(this);
 
 //  Battery
