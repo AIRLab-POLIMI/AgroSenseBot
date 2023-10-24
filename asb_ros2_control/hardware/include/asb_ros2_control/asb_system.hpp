@@ -110,6 +110,8 @@ private:
 
   // internal state variables
   std::atomic<bool> first_heartbeat_received_ = false;
+  std::atomic<bool> gcu_alive_bit_rate_low_ = false;
+  std::atomic<bool> gcu_alive_bit_rate_critical_ = false;
   std::atomic<bool> gcu_alive_bit_current_value_ = false;
   std::atomic<std::chrono::steady_clock::time_point> gcu_alive_bit_last_value_change_;
   std::atomic<bool> software_emergency_stop_ = false;
@@ -117,6 +119,10 @@ private:
   // exported interface for the control system (all variables need to be doubles for ros2_control reasons)
   // control system state and commands
   double vcu_comm_ok_bool_state_ = 1.0;
+  double vcu_comm_started_bool_state_ = 0.0;
+  double gcu_comm_started_bool_state_ = 0.0;
+  double gcu_alive_bit_rate_low_bool_state_ = 0.0;
+  double gcu_alive_bit_rate_critical_bool_state_ = 0.0;
   double vcu_safety_status_bool_state_ = 0.0;
   double control_mode_int_state_ = 0.0;
   double more_recent_alarm_id_to_confirm_int_state_ = 0.0;
@@ -136,6 +142,7 @@ private:
   // exported interface for left track control and additional motor drive information
   double track_left_position_state_ = 0;
   double track_left_velocity_state_ = 0;
+  double track_left_velocity_setpoint_state_ = 0;
   double track_left_velocity_command_ = 0;
   double track_left_controller_temperature_state_ = 0;
   double track_left_motor_temperature_state_ = 0;
@@ -149,6 +156,7 @@ private:
   // exported interface for right track control and additional motor drive information
   double track_right_position_state_ = 0;
   double track_right_velocity_state_ = 0;
+  double track_right_velocity_setpoint_state_ = 0;
   double track_right_velocity_command_ = 0;
   double track_right_controller_temperature_state_ = 0;
   double track_right_motor_temperature_state_ = 0;
@@ -162,6 +170,7 @@ private:
   // exported interface for fan control and additional motor drive information
   double fan_position_revs_state_ = 0;
   double fan_speed_rpm_state_ = 0;
+  double fan_speed_setpoint_rpm_state_ = 0;
   double fan_speed_ref_rpm_command_ = 0;
   double fan_controller_temperature_state_ = 0;
   double fan_motor_temperature_state_ = 0;

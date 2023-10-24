@@ -36,7 +36,6 @@ private:
   // VCU comm check variables
   std::chrono::steady_clock::time_point last_VCU_is_alive_bit_change_;
   bool previous_VCU_is_alive_bit_ = false;
-  bool VCU_comm_started_ = false;
 
   void send_TPDO_1();
 
@@ -61,6 +60,7 @@ public:
 
   // VCU status
   std::atomic<bool> VCU_comm_ok_ = true;
+  std::atomic<bool> VCU_comm_started_ = false;
   std::atomic<bool> VCU_safety_status_bit_ = false;
   std::atomic<bool> VCU_pump_status_bit_ = false;
   std::atomic<uint8_t> control_mode_ = 0;

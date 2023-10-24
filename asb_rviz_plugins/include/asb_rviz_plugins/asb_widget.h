@@ -3,11 +3,15 @@
 
 #include <QWidget>
 #include <QPushButton>
+
+
 #include <memory>
 #include <vector>
 
 #include <rclcpp/qos.hpp>
 #include "asb_msgs/msg/control_system_state.hpp"
+
+#include <asb_rviz_plugins/asb_linear_dial.h>
 
 #include "ui_asb.h"
 
@@ -33,6 +37,11 @@ namespace asb_rviz_plugins
 
     ~ASBWidget() override = default;
 
+    static void substitute_widget(ASBThermo* widget, QwtThermo* orig_widget, QLayout* layout,
+                                  double upper_alarm_level, double lower_alarm_level, bool setpoint_enabled = false);
+
+    static bool is_alarm_on(ASBThermo* widget);
+
     void control_system_state_callback(asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const;
 
   public Q_SLOTS:
@@ -40,8 +49,37 @@ namespace asb_rviz_plugins
   protected:
     std::unique_ptr<Ui::ASBWidgetUI> ui_;
 
+//  Battery
+    ASBThermo* battery_voltage_ = nullptr;
+    ASBThermo* battery_soc_ = nullptr;
+
+//  Left Motor
+    ASBThermo* left_motor_velocity_ = nullptr;
+    ASBThermo* left_motor_current_ = nullptr;
+    ASBThermo* left_motor_torque_ = nullptr;
+    ASBThermo* left_motor_temperature_ = nullptr;
+    ASBThermo* left_controller_temperature_ = nullptr;
+
+//  Right Motor
+    ASBThermo* right_motor_velocity_ = nullptr;
+    ASBThermo* right_motor_current_ = nullptr;
+    ASBThermo* right_motor_torque_ = nullptr;
+    ASBThermo* right_motor_temperature_ = nullptr;
+    ASBThermo* right_controller_temperature_ = nullptr;
+
+//  Fan Motor
+    ASBThermo* fan_motor_velocity_ = nullptr;
+    ASBThermo* fan_motor_current_ = nullptr;
+    ASBThermo* fan_motor_torque_ = nullptr;
+    ASBThermo* fan_motor_temperature_ = nullptr;
+    ASBThermo* fan_controller_temperature_ = nullptr;
+
+
   private:
     std::vector<QString> control_mode_string = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};
+    QString yel_bg = "QLabel {background-color: yellow;}";
+    QString red_bg = "QLabel {background-color: red;}";
+    QString no_bg = "QLabel {}";
 
   };
 }

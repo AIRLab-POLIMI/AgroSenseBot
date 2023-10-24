@@ -53,12 +53,14 @@ include_directories(
 set(${PROJECT_NAME}_SRCS
         src/asb_panel.cpp
         src/asb_widget.cpp
+        src/asb_linear_dial.cpp
 )
 
 # Define header file
 set(${PROJECT_NAME}_HDRS
         include/${PROJECT_NAME}/asb_panel.hpp
         include/${PROJECT_NAME}/asb_widget.h
+        include/${PROJECT_NAME}/asb_linear_dial.h
 )
 
 # Define ui file

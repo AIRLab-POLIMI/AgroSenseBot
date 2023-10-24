@@ -1,6 +1,10 @@
 builtin_interfaces/Time stamp
 
 bool vcu_comm_ok
+bool vcu_comm_started
+bool gcu_comm_started
+bool gcu_alive_bit_rate_low
+bool gcu_alive_bit_rate_critical
 bool vcu_safety_status
 uint8 control_mode  # 0 = STOP: vehicle stopped;
                     # 1 = RCU: vehicle controlled by RCU;
@@ -23,6 +27,7 @@ int64 left_motor_zero_speed_threshold  # RPM, the speed below which the EM brake
 
 float64 left_motor_position  # rad
 float64 left_motor_velocity  # rad/s
+float64 left_motor_velocity_setpoint  # rad/s
 
 float64 right_motor_controller_temperature  # °C
 float64 right_motor_temperature  # °C
@@ -34,6 +39,7 @@ int64 right_motor_zero_speed_threshold  # RPM, the speed below which the EM brak
 
 float64 right_motor_position  # rad
 float64 right_motor_velocity  # rad/s
+float64 right_motor_velocity_setpoint  # rad/s
 
 float64 fan_motor_controller_temperature  # °C
 float64 fan_motor_temperature  # °C
@@ -45,3 +51,4 @@ int64 fan_motor_zero_speed_threshold  # RPM, the speed below which the EM brake 
 
 float64 fan_motor_position  # revolutions
 float64 fan_motor_velocity_rpm  # RPM
+float64 fan_motor_velocity_setpoint_rpm  # RPM

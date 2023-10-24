@@ -22,18 +22,18 @@ class MinimalPublisher(Node):
             '/asb_control_system_status_controller/heartbeat',
             qos_profile=qos)
 
-        timer_period = 0.05  # seconds
+        timer_period = 0.025  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-        self.start_time_s = self.get_clock().now().nanoseconds * 1e-9
+        self.last_timer_time_s = self.get_clock().now().nanoseconds * 1e-9
         self.alive_bit = False
 
     def timer_callback(self):
         now_s = self.get_clock().now().nanoseconds * 1e-9
-        elapsed_time_s = (now_s - self.start_time_s) % 12.0
-        print(f"elapsed_time:                             {elapsed_time_s}")
+        delta_time_s = now_s - self.last_timer_time_s
+        self.last_timer_time_s = now_s
+        print(f"delta_time:                             {delta_time_s}")
 
-        # increase velocity_rpm from -100 to 2500, at 400 RPM/s, from 2 seconds after start time
         self.alive_bit = not self.alive_bit
 
         msg = Heartbeat(
