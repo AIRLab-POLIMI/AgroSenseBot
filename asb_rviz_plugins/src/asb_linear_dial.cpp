@@ -497,12 +497,12 @@ void ASBThermo::drawAlarmPipe(
 
   QRect filledUpperAlarmRect = upperAlarmPipeRegionRect(alarmPipeRect);
   if (!filledUpperAlarmRect.isEmpty() && d_data->upperAlarmEnabled) {
-    painter->fillRect(filledUpperAlarmRect, palette().brush(QPalette::Highlight));
+    painter->fillRect(filledUpperAlarmRect, palette().brush(QPalette::HighlightedText));
   }
 
   QRect filledLowerAlarmRect = lowerAlarmPipeRegionRect(alarmPipeRect);
   if (!filledLowerAlarmRect.isEmpty() && d_data->lowerAlarmEnabled) {
-    painter->fillRect(filledLowerAlarmRect, palette().brush(QPalette::Highlight));
+    painter->fillRect(filledLowerAlarmRect, palette().brush(QPalette::HighlightedText));
   }
 
   painter->restore();
@@ -978,20 +978,20 @@ QRect ASBThermo::lowerAlarmPipeRegionRect(const QRect &fillRect) const {
   if (d_data->orientation == Qt::Horizontal) {
     int v1, v2;
     if (inverted) {
-      v1 = lowerAlarmPos - 1;
+      v1 = lowerAlarmPos + 1;
       v2 = fillRect.right();
     } else {
       v1 = fillRect.left();
-      v2 = lowerAlarmPos + 1;
+      v2 = lowerAlarmPos - 1;
     }
     alarmRect.setRect(v1, fillRect.top(), v2 - v1 + 1, fillRect.height());
   } else {
     int v1, v2;
     if (inverted) {
       v1 = fillRect.top();
-      v2 = lowerAlarmPos + 1;
+      v2 = lowerAlarmPos - 1;
     } else {
-      v1 = lowerAlarmPos - 1;
+      v1 = lowerAlarmPos + 1;
       v2 = fillRect.bottom();
     }
     alarmRect.setRect(fillRect.left(), v1, fillRect.width(), v2 - v1 + 1);

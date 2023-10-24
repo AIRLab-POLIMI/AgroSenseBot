@@ -14,79 +14,79 @@ namespace asb_rviz_plugins {
 //  Battery
     battery_voltage_ = new ASBThermo;
     substitute_widget(battery_voltage_, ui_->battery_voltage, ui_->battery_voltage_layout,
-                      28, 22, Qt::red);
+                      28, 22);
 
     battery_soc_ = new ASBThermo;
     substitute_widget(battery_soc_, ui_->battery_soc, ui_->battery_soc_layout,
-                      100, 10, Qt::red);
+                      100, 10);
 
 //  Left Motor
     left_motor_velocity_ = new ASBThermo;
     substitute_widget(left_motor_velocity_, ui_->left_motor_velocity, ui_->left_motor_velocity_layout,
-                      2400, -2400, Qt::red);
+                      2400, -2400);
 
     left_motor_current_ = new ASBThermo;
     substitute_widget(left_motor_current_, ui_->left_motor_current, ui_->left_motor_current_layout,
-                      900, 0, Qt::red);
+                      900, 0);
 
     left_motor_torque_ = new ASBThermo;
     substitute_widget(left_motor_torque_, ui_->left_motor_torque, ui_->left_motor_torque_layout,
-                      900, 0, Qt::red);
+                      900, 0);
 
     left_motor_temperature_ = new ASBThermo;
     substitute_widget(left_motor_temperature_, ui_->left_motor_temperature, ui_->left_motor_temperature_layout,
-                      70, -10, Qt::red);
+                      70, -10);
 
     left_controller_temperature_ = new ASBThermo;
     substitute_widget(left_controller_temperature_, ui_->left_controller_temperature, ui_->left_controller_temperature_layout,
-                      70, -10, Qt::red);
+                      70, -10);
 
 //  Right Motor
     right_motor_velocity_ = new ASBThermo;
     substitute_widget(right_motor_velocity_, ui_->right_motor_velocity, ui_->right_motor_velocity_layout,
-                      2400, -2400, Qt::red);
+                      2400, -2400);
 
     right_motor_current_ = new ASBThermo;
     substitute_widget(right_motor_current_, ui_->right_motor_current, ui_->right_motor_current_layout,
-                      900, 0, Qt::red);
+                      900, 0);
 
     right_motor_torque_ = new ASBThermo;
     substitute_widget(right_motor_torque_, ui_->right_motor_torque, ui_->right_motor_torque_layout,
-                      900, 0, Qt::red);
+                      900, 0);
 
     right_motor_temperature_ = new ASBThermo;
     substitute_widget(right_motor_temperature_, ui_->right_motor_temperature, ui_->right_motor_temperature_layout,
-                      70, -10, Qt::red);
+                      70, -10);
 
     right_controller_temperature_ = new ASBThermo;
     substitute_widget(right_controller_temperature_, ui_->right_controller_temperature, ui_->right_controller_temperature_layout,
-                      70, -10, Qt::red);
+                      70, -10);
 
 //  Fan Motor
     fan_motor_velocity_ = new ASBThermo;
     substitute_widget(fan_motor_velocity_, ui_->fan_motor_velocity, ui_->fan_motor_velocity_layout,
-                      2400, 0, Qt::red);
+                      2400, 0);
 
     fan_motor_current_ = new ASBThermo;
     substitute_widget(fan_motor_current_, ui_->fan_motor_current, ui_->fan_motor_current_layout,
-                      900, 0, Qt::red);
+                      900, 0);
 
     fan_motor_torque_ = new ASBThermo;
     substitute_widget(fan_motor_torque_, ui_->fan_motor_torque, ui_->fan_motor_torque_layout,
-                      900, 0, Qt::red);
+                      900, 0);
 
     fan_motor_temperature_ = new ASBThermo;
     substitute_widget(fan_motor_temperature_, ui_->fan_motor_temperature, ui_->fan_motor_temperature_layout,
-                      70, -10, Qt::red);
+                      70, -10);
 
     fan_controller_temperature_ = new ASBThermo;
     substitute_widget(fan_controller_temperature_, ui_->fan_controller_temperature, ui_->fan_controller_temperature_layout,
-                      70, -10, Qt::red);
+                      70, -10);
 
   }
 
   void ASBWidget::substitute_widget(ASBThermo* widget, QwtThermo* orig_widget, QLayout* layout,
-                                    double upper_alarm_level, double lower_alarm_level, QColor alarm_color) {
+                                    double upper_alarm_level, double lower_alarm_level) {
     widget->setMinimumHeight(orig_widget->minimumHeight());
     widget->setMinimumHeight(orig_widget->minimumHeight());
     widget->setUpperBound(orig_widget->upperBound());
@@ -99,7 +99,6 @@ namespace asb_rviz_plugins {
     widget->setUpperAlarmLevel(upper_alarm_level);
     widget->setLowerAlarmLevel(lower_alarm_level);
     widget->setSpacing(orig_widget->spacing());
-    widget->setAlarmBrush(QBrush(alarm_color));
     widget->setPalette(orig_widget->palette());
     orig_widget->setHidden(true);
     layout->addWidget(widget);

@@ -452,6 +452,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -467,6 +476,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -492,6 +510,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </disabled>
                 </palette>
                </property>
@@ -499,7 +526,7 @@
                 <enum>QwtThermo::TrailingScale</enum>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
               </widget>
              </item>
@@ -587,6 +614,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -607,6 +643,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -622,6 +667,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -652,7 +706,7 @@
                 <double>20.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>0.000000000000000</double>
@@ -840,6 +894,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -860,6 +923,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -875,6 +947,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -916,7 +997,7 @@
                 <double>0.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>0.000000000000000</double>
@@ -1048,6 +1129,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -1068,6 +1158,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -1083,6 +1182,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -1124,7 +1232,7 @@
                 <double>0.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>0.000000000000000</double>
@@ -1256,6 +1364,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -1276,6 +1393,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -1291,6 +1417,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -1333,7 +1468,7 @@
                 <double>0.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>0.000000000000000</double>
@@ -1493,6 +1628,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -1508,6 +1652,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -1533,6 +1686,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </disabled>
                 </palette>
                </property>
@@ -1543,7 +1705,7 @@
                 <enum>QwtThermo::TrailingScale</enum>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
               </widget>
              </item>
@@ -1637,6 +1799,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -1652,6 +1823,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -1677,6 +1857,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </disabled>
                 </palette>
                </property>
@@ -1687,7 +1876,7 @@
                 <enum>QwtThermo::TrailingScale</enum>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
               </widget>
              </item>
@@ -1784,6 +1973,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -1804,6 +2002,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -1819,6 +2026,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -1855,7 +2071,7 @@
                 <double>-20.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>-20.000000000000000</double>
@@ -1955,6 +2171,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -1975,6 +2200,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -1990,6 +2224,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -2023,7 +2266,7 @@
                 <double>-20.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>-20.000000000000000</double>
@@ -2188,6 +2431,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -2203,6 +2455,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -2228,6 +2489,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </disabled>
                 </palette>
                </property>
@@ -2238,7 +2508,7 @@
                 <enum>QwtThermo::TrailingScale</enum>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
               </widget>
              </item>
@@ -2332,6 +2602,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -2347,6 +2626,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -2372,6 +2660,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </disabled>
                 </palette>
                </property>
@@ -2385,7 +2682,7 @@
                 <enum>QwtThermo::OriginMinimum</enum>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
               </widget>
              </item>
@@ -2482,6 +2779,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -2502,6 +2808,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -2517,6 +2832,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -2550,7 +2874,7 @@
                 <double>-20.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>-20.000000000000000</double>
@@ -2650,6 +2974,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -2670,6 +3003,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -2685,6 +3027,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -2718,7 +3069,7 @@
                 <double>-20.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>-20.000000000000000</double>
@@ -2881,6 +3232,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -2896,6 +3256,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -2921,6 +3290,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </disabled>
                 </palette>
                </property>
@@ -2931,7 +3309,7 @@
                 <enum>QwtThermo::TrailingScale</enum>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
               </widget>
              </item>
@@ -3025,6 +3403,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -3040,6 +3427,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -3065,6 +3461,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </disabled>
                 </palette>
                </property>
@@ -3075,7 +3480,7 @@
                 <enum>QwtThermo::TrailingScale</enum>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
               </widget>
              </item>
@@ -3172,6 +3577,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -3192,6 +3606,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -3207,6 +3630,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -3240,7 +3672,7 @@
                 <double>-20.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>-20.000000000000000</double>
@@ -3340,6 +3772,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </active>
                  <inactive>
                   <colorrole role="ButtonText">
@@ -3360,6 +3801,15 @@
                     </color>
                    </brush>
                   </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
                  </inactive>
                  <disabled>
                   <colorrole role="ButtonText">
@@ -3375,6 +3825,15 @@
                    <brush brushstyle="SolidPattern">
                     <color alpha="255">
                      <red>255</red>
+                     <green>0</green>
+                     <blue>0</blue>
+                    </color>
+                   </brush>
+                  </colorrole>
+                  <colorrole role="HighlightedText">
+                   <brush brushstyle="SolidPattern">
+                    <color alpha="255">
+                     <red>200</red>
                      <green>0</green>
                      <blue>0</blue>
                     </color>
@@ -3408,7 +3867,7 @@
                 <double>-20.000000000000000</double>
                </property>
                <property name="spacing">
-                <number>5</number>
+                <number>3</number>
                </property>
                <property name="value">
                 <double>-20.000000000000000</double>
