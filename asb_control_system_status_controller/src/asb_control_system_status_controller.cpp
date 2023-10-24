@@ -78,6 +78,7 @@ InterfaceConfiguration ASBControlSystemStatusController::state_interface_configu
 
   conf_names.push_back("control_system_state/pump_state");
 
+  conf_names.push_back("control_system_state/left_motor_velocity_setpoint");
   conf_names.push_back("control_system_state/left_motor_controller_temperature");
   conf_names.push_back("control_system_state/left_motor_temperature");
   conf_names.push_back("control_system_state/left_motor_battery_current");
@@ -86,6 +87,7 @@ InterfaceConfiguration ASBControlSystemStatusController::state_interface_configu
   conf_names.push_back("control_system_state/left_motor_keyswitch_voltage");
   conf_names.push_back("control_system_state/left_motor_zero_speed_threshold");
 
+  conf_names.push_back("control_system_state/right_motor_velocity_setpoint");
   conf_names.push_back("control_system_state/right_motor_controller_temperature");
   conf_names.push_back("control_system_state/right_motor_temperature");
   conf_names.push_back("control_system_state/right_motor_battery_current");
@@ -94,6 +96,7 @@ InterfaceConfiguration ASBControlSystemStatusController::state_interface_configu
   conf_names.push_back("control_system_state/right_motor_keyswitch_voltage");
   conf_names.push_back("control_system_state/right_motor_zero_speed_threshold");
 
+  conf_names.push_back("control_system_state/fan_motor_velocity_setpoint_rpm");
   conf_names.push_back("control_system_state/fan_motor_controller_temperature");
   conf_names.push_back("control_system_state/fan_motor_temperature");
   conf_names.push_back("control_system_state/fan_motor_battery_current");
@@ -204,6 +207,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
 
   control_system_state_msg.pump_state = (bool)std::round(named_state_interface_["control_system_state/pump_state"]->get_value());
 
+  control_system_state_msg.left_motor_velocity_setpoint = named_state_interface_["control_system_state/left_motor_velocity_setpoint"]->get_value();
   control_system_state_msg.left_motor_controller_temperature = named_state_interface_["control_system_state/left_motor_controller_temperature"]->get_value();
   control_system_state_msg.left_motor_temperature = named_state_interface_["control_system_state/left_motor_temperature"]->get_value();
   control_system_state_msg.left_motor_battery_current = named_state_interface_["control_system_state/left_motor_battery_current"]->get_value();
@@ -215,6 +219,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.left_motor_position = named_state_interface_["left_track_joint/position"]->get_value();
   control_system_state_msg.left_motor_velocity = named_state_interface_["left_track_joint/velocity"]->get_value();
 
+  control_system_state_msg.right_motor_velocity_setpoint = named_state_interface_["control_system_state/right_motor_velocity_setpoint"]->get_value();
   control_system_state_msg.right_motor_controller_temperature = named_state_interface_["control_system_state/right_motor_controller_temperature"]->get_value();
   control_system_state_msg.right_motor_temperature = named_state_interface_["control_system_state/right_motor_temperature"]->get_value();
   control_system_state_msg.right_motor_battery_current = named_state_interface_["control_system_state/right_motor_battery_current"]->get_value();
@@ -226,6 +231,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   control_system_state_msg.right_motor_position = named_state_interface_["right_track_joint/position"]->get_value();
   control_system_state_msg.right_motor_velocity = named_state_interface_["right_track_joint/velocity"]->get_value();
 
+  control_system_state_msg.fan_motor_velocity_setpoint_rpm = named_state_interface_["control_system_state/fan_motor_velocity_setpoint_rpm"]->get_value();
   control_system_state_msg.fan_motor_controller_temperature = named_state_interface_["control_system_state/fan_motor_controller_temperature"]->get_value();
   control_system_state_msg.fan_motor_temperature = named_state_interface_["control_system_state/fan_motor_temperature"]->get_value();
   control_system_state_msg.fan_motor_battery_current = named_state_interface_["control_system_state/fan_motor_battery_current"]->get_value();

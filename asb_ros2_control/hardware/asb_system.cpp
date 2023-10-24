@@ -203,6 +203,7 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back("control_system_state", "pump_state", &pump_bool_state_);
 
   // left motor additional information
+  state_interfaces.emplace_back("control_system_state", "left_motor_velocity_setpoint", &track_left_velocity_setpoint_state_);
   state_interfaces.emplace_back("control_system_state", "left_motor_controller_temperature", &track_left_controller_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "left_motor_temperature", &track_left_motor_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "left_motor_battery_current", &track_left_battery_current_state_);
@@ -213,6 +214,7 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back("control_system_state", "left_motor_interlock", &track_left_interlock_bool_state_);
 
   // right motor additional information
+  state_interfaces.emplace_back("control_system_state", "right_motor_velocity_setpoint", &track_right_velocity_setpoint_state_);
   state_interfaces.emplace_back("control_system_state", "right_motor_controller_temperature", &track_right_controller_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "right_motor_temperature", &track_right_motor_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "right_motor_battery_current", &track_right_battery_current_state_);
@@ -223,6 +225,7 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back("control_system_state", "right_motor_interlock", &track_right_interlock_bool_state_);
 
   // fan motor additional information
+  state_interfaces.emplace_back("control_system_state", "fan_motor_velocity_setpoint_rpm", &fan_speed_setpoint_rpm_state_);
   state_interfaces.emplace_back("control_system_state", "fan_motor_controller_temperature", &fan_controller_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "fan_motor_temperature", &fan_motor_temperature_state_);
   state_interfaces.emplace_back("control_system_state", "fan_motor_battery_current", &fan_battery_current_state_);
@@ -457,8 +460,9 @@ hardware_interface::return_type ASBSystemHardware::read(
   pump_bool_state_ = GCU_->VCU_pump_status_bit_.load();
 
   // left motor state
-  track_left_velocity_state_ = motor_left_receiver_->motor_RPM_.load() * 2 * M_PI / 60.0;
   track_left_position_state_ = motor_left_receiver_->rotor_position_.load() * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
+  track_left_velocity_state_ = motor_left_receiver_->motor_RPM_.load() * 2 * M_PI / 60.0;
+  track_left_velocity_setpoint_state_ = track_left_velocity_command_;
   track_left_controller_temperature_state_ = motor_left_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
   track_left_motor_temperature_state_ = motor_left_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
   track_left_battery_current_state_ = motor_left_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;
@@ -469,8 +473,9 @@ hardware_interface::return_type ASBSystemHardware::read(
   track_left_interlock_bool_state_ = motor_left_receiver_->interlock_status_.load();
 
 //   right motor state
-  track_right_velocity_state_ = motor_right_receiver_->motor_RPM_.load() * 2 * M_PI / 60;
   track_right_position_state_ = motor_right_receiver_->rotor_position_.load() * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
+  track_right_velocity_state_ = motor_right_receiver_->motor_RPM_.load() * 2 * M_PI / 60;
+  track_right_velocity_setpoint_state_ = track_right_velocity_command_;
   track_right_controller_temperature_state_ = motor_right_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
   track_right_motor_temperature_state_ = motor_right_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
   track_right_battery_current_state_ = motor_right_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;
@@ -481,8 +486,9 @@ hardware_interface::return_type ASBSystemHardware::read(
   track_right_interlock_bool_state_ = motor_right_receiver_->interlock_status_.load();
 
   // fan motor state
-  fan_speed_rpm_state_ = motor_fan_receiver_->motor_RPM_.load();
   fan_position_revs_state_ = motor_fan_receiver_->rotor_position_.load() * RAW_DATA_STEP_VALUE_rotor_position;
+  fan_speed_rpm_state_ = motor_fan_receiver_->motor_RPM_.load();
+  fan_speed_setpoint_rpm_state_ = fan_speed_ref_rpm_command_;
   fan_controller_temperature_state_ = motor_fan_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
   fan_motor_temperature_state_ = motor_fan_receiver_->motor_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
   fan_battery_current_state_ = motor_fan_receiver_->battery_current_display_.load() * RAW_DATA_STEP_VALUE_current;

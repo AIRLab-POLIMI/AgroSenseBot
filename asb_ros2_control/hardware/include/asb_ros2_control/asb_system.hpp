@@ -136,6 +136,7 @@ private:
   // exported interface for left track control and additional motor drive information
   double track_left_position_state_ = 0;
   double track_left_velocity_state_ = 0;
+  double track_left_velocity_setpoint_state_ = 0;
   double track_left_velocity_command_ = 0;
   double track_left_controller_temperature_state_ = 0;
   double track_left_motor_temperature_state_ = 0;
@@ -149,6 +150,7 @@ private:
   // exported interface for right track control and additional motor drive information
   double track_right_position_state_ = 0;
   double track_right_velocity_state_ = 0;
+  double track_right_velocity_setpoint_state_ = 0;
   double track_right_velocity_command_ = 0;
   double track_right_controller_temperature_state_ = 0;
   double track_right_motor_temperature_state_ = 0;
@@ -162,6 +164,7 @@ private:
   // exported interface for fan control and additional motor drive information
   double fan_position_revs_state_ = 0;
   double fan_speed_rpm_state_ = 0;
+  double fan_speed_setpoint_rpm_state_ = 0;
   double fan_speed_ref_rpm_command_ = 0;
   double fan_controller_temperature_state_ = 0;
   double fan_motor_temperature_state_ = 0;

@@ -49,6 +49,7 @@
         <state_interface name="pump_state"/>
         <command_interface name="pump_command"/>
 
+        <state_interface name="left_motor_velocity_setpoint"/>
         <state_interface name="left_motor_controller_temperature"/>
         <state_interface name="left_motor_temperature"/>
         <state_interface name="left_motor_battery_current"/>
@@ -57,6 +58,7 @@
         <state_interface name="left_motor_keyswitch_voltage"/>
         <state_interface name="left_motor_zero_speed_threshold"/>
 
+        <state_interface name="right_motor_velocity_setpoint"/>
         <state_interface name="right_motor_controller_temperature"/>
         <state_interface name="right_motor_temperature"/>
         <state_interface name="right_motor_battery_current"/>
@@ -65,6 +67,7 @@
         <state_interface name="right_motor_keyswitch_voltage"/>
         <state_interface name="right_motor_zero_speed_threshold"/>
 
+        <state_interface name="fan_motor_velocity_setpoint_rpm"/>
         <state_interface name="fan_motor_controller_temperature"/>
         <state_interface name="fan_motor_temperature"/>
         <state_interface name="fan_motor_battery_current"/>

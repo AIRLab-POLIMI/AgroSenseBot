@@ -107,10 +107,6 @@ namespace asb_rviz_plugins {
 
   void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {
 
-    left_motor_velocity_->setSetpointValue(1000);
-    right_motor_velocity_->setSetpointValue(1000);
-//    fan_motor_velocity_->setSetpointValue(1400);
-
 //    System status
     ui_->sw_emergency_stop_disp->setText(QString(control_system_state->software_emergency_stop ? "ENABLED":"OK"));
     ui_->sw_emergency_stop_disp->setStyleSheet(control_system_state->software_emergency_stop ? "QLabel {background-color: yellow;}":"QLabel {}");
@@ -151,6 +147,8 @@ namespace asb_rviz_plugins {
 //    Left Motor
     double left_motor_velocity_RPM = control_system_state->left_motor_velocity * 60 / (2 * M_PI);
     left_motor_velocity_->setValue(left_motor_velocity_RPM);
+    double left_motor_velocity_setpoint_RPM = control_system_state->left_motor_velocity_setpoint * 60 / (2 * M_PI);
+    left_motor_velocity_->setSetpointValue(left_motor_velocity_setpoint_RPM);
     ui_->left_motor_velocity_disp->setText(QString("%1").arg(
             left_motor_velocity_RPM, 0, 'f', 0));
 
@@ -173,6 +171,8 @@ namespace asb_rviz_plugins {
 //    Right Motor
     double right_motor_velocity_RPM = control_system_state->right_motor_velocity * 60 / (2 * M_PI);
     right_motor_velocity_->setValue(right_motor_velocity_RPM);
+    double right_motor_velocity_setpoint_RPM = control_system_state->right_motor_velocity_setpoint * 60 / (2 * M_PI);
+    right_motor_velocity_->setSetpointValue(right_motor_velocity_setpoint_RPM);
     ui_->right_motor_velocity_disp->setText(QString("%1").arg(
             right_motor_velocity_RPM, 0, 'f', 0));
 
@@ -194,6 +194,7 @@ namespace asb_rviz_plugins {
 
 //    Fan Motor
     fan_motor_velocity_->setValue(control_system_state->fan_motor_velocity_rpm);
+    fan_motor_velocity_->setSetpointValue(control_system_state->fan_motor_velocity_setpoint_rpm);
     ui_->fan_motor_velocity_disp->setText(QString("%1").arg(
             control_system_state->fan_motor_velocity_rpm, 0, 'f', 0));
 
