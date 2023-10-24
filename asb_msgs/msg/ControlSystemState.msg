@@ -1,6 +1,10 @@
 builtin_interfaces/Time stamp
 
 bool vcu_comm_ok
+bool vcu_comm_started
+bool gcu_comm_started
+bool gcu_alive_bit_rate_low
+bool gcu_alive_bit_rate_critical
 bool vcu_safety_status
 uint8 control_mode  # 0 = STOP: vehicle stopped;
                     # 1 = RCU: vehicle controlled by RCU;

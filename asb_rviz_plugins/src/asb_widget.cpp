@@ -115,26 +115,71 @@ namespace asb_rviz_plugins {
     ui_->sw_emergency_stop_disp->setText(QString(control_system_state->software_emergency_stop ? "ENABLED":"OK"));
     ui_->sw_emergency_stop_disp->setStyleSheet(control_system_state->software_emergency_stop ? yel_bg:no_bg);
 
-    if(control_system_state->vcu_comm_ok) {
-      ui_->vcu_comm_disp->setText(QString("OK"));
-      ui_->vcu_comm_disp->setStyleSheet(no_bg);
-      ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status ? "LOCK":"OK"));
-      ui_->vcu_safety_disp->setStyleSheet(control_system_state->vcu_safety_status ? yel_bg:no_bg);
-      ui_->control_mode_disp->setText(control_mode_string[control_system_state->control_mode]);
-      ui_->pump_disp->setText(QString(control_system_state->pump_state ? "ON":"OFF"));
-      control_system_state->more_recent_active_alarm_id ?
+    if(control_system_state->gcu_comm_started) {
+      if (control_system_state->gcu_alive_bit_rate_critical) {
+        ui_->gcu_comm_disp->setText(QString("DOWN"));
+        ui_->gcu_comm_disp->setStyleSheet(yel_bg);
+      } else if (control_system_state->gcu_alive_bit_rate_low) {
+        ui_->gcu_comm_disp->setText(QString("RATE LOW"));
+        ui_->gcu_comm_disp->setStyleSheet(yel_bg);
+      } else {
+        ui_->gcu_comm_disp->setText(QString("OK"));
+        ui_->gcu_comm_disp->setStyleSheet(no_bg);
+      }
+    } else {
+      ui_->gcu_comm_disp->setText(QString("WAITING"));
+      ui_->gcu_comm_disp->setStyleSheet(yel_bg);
+    }
+
+    if(control_system_state->vcu_comm_started){
+      if(control_system_state->vcu_comm_ok) {
+        ui_->vcu_comm_disp->setText(QString("OK"));
+        ui_->vcu_comm_disp->setStyleSheet(no_bg);
+
+        ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status ? "LOCK":"OK"));
+        ui_->vcu_safety_disp->setStyleSheet(control_system_state->vcu_safety_status ? yel_bg:no_bg);
+
+        ui_->control_mode_disp->setText(control_mode_string[control_system_state->control_mode]);
+        ui_->control_mode_disp->setStyleSheet(no_bg);
+
+        ui_->pump_disp->setText(QString(control_system_state->pump_state ? "ON":"OFF"));
+        ui_->pump_disp->setStyleSheet(no_bg);
+
+        control_system_state->more_recent_active_alarm_id ?
         ui_->errors_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)) :
         ui_->errors_disp->setText(QString("NONE"));
-      control_system_state->more_recent_active_alarm_id ?
+        control_system_state->more_recent_active_alarm_id ?
         ui_->errors_disp->setStyleSheet(yel_bg) :
         ui_->errors_disp->setStyleSheet(no_bg);
+      } else {
+        ui_->vcu_comm_disp->setText(QString("DOWN"));
+        ui_->vcu_comm_disp->setStyleSheet(yel_bg);
+
+        ui_->vcu_safety_disp->setText(QString("UNKNOWN"));
+        ui_->vcu_safety_disp->setStyleSheet(no_bg);
+
+        ui_->control_mode_disp->setText(QString("UNKNOWN"));
+        ui_->control_mode_disp->setStyleSheet(no_bg);
+
+        ui_->pump_disp->setText(QString("UNKNOWN"));
+        ui_->pump_disp->setStyleSheet(no_bg);
+
+        ui_->errors_disp->setText(QString("UNKNOWN"));
+        ui_->errors_disp->setStyleSheet(no_bg);
+      }
     } else {
-      ui_->vcu_comm_disp->setText(QString("DOWN"));
+      ui_->vcu_comm_disp->setText(QString("WAITING"));
       ui_->vcu_comm_disp->setStyleSheet(yel_bg);
+
       ui_->vcu_safety_disp->setText(QString("UNKNOWN"));
       ui_->vcu_safety_disp->setStyleSheet(no_bg);
+
       ui_->control_mode_disp->setText(QString("UNKNOWN"));
+      ui_->control_mode_disp->setStyleSheet(no_bg);
+
       ui_->pump_disp->setText(QString("UNKNOWN"));
+      ui_->pump_disp->setStyleSheet(no_bg);
+
       ui_->errors_disp->setText(QString("UNKNOWN"));
       ui_->errors_disp->setStyleSheet(no_bg);
     }

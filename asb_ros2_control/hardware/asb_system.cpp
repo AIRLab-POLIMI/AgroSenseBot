@@ -191,6 +191,10 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
 
   // control system state
   state_interfaces.emplace_back("control_system_state", "vcu_comm_ok", &vcu_comm_ok_bool_state_);
+  state_interfaces.emplace_back("control_system_state", "vcu_comm_started", &vcu_comm_started_bool_state_);
+  state_interfaces.emplace_back("control_system_state", "gcu_comm_started", &gcu_comm_started_bool_state_);
+  state_interfaces.emplace_back("control_system_state", "gcu_alive_bit_rate_low", &gcu_alive_bit_rate_low_bool_state_);
+  state_interfaces.emplace_back("control_system_state", "gcu_alive_bit_rate_critical", &gcu_alive_bit_rate_critical_bool_state_);
   state_interfaces.emplace_back("control_system_state", "vcu_safety_status", &vcu_safety_status_bool_state_);
   state_interfaces.emplace_back("control_system_state", "control_mode", &control_mode_int_state_);
   state_interfaces.emplace_back("control_system_state", "more_recent_alarm_id_to_confirm", &more_recent_alarm_id_to_confirm_int_state_);
@@ -273,9 +277,16 @@ void ASBSystemHardware::timer() {
   {
     if (now - gcu_alive_bit_last_value_change_.load() >= 200ms)
     {
+      gcu_alive_bit_rate_critical_.store(true);
+      gcu_alive_bit_rate_low_.store(true);
       RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD TOO LOW, VCU WILL REJECT COMMANDS");
     } else if (now - gcu_alive_bit_last_value_change_.load() >= 100ms) {
+      gcu_alive_bit_rate_critical_.store(false);
+      gcu_alive_bit_rate_low_.store(true);
       RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD LOWER THAN EXPECTED");
+    } else {
+      gcu_alive_bit_rate_critical_.store(false);
+      gcu_alive_bit_rate_low_.store(false);
     }
   } else {
     auto throttle_clock = rclcpp::Clock();
@@ -296,6 +307,9 @@ void ASBSystemHardware::timer() {
     int16_t fan_speed_ref = 0;
     GCU_->set_TPDO_1(gcu_alive_bit_current_value_.load(), false);
     GCU_->set_TPDO_2(right_speed_ref, left_speed_ref, fan_speed_ref);
+    // TODO check on actual machine:
+    //  sending a speed ref command (TPDO2), even though it's 0, while switching from control mode STOP or RCU to GCU may prevent from
+    //  switching control mode.
   }
 }
 
@@ -448,6 +462,10 @@ hardware_interface::return_type ASBSystemHardware::read(
 
   // control system (i.e., the VCU CANOpen node)
   vcu_comm_ok_bool_state_ = GCU_->VCU_comm_ok_.load();
+  vcu_comm_started_bool_state_ = GCU_->VCU_comm_started_.load();
+  gcu_comm_started_bool_state_ = first_heartbeat_received_.load();
+  gcu_alive_bit_rate_low_bool_state_ = gcu_alive_bit_rate_low_.load();
+  gcu_alive_bit_rate_critical_bool_state_ = gcu_alive_bit_rate_critical_.load();
   vcu_safety_status_bool_state_ = GCU_->VCU_safety_status_bit_.load();
   control_mode_int_state_ = GCU_->control_mode_.load();
   more_recent_alarm_id_to_confirm_int_state_ = GCU_->more_recent_alarm_id_to_confirm_.load();

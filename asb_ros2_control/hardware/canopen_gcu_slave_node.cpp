@@ -34,7 +34,7 @@ void CANOpenGCUNode::timer() {
   send_TPDO_1();
   send_TPDO_2();
 
-  if(VCU_comm_started_) {
+  if(VCU_comm_started_.load()) {
     VCU_comm_ok_.store((now - last_VCU_is_alive_bit_change_ < 200ms));  // TODO make parameter
     if (!VCU_comm_ok_.load()) {
       std::cerr << "[" << node_name_ << "]" << "[CANOpenGCUNode::timer] VCU COMM TIMEOUT ("
@@ -91,7 +91,7 @@ void CANOpenGCUNode::OnRpdo(int num, ::std::error_code /*ec*/, const void* /*p*/
     VCU_safety_status_bit_.store((VCU_state >> BIT_IDX_VCU_safety_status) & 1);
     VCU_pump_status_bit_.store((VCU_state >> BIT_IDX_VCU_pump_status) & 1);
 
-    if (!VCU_comm_started_) {
+    if (!VCU_comm_started_.load()) {
       last_VCU_is_alive_bit_change_ = std::chrono::steady_clock::now();
       previous_VCU_is_alive_bit_ = VCU_is_alive_bit;
     } else {
@@ -106,7 +106,7 @@ void CANOpenGCUNode::OnRpdo(int num, ::std::error_code /*ec*/, const void* /*p*/
     more_recent_alarm_id_to_confirm_.store((*this)[IDX_RPDO1][SUB_IDX_RPDO1_3_more_recent_alarm_id_to_confirm]);
     more_recent_active_alarm_id_.store((*this)[IDX_RPDO1][SUB_IDX_RPDO1_4_more_recent_active_alarm_id]);
 
-    VCU_comm_started_ = true;
+    VCU_comm_started_.store(true);
   }
 
 }

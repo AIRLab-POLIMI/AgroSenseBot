@@ -38,6 +38,10 @@
         <command_interface name="heartbeat_alive_bit"/>
 
         <state_interface name="vcu_comm_ok"/>
+        <state_interface name="vcu_comm_started"/>
+        <state_interface name="gcu_comm_started"/>
+        <state_interface name="gcu_alive_bit_rate_low"/>
+        <state_interface name="gcu_alive_bit_rate_critical"/>
         <state_interface name="vcu_safety_status"/>
         <state_interface name="control_mode"/>
         <state_interface name="more_recent_alarm_id_to_confirm"/>

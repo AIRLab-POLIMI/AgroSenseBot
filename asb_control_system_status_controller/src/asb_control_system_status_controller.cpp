@@ -69,6 +69,10 @@ InterfaceConfiguration ASBControlSystemStatusController::state_interface_configu
   conf_names.push_back("fan_motor_joint/velocity");
 
   conf_names.push_back("control_system_state/vcu_comm_ok");
+  conf_names.push_back("control_system_state/vcu_comm_started");
+  conf_names.push_back("control_system_state/gcu_comm_started");
+  conf_names.push_back("control_system_state/gcu_alive_bit_rate_low");
+  conf_names.push_back("control_system_state/gcu_alive_bit_rate_critical");
   conf_names.push_back("control_system_state/vcu_safety_status");
   conf_names.push_back("control_system_state/control_mode");
   conf_names.push_back("control_system_state/more_recent_alarm_id_to_confirm");
@@ -198,6 +202,10 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   asb_msgs::msg::ControlSystemState control_system_state_msg;
   control_system_state_msg.stamp = time;
   control_system_state_msg.vcu_comm_ok = (bool)std::round(named_state_interface_["control_system_state/vcu_comm_ok"]->get_value());
+  control_system_state_msg.vcu_comm_started = (bool)std::round(named_state_interface_["control_system_state/vcu_comm_started"]->get_value());
+  control_system_state_msg.gcu_comm_started = (bool)std::round(named_state_interface_["control_system_state/gcu_comm_started"]->get_value());
+  control_system_state_msg.gcu_alive_bit_rate_low = (bool)std::round(named_state_interface_["control_system_state/gcu_alive_bit_rate_low"]->get_value());
+  control_system_state_msg.gcu_alive_bit_rate_critical = (bool)std::round(named_state_interface_["control_system_state/gcu_alive_bit_rate_critical"]->get_value());
   control_system_state_msg.vcu_safety_status = (bool)std::round(named_state_interface_["control_system_state/vcu_safety_status"]->get_value());
   control_system_state_msg.control_mode = (uint8_t)std::round(named_state_interface_["control_system_state/control_mode"]->get_value());
   control_system_state_msg.more_recent_alarm_id_to_confirm = (uint8_t)std::round(named_state_interface_["control_system_state/more_recent_alarm_id_to_confirm"]->get_value());
