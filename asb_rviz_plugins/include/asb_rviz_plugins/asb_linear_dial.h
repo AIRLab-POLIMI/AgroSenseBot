@@ -19,7 +19,8 @@ class QwtColorMap;
   - a horizontal or vertical layout;
   - a range;
   - a scale;
-  - an alarm level.
+  - upper and lower alarm levels
+  - a set point.
 
   \image html sysinfo.png
 
@@ -32,7 +33,11 @@ class QwtColorMap;
   - QPalette::ButtonText
     Fill brush below the alarm level
   - QPalette::Highlight
-    Fill brush for the values above the alarm level
+    Fill brush above upper or below lower alarm levels
+  - QPalette::HighlightedText
+    For the upper and lower alarm level lines
+  - QPalette::Dark
+    For the set point indicator contour line
   - QPalette::WindowText
     For the axis of the scale
   - QPalette::Text
@@ -60,6 +65,8 @@ Q_OBJECT
   Q_PROPERTY( int borderWidth READ borderWidth WRITE setBorderWidth )
   Q_PROPERTY( int pipeWidth READ pipeWidth WRITE setPipeWidth )
   Q_PROPERTY( double value READ value WRITE setValue )
+  Q_PROPERTY( double setpointValue READ setpointValue WRITE setSetpointValue )
+  Q_PROPERTY( double setpointEnabled READ setpointEnabled WRITE setSetpointEnabled )
 
 public:
 
@@ -148,6 +155,10 @@ public:
 
   double value() const;
 
+  double setpointValue() const;
+
+  bool setpointEnabled() const;
+
   virtual QSize sizeHint() const;
   virtual QSize minimumSizeHint() const;
 
@@ -156,6 +167,10 @@ public:
 
 public Q_SLOTS:
   virtual void setValue( double );
+
+  virtual void setSetpointValue( double );
+
+  virtual void setSetpointEnabled( bool );
 
 protected:
   virtual void drawLiquid( QPainter *, const QRect & ) const;

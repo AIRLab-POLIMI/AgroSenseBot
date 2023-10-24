@@ -38,7 +38,7 @@ namespace asb_rviz_plugins
     ~ASBWidget() override = default;
 
     static void substitute_widget(ASBThermo* widget, QwtThermo* orig_widget, QLayout* layout,
-                                  double upper_alarm_level, double lower_alarm_level);
+                                  double upper_alarm_level, double lower_alarm_level, bool setpoint_enabled = false);
 
     void control_system_state_callback(asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const;
 

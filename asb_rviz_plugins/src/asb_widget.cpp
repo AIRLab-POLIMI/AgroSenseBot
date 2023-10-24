@@ -23,7 +23,7 @@ namespace asb_rviz_plugins {
 //  Left Motor
     left_motor_velocity_ = new ASBThermo;
     substitute_widget(left_motor_velocity_, ui_->left_motor_velocity, ui_->left_motor_velocity_layout,
-                      2400, -2400);
+                      2400, -2400, true);
 
     left_motor_current_ = new ASBThermo;
     substitute_widget(left_motor_current_, ui_->left_motor_current, ui_->left_motor_current_layout,
@@ -44,7 +44,7 @@ namespace asb_rviz_plugins {
 //  Right Motor
     right_motor_velocity_ = new ASBThermo;
     substitute_widget(right_motor_velocity_, ui_->right_motor_velocity, ui_->right_motor_velocity_layout,
-                      2400, -2400);
+                      2400, -2400, true);
 
     right_motor_current_ = new ASBThermo;
     substitute_widget(right_motor_current_, ui_->right_motor_current, ui_->right_motor_current_layout,
@@ -65,7 +65,7 @@ namespace asb_rviz_plugins {
 //  Fan Motor
     fan_motor_velocity_ = new ASBThermo;
     substitute_widget(fan_motor_velocity_, ui_->fan_motor_velocity, ui_->fan_motor_velocity_layout,
-                      2400, 0);
+                      2400, 0, true);
 
     fan_motor_current_ = new ASBThermo;
     substitute_widget(fan_motor_current_, ui_->fan_motor_current, ui_->fan_motor_current_layout,
@@ -86,7 +86,7 @@ namespace asb_rviz_plugins {
   }
 
   void ASBWidget::substitute_widget(ASBThermo* widget, QwtThermo* orig_widget, QLayout* layout,
-                                    double upper_alarm_level, double lower_alarm_level) {
+                                    double upper_alarm_level, double lower_alarm_level, bool setpoint_enabled) {
     widget->setMinimumHeight(orig_widget->minimumHeight());
     widget->setMinimumHeight(orig_widget->minimumHeight());
     widget->setUpperBound(orig_widget->upperBound());
@@ -100,11 +100,16 @@ namespace asb_rviz_plugins {
     widget->setLowerAlarmLevel(lower_alarm_level);
     widget->setSpacing(orig_widget->spacing());
     widget->setPalette(orig_widget->palette());
+    widget->setSetpointEnabled(setpoint_enabled);
     orig_widget->setHidden(true);
     layout->addWidget(widget);
   }
 
   void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {
+
+    left_motor_velocity_->setSetpointValue(1000);
+    right_motor_velocity_->setSetpointValue(1000);
+//    fan_motor_velocity_->setSetpointValue(1400);
 
 //    System status
     ui_->sw_emergency_stop_disp->setText(QString(control_system_state->software_emergency_stop ? "ENABLED":"OK"));

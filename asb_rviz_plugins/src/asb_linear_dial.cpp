@@ -15,6 +15,7 @@
 #include <qstyle.h>
 #include <qstyleoption.h>
 #include <qmath.h>
+#include <QPainterPath>
 
 static inline void qwtDrawLine(QPainter *painter, int pos,
                                const QColor &color, const QRect &pipeRect, const QRect &liquidRect,
@@ -71,8 +72,10 @@ public:
           autoFillPipe(true),
           originMode(ASBThermo::OriginMinimum),
           origin(0.0),
-          colorMap(NULL),
-          value(0.0) {
+          colorMap(nullptr),
+          value(0.0),
+          setpointValue(0.0),
+          setpointEnabled(false) {
     rangeFlags = QwtInterval::IncludeBorders;
   }
 
@@ -99,6 +102,8 @@ public:
   QwtColorMap *colorMap;
 
   double value;
+  double setpointValue;
+  bool setpointEnabled;
 };
 
 /*!
@@ -173,6 +178,42 @@ double ASBThermo::value() const {
 }
 
 /*!
+  Set the current setpoint value.
+
+  \param setpointValue New setpointValue
+  \sa setpointValue()
+*/
+void ASBThermo::setSetpointValue(double setpointValue) {
+  if (d_data->setpointValue != setpointValue) {
+    d_data->setpointValue = setpointValue;
+    update();
+  }
+}
+
+//! Return the setpoint value.
+double ASBThermo::setpointValue() const {
+  return d_data->setpointValue;
+}
+
+/*!
+  Enables or disables the setpoint.
+
+  \param setpointValue New setpointValue
+  \sa setpointValue()
+*/
+void ASBThermo::setSetpointEnabled(bool setpointEnabled) {
+  if (d_data->setpointEnabled != setpointEnabled) {
+    d_data->setpointEnabled = setpointEnabled;
+    update();
+  }
+}
+
+//! Return the setpoint enabled.
+bool ASBThermo::setpointEnabled() const {
+  return d_data->setpointEnabled;
+}
+
+/*!
   \brief Set a scale draw
 
   For changing the labels of the scales, it
@@ -229,7 +270,7 @@ void ASBThermo::paintEvent(QPaintEvent *event) {
   qDrawShadePanel(&painter,
                   tRect.adjusted(-bw, -bw, bw, bw),
                   palette(), true, bw,
-                  d_data->autoFillPipe ? &brush : NULL);
+                  d_data->autoFillPipe ? &brush : nullptr);
 
   QRect alarmPipeRect = tRect.adjusted(-d_data->spacing - bw, 0, -d_data->spacing - bw, 0);
   alarmPipeRect.setWidth(d_data->spacing);
@@ -523,7 +564,7 @@ void ASBThermo::drawLiquid(
 
   QRect liquidRect = fillRect(pipeRect);
 
-  if (d_data->colorMap != NULL) {
+  if (d_data->colorMap != nullptr) {
     const QwtInterval interval = scaleDiv().interval().normalized();
 
     // Because the positions of the ticks are rounded
@@ -569,6 +610,25 @@ void ASBThermo::drawLiquid(
       painter->fillRect(liquidRect, palette().brush(QPalette::Highlight));
     } else {
       painter->fillRect(liquidRect, palette().brush(QPalette::ButtonText));
+    }
+
+//  Draw setpoint triangle
+    if (d_data->setpointEnabled) {
+
+      int setpointScaleValue = qRound(scaleMap.transform(d_data->setpointValue));
+
+      painter->setRenderHint( QPainter::Antialiasing );
+      QRectF setpointRect = QRectF(liquidRect.left() + liquidRect.width() / 4. + 1,
+                                   setpointScaleValue - liquidRect.width()/2.,
+                                   3*liquidRect.width()/4. - 1,
+                                   liquidRect.width());
+      QPainterPath setpointPath;
+      setpointPath.moveTo(setpointRect.left(), setpointRect.top() + setpointRect.height() / 2);
+      setpointPath.lineTo(setpointRect.topRight());
+      setpointPath.lineTo(setpointRect.bottomRight());
+      setpointPath.lineTo(setpointRect.left(), setpointRect.top() + setpointRect.height() / 2);
+      painter->fillPath(setpointPath, palette().brush(QPalette::Base));
+      painter->strokePath(setpointPath, QPen(palette().brush(QPalette::Dark), 1.5));
     }
 
   }
@@ -721,7 +781,7 @@ QBrush ASBThermo::alarmBrush() const {
 */
 void ASBThermo::setUpperAlarmLevel(double level) {
   d_data->upperAlarmLevel = level;
-  d_data->upperAlarmEnabled = 1;
+  d_data->upperAlarmEnabled = true;
   update();
 }
 
@@ -747,7 +807,7 @@ double ASBThermo::upperAlarmLevel() const {
 */
 void ASBThermo::setLowerAlarmLevel(double level) {
   d_data->lowerAlarmLevel = level;
-  d_data->lowerAlarmEnabled = 1;
+  d_data->lowerAlarmEnabled = true;
   update();
 }
 
