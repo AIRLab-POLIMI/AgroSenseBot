@@ -88,9 +88,11 @@ public:
   controller_interface::CallbackReturn on_error(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
-  controller_interface::CallbackReturn on_shutdown(
-    const rclcpp_lifecycle::State & previous_state) override;
+private:
+
+  double get_value(std::string name);
+
+  void set_value(std::string name, double value);
 
 protected:
 
@@ -103,8 +105,9 @@ protected:
 
   void halt();
 
-  std::map<std::string, std::shared_ptr<hardware_interface::LoanedStateInterface>> named_state_interface_;
-  std::map<std::string, std::shared_ptr<hardware_interface::LoanedCommandInterface>> named_command_interface_;
+
+  std::map<std::string, std::reference_wrapper<hardware_interface::LoanedStateInterface>> named_state_interface_;
+  std::map<std::string, std::reference_wrapper<hardware_interface::LoanedCommandInterface>> named_command_interface_;
 
   // Timeout to consider messages too old
   std::chrono::milliseconds heartbeat_timeout_ = 200ms;

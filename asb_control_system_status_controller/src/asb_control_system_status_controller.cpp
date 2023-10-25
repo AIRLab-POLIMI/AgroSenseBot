@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <functional>
 
 #include "asb_control_system_status_controller/asb_control_system_status_controller.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
@@ -45,13 +46,13 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_init()
 InterfaceConfiguration ASBControlSystemStatusController::command_interface_configuration() const {
   std::vector<std::string> conf_names;
 
-  conf_names.push_back("control_system_state/heartbeat_alive_bit");
+  conf_names.emplace_back("control_system_state/heartbeat_alive_bit");
 
-  conf_names.push_back("control_system_state/set_software_emergency_stop");
+  conf_names.emplace_back("control_system_state/set_software_emergency_stop");
 
-  conf_names.push_back("control_system_state/pump_command");
+  conf_names.emplace_back("control_system_state/pump_command");
 
-  conf_names.push_back("fan_motor_joint/velocity");
+  conf_names.emplace_back("fan_motor_joint/velocity");
 
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
@@ -59,55 +60,55 @@ InterfaceConfiguration ASBControlSystemStatusController::command_interface_confi
 InterfaceConfiguration ASBControlSystemStatusController::state_interface_configuration() const {
   std::vector<std::string> conf_names;
 
-  conf_names.push_back("left_track_joint/position");
-  conf_names.push_back("left_track_joint/velocity");
+  conf_names.emplace_back("left_track_joint/position");
+  conf_names.emplace_back("left_track_joint/velocity");
 
-  conf_names.push_back("right_track_joint/position");
-  conf_names.push_back("right_track_joint/velocity");
+  conf_names.emplace_back("right_track_joint/position");
+  conf_names.emplace_back("right_track_joint/velocity");
 
-  conf_names.push_back("fan_motor_joint/position");
-  conf_names.push_back("fan_motor_joint/velocity");
+  conf_names.emplace_back("fan_motor_joint/position");
+  conf_names.emplace_back("fan_motor_joint/velocity");
 
-  conf_names.push_back("control_system_state/vcu_comm_ok");
-  conf_names.push_back("control_system_state/vcu_comm_started");
-  conf_names.push_back("control_system_state/gcu_comm_started");
-  conf_names.push_back("control_system_state/gcu_alive_bit_rate_low");
-  conf_names.push_back("control_system_state/gcu_alive_bit_rate_critical");
-  conf_names.push_back("control_system_state/vcu_safety_status");
-  conf_names.push_back("control_system_state/control_mode");
-  conf_names.push_back("control_system_state/more_recent_alarm_id_to_confirm");
-  conf_names.push_back("control_system_state/more_recent_active_alarm_id");
+  conf_names.emplace_back("control_system_state/vcu_comm_ok");
+  conf_names.emplace_back("control_system_state/vcu_comm_started");
+  conf_names.emplace_back("control_system_state/gcu_comm_started");
+  conf_names.emplace_back("control_system_state/gcu_alive_bit_rate_low");
+  conf_names.emplace_back("control_system_state/gcu_alive_bit_rate_critical");
+  conf_names.emplace_back("control_system_state/vcu_safety_status");
+  conf_names.emplace_back("control_system_state/control_mode");
+  conf_names.emplace_back("control_system_state/more_recent_alarm_id_to_confirm");
+  conf_names.emplace_back("control_system_state/more_recent_active_alarm_id");
 
-  conf_names.push_back("control_system_state/software_emergency_stop");
+  conf_names.emplace_back("control_system_state/software_emergency_stop");
 
-  conf_names.push_back("control_system_state/pump_state");
+  conf_names.emplace_back("control_system_state/pump_state");
 
-  conf_names.push_back("control_system_state/left_motor_velocity_setpoint");
-  conf_names.push_back("control_system_state/left_motor_controller_temperature");
-  conf_names.push_back("control_system_state/left_motor_temperature");
-  conf_names.push_back("control_system_state/left_motor_battery_current");
-  conf_names.push_back("control_system_state/left_motor_torque");
-  conf_names.push_back("control_system_state/left_motor_BDI_percentage");
-  conf_names.push_back("control_system_state/left_motor_keyswitch_voltage");
-  conf_names.push_back("control_system_state/left_motor_zero_speed_threshold");
+  conf_names.emplace_back("control_system_state/left_motor_velocity_setpoint");
+  conf_names.emplace_back("control_system_state/left_motor_controller_temperature");
+  conf_names.emplace_back("control_system_state/left_motor_temperature");
+  conf_names.emplace_back("control_system_state/left_motor_battery_current");
+  conf_names.emplace_back("control_system_state/left_motor_torque");
+  conf_names.emplace_back("control_system_state/left_motor_BDI_percentage");
+  conf_names.emplace_back("control_system_state/left_motor_keyswitch_voltage");
+  conf_names.emplace_back("control_system_state/left_motor_zero_speed_threshold");
 
-  conf_names.push_back("control_system_state/right_motor_velocity_setpoint");
-  conf_names.push_back("control_system_state/right_motor_controller_temperature");
-  conf_names.push_back("control_system_state/right_motor_temperature");
-  conf_names.push_back("control_system_state/right_motor_battery_current");
-  conf_names.push_back("control_system_state/right_motor_torque");
-  conf_names.push_back("control_system_state/right_motor_BDI_percentage");
-  conf_names.push_back("control_system_state/right_motor_keyswitch_voltage");
-  conf_names.push_back("control_system_state/right_motor_zero_speed_threshold");
+  conf_names.emplace_back("control_system_state/right_motor_velocity_setpoint");
+  conf_names.emplace_back("control_system_state/right_motor_controller_temperature");
+  conf_names.emplace_back("control_system_state/right_motor_temperature");
+  conf_names.emplace_back("control_system_state/right_motor_battery_current");
+  conf_names.emplace_back("control_system_state/right_motor_torque");
+  conf_names.emplace_back("control_system_state/right_motor_BDI_percentage");
+  conf_names.emplace_back("control_system_state/right_motor_keyswitch_voltage");
+  conf_names.emplace_back("control_system_state/right_motor_zero_speed_threshold");
 
-  conf_names.push_back("control_system_state/fan_motor_velocity_setpoint_rpm");
-  conf_names.push_back("control_system_state/fan_motor_controller_temperature");
-  conf_names.push_back("control_system_state/fan_motor_temperature");
-  conf_names.push_back("control_system_state/fan_motor_battery_current");
-  conf_names.push_back("control_system_state/fan_motor_torque");
-  conf_names.push_back("control_system_state/fan_motor_BDI_percentage");
-  conf_names.push_back("control_system_state/fan_motor_keyswitch_voltage");
-  conf_names.push_back("control_system_state/fan_motor_zero_speed_threshold");
+  conf_names.emplace_back("control_system_state/fan_motor_velocity_setpoint_rpm");
+  conf_names.emplace_back("control_system_state/fan_motor_controller_temperature");
+  conf_names.emplace_back("control_system_state/fan_motor_temperature");
+  conf_names.emplace_back("control_system_state/fan_motor_battery_current");
+  conf_names.emplace_back("control_system_state/fan_motor_torque");
+  conf_names.emplace_back("control_system_state/fan_motor_BDI_percentage");
+  conf_names.emplace_back("control_system_state/fan_motor_keyswitch_voltage");
+  conf_names.emplace_back("control_system_state/fan_motor_zero_speed_threshold");
 
 
   return {interface_configuration_type::INDIVIDUAL, conf_names};
@@ -145,14 +146,14 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_activa
   pump_cmd_time_ = get_node()->get_clock()->now();
   fan_cmd_time_ = get_node()->get_clock()->now();
 
-  for (hardware_interface::LoanedStateInterface& loaned_state_interface : state_interfaces_) {
-    std::string name = loaned_state_interface.get_prefix_name() + "/" + loaned_state_interface.get_interface_name();
-    named_state_interface_[name] = static_cast<std::shared_ptr<hardware_interface::LoanedStateInterface>>(&loaned_state_interface);
+  for (auto &interface : state_interfaces_) {
+    std::string name = interface.get_prefix_name() + "/" + interface.get_interface_name();
+    named_state_interface_.insert(std::pair(name, std::ref(interface)));
   }
 
-  for (hardware_interface::LoanedCommandInterface& loaned_command_interface : command_interfaces_) {
-    std::string name = loaned_command_interface.get_prefix_name() + "/" + loaned_command_interface.get_interface_name();
-    named_command_interface_[name] = static_cast<std::shared_ptr<hardware_interface::LoanedCommandInterface>>(&loaned_command_interface);
+  for (hardware_interface::LoanedCommandInterface& interface : command_interfaces_) {
+    std::string name = interface.get_prefix_name() + "/" + interface.get_interface_name();
+    named_command_interface_.insert(std::pair(name, std::ref(interface)));
   }
 
   is_halted = false;
@@ -160,6 +161,14 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_activa
 
   RCLCPP_DEBUG(get_node()->get_logger(), "Subscriber and publisher are now active.");
   return controller_interface::CallbackReturn::SUCCESS;
+}
+
+double ASBControlSystemStatusController::get_value(std::string name){
+  return named_state_interface_.find(name)->second.get().get_value();
+}
+
+void ASBControlSystemStatusController::set_value(std::string name, double value){
+  named_command_interface_.find(name)->second.get().set_value(value);
 }
 
 controller_interface::return_type ASBControlSystemStatusController::update(const rclcpp::Time & time, const rclcpp::Duration & /*period*/){
@@ -182,74 +191,74 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   }
 
   // set the command interfaces from the controller state variables
-  named_command_interface_["control_system_state/heartbeat_alive_bit"]->set_value(last_heartbeat_msg_.alive_bit);
+  set_value("control_system_state/heartbeat_alive_bit", last_heartbeat_msg_.alive_bit);
 
-  named_command_interface_["control_system_state/set_software_emergency_stop"]->set_value(emergency_stop_cmd_);
+  set_value("control_system_state/set_software_emergency_stop", emergency_stop_cmd_);
 
   if(time - pump_cmd_time_ < pump_cmd_timeout_) {
-    named_command_interface_["control_system_state/pump_command"]->set_value(pump_cmd_);
+    set_value("control_system_state/pump_command", pump_cmd_);
   } else {
-    named_command_interface_["control_system_state/pump_command"]->set_value(false);
+    set_value("control_system_state/pump_command", false);
   }
 
   if(time - fan_cmd_time_ < fan_cmd_timeout_) {
-    named_command_interface_["fan_motor_joint/velocity"]->set_value(fan_cmd_);
+    set_value("fan_motor_joint/velocity", fan_cmd_);
   } else {
-    named_command_interface_["fan_motor_joint/velocity"]->set_value(0);
+    set_value("fan_motor_joint/velocity", 0);
   }
 
   // publish the state interface values
   asb_msgs::msg::ControlSystemState control_system_state_msg;
   control_system_state_msg.stamp = time;
-  control_system_state_msg.vcu_comm_ok = (bool)std::round(named_state_interface_["control_system_state/vcu_comm_ok"]->get_value());
-  control_system_state_msg.vcu_comm_started = (bool)std::round(named_state_interface_["control_system_state/vcu_comm_started"]->get_value());
-  control_system_state_msg.gcu_comm_started = (bool)std::round(named_state_interface_["control_system_state/gcu_comm_started"]->get_value());
-  control_system_state_msg.gcu_alive_bit_rate_low = (bool)std::round(named_state_interface_["control_system_state/gcu_alive_bit_rate_low"]->get_value());
-  control_system_state_msg.gcu_alive_bit_rate_critical = (bool)std::round(named_state_interface_["control_system_state/gcu_alive_bit_rate_critical"]->get_value());
-  control_system_state_msg.vcu_safety_status = (bool)std::round(named_state_interface_["control_system_state/vcu_safety_status"]->get_value());
-  control_system_state_msg.control_mode = (uint8_t)std::round(named_state_interface_["control_system_state/control_mode"]->get_value());
-  control_system_state_msg.more_recent_alarm_id_to_confirm = (uint8_t)std::round(named_state_interface_["control_system_state/more_recent_alarm_id_to_confirm"]->get_value());
-  control_system_state_msg.more_recent_active_alarm_id = (uint8_t)std::round(named_state_interface_["control_system_state/more_recent_active_alarm_id"]->get_value());
+  control_system_state_msg.vcu_comm_ok = (bool)std::round(get_value("control_system_state/vcu_comm_ok"));
+  control_system_state_msg.vcu_comm_started = (bool)std::round(get_value("control_system_state/vcu_comm_started"));
+  control_system_state_msg.gcu_comm_started = (bool)std::round(get_value("control_system_state/gcu_comm_started"));
+  control_system_state_msg.gcu_alive_bit_rate_low = (bool)std::round(get_value("control_system_state/gcu_alive_bit_rate_low"));
+  control_system_state_msg.gcu_alive_bit_rate_critical = (bool)std::round(get_value("control_system_state/gcu_alive_bit_rate_critical"));
+  control_system_state_msg.vcu_safety_status = (bool)std::round(get_value("control_system_state/vcu_safety_status"));
+  control_system_state_msg.control_mode = (uint8_t)std::round(get_value("control_system_state/control_mode"));
+  control_system_state_msg.more_recent_alarm_id_to_confirm = (uint8_t)std::round(get_value("control_system_state/more_recent_alarm_id_to_confirm"));
+  control_system_state_msg.more_recent_active_alarm_id = (uint8_t)std::round(get_value("control_system_state/more_recent_active_alarm_id"));
 
-  control_system_state_msg.software_emergency_stop = (uint8_t)std::round(named_state_interface_["control_system_state/software_emergency_stop"]->get_value());
+  control_system_state_msg.software_emergency_stop = (uint8_t)std::round(get_value("control_system_state/software_emergency_stop"));
 
-  control_system_state_msg.pump_state = (bool)std::round(named_state_interface_["control_system_state/pump_state"]->get_value());
+  control_system_state_msg.pump_state = (bool)std::round(get_value("control_system_state/pump_state"));
 
-  control_system_state_msg.left_motor_velocity_setpoint = named_state_interface_["control_system_state/left_motor_velocity_setpoint"]->get_value();
-  control_system_state_msg.left_motor_controller_temperature = named_state_interface_["control_system_state/left_motor_controller_temperature"]->get_value();
-  control_system_state_msg.left_motor_temperature = named_state_interface_["control_system_state/left_motor_temperature"]->get_value();
-  control_system_state_msg.left_motor_battery_current = named_state_interface_["control_system_state/left_motor_battery_current"]->get_value();
-  control_system_state_msg.left_motor_torque = named_state_interface_["control_system_state/left_motor_torque"]->get_value();
-  control_system_state_msg.left_motor_bdi_percentage = (int)std::round(named_state_interface_["control_system_state/left_motor_BDI_percentage"]->get_value());
-  control_system_state_msg.left_motor_keyswitch_voltage = named_state_interface_["control_system_state/left_motor_keyswitch_voltage"]->get_value();
-  control_system_state_msg.left_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/left_motor_zero_speed_threshold"]->get_value();
+  control_system_state_msg.left_motor_velocity_setpoint = get_value("control_system_state/left_motor_velocity_setpoint");
+  control_system_state_msg.left_motor_controller_temperature = get_value("control_system_state/left_motor_controller_temperature");
+  control_system_state_msg.left_motor_temperature = get_value("control_system_state/left_motor_temperature");
+  control_system_state_msg.left_motor_battery_current = get_value("control_system_state/left_motor_battery_current");
+  control_system_state_msg.left_motor_torque = get_value("control_system_state/left_motor_torque");
+  control_system_state_msg.left_motor_bdi_percentage = (int)std::round(get_value("control_system_state/left_motor_BDI_percentage"));
+  control_system_state_msg.left_motor_keyswitch_voltage = get_value("control_system_state/left_motor_keyswitch_voltage");
+  control_system_state_msg.left_motor_zero_speed_threshold = (int64_t)get_value("control_system_state/left_motor_zero_speed_threshold");
 
-  control_system_state_msg.left_motor_position = named_state_interface_["left_track_joint/position"]->get_value();
-  control_system_state_msg.left_motor_velocity = named_state_interface_["left_track_joint/velocity"]->get_value();
+  control_system_state_msg.left_motor_position = get_value("left_track_joint/position");
+  control_system_state_msg.left_motor_velocity = get_value("left_track_joint/velocity");
 
-  control_system_state_msg.right_motor_velocity_setpoint = named_state_interface_["control_system_state/right_motor_velocity_setpoint"]->get_value();
-  control_system_state_msg.right_motor_controller_temperature = named_state_interface_["control_system_state/right_motor_controller_temperature"]->get_value();
-  control_system_state_msg.right_motor_temperature = named_state_interface_["control_system_state/right_motor_temperature"]->get_value();
-  control_system_state_msg.right_motor_battery_current = named_state_interface_["control_system_state/right_motor_battery_current"]->get_value();
-  control_system_state_msg.right_motor_torque = named_state_interface_["control_system_state/right_motor_torque"]->get_value();
-  control_system_state_msg.right_motor_bdi_percentage = (int)std::round(named_state_interface_["control_system_state/right_motor_BDI_percentage"]->get_value());
-  control_system_state_msg.right_motor_keyswitch_voltage = named_state_interface_["control_system_state/right_motor_keyswitch_voltage"]->get_value();
-  control_system_state_msg.right_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/right_motor_zero_speed_threshold"]->get_value();
+  control_system_state_msg.right_motor_velocity_setpoint = get_value("control_system_state/right_motor_velocity_setpoint");
+  control_system_state_msg.right_motor_controller_temperature = get_value("control_system_state/right_motor_controller_temperature");
+  control_system_state_msg.right_motor_temperature = get_value("control_system_state/right_motor_temperature");
+  control_system_state_msg.right_motor_battery_current = get_value("control_system_state/right_motor_battery_current");
+  control_system_state_msg.right_motor_torque = get_value("control_system_state/right_motor_torque");
+  control_system_state_msg.right_motor_bdi_percentage = (int)std::round(get_value("control_system_state/right_motor_BDI_percentage"));
+  control_system_state_msg.right_motor_keyswitch_voltage = get_value("control_system_state/right_motor_keyswitch_voltage");
+  control_system_state_msg.right_motor_zero_speed_threshold = (int64_t)get_value("control_system_state/right_motor_zero_speed_threshold");
 
-  control_system_state_msg.right_motor_position = named_state_interface_["right_track_joint/position"]->get_value();
-  control_system_state_msg.right_motor_velocity = named_state_interface_["right_track_joint/velocity"]->get_value();
+  control_system_state_msg.right_motor_position = get_value("right_track_joint/position");
+  control_system_state_msg.right_motor_velocity = get_value("right_track_joint/velocity");
 
-  control_system_state_msg.fan_motor_velocity_setpoint_rpm = named_state_interface_["control_system_state/fan_motor_velocity_setpoint_rpm"]->get_value();
-  control_system_state_msg.fan_motor_controller_temperature = named_state_interface_["control_system_state/fan_motor_controller_temperature"]->get_value();
-  control_system_state_msg.fan_motor_temperature = named_state_interface_["control_system_state/fan_motor_temperature"]->get_value();
-  control_system_state_msg.fan_motor_battery_current = named_state_interface_["control_system_state/fan_motor_battery_current"]->get_value();
-  control_system_state_msg.fan_motor_torque = named_state_interface_["control_system_state/fan_motor_torque"]->get_value();
-  control_system_state_msg.fan_motor_bdi_percentage = (int)std::round(named_state_interface_["control_system_state/fan_motor_BDI_percentage"]->get_value());
-  control_system_state_msg.fan_motor_keyswitch_voltage = named_state_interface_["control_system_state/fan_motor_keyswitch_voltage"]->get_value();
-  control_system_state_msg.fan_motor_zero_speed_threshold = (int64_t)named_state_interface_["control_system_state/fan_motor_zero_speed_threshold"]->get_value();
+  control_system_state_msg.fan_motor_velocity_setpoint_rpm = get_value("control_system_state/fan_motor_velocity_setpoint_rpm");
+  control_system_state_msg.fan_motor_controller_temperature = get_value("control_system_state/fan_motor_controller_temperature");
+  control_system_state_msg.fan_motor_temperature = get_value("control_system_state/fan_motor_temperature");
+  control_system_state_msg.fan_motor_battery_current = get_value("control_system_state/fan_motor_battery_current");
+  control_system_state_msg.fan_motor_torque = get_value("control_system_state/fan_motor_torque");
+  control_system_state_msg.fan_motor_bdi_percentage = (int)std::round(get_value("control_system_state/fan_motor_BDI_percentage"));
+  control_system_state_msg.fan_motor_keyswitch_voltage = get_value("control_system_state/fan_motor_keyswitch_voltage");
+  control_system_state_msg.fan_motor_zero_speed_threshold = (int64_t)get_value("control_system_state/fan_motor_zero_speed_threshold");
 
-  control_system_state_msg.fan_motor_position = named_state_interface_["fan_motor_joint/position"]->get_value();
-  control_system_state_msg.fan_motor_velocity_rpm = named_state_interface_["fan_motor_joint/velocity"]->get_value();
+  control_system_state_msg.fan_motor_position = get_value("fan_motor_joint/position");
+  control_system_state_msg.fan_motor_velocity_rpm = get_value("fan_motor_joint/velocity");
 
   control_system_state_publisher_->publish(control_system_state_msg);
 
@@ -334,20 +343,17 @@ controller_interface::CallbackReturn ASBControlSystemStatusController::on_deacti
     halt();
     is_halted = true;
   }
-//  TODO: release hw interfaces?
   std::cout << "ASBControlSystemStatusController::on_deactivate" << std::endl;
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_cleanup(const rclcpp_lifecycle::State &) {
-//  TODO do something here?
   std::cout << "ASBControlSystemStatusController::on_cleanup" << std::endl;
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_error(const rclcpp_lifecycle::State &) {
-//  TODO do something here?
   std::cout << "ASBControlSystemStatusController::on_error" << std::endl;
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -357,11 +363,6 @@ bool ASBControlSystemStatusController::reset() {
   heartbeat_subscriber_.reset();
   is_halted = false;
   return true;
-}
-
-controller_interface::CallbackReturn ASBControlSystemStatusController::on_shutdown(const rclcpp_lifecycle::State &) {
-  std::cout << "ASBControlSystemStatusController::on_shutdown" << std::endl;
-  return controller_interface::CallbackReturn::SUCCESS;
 }
 
 }  // namespace asb_control_system_status_controller
