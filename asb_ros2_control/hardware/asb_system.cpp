@@ -280,7 +280,6 @@ void ASBSystemHardware::timer() {
   } else {
     auto throttle_clock = rclcpp::Clock();
     RCLCPP_INFO_THROTTLE(rclcpp::get_logger("ASBSystemHardware"), throttle_clock, 1000, "WAITING FIRST HEARTBEAT");
-//    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "WAITING FIRST HEARTBEAT");
   }
 
   // The VCU CANOpen node considers the received data correct only if the bIsAlive bit in the TPDO1 of the GCU is
@@ -358,7 +357,7 @@ void ASBSystemHardware::run_canopen_nodes() {
       canopen_nodes_initialized_.store(true);
 
       try {
-        while (lifecycle_state_is_active_.load()) {
+        while (!end_canopen_thread_.load()) {
           loop.run_for(10ms);
           this->timer();
           GCU_->timer();
@@ -366,7 +365,6 @@ void ASBSystemHardware::run_canopen_nodes() {
       } catch (const std::system_error& e) {
         RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                      "An exception occurred in the CANOpen loop function [%s].", e.what());
-        ctx.shutdown();
         exit(1);  // TODO: this may be too brutal, it kills the ros2_control_node (package: controller_manager)
       }
 
@@ -375,7 +373,6 @@ void ASBSystemHardware::run_canopen_nodes() {
                    "An exception occurred while initializing the CANOpen nodes [%s].", e.what());
       RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");
       canopen_initialization_error_.store(true);
-      ctx.shutdown();
       return;
     }
 
@@ -384,18 +381,14 @@ void ASBSystemHardware::run_canopen_nodes() {
                  "Could not open CAN network channel [%s]. Check the CAN adapter is set up and working.", e.what());
     RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");
     canopen_initialization_error_.store(true);
-    ctx.shutdown();
     return;
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "ctx.shutdown()");  // TODO manage interrupt exception
-  ctx.shutdown();
 }
 
 hardware_interface::CallbackReturn ASBSystemHardware::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Configuring hardware interface, initializing CANOpen nodes");
-  lifecycle_state_is_active_.store(true);
   auto canopen_timeout_start = std::chrono::system_clock::now();
 
   canopen_nodes_thread_ = std::thread(std::bind(&ASBSystemHardware::run_canopen_nodes, this));
@@ -411,7 +404,7 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_configure(const rclcpp_
       RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                    "slave CANOpen node failed to initialize before timeout (%li ms)",
                    canopen_init_timeout_milliseconds.count());
-      lifecycle_state_is_active_.store(false);
+      end_canopen_thread_.store(true);
       return hardware_interface::CallbackReturn::ERROR;
     }
     rclcpp::sleep_for(10ms);
@@ -419,7 +412,7 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_configure(const rclcpp_
 
   if(canopen_initialization_error_.load()) {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "Failed to initialize CANOpen nodes");
-    lifecycle_state_is_active_.store(false);
+    end_canopen_thread_.store(true);
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -431,19 +424,16 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_configure(const rclcpp_
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn ASBSystemHardware::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/)
-{
-  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-              "Cleaning up hardware interface, terminating CANOpen node");
-  lifecycle_state_is_active_.store(false);
+void ASBSystemHardware::shutdown_callback() {
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "shutdown_callback: terminating CANOpen nodes");
+  end_canopen_thread_.store(true);
   canopen_nodes_thread_.join();
-  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Successfully deactivated");
-
-  return hardware_interface::CallbackReturn::SUCCESS;
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "shutdown_callback: finished cleaning up");
 }
 
 hardware_interface::return_type ASBSystemHardware::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
+  if (end_canopen_thread_.load()) return hardware_interface::return_type::OK;
 
   // control system (i.e., the VCU CANOpen node)
   vcu_comm_ok_bool_state_ = GCU_->VCU_comm_ok_.load();
@@ -506,6 +496,7 @@ hardware_interface::return_type ASBSystemHardware::read(const rclcpp::Time & /*t
 
 hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
+  if (end_canopen_thread_.load()) return hardware_interface::return_type::OK;
 
   // Pass the heartbeat alive bit to the VCU in TPDO1
   auto gcu_alive_bit_prev_value_ = gcu_alive_bit_current_value_.load();
@@ -554,10 +545,6 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(cons
 
 template<typename T> T ASBSystemHardware::clip(T x, T min, T max) {
   return (x < max) ? ((x > min) ? x : min) : max;
-}
-
-void ASBSystemHardware::shutdown_callback() {
-  RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "shutdown_callback");
 }
 
 }  // namespace asb_ros2_control

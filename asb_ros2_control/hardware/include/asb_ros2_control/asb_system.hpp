@@ -80,9 +80,6 @@ public:
   hardware_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
 
   ASB_ROS2_CONTROL_PUBLIC
-  hardware_interface::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
-
-  ASB_ROS2_CONTROL_PUBLIC
   hardware_interface::return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
   ASB_ROS2_CONTROL_PUBLIC
@@ -103,7 +100,7 @@ private:
   Config cfg_;
 
   // canopen node objects
-  std::atomic<bool> lifecycle_state_is_active_ = false;
+  std::atomic<bool> end_canopen_thread_ = false;
   std::atomic<bool> canopen_nodes_initialized_ = false;
   std::atomic<bool> canopen_initialization_error_ = false;
   std::thread canopen_nodes_thread_;
