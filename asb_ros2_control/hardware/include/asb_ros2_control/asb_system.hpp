@@ -88,13 +88,17 @@ public:
   ASB_ROS2_CONTROL_PUBLIC
   hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
+
+private:
+
   void run_canopen_nodes();
 
   void timer();
 
+  void shutdown_callback();
+
   template<typename T> static T clip(T x, T min, T max);
 
-private:
   // Configuration parameters
   Config cfg_;
 

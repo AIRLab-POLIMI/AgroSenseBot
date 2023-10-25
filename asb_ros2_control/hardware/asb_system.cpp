@@ -22,12 +22,16 @@
 #include <vector>
 #include <filesystem>
 #include <bitset>
+#include <functional>
 
 namespace asb_ros2_control
 {
-hardware_interface::CallbackReturn ASBSystemHardware::on_init(
-  const hardware_interface::HardwareInfo & info)
+
+hardware_interface::CallbackReturn ASBSystemHardware::on_init(const hardware_interface::HardwareInfo & info)
 {
+
+  rclcpp::on_shutdown(std::bind(&ASBSystemHardware::shutdown_callback, this));
+
   if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS)
   {
     return hardware_interface::CallbackReturn::ERROR;
@@ -35,44 +39,32 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(
 
   // read params from ros2_control xacro
   cfg_.GCU_canopen_node_config = info_.hardware_parameters["GCU_canopen_node_config"];
-  if (std::filesystem::exists(cfg_.GCU_canopen_node_config))
+  if (!std::filesystem::exists(cfg_.GCU_canopen_node_config))
   {
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "GCU_canopen_node_config: '%s'", cfg_.GCU_canopen_node_config.c_str());
-  } else {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                  "GCU_canopen_node_config FILE DOES NOT EXISTS: '%s'", cfg_.GCU_canopen_node_config.c_str());
     return hardware_interface::CallbackReturn::ERROR;
   }
 
   cfg_.motor_left_receiver_canopen_node_config = info_.hardware_parameters["motor_left_receiver_canopen_node_config"];
-  if (std::filesystem::exists(cfg_.motor_left_receiver_canopen_node_config))
+  if (!std::filesystem::exists(cfg_.motor_left_receiver_canopen_node_config))
   {
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "motor_left_receiver_canopen_node_config: '%s'", cfg_.motor_left_receiver_canopen_node_config.c_str());
-  } else {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                  "motor_left_receiver_canopen_node_config FILE DOES NOT EXISTS: '%s'", cfg_.motor_left_receiver_canopen_node_config.c_str());
     return hardware_interface::CallbackReturn::ERROR;
   }
 
   cfg_.motor_right_receiver_canopen_node_config = info_.hardware_parameters["motor_right_receiver_canopen_node_config"];
-  if (std::filesystem::exists(cfg_.motor_right_receiver_canopen_node_config))
+  if (!std::filesystem::exists(cfg_.motor_right_receiver_canopen_node_config))
   {
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "motor_right_receiver_canopen_node_config: '%s'", cfg_.motor_right_receiver_canopen_node_config.c_str());
-  } else {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                  "motor_right_receiver_canopen_node_config FILE DOES NOT EXISTS: '%s'", cfg_.motor_right_receiver_canopen_node_config.c_str());
     return hardware_interface::CallbackReturn::ERROR;
   }
 
   cfg_.motor_fan_receiver_canopen_node_config = info_.hardware_parameters["motor_fan_receiver_canopen_node_config"];
-  if (std::filesystem::exists(cfg_.motor_fan_receiver_canopen_node_config))
+  if (!std::filesystem::exists(cfg_.motor_fan_receiver_canopen_node_config))
   {
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "motor_fan_receiver_canopen_node_config: '%s'", cfg_.motor_fan_receiver_canopen_node_config.c_str());
-  } else {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                  "motor_fan_receiver_canopen_node_config FILE DOES NOT EXISTS: '%s'", cfg_.motor_fan_receiver_canopen_node_config.c_str());
     return hardware_interface::CallbackReturn::ERROR;
@@ -160,11 +152,8 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(
     }
   }
 
-  if (info_.gpios[0].name == "control_system_state")
+  if (info_.gpios[0].name != "control_system_state")
   {
-    RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-                "control_system_state gpio param OK");
-  } else {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
                  "control_system_state gpio param in ros2_control.xacro config file");
     return hardware_interface::CallbackReturn::ERROR;
@@ -403,11 +392,9 @@ void ASBSystemHardware::run_canopen_nodes() {
   ctx.shutdown();
 }
 
-hardware_interface::CallbackReturn ASBSystemHardware::on_configure(
-  const rclcpp_lifecycle::State & /*previous_state*/)
+hardware_interface::CallbackReturn ASBSystemHardware::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
-              "Configuring hardware interface, initializing GCU CANOpen node");
+  RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"), "Configuring hardware interface, initializing CANOpen nodes");
   lifecycle_state_is_active_.store(true);
   auto canopen_timeout_start = std::chrono::system_clock::now();
 
@@ -444,8 +431,7 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_configure(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn ASBSystemHardware::on_cleanup(
-  const rclcpp_lifecycle::State & /*previous_state*/)
+hardware_interface::CallbackReturn ASBSystemHardware::on_cleanup(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("ASBSystemHardware"),
               "Cleaning up hardware interface, terminating CANOpen node");
@@ -456,8 +442,7 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_cleanup(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::return_type ASBSystemHardware::read(
-  const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+hardware_interface::return_type ASBSystemHardware::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
 
   // control system (i.e., the VCU CANOpen node)
@@ -519,8 +504,7 @@ hardware_interface::return_type ASBSystemHardware::read(
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
-  const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
 
   // Pass the heartbeat alive bit to the VCU in TPDO1
@@ -570,6 +554,10 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(
 
 template<typename T> T ASBSystemHardware::clip(T x, T min, T max) {
   return (x < max) ? ((x > min) ? x : min) : max;
+}
+
+void ASBSystemHardware::shutdown_callback() {
+  RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "shutdown_callback");
 }
 
 }  // namespace asb_ros2_control
