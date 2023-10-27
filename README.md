@@ -1,15 +1,19 @@
 # AgroSenseBot
 
 ## Install
-After installing ROS2 Humble, run these commands:
-```bash
-sudo apt install can-utils ros-humble-xacro ros-humble-ros2controlcli ros-humble-ros2-controllers-test-nodes ros-humble-diff-drive-controller ros-humble-joint-state-broadcaster libqwt-qt5-dev
+After [installing ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html) (Ubuntu 22.04), run these commands:
+```shell
+sudo add-apt-repository -y ppa:lely/ppa  # lely PPA repo
+sudo apt-get update
+sudo apt-get install -y liblely-coapp-dev liblely-co-tools python3-dcf-tools  # lely canopen
+sudo apt-get install -y can-utils  # linux can utility
+sudo apt-get install -y ros-humble-xacro ros-humble-ros2controlcli ros-humble-ros2-controllers-test-nodes ros-humble-diff-drive-controller ros-humble-joint-state-broadcaster  # ROS2 dependencies
+sudo apt-get install -y libqwt-qt5-dev  # Qwt widgets for the Qt UI
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
-git clone -b humble https://github.com/ros-industrial/ros2_canopen.git
-git clone -b humble-dev https://github.com/AIRLab-POLIMI/AgroSenseBot.git
+git clone -b humble https://github.com/AIRLab-POLIMI/AgroSenseBot.git
 cd ~/w/agrosensebot_ws/
-colcon build
+colcon build --symlink-install
 ```
 
 ## asb_ros2_control

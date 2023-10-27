@@ -11,8 +11,10 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   pluginlib
   rclcpp
   rclcpp_lifecycle
-  lely_core_libraries
 )
+
+include(FindPkgConfig)
+pkg_search_module(liblely-coapp REQUIRED liblely-coapp=2.3.2)  # 2.3.2 is the latest version from the lel PPA at the moment
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -34,9 +36,11 @@ target_include_directories(asb_ros2_control PUBLIC
 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
 $<INSTALL_INTERFACE:include/asb_ros2_control>
 )
+#target_link_libraries(asb_ros2_control ${liblely-io2_LIBRARIES} ${liblely-coapp_LIBRARIES})
 ament_target_dependencies(
   asb_ros2_control PUBLIC
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+        ${THIS_PACKAGE_INCLUDE_DEPENDS}
+        liblely-coapp
 )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
@@ -78,5 +82,5 @@ endif()
 
 ## EXPORTS
 ament_export_targets(export_asb_ros2_control HAS_LIBRARY_TARGET)
-ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS} liblely-coapp)
 ament_package()

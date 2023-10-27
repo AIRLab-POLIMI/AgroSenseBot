@@ -15,10 +15,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+include(FindPkgConfig)
+pkg_search_module(liblely-coapp REQUIRED liblely-coapp=2.3.2)  # 2.3.2 is the latest version from the lel PPA at the moment
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(lely_core_libraries REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 
@@ -39,10 +41,11 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(test_node ${liblely-coapp_LIBRARIES})
 ament_target_dependencies(
         test_node
         rclcpp
-        lely_core_libraries
+        liblely-coapp
         rclcpp_lifecycle
         lifecycle_msgs
 )
