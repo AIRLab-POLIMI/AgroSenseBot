@@ -111,6 +111,8 @@ namespace asb_rviz_plugins {
 
   void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {
 
+    control_system_state_timeout_timer_->reset();
+
 //    System status
     ui_->sw_emergency_stop_disp->setText(QString(control_system_state->software_emergency_stop ? "ENABLED":"OK"));
     ui_->sw_emergency_stop_disp->setStyleSheet(control_system_state->software_emergency_stop ? yel_bg:no_bg);
@@ -146,11 +148,11 @@ namespace asb_rviz_plugins {
         ui_->pump_disp->setStyleSheet(no_bg);
 
         control_system_state->more_recent_active_alarm_id ?
-        ui_->errors_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)) :
-        ui_->errors_disp->setText(QString("NONE"));
+        ui_->vcu_error_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)) :
+        ui_->vcu_error_disp->setText(QString("NONE"));
         control_system_state->more_recent_active_alarm_id ?
-        ui_->errors_disp->setStyleSheet(yel_bg) :
-        ui_->errors_disp->setStyleSheet(no_bg);
+        ui_->vcu_error_disp->setStyleSheet(yel_bg) :
+        ui_->vcu_error_disp->setStyleSheet(no_bg);
       } else {
         ui_->vcu_comm_disp->setText(QString("DOWN"));
         ui_->vcu_comm_disp->setStyleSheet(yel_bg);
@@ -164,8 +166,8 @@ namespace asb_rviz_plugins {
         ui_->pump_disp->setText(QString("UNKNOWN"));
         ui_->pump_disp->setStyleSheet(no_bg);
 
-        ui_->errors_disp->setText(QString("UNKNOWN"));
-        ui_->errors_disp->setStyleSheet(no_bg);
+        ui_->vcu_error_disp->setText(QString("UNKNOWN"));
+        ui_->vcu_error_disp->setStyleSheet(no_bg);
       }
     } else {
       ui_->vcu_comm_disp->setText(QString("WAITING"));
@@ -180,8 +182,8 @@ namespace asb_rviz_plugins {
       ui_->pump_disp->setText(QString("UNKNOWN"));
       ui_->pump_disp->setStyleSheet(no_bg);
 
-      ui_->errors_disp->setText(QString("UNKNOWN"));
-      ui_->errors_disp->setStyleSheet(no_bg);
+      ui_->vcu_error_disp->setText(QString("UNKNOWN"));
+      ui_->vcu_error_disp->setStyleSheet(no_bg);
     }
 
 //    Battery
@@ -279,6 +281,31 @@ namespace asb_rviz_plugins {
     ui_->fan_controller_temperature_disp->setText(QString("%1 °C").arg(
             control_system_state->fan_motor_controller_temperature, 0, 'f', 1));
     ui_->fan_controller_temperature_disp->setStyleSheet(is_alarm_on(fan_controller_temperature_) ? red_bg:no_bg);
+
+  }
+
+  void ASBWidget::control_system_state_timeout_callback() {
+
+    ui_->sw_emergency_stop_disp->setText(QString("UNKNOWN"));
+    ui_->sw_emergency_stop_disp->setStyleSheet(no_bg);
+
+    ui_->gcu_comm_disp->setText(QString("NO ROS DATA"));
+    ui_->gcu_comm_disp->setStyleSheet(yel_bg);
+
+    ui_->vcu_comm_disp->setText(QString("UNKNOWN"));
+    ui_->vcu_comm_disp->setStyleSheet(no_bg);
+
+    ui_->vcu_safety_disp->setText(QString("UNKNOWN"));
+    ui_->vcu_safety_disp->setStyleSheet(no_bg);
+
+    ui_->vcu_error_disp->setText(QString("UNKNOWN"));
+    ui_->vcu_error_disp->setStyleSheet(no_bg);
+
+    ui_->control_mode_disp->setText(QString("UNKNOWN"));
+    ui_->control_mode_disp->setStyleSheet(no_bg);
+
+    ui_->pump_disp->setText(QString("UNKNOWN"));
+    ui_->pump_disp->setStyleSheet(no_bg);
 
   }
 

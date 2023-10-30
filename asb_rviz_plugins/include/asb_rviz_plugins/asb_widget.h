@@ -44,6 +44,10 @@ namespace asb_rviz_plugins
 
     void control_system_state_callback(asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const;
 
+    void control_system_state_timeout_callback();
+
+    rclcpp::TimerBase::SharedPtr control_system_state_timeout_timer_;
+
   public Q_SLOTS:
   private Q_SLOTS:
   protected:
