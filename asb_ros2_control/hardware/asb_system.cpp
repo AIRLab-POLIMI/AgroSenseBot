@@ -452,8 +452,15 @@ hardware_interface::return_type ASBSystemHardware::read(const rclcpp::Time & /*t
   // pump
   pump_bool_state_ = GCU_->VCU_pump_status_bit_.load();
 
+  // compute differential rotor position to avoid jumps when the rotor position raw data over/underflows
+  long left_rotor_position_raw = motor_left_receiver_->rotor_position_.load();
+  long left_rotor_position_raw_delta = left_rotor_position_raw - prev_left_rotor_position_raw_;
+  if(left_rotor_position_raw_delta < -RAW_DATA_ROTOR_POSITION_MAX) left_rotor_position_raw_delta += 2 * RAW_DATA_ROTOR_POSITION_MAX;
+  if(left_rotor_position_raw_delta > RAW_DATA_ROTOR_POSITION_MAX) left_rotor_position_raw_delta -= 2 * RAW_DATA_ROTOR_POSITION_MAX;
+  prev_left_rotor_position_raw_ = left_rotor_position_raw;
+
   // left motor state
-  track_left_position_state_ = motor_left_receiver_->rotor_position_.load() * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
+  track_left_position_state_ += (double)left_rotor_position_raw_delta * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
   track_left_velocity_state_ = motor_left_receiver_->motor_RPM_.load() * 2 * M_PI / 60.0;
   track_left_velocity_setpoint_state_ = track_left_velocity_command_;
   track_left_controller_temperature_state_ = motor_left_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;
@@ -465,8 +472,15 @@ hardware_interface::return_type ASBSystemHardware::read(const rclcpp::Time & /*t
   track_left_zero_speed_threshold_state_ = motor_left_receiver_->zero_speed_threshold_.load();
   track_left_interlock_bool_state_ = motor_left_receiver_->interlock_status_.load();
 
-//   right motor state
-  track_right_position_state_ = motor_right_receiver_->rotor_position_.load() * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
+  // compute differential rotor position to avoid jumps when the rotor position raw data over/underflows
+  long right_rotor_position_raw = motor_right_receiver_->rotor_position_.load();
+  long right_rotor_position_raw_delta = right_rotor_position_raw - prev_right_rotor_position_raw_;
+  if(right_rotor_position_raw_delta < -RAW_DATA_ROTOR_POSITION_MAX) right_rotor_position_raw_delta += 2 * RAW_DATA_ROTOR_POSITION_MAX;
+  if(right_rotor_position_raw_delta > RAW_DATA_ROTOR_POSITION_MAX) right_rotor_position_raw_delta -= 2 * RAW_DATA_ROTOR_POSITION_MAX;
+  prev_right_rotor_position_raw_ = right_rotor_position_raw;
+
+  // right motor state
+  track_right_position_state_ += (double)right_rotor_position_raw_delta * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
   track_right_velocity_state_ = motor_right_receiver_->motor_RPM_.load() * 2 * M_PI / 60;
   track_right_velocity_setpoint_state_ = track_right_velocity_command_;
   track_right_controller_temperature_state_ = motor_right_receiver_->controller_temperature_.load() * RAW_DATA_STEP_VALUE_temperature;

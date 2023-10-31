@@ -45,6 +45,8 @@
 #define RAW_DATA_STEP_VALUE_voltage 0.01 // 0.01 V
 #define RAW_DATA_STEP_VALUE_rotor_position (1/4096.) // 2^12 revolutions
 
+#define RAW_DATA_ROTOR_POSITION_MAX 2147483648 // 2^31
+
 using namespace std::chrono_literals;
 
 namespace asb_ros2_control
@@ -116,6 +118,8 @@ private:
   std::atomic<bool> gcu_alive_bit_current_value_ = false;
   std::atomic<std::chrono::steady_clock::time_point> gcu_alive_bit_last_value_change_;
   std::atomic<bool> software_emergency_stop_ = false;
+  long prev_left_rotor_position_raw_ = 0;
+  long prev_right_rotor_position_raw_ = 0;
 
   // exported interface for the control system (all variables need to be doubles for ros2_control reasons)
   // control system state and commands

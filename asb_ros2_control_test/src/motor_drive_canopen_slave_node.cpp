@@ -90,8 +90,8 @@ void MotorDriveCANOpenSlaveNode::send_TPDO_3() {
   this->TpdoEvent(3);
 }
 
-void MotorDriveCANOpenSlaveNode::set_TPDO_4(int32_t rotor_position) {
-  rotor_position_ = rotor_position;
+void MotorDriveCANOpenSlaveNode::set_TPDO_4(int32_t rotor_position_raw) {
+  rotor_position_ = rotor_position_raw;
   new_TPDO_4_ = true;
 }
 

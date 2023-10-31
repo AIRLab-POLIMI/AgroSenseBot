@@ -34,7 +34,7 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   last_GCU_message_time_ = this->get_clock()->now();
   last_GCU_alive_bit_change_time_ = this->get_clock()->now();
 
-  std::chrono::duration test_loop_timer_period_ = 50ms;  // must be higher than the timer loop period of the VCU
+  std::chrono::duration test_loop_timer_period_ = 10ms;  // must be higher than the timer loop period of the VCU
   test_loop_timer_ = rclcpp::create_timer(
           this, this->get_clock(), rclcpp::Duration(test_loop_timer_period_),
           std::bind(&ASBSystemTestNode::test_loop_timer_ros2_callback, this));
@@ -112,7 +112,7 @@ void ASBSystemTestNode::run_canopen_nodes() {
   FAN_canopen_slave_node_->Reset();
 
   while (lifecycle_node_active_.load()) {
-    loop.run_for(10ms);
+    loop.run_for(1ms);
     VCU_canopen_slave_node_->timer();
     MDL_canopen_slave_node_->timer();
     MDR_canopen_slave_node_->timer();
@@ -126,23 +126,40 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
   rclcpp::Duration time_delta = now - last_test_loop_time_;
   last_test_loop_time_ = now;
 
-  left_motor_drive_test_state_.motor_rpm = left_motor_drive_test_state_.speed_ref;
-  left_motor_drive_test_state_.rotor_position += (left_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
+  left_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
 //  RCLCPP_INFO(this->get_logger(),
-//              "left    motor_rpm: %i   rotor_position: %f",
-//              left_motor_drive_test_state_.motor_rpm, left_motor_drive_test_state_.rotor_position);
+//              "\n"
+//              "left    time_delta          : %f s\n"
+//              "        motor_rpm           : %i RPM\n"
+//              "        rotor_position_raw  : %i raw\n"
+//              "        rotor_position      : %f rev\n",
+//              time_delta.seconds(),
+//              left_motor_drive_test_state_.motor_rpm,
+//              left_motor_drive_test_state_.rotor_position_raw,
+//              left_motor_drive_test_state_.rotor_position()
+//  );
 
-  right_motor_drive_test_state_.motor_rpm = right_motor_drive_test_state_.speed_ref;
-  right_motor_drive_test_state_.rotor_position += (right_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
+  right_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
 //  RCLCPP_INFO(this->get_logger(),
-//              "right   motor_rpm: %i   rotor_position: %f",
-//              right_motor_drive_test_state_.motor_rpm, right_motor_drive_test_state_.rotor_position);
+//              "\n"
+//              "right   motor_rpm           : %i RPM\n"
+//              "        rotor_position_raw  : %i raw\n"
+//              "        rotor_position      : %f rev\n",
+//              right_motor_drive_test_state_.motor_rpm,
+//              right_motor_drive_test_state_.rotor_position_raw,
+//              right_motor_drive_test_state_.rotor_position()
+//  );
 
-  fan_motor_drive_test_state_.motor_rpm = fan_motor_drive_test_state_.speed_ref;
-  fan_motor_drive_test_state_.rotor_position += (fan_motor_drive_test_state_.motor_rpm / 60.) * time_delta.seconds();
+  fan_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
 //  RCLCPP_INFO(this->get_logger(),
-//              "fan     motor_rpm: %i   rotor_position: %f",
-//              fan_motor_drive_test_state_.motor_rpm, fan_motor_drive_test_state_.rotor_position);
+//              "\n"
+//              "fan     motor_rpm           : %i RPM\n"
+//              "        rotor_position_raw  : %i raw\n"
+//              "        rotor_position      : %f rev\n",
+//              fan_motor_drive_test_state_.motor_rpm,
+//              fan_motor_drive_test_state_.rotor_position_raw,
+//              fan_motor_drive_test_state_.rotor_position()
+//  );
 
   vcu_alive_test_callback(pump_test_state_, false,
                           ControlMode::GCU,
@@ -152,19 +169,19 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
           42.5, 57.2, left_motor_drive_test_state_.motor_rpm, 0.2,
           0, 63, 24.5, 5,
           false,
-          left_motor_drive_test_state_.rotor_position);
+          left_motor_drive_test_state_.rotor_position_raw);
 
   motor_drive_right_test_callback(
           42.5, 57.2, right_motor_drive_test_state_.motor_rpm, 0.2,
           0, 63, 24.5, 5,
           false,
-          right_motor_drive_test_state_.rotor_position);
+          right_motor_drive_test_state_.rotor_position_raw);
 
   motor_drive_fan_test_callback(
           42.5, 57.2, fan_motor_drive_test_state_.motor_rpm, 0.2,
           0, 63, 24.5, 5,
           false,
-          fan_motor_drive_test_state_.rotor_position);
+          fan_motor_drive_test_state_.rotor_position_raw);
 
 }
 
@@ -204,7 +221,7 @@ void ASBSystemTestNode::motor_drive_left_test_callback(
         double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
         double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
         bool interlock_status,
-        double rotor_position) {
+        int32_t rotor_position_raw) {
   if (MDL_canopen_slave_node_ != nullptr) {
     MDL_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
@@ -217,7 +234,7 @@ void ASBSystemTestNode::motor_drive_left_test_callback(
             (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
             (int16_t) zero_speed_threshold);
     MDL_canopen_slave_node_->set_TPDO_3(interlock_status);
-    MDL_canopen_slave_node_->set_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+    MDL_canopen_slave_node_->set_TPDO_4(rotor_position_raw);
   }
 
 }
@@ -226,7 +243,7 @@ void ASBSystemTestNode::motor_drive_right_test_callback(
         double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
         double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
         bool interlock_status,
-        double rotor_position) {
+        int32_t rotor_position_raw) {
   if (MDR_canopen_slave_node_ != nullptr) {
     MDR_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
@@ -239,7 +256,7 @@ void ASBSystemTestNode::motor_drive_right_test_callback(
             (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
             (int16_t) zero_speed_threshold);
     MDR_canopen_slave_node_->set_TPDO_3(interlock_status);
-    MDR_canopen_slave_node_->set_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+    MDR_canopen_slave_node_->set_TPDO_4(rotor_position_raw);
   }
 }
 
@@ -247,7 +264,7 @@ void ASBSystemTestNode::motor_drive_fan_test_callback(
         double controller_temperature, double motor_temperature, int motor_rpm, double battery_current_display,
         double motor_torque, double bdi_percentage, double keyswitch_voltage, int zero_speed_threshold,
         bool interlock_status,
-        double rotor_position) {
+        int32_t rotor_position_raw) {
   if (FAN_canopen_slave_node_ != nullptr) {
     FAN_canopen_slave_node_->set_TPDO_1(
             (int16_t) (controller_temperature / RAW_DATA_STEP_VALUE_temperature),
@@ -260,7 +277,7 @@ void ASBSystemTestNode::motor_drive_fan_test_callback(
             (int16_t) (keyswitch_voltage / RAW_DATA_STEP_VALUE_voltage),
             (int16_t) zero_speed_threshold);
     FAN_canopen_slave_node_->set_TPDO_3(interlock_status);
-    FAN_canopen_slave_node_->set_TPDO_4((int32_t) (rotor_position / RAW_DATA_STEP_VALUE_rotor_position));
+    FAN_canopen_slave_node_->set_TPDO_4(rotor_position_raw);
   }
 }
 
