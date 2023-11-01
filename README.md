@@ -45,7 +45,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/as
 ros2 launch asb_ros2_control joy.launch.py
 ```
 
-In the Rviz window, the odom frame should move according to the keyboard or joy-pad input.
+In the Rviz window, the `base_link` frame should move according to the keyboard or joy-pad input.
 
 To shut down the vcan0 CAN network, use the following command
 ```shell
