@@ -211,7 +211,6 @@
       </link>
 
       <link name="wheel_left_link">
-
         <inertial>
           <pose>0.0 0.144 0.023 -1.57 0 0</pose>
           <inertia>
@@ -269,7 +268,6 @@
       </link>
 
       <link name="wheel_right_link">
-
         <inertial>
           <pose>0.0 -0.144 0.023 -1.57 0 0</pose>
           <inertia>
@@ -548,7 +546,7 @@
         <!-- output -->
         <!-- The odom -> base link transform is published by the ekf in robot localization -->
         <publish_odom>true</publish_odom>
-        <publish_odom_tf>false</publish_odom_tf>
+        <publish_odom_tf>true</publish_odom_tf>
         <publish_wheel_tf>false</publish_wheel_tf>
 
         <odometry_topic>odom</odometry_topic>
