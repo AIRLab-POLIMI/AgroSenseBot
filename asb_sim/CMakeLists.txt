@@ -21,6 +21,11 @@ if(BUILD_TESTING)
 endif()
 
 install(
+        DIRECTORY scripts/
+        DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
         DIRECTORY models worlds urdf launch config
         DESTINATION share/${PROJECT_NAME}
 )
