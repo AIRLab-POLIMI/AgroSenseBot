@@ -5,10 +5,14 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/CircleArena.proto"
 
 WorldInfo {
+  title "AgroSenseBot"
   info [
     "Example uses of Track nodes as tracks on a robot."
   ]
-  title "Tracked robot"
+
+  gpsCoordinateSystem "WGS84"
+  gpsReference 40.67 -73.94 10
+
   basicTimeStep 8
   contactProperties [
     ContactProperties {
@@ -292,6 +296,14 @@ DEF TRACKED_ROBOT Robot {
       ]
       animatedGeometry USE ANIMATED_GEOM
       geometriesCount 40
+    }
+    GPS {
+      type "satellite"
+      accuracy 0
+      noiseCorrelation 0
+      resolution -1
+      speedNoise 0
+      speedResolution -1
     }
   ]
   name "asb_webots_robot"

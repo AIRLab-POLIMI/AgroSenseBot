@@ -7,14 +7,14 @@ from webots_ros2_driver.webots_controller import WebotsController
 
 
 def generate_launch_description():
-    package_dir = get_package_share_directory('asb_webots')
-    robot_description_path = os.path.join(package_dir, 'resource', 'asb_webots_robot.urdf')
+    package_share_dir = get_package_share_directory('asb_webots')
+    robot_description_path = os.path.join(package_share_dir, 'resource', 'asb_webots_robot.urdf')
 
-    webots = WebotsLauncher(
-        world=os.path.join(package_dir, 'worlds', 'my_world.wbt')
+    webots_launcher = WebotsLauncher(
+        world=os.path.join(package_share_dir, 'worlds', 'asb_gnss_world.wbt')
     )
 
-    my_robot_driver = WebotsController(
+    webots_controller = WebotsController(
         robot_name='asb_webots_robot',
         parameters=[
             {'robot_description': robot_description_path},
@@ -22,11 +22,11 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        webots,
-        my_robot_driver,
+        webots_launcher,
+        webots_controller,
         launch.actions.RegisterEventHandler(
             event_handler=launch.event_handlers.OnProcessExit(
-                target_action=webots,
+                target_action=webots_launcher,
                 on_exit=[launch.actions.EmitEvent(event=launch.events.Shutdown())],
             )
         )

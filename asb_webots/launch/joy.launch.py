@@ -32,7 +32,7 @@ def generate_launch_description():
                     "enable_button": 7,
                     "axis_linear.x": 1,
                     "scale_linear.x": 0.01,
-                    "scale_angular.yaw": 0.5,
+                    "scale_angular.yaw": 0.1,
                 },
             ],
     )
