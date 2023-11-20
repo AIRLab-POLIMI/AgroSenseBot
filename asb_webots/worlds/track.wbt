@@ -1,14 +1,14 @@
 #VRML_SIM R2023b utf8
 
-EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackground.proto"
-EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
-EXTERNPROTO "webots://projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/CircleArena.proto"
 
 WorldInfo {
   info [
-    "Example uses of Track nodes, as caterpillar tracks on a robot, or as a conveyor belt."
+    "Example uses of Track nodes as tracks on a robot."
   ]
-  title "Track"
+  title "Tracked robot"
   basicTimeStep 8
   contactProperties [
     ContactProperties {
@@ -20,20 +20,24 @@ WorldInfo {
     }
   ]
 }
+
 Viewpoint {
-  orientation 0.16070097299661462 0.7485211140651568 -0.6433438731165457 0.644164285586381
-  position -2.2710650615092054 0.8391628545721497 1.372578197601706
+  orientation -0.33185733874619844 -0.09874274160469809 0.9381474178937331 3.686018050088086
+  position 1.700313773507203 1.0549607538959629 1.4846240848267684
+  follow "asb_webots_robot"
 }
+
 TexturedBackground {
 }
+
 TexturedBackgroundLight {
 }
-RectangleArena {
-  floorSize 2 2
+
+CircleArena {
 }
+
 DEF TRACKED_ROBOT Robot {
-  translation 0.547744 -0.672268 0.07
-  rotation 0 0 -1 -2.094395
+  translation 0 0 0.07
   children [
     DEF GEOM Shape {
       appearance PBRAppearance {
@@ -290,89 +294,11 @@ DEF TRACKED_ROBOT Robot {
       geometriesCount 40
     }
   ]
-  name "tracked robot"
+  name "asb_webots_robot"
   boundingObject USE GEOM
   physics Physics {
     density -1
     mass 40
   }
-  controller "track"
-}
-
-
-
-DEF BOX_1 Solid {
-  translation -0.6 -0.16 0.145
-  rotation 0 0 1 -1.570795
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColor 0.992157 0.00784314 0.00784314
-        roughness 1
-        metalness 0
-      }
-      geometry DEF BO Box {
-        size 0.02 0.02 0.02
-      }
-    }
-  ]
-  name "box 1"
-  boundingObject USE BO
-  physics Physics {
-  }
-}
-DEF BOX_2 Solid {
-  translation -0.6 -0.06 0.145
-  rotation 0 0 1 -1.570795
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColor 0.992157 0.00784314 0.00784314
-        roughness 1
-        metalness 0
-      }
-      geometry USE BO
-    }
-  ]
-  name "box 2"
-  boundingObject USE BO
-  physics Physics {
-  }
-}
-DEF BOX_3 Solid {
-  translation -0.6 0.04 0.145
-  rotation 0 0 1 -1.570795
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColor 0.992157 0.00784314 0.00784314
-        roughness 1
-        metalness 0
-      }
-      geometry USE BO
-    }
-  ]
-  name "box 3"
-  boundingObject USE BO
-  physics Physics {
-  }
-}
-DEF OBSTACLE_GREEN Solid {
-  translation 0.282729 -0.23299 0.025
-  rotation 0.08186798416599658 0.0730449858724437 -0.993962807758666 0.78828
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColor 0 1 0
-        roughness 1
-        metalness 0
-      }
-      geometry DEF BO Box {
-        size 0.2 0.6 0.05
-      }
-    }
-  ]
-  name "green obstacle"
-  boundingObject USE BO
-  rotationStep 0.00261799
+  controller "<extern>"
 }

@@ -11,8 +11,8 @@
 namespace asb_webots_driver {
     void ASBWebotsDriver::init(webots_ros2_driver::WebotsNode *node, std::unordered_map<std::string, std::string> &parameters) {
 
-        right_motor = wb_robot_get_device("right wheel motor");
-        left_motor = wb_robot_get_device("left wheel motor");
+        right_motor = wb_robot_get_device("right motor");
+        left_motor = wb_robot_get_device("left motor");
 
         wb_motor_set_position(left_motor, INFINITY);
         wb_motor_set_velocity(left_motor, 0.0);
@@ -25,8 +25,7 @@ namespace asb_webots_driver {
                 std::bind(&ASBWebotsDriver::cmdVelCallback, this, std::placeholders::_1));
     }
 
-    void ASBWebotsDriver::cmdVelCallback(
-            const geometry_msgs::msg::Twist::SharedPtr msg) {
+    void ASBWebotsDriver::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
         cmd_vel_msg.linear = msg->linear;
         cmd_vel_msg.angular = msg->angular;
     }
