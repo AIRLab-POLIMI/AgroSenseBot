@@ -39,16 +39,18 @@ def generate_launch_description():
     declare_use_rviz_cmd = DeclareLaunchArgument(
         'use_rviz',
         default_value='False',
-        description='Whether to start RVIZ')
+        description='Whether to start RVIZ'
+    )
 
     declare_use_mapviz_cmd = DeclareLaunchArgument(
         'use_mapviz',
         default_value='False',
-        description='Whether to start mapviz')
+        description='Whether to start mapviz'
+    )
 
     gazebo_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(launch_dir, 'gazebo_gps_world.launch.py'))
+            os.path.join(launch_dir, 'gazebo_gnss_world.launch.py'))
     )
 
     robot_localization_cmd = IncludeLaunchDescription(
