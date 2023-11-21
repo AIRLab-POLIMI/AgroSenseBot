@@ -25,12 +25,9 @@ from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
-    package_share_dir = get_package_share_directory("asb_nav")
-    bringup_share_dir = get_package_share_directory('nav2_bringup')
-    asb_gazebo_share_dir = get_package_share_directory("asb_gazebo")
-    asb_webots_share_dir = get_package_share_directory("asb_webots")
+    pkg = get_package_share_directory
 
-    nav2_params = os.path.join(package_share_dir, "config", "nav2_no_map_params.yaml")
+    nav2_params = os.path.join(pkg("asb_nav"), "config", "nav2_no_map_params.yaml")
     configured_params = RewrittenYaml(source_file=nav2_params, root_key="", param_rewrites={}, convert_types=True)
 
     use_gazebo_launch_configuration = LaunchConfiguration('use_gazebo')
@@ -50,33 +47,26 @@ def generate_launch_description():
     rviz_launch_configuration = LaunchConfiguration('rviz')
     rviz_launch_argument = DeclareLaunchArgument(
         'rviz',
-        default_value='False',
+        default_value='True',
         description='Whether to start RViz'
     )
 
-    mapviz_launch_configuration = LaunchConfiguration('mapviz')
-    mapviz_launch_argument = DeclareLaunchArgument(
-        'mapviz',
-        default_value='False',
-        description='Whether to start MapViz'
-    )
-
     gazebo_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(asb_gazebo_share_dir, "launch", "sim.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_gazebo"), "launch", "sim.launch.py")),
         condition=IfCondition(use_gazebo_launch_configuration)
     )
 
     webots_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(asb_webots_share_dir, "launch", "sim.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_webots"), "launch", "sim.launch.py")),
         condition=IfCondition(use_webots_launch_configuration)
     )
 
     robot_localization_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(package_share_dir, "launch", "dual_ekf_navsat.launch.py"))
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "dual_ekf_navsat.launch.py"))
     )
 
     navigation2_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(bringup_share_dir, "launch", "navigation_launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg("nav2_bringup"), "launch", "navigation_launch.py")),
         launch_arguments={
             "use_sim_time": "True",
             "params_file": configured_params,
@@ -85,13 +75,8 @@ def generate_launch_description():
     )
 
     rviz_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(package_share_dir, "launch", "rviz.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "rviz.launch.py")),
         condition=IfCondition(rviz_launch_configuration)
-    )
-
-    mapviz_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(package_share_dir, "launch", "mapviz.launch.py")),
-        condition=IfCondition(mapviz_launch_configuration)
     )
 
     # Create the launch description and populate
@@ -101,11 +86,9 @@ def generate_launch_description():
     ld.add_action(use_gazebo_launch_argument)
     ld.add_action(use_webots_launch_argument)
     ld.add_action(rviz_launch_argument)
-    ld.add_action(mapviz_launch_argument)
 
     # viz
     ld.add_action(rviz_cmd)
-    ld.add_action(mapviz_cmd)
 
     # sim
     ld.add_action(gazebo_launch)
