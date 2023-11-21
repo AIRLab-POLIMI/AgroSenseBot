@@ -2,7 +2,11 @@
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/CircleArena.proto"
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/factory/containers/protos/WoodenBox.proto"
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/robotis/protos/RobotisLds01.proto"
 
 WorldInfo {
   title "AgroSenseBot"
@@ -33,11 +37,41 @@ Viewpoint {
 
 TexturedBackground {
 }
-
 TexturedBackgroundLight {
 }
 
-CircleArena {
+RectangleArena {
+  floorSize 10 10
+}
+WoodenBox {
+  name "wooden box 1"
+  translation 2.11057 -0.95513 0.15
+  rotation 0 0 1 0.5
+  size .3 .3 .3
+}
+WoodenBox {
+  name "wooden box 2"
+  translation 1.76814 0.515864 0.15
+  rotation 0 0 1 4.96782
+  size .3 .3 .3
+}
+WoodenBox {
+  name "wooden box 3"
+  translation 0.305962 -2.03751 0.15
+  rotation 0 0 1 5.36782
+  size .3 .3 .3
+}
+WoodenBox {
+  name "wooden box 4"
+  translation 0.753206 0.811435 0.15
+  rotation 0 0 1 5.36782
+  size .3 .3 .3
+}
+WoodenBox {
+  name "wooden box 5"
+  translation 1.47656 1.22948 0.15
+  rotation 0 0 1 5.36782
+  size .3 .3 .3
 }
 
 DEF TRACKED_ROBOT Robot {
@@ -304,6 +338,13 @@ DEF TRACKED_ROBOT Robot {
       resolution -1
       speedNoise 0
       speedResolution -1
+    }
+    RobotisLds01 {
+      translation 0 0 0.07
+      rotation 0 0 1 0
+      name "LDS-01"
+      noise 0.0043
+      enablePhysics TRUE
     }
   ]
   name "asb_webots_robot"
