@@ -21,8 +21,8 @@ import launch.actions
 
 
 def generate_launch_description():
-    asb_sim_dir = get_package_share_directory("asb_sim")
-    rl_params_file = os.path.join(asb_sim_dir, "config", "dual_ekf_navsat_params.yaml")
+    package_share_dir = get_package_share_directory("asb_nav")
+    rl_params_file = os.path.join(package_share_dir, "config", "dual_ekf_navsat_params.yaml")
 
     return LaunchDescription(
         [

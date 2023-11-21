@@ -5,8 +5,8 @@ import launch_ros.actions
 import os
 from ament_index_python.packages import get_package_share_directory
 
-asb_sim_dir = get_package_share_directory("asb_sim")
-mapviz_config_file = os.path.join(asb_sim_dir, "config", "gps_wpf_demo.mvc")
+package_share_dir = get_package_share_directory("asb_nav")
+mapviz_config_file = os.path.join(package_share_dir, "config", "gps_wpf_demo.mvc")
 
 
 def generate_launch_description():

@@ -22,19 +22,19 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    asb_sim_dir = get_package_share_directory("asb_sim")
+    package_share_dir = get_package_share_directory("asb_gazebo")
     turtlebot3_gazebo_dir = get_package_share_directory("turtlebot3_gazebo")
 
-    launch_dir = os.path.join(asb_sim_dir, "launch")
-    world_file = os.path.join(asb_sim_dir, "worlds", "empty.world")
+    launch_dir = os.path.join(package_share_dir, "launch")
+    world_file = os.path.join(package_share_dir, "worlds", "empty.world")
 
-    urdf_file = os.path.join(asb_sim_dir, "urdf", "turtlebot3_waffle_gps.urdf")
+    urdf_file = os.path.join(package_share_dir, "urdf", "turtlebot3_waffle_gps.urdf")
     with open(urdf_file, 'r') as f:
         robot_description = f.read()
 
     set_gazebo_model_path_cmd = SetEnvironmentVariable(
         "GAZEBO_MODEL_PATH",
-        f'{os.path.join(asb_sim_dir, "models")}:{os.path.join(turtlebot3_gazebo_dir, "models")}')
+        f'{os.path.join(package_share_dir, "models")}:{os.path.join(turtlebot3_gazebo_dir, "models")}')
 
     start_gazebo_server_cmd = ExecuteProcess(
         cmd=['gzserver', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world_file],

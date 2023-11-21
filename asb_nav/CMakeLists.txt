@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(asb_sim)
+project(asb_nav)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -26,7 +26,7 @@ install(
 )
 
 install(
-        DIRECTORY models worlds urdf launch config
+        DIRECTORY launch config
         DESTINATION share/${PROJECT_NAME}
 )
 
