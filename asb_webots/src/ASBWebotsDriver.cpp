@@ -5,8 +5,7 @@
 #include <webots/motor.h>
 #include <webots/robot.h>
 
-#define HALF_DISTANCE_BETWEEN_WHEELS 0.045
-#define WHEEL_RADIUS 0.025
+#define GEARBOX_REDUCTION_RATIO 40.61
 
 namespace asb_webots_driver {
     void ASBWebotsDriver::init(webots_ros2_driver::WebotsNode *node, std::unordered_map<std::string, std::string> &parameters) {
@@ -20,25 +19,28 @@ namespace asb_webots_driver {
         wb_motor_set_position(right_motor, INFINITY);
         wb_motor_set_velocity(right_motor, 0.0);
 
-        cmd_vel_subscription_ = node->create_subscription<geometry_msgs::msg::Twist>(
-                "/cmd_vel", rclcpp::SensorDataQoS().reliable(),
-                std::bind(&ASBWebotsDriver::cmdVelCallback, this, std::placeholders::_1));
+        sim_state_cmd_subscriber_ = node->create_subscription<asb_msgs::msg::SimStateCmd>(
+                "/system_test/state_cmd", rclcpp::SensorDataQoS().reliable(),
+                std::bind(&ASBWebotsDriver::sim_state_cmd_callback, this, std::placeholders::_1));
+
+        sim_state_publisher_ = node->create_publisher<asb_msgs::msg::SimState>(
+            "/system_test/state", rclcpp::SensorDataQoS().reliable());
     }
 
-    void ASBWebotsDriver::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
-        cmd_vel_msg.linear = msg->linear;
-        cmd_vel_msg.angular = msg->angular;
+    void ASBWebotsDriver::sim_state_cmd_callback(const asb_msgs::msg::SimStateCmd::SharedPtr msg) {
+        sim_state_cmd_msg = *msg;
     }
 
     void ASBWebotsDriver::step() {
-        auto forward_speed = cmd_vel_msg.linear.x;
-        auto angular_speed = cmd_vel_msg.angular.z;
+        wb_motor_set_velocity(left_motor, sim_state_cmd_msg.left_motor_speed_ref / GEARBOX_REDUCTION_RATIO);
+        wb_motor_set_velocity(right_motor, sim_state_cmd_msg.right_motor_speed_ref / GEARBOX_REDUCTION_RATIO);
 
-        auto command_motor_left = (forward_speed - angular_speed * HALF_DISTANCE_BETWEEN_WHEELS) / WHEEL_RADIUS;
-        auto command_motor_right = (forward_speed + angular_speed * HALF_DISTANCE_BETWEEN_WHEELS) / WHEEL_RADIUS;
-
-        wb_motor_set_velocity(left_motor, command_motor_left);
-        wb_motor_set_velocity(right_motor, command_motor_right);
+        auto sim_state_msg = asb_msgs::msg::SimState();
+        sim_state_msg.stamp = rclcpp::Clock().now();
+        sim_state_msg.left_motor_speed = wb_motor_get_velocity(left_motor) * GEARBOX_REDUCTION_RATIO;
+        sim_state_msg.right_motor_speed = wb_motor_get_velocity(right_motor) * GEARBOX_REDUCTION_RATIO;
+        sim_state_msg.fan_motor_speed = sim_state_cmd_msg.fan_motor_speed_ref;
+        sim_state_publisher_->publish(sim_state_msg);
     }
 } // namespace asb_webots_driver
 

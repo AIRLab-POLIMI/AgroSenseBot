@@ -30,24 +30,31 @@ def generate_launch_description():
     nav2_params = os.path.join(pkg("asb_nav"), "config", "nav2_no_map_params.yaml")
     configured_params = RewrittenYaml(source_file=nav2_params, root_key="", param_rewrites={}, convert_types=True)
 
+    use_sim_time_launch_configuration = LaunchConfiguration('use_sim_time')
+    use_sim_time_launch_argument = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Whether to set the use_sim_time parameter to true. Should be the same as the use_gazebo parameter.'
+    )
+
     use_gazebo_launch_configuration = LaunchConfiguration('use_gazebo')
     use_gazebo_launch_argument = DeclareLaunchArgument(
         'use_gazebo',
-        default_value='False',
+        default_value='false',
         description='Whether to use Gazebo as simulator'
     )
 
     use_webots_launch_configuration = LaunchConfiguration('use_webots')
     use_webots_launch_argument = DeclareLaunchArgument(
         'use_webots',
-        default_value='True',
+        default_value='true',
         description='Whether to use Webots as simulator'
     )
 
     rviz_launch_configuration = LaunchConfiguration('rviz')
     rviz_launch_argument = DeclareLaunchArgument(
         'rviz',
-        default_value='True',
+        default_value='true',
         description='Whether to start RViz'
     )
 
@@ -68,9 +75,9 @@ def generate_launch_description():
     navigation2_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg("nav2_bringup"), "launch", "navigation_launch.py")),
         launch_arguments={
-            "use_sim_time": "True",
+            "use_sim_time": use_sim_time_launch_configuration,
             "params_file": configured_params,
-            "autostart": "True",
+            "autostart": "true",
         }.items(),
     )
 
@@ -83,6 +90,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     # launch arguments
+    ld.add_action(use_sim_time_launch_argument)
     ld.add_action(use_gazebo_launch_argument)
     ld.add_action(use_webots_launch_argument)
     ld.add_action(rviz_launch_argument)

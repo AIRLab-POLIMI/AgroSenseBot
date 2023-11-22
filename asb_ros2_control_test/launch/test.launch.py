@@ -25,9 +25,19 @@ import lifecycle_msgs.msg
 def generate_launch_description():
     path_to_test = os.path.dirname(__file__)
 
+    print_debug_arg = DeclareLaunchArgument(
+        'print_debug',
+        default_value='false',
+        description="Whether to print (lots of) additional data.",
+    )
+    use_simulator_arg = DeclareLaunchArgument(
+        'use_simulator',
+        default_value='false',
+        description="Whether to send and receive motor velocities from simulator, or compute their values internally.",
+    )
     dummy_vcu_canopen_node_config_arg = DeclareLaunchArgument(
         'dummy_vcu_canopen_node_config',
-        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_VCU.dcf")),
+        default_value=TextSubstitution(text=os.path.join(path_to_test, "..", "config", "dummy_VCU.dcf")),  # TODO set as params only
         description="Path to DCF file to be used for the dummy_VCU CANOpen node.",
     )
     dummy_mdl_canopen_node_config_arg = DeclareLaunchArgument(
@@ -64,6 +74,8 @@ def generate_launch_description():
         executable="test_node",
         parameters=[
                 {
+                    "print_debug": LaunchConfiguration("print_debug"),
+                    "use_simulator": LaunchConfiguration("use_simulator"),
                     "dummy_VCU_canopen_node_config": LaunchConfiguration("dummy_vcu_canopen_node_config"),
                     "dummy_MDL_canopen_node_config": LaunchConfiguration("dummy_mdl_canopen_node_config"),
                     "dummy_MDR_canopen_node_config": LaunchConfiguration("dummy_mdr_canopen_node_config"),
@@ -100,6 +112,8 @@ def generate_launch_description():
     )
 
     ld = launch.LaunchDescription()
+    ld.add_action(print_debug_arg)
+    ld.add_action(use_simulator_arg)
     ld.add_action(dummy_vcu_canopen_node_config_arg)
     ld.add_action(dummy_mdl_canopen_node_config_arg)
     ld.add_action(dummy_mdr_canopen_node_config_arg)

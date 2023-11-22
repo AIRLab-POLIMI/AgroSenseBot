@@ -9,6 +9,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(asb_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(webots_ros2_driver REQUIRED)
 
@@ -28,6 +30,8 @@ ament_target_dependencies(
         ${PROJECT_NAME}
         pluginlib
         rclcpp
+        nav_msgs
+        asb_msgs
         webots_ros2_driver
 )
 install(TARGETS

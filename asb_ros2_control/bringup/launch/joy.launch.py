@@ -14,8 +14,6 @@ import launch_ros.events.lifecycle
 
 
 def generate_launch_description():
-    path_to_test = os.path.dirname(__file__)
-
     joy_node = launch_ros.actions.Node(
         namespace="",
         name="joy",
@@ -36,9 +34,6 @@ def generate_launch_description():
                     "scale_linear.x": 0.5,
                     "scale_angular.yaw": 0.6,
                 },
-            ],
-        remappings=[
-                ('/cmd_vel', '/asb_base_controller/cmd_vel_unstamped'),
             ],
     )
 

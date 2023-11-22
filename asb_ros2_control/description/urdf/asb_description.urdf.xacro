@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="asb" params="prefix">
+  <xacro:macro name="asb_description">
+<!--  <xacro:macro name="asb" params="prefix">-->
 
     <!-- Constants for robot dimensions -->
     <xacro:property name="PI" value="3.1415926535897931"/>
@@ -14,8 +15,18 @@
     <xacro:property name="wheel_radius" value="0.15" />
     <xacro:property name="z_offset" value="-${base_height/2}" /> <!-- Space btw top of beam and each joint -->
 
+
     <!-- Base Link -->
-    <link name="${prefix}base_link">
+    <link name="base_footprint"/>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link" />
+        <origin xyz="0 0 0.010" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Base Link -->
+    <link name="base_link">
       <collision>
         <origin xyz="0 0 ${base_height/2}" rpy="0 0 0"/>
         <geometry>
@@ -32,16 +43,16 @@
       </visual>
     </link>
 
-    <joint name="${prefix}left_wheel_joint" type="continuous">
-      <parent link="${prefix}base_link"/>
-      <child link="${prefix}left_wheel"/>
+    <joint name="left_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="left_wheel"/>
       <origin xyz="0 -${base_width/2} ${z_offset}" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <dynamics damping="0.2"/>
     </joint>
 
     <!-- left wheel Link -->
-    <link name="${prefix}left_wheel">
+    <link name="left_wheel">
       <collision>
         <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
         <geometry>
@@ -67,16 +78,16 @@
       </inertial>
     </link>
 
-    <joint name="${prefix}right_wheel_joint" type="continuous">
-      <parent link="${prefix}base_link"/>
-      <child link="${prefix}right_wheel"/>
+    <joint name="right_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="right_wheel"/>
       <origin xyz="0 ${base_width/2} ${z_offset}" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <dynamics damping="0.2"/>
     </joint>
 
     <!-- right wheel Link -->
-    <link name="${prefix}right_wheel">
+    <link name="right_wheel">
       <collision>
         <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
         <geometry>
@@ -100,6 +111,31 @@
                 iyy="${wheel_mass / 12.0 * (3*wheel_radius*wheel_radius + wheel_len*wheel_len)}" iyz="0.0"
                 izz="${wheel_mass / 2.0 * wheel_radius*wheel_radius}"/>
       </inertial>
+    </link>
+
+    <!-- sensor links and joints -->
+    <joint name="gps_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="gps_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="gps_link"/>
+
+    <joint name="scan_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan"/>
+      <origin xyz="0 0 0.07" rpy="0 0 0"/>
+    </joint>
+
+    <link name="base_scan">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder length="0.05" radius="0.05"/>
+        </geometry>
+        <material name="lidar_color"/>
+      </visual>
     </link>
 
   </xacro:macro>
