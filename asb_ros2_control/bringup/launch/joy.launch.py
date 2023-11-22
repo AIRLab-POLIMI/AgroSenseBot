@@ -1,9 +1,4 @@
 
-import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))  # noqa
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'launch'))  # noqa
-
 import launch
 import launch.actions
 import launch.events
@@ -20,6 +15,9 @@ def generate_launch_description():
         package="joy",
         executable="joy_node",
         output="screen",
+        parameters=[{
+            "deadzone": 0.002,
+        }],
     )
     teleop_node = launch_ros.actions.Node(
         namespace="",
@@ -27,14 +25,12 @@ def generate_launch_description():
         package="teleop_twist_joy",
         executable="teleop_node",
         output="screen",
-        parameters=[
-                {  # these keybindings are for a G-LAB K-PAD-THORIUM joy-pad (SHANWAN Android Gamepad)
-                    "enable_button": 7,
-                    "axis_linear.x": 1,
-                    "scale_linear.x": 0.5,
-                    "scale_angular.yaw": 0.6,
-                },
-            ],
+        parameters=[{  # these keybindings are for a G-LAB K-PAD-THORIUM joy-pad (SHANWAN Android Gamepad)
+            "enable_button": 7,
+            "axis_linear.x": 1,
+            "scale_linear.x": 0.5,
+            "scale_angular.yaw": 0.6,
+        }],
     )
 
     ld = launch.LaunchDescription()

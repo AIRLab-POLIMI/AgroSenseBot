@@ -19,51 +19,33 @@ from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, PythonExpression
 
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.substitutions import FindPackageShare as pkg
 
 
 def generate_launch_description():
-    # Declare arguments
-    declared_arguments = [
-        DeclareLaunchArgument(
-            "gui",
-            default_value="false",
-            description="Start RViz2 automatically with this launch file.",
-        ),
-        DeclareLaunchArgument(
-            "test",
-            default_value="false",
-            description="Use the virtual CAN network vcan0 instead of the physical CAN network (can0).",
-        )
-    ]
 
-    # Initialize Arguments
-    gui_launch_configuration = LaunchConfiguration("gui")
     test_launch_configuration = LaunchConfiguration("test")
+    test_launch_argument = DeclareLaunchArgument(
+        "test",
+        default_value="false",
+        description="Use the virtual CAN network vcan0 instead of the physical CAN network (can0).",
+    )
 
     # Get URDF via xacro
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution([FindPackageShare("asb_ros2_control"), "urdf", "asb.urdf.xacro"]),
+            PathJoinSubstitution([pkg("asb_ros2_control"), "urdf", "asb.urdf.xacro"]),
             " ",
             "test:=",
             test_launch_configuration,
         ]
     )
+
     robot_description = {"robot_description": robot_description_content}
 
-    robot_controllers = PathJoinSubstitution(
-        [
-            FindPackageShare("asb_ros2_control"),
-            "config",
-            "asb_controllers.yaml",
-        ]
-    )
-    rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("asb_ros2_control"), "rviz", "asb_ros2_control_rviz.rviz"]
-    )
+    robot_controllers = PathJoinSubstitution([pkg("asb_ros2_control"), "config", "asb_controllers.yaml"])
 
     control_node = Node(
         package="controller_manager",
@@ -75,20 +57,13 @@ def generate_launch_description():
             ("/asb_base_controller/odom", "/odom"),
         ],
     )
+
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         name="robot_state_publisher",
         output="both",
         parameters=[robot_description],
-    )
-    rviz_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        output="log",
-        arguments=["-d", rviz_config_file],
-        condition=IfCondition(gui_launch_configuration),
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -109,14 +84,6 @@ def generate_launch_description():
         arguments=["asb_control_system_status_controller", "--controller-manager", "/controller_manager"],
     )
 
-    # Delay rviz start after `joint_state_broadcaster`
-    delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[rviz_node],
-        )
-    )
-
     # Delay start of control_system_status_controller_spawner after `joint_state_broadcaster`
     delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -133,13 +100,26 @@ def generate_launch_description():
         )
     )
 
-    nodes = [
-        control_node,
-        robot_state_publisher_node,
-        joint_state_broadcaster_spawner,
-        delay_rviz_after_joint_state_broadcaster_spawner,
-        delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-    ]
+    # Create the launch description and populate
+    ld = LaunchDescription()
 
-    return LaunchDescription(declared_arguments + nodes)
+    ld.add_action(test_launch_argument)
+
+    ld.add_action(control_node)
+    ld.add_action(robot_state_publisher_node)
+    ld.add_action(joint_state_broadcaster_spawner)
+    ld.add_action(delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner)
+    ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
+
+    return ld
+
+    # nodes = [
+    #     control_node,
+    #     robot_state_publisher_node,
+    #     joint_state_broadcaster_spawner,
+    #     delay_rviz_after_joint_state_broadcaster_spawner,
+    #     delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner,
+    #     delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+    # ]
+    #
+    # return LaunchDescription(declared_arguments + nodes)

@@ -8,7 +8,7 @@ import os
 import sys
 import time
 
-from gps_utils import latLonYaw2Geopose
+from gnss_utils import latLonYaw2Geopose
 
 
 class YamlWaypointParser:
