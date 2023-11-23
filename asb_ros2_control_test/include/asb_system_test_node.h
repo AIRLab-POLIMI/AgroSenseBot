@@ -28,11 +28,11 @@ class MotorDriveTestState {
 public:
   int speed_ref = 0;
   int motor_rpm = 0;
-  int32_t rotor_position_raw = 2147483648 - 8 * 4096;
+  int32_t rotor_position_raw = 0;
+//  int32_t rotor_position_raw = 2147483648 - 8 * 4096;
 
   void apply_motor_speed_ref(rclcpp::Duration time_delta) {
     motor_rpm = speed_ref;
-//    rotor_position_raw += (int32_t)((motor_rpm / 60.) * time_delta.seconds() / RAW_DATA_STEP_VALUE_rotor_position);
     apply_motor_speed(time_delta);
   }
 

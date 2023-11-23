@@ -11,12 +11,12 @@
             </ros>
         </device>
 
-        <device reference="gnss_link" type="GPS">
-            <ros>
-                <topicName>/gps/fix</topicName>
-                <frameName>gnss_link</frameName>
-            </ros>
-        </device>
+<!--        <device reference="gnss_link" type="GPS">-->
+<!--            <ros>-->
+<!--                <topicName>/gps/fix</topicName>-->
+<!--                <frameName>gnss_link</frameName>-->
+<!--            </ros>-->
+<!--        </device>-->
 
         <plugin type="asb_webots_driver::ASBWebotsDriver" />
     </webots>

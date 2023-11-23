@@ -3,10 +3,9 @@
 
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
-//#include "geometry_msgs/msg/twist.hpp"
-//#include "nav_msgs/msg/odometry.hpp"
 #include "asb_msgs/msg/sim_state_cmd.hpp"
 #include "asb_msgs/msg/sim_state.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
 
 #include "webots_ros2_driver/PluginInterface.hpp"
 #include "webots_ros2_driver/WebotsNode.hpp"
@@ -22,10 +21,12 @@ namespace asb_webots_driver {
 
         rclcpp::Subscription<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_subscriber_;
         rclcpp::Publisher<asb_msgs::msg::SimState>::SharedPtr sim_state_publisher_;
-        asb_msgs::msg::SimStateCmd sim_state_cmd_msg;
+        rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr nav_sat_fix_publisher_;
+        asb_msgs::msg::SimStateCmd sim_state_cmd_msg_;
 
-        WbDeviceTag right_motor;
-        WbDeviceTag left_motor;
+        WbDeviceTag right_motor_;
+        WbDeviceTag left_motor_;
+        WbDeviceTag gnss_;
     };
 } // namespace asb_webots_driver
 #endif
