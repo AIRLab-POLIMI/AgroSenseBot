@@ -6,12 +6,13 @@
 #include <webots/robot.h>
 
 #define GEARBOX_REDUCTION_RATIO 40.61
+#define TRACK_WHEEL_RADIUS 0.151
 
 namespace asb_webots_driver {
     void ASBWebotsDriver::init(webots_ros2_driver::WebotsNode *node, std::unordered_map<std::string, std::string> &parameters) {
 
-        right_motor = wb_robot_get_device("right motor");
-        left_motor = wb_robot_get_device("left motor");
+        right_motor = wb_robot_get_device("right_motor");
+        left_motor = wb_robot_get_device("left_motor");
 
         wb_motor_set_position(left_motor, INFINITY);
         wb_motor_set_velocity(left_motor, 0.0);
@@ -32,13 +33,15 @@ namespace asb_webots_driver {
     }
 
     void ASBWebotsDriver::step() {
-        wb_motor_set_velocity(left_motor, sim_state_cmd_msg.left_motor_speed_ref / GEARBOX_REDUCTION_RATIO);
-        wb_motor_set_velocity(right_motor, sim_state_cmd_msg.right_motor_speed_ref / GEARBOX_REDUCTION_RATIO);
+        // wb_motor_set_velocity sets the linear track velocity (not the track wheel angular velocity),
+        // so we need to divide by the wheel radius since sim_state_cmd_msg.left_motor_speed_ref is an angular velocity.
+        wb_motor_set_velocity(left_motor, sim_state_cmd_msg.left_motor_speed_ref * TRACK_WHEEL_RADIUS / GEARBOX_REDUCTION_RATIO);
+        wb_motor_set_velocity(right_motor, sim_state_cmd_msg.right_motor_speed_ref * TRACK_WHEEL_RADIUS / GEARBOX_REDUCTION_RATIO);
 
         auto sim_state_msg = asb_msgs::msg::SimState();
         sim_state_msg.stamp = rclcpp::Clock().now();
-        sim_state_msg.left_motor_speed = wb_motor_get_velocity(left_motor) * GEARBOX_REDUCTION_RATIO;
-        sim_state_msg.right_motor_speed = wb_motor_get_velocity(right_motor) * GEARBOX_REDUCTION_RATIO;
+        sim_state_msg.left_motor_speed = wb_motor_get_velocity(left_motor) * GEARBOX_REDUCTION_RATIO / TRACK_WHEEL_RADIUS;
+        sim_state_msg.right_motor_speed = wb_motor_get_velocity(right_motor) * GEARBOX_REDUCTION_RATIO / TRACK_WHEEL_RADIUS;
         sim_state_msg.fan_motor_speed = sim_state_cmd_msg.fan_motor_speed_ref;
         sim_state_publisher_->publish(sim_state_msg);
     }

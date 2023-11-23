@@ -7,6 +7,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/factory/containers/protos/WoodenBox.proto"
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/robotis/protos/RobotisLds01.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/sick/protos/SickLms291.proto"
 
 WorldInfo {
   title "AgroSenseBot"
@@ -40,58 +41,146 @@ TexturedBackgroundLight {
 }
 
 RectangleArena {
-  floorSize 10 10
+  floorSize 50 50
 }
 WoodenBox {
   name "wooden box 1"
-  translation 2.11057 -0.95513 0.15
+  translation 10.8266 3.23743 0.5
   rotation 0 0 1 0.5
-  size .3 .3 .3
+  size 1 1 1
 }
 WoodenBox {
   name "wooden box 2"
-  translation 1.76814 0.515864 0.15
+  translation 6.72098 3.9899 0.5
   rotation 0 0 1 4.96782
-  size .3 .3 .3
+  size 1 1 1
 }
 WoodenBox {
   name "wooden box 3"
-  translation 0.305962 -2.03751 0.15
+  translation -1.4462 -3.38467 0.5
   rotation 0 0 1 5.36782
-  size .3 .3 .3
+  size 1 1 1
 }
 WoodenBox {
   name "wooden box 4"
-  translation 0.753206 0.811435 0.15
+  translation -1.23382 3.39612 0.5
   rotation 0 0 1 5.36782
-  size .3 .3 .3
+  size 1 1 1
 }
 WoodenBox {
   name "wooden box 5"
-  translation 1.47656 1.22948 0.15
+  translation 5.60455 5.91778 0.5
   rotation 0 0 1 5.36782
-  size .3 .3 .3
+  size 1 1 1
+}
+
+WoodenBox {
+  name "workbench"
+  translation 0 1.7 0.35
+  rotation 0 0 1 -1.5698603061004253
+  size 0.6 1.5 0.7
 }
 
 DEF TRACKED_ROBOT Robot {
-  translation 0 0 0.07
+  translation 0 0 0.21
+  rotation 1 0 0 0
   children [
-    DEF GEOM Shape {
-      appearance PBRAppearance {
-        baseColor 0 0 1
-        roughness 1
-        metalness 0
-      }
-      geometry Box {
-        size 0.3 0.13 0.08
-      }
+    DEF BASE Pose {
+      translation 0 0 0.28
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor .2 .2 .2
+            roughness 1
+            metalness 0
+          }
+          geometry Box {
+            size 1.2 1.5 0.1
+          }
+        }
+      ]
+    }
+    DEF BODY Pose {
+      translation 0 0 0.83
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 1 1 0
+            roughness 1
+            metalness 0
+          }
+          geometry Box {
+            size 1.5 0.9 1
+          }
+        }
+      ]
+    }
+    DEF BATTERY_PACK_LEFT Pose {
+      translation 0 0.6 0.53
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor .6 .6 .6
+            roughness 1
+            metalness .4
+          }
+          geometry Box {
+            size 1.5 0.2 0.4
+          }
+        }
+      ]
+    }
+    DEF BATTERY_PACK_RIGHT Pose {
+      translation 0 -0.6 0.53
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor .6 .6 .6
+            roughness 1
+            metalness .4
+          }
+          geometry Box {
+            size 1.5 0.2 0.4
+          }
+        }
+      ]
+    }
+    DEF TRACK_STRUCT_LEFT Pose {
+      translation 0 0.5 -0.04
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor .2 .2 .2
+            roughness 1
+            metalness .6
+          }
+          geometry Box {
+            size 1.9 0.1 0.2
+          }
+        }
+      ]
+    }
+    DEF TRACK_STRUCT_RIGHT Pose {
+      translation 0 -0.5 -0.04
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor .2 .2 .2
+            roughness 1
+            metalness .6
+          }
+          geometry Box {
+            size 1.9 0.1 0.2
+          }
+        }
+      ]
     }
     DEF LEFT_TRACK Track {
-      translation 0 0.07 0
+      translation 0 0.5 0
       children [
         DEF WHEEL1_LEFT TrackWheel {
-          position -0.15 0.0075
-          radius 0.046
+          position -1.0 0.0
+          radius 0.151
           children [
             DEF TRACK_WHEEL_BIG Pose {
               rotation -1 0 0 3.141589
@@ -103,8 +192,8 @@ DEF TRACKED_ROBOT Robot {
                     metalness 0
                   }
                   geometry Cylinder {
-                    height 0.015
-                    radius 0.046
+                    height 0.2
+                    radius 0.151
                     subdivision 20
                   }
                 }
@@ -113,15 +202,15 @@ DEF TRACKED_ROBOT Robot {
           ]
         }
         DEF WHEEL2_LEFT TrackWheel {
-          position 0.144 0.0075
-          radius 0.046
+          position 1.0 0.0
+          radius 0.151
           children [
             USE TRACK_WHEEL_BIG
           ]
         }
         DEF WHEEL3_LEFT TrackWheel {
-          position 0.0925 -0.044
-          radius 0.02
+          position 0.66 -0.145
+          radius 0.05
           children [
             DEF TRACK_WHEEL_SMALL Pose {
               rotation -1 0 0 3.141589
@@ -133,8 +222,8 @@ DEF TRACKED_ROBOT Robot {
                     metalness 0
                   }
                   geometry Cylinder {
-                    height 0.01
-                    radius 0.02
+                    height 0.2
+                    radius 0.05
                     subdivision 20
                   }
                 }
@@ -143,82 +232,82 @@ DEF TRACKED_ROBOT Robot {
           ]
         }
         DEF WHEEL4_LEFT TrackWheel {
-          position 0.045675 -0.044
-          radius 0.02
+          position 0.33 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
         DEF WHEEL5_LEFT TrackWheel {
-          position -0.001225 -0.044
-          radius 0.02
+          position 0.0 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
         DEF WHEEL6_LEFT TrackWheel {
-          position -0.048125 -0.044
-          radius 0.02
+          position -0.33 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
         DEF WHEEL7_LEFT TrackWheel {
-          position -0.095 -0.044
-          radius 0.02
+          position -0.66 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
       ]
-      name "left track"
+      name "left_track"
       contactMaterial "track material"
       boundingObject DEF TRACK_BO Group {
         children [
           Pose {
-            translation 0 0 -0.00045
+            translation 0 0 -0.0245
             rotation 1 0 0 1.570796
             children [
               Box {
-                size 0.195 0.124 0.015
+                size 1.32 0.351 0.2
               }
             ]
           }
           Pose {
-            translation 0.118717 0 -0.03459
-            rotation 0.9561247250869316 -0.20715394043734683 0.20715394043734683 1.615648
+            translation 0.844504 0.0 -0.125681
+            rotation -0.9955620943022894 0.0665435063031779 -0.06654380630320632 -1.575255307179586
             children [
               Box {
-                size 0.065 0.04 0.015
+                size 0.385 0.1 0.2
               }
             ]
             translationStep 0.001
             rotationStep 0.00261799
           }
           Pose {
-            translation -0.1214015 0 -0.0354165
-            rotation 0.959691189146035 0.19873703916918628 -0.19873703916918628 1.611928
+            translation -0.845 0 -0.126
+            rotation -0.9957287426293203 -0.06528588312525149 0.0652841831256909 -1.5750853071795863
             children [
               Box {
-                size 0.065 0.04 0.015
+                size 0.385 0.1 0.2
               }
             ]
             translationStep 0.001
             rotationStep 0.00261799
           }
           Pose {
-            translation -0.151 0 0.0085
+            translation -1 0 0
             rotation 1 0 0 1.5708
             children [
               DEF WHEEL_BO Cylinder {
-                height 0.015
-                radius 0.05
+                height 0.2
+                radius 0.151
                 subdivision 16
               }
             ]
           }
           Pose {
-            translation 0.144 0 0.0085
+            translation 1 0 0
             rotation 1 0 0 1.5708
             children [
               USE WHEEL_BO
@@ -230,7 +319,7 @@ DEF TRACKED_ROBOT Robot {
       }
       device [
         LinearMotor {
-          name "left motor"
+          name "left_motor"
         }
       ]
       animatedGeometry DEF ANIMATED_GEOM Group {
@@ -242,7 +331,7 @@ DEF TRACKED_ROBOT Robot {
               metalness 0
             }
             geometry Box {
-              size 0.022 0.015 0.0025
+              size 0.041 0.2 0.0025
             }
           }
           Pose {
@@ -255,100 +344,105 @@ DEF TRACKED_ROBOT Robot {
                   metalness 0
                 }
                 geometry Box {
-                  size 0.01 0.015 0.003
+                  size 0.01 0.2 0.003
                 }
               }
             ]
           }
         ]
       }
-      geometriesCount 40
+      geometriesCount 121
     }
     DEF RIGHT_TRACK Track {
-      translation 0 -0.07 0
+      translation 0 -0.5 0
       children [
         DEF WHEEL1_RIGHT TrackWheel {
-          position -0.15 0.0075
-          radius 0.046
+          position -1 0
+          radius 0.151
           children [
             USE TRACK_WHEEL_BIG
           ]
         }
         DEF WHEEL2_RIGHT TrackWheel {
-          position 0.144 0.0075
-          radius 0.046
+          position 1 0
+          radius 0.151
           children [
             USE TRACK_WHEEL_BIG
           ]
         }
         DEF WHEEL3_RIGHT TrackWheel {
-          position 0.0925 -0.044
-          radius 0.02
+          position 0.66 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
         DEF WHEEL4_RIGHT TrackWheel {
-          position 0.045675 -0.044
-          radius 0.02
+          position 0.33 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
         DEF WHEEL5_RIGHT TrackWheel {
-          position -0.001225 -0.044
-          radius 0.02
+          position 0.0 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
         DEF WHEEL6_RIGHT TrackWheel {
-          position -0.048125 -0.044
-          radius 0.02
+          position -0.33 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
         DEF WHEEL7_RIGHT TrackWheel {
-          position -0.095 -0.044
-          radius 0.02
+          position -0.66 -0.145
+          radius 0.05
           children [
             USE TRACK_WHEEL_SMALL
           ]
         }
       ]
-      name "right track"
+      name "right_track"
       contactMaterial "track material"
       boundingObject USE TRACK_BO
       physics Physics {
       }
       device [
         LinearMotor {
-          name "right motor"
+          name "right_motor"
         }
       ]
       animatedGeometry USE ANIMATED_GEOM
-      geometriesCount 40
+      geometriesCount 121
     }
-    GPS {
-      name "GNSS"
-      type "satellite"
-      accuracy 0.01
-      noiseCorrelation 0
-      resolution -1
-      speedNoise 0
-      speedResolution -1
+    DEF GNSS Pose {
+      translation 0.57 0 1.37
+      children [
+        GPS {
+          name "gnss_link"
+          type "satellite"
+          accuracy 0.01
+          noiseCorrelation 0
+          resolution -1
+          speedNoise 0
+          speedResolution -1
+        }
+      ]
     }
-    RobotisLds01 {
-      translation 0 0 0.07
+    SickLms291 {
+      translation 1.05 0 0.32
       rotation 0 0 1 0
-      name "LDS-01"
-      noise 0.0043
-      enablePhysics TRUE
+      name "base_scan_front"
+      noise 0.0
+      resolution 180
     }
   ]
   name "asb_webots_robot"
-  boundingObject USE GEOM
+  boundingObject USE BASE
   physics Physics {
     density -1
     mass 40

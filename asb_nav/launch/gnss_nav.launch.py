@@ -84,6 +84,18 @@ def generate_launch_description():
         condition=IfCondition(rviz_launch_configuration)
     )
 
+    # has been bugged for months and still not fixed...
+    # lidar_filter_node = Node(
+    #     package="laser_filters",
+    #     executable="scan_to_scan_filter_chain",
+    #     parameters=[
+    #         os.path.join(pkg("asb_nav"), "config", "lidar_filter.yaml")
+    #     ],
+    #     remappings=[
+    #         ("/scan", "/scan_front"),
+    #     ],
+    # )
+
     # Create the launch description and populate
     ld = LaunchDescription()
 
@@ -92,12 +104,14 @@ def generate_launch_description():
     ld.add_action(rviz_launch_argument)
 
     # localization
-    # ld.add_action(robot_localization_cmd)
     ld.add_action(ekf_filter_node)
     ld.add_action(navsat_transform_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)
+
+    # sensors
+    # ld.add_action(lidar_filter_node)
 
     # viz
     ld.add_action(rviz_include)

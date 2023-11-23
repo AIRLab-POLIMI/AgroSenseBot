@@ -31,6 +31,9 @@ def generate_launch_description():
             "scale_linear.x": 0.5,
             "scale_angular.yaw": 0.6,
         }],
+        # remappings=[
+        #     ('/cmd_vel', '/cmd_vel_teleop'),
+        # ],
     )
 
     ld = launch.LaunchDescription()
