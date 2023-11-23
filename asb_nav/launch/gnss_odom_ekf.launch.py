@@ -23,7 +23,7 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     # pkg = get_package_share_directory
     package_share_dir = get_package_share_directory("asb_nav")
-    rl_params_file = os.path.join(package_share_dir, "config", "gnss_odom_ekf.yaml")
+    rl_params_file = os.path.join(package_share_dir, "config", "robot_localization_ekf_gnss_odom.yaml")
 
     use_sim_time_launch_configuration = LaunchConfiguration('use_sim_time')
     use_sim_time_launch_argument = DeclareLaunchArgument(

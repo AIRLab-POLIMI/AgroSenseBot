@@ -48,7 +48,7 @@ def generate_launch_description():
         name="ekf_filter_node_map",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "gnss_odom_ekf.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_ekf_gnss_odom.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -62,7 +62,7 @@ def generate_launch_description():
         name="navsat_transform",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "gnss_odom_ekf.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_ekf_gnss_odom.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
