@@ -110,11 +110,12 @@ def main(args=None):
     rclpy.init(args=args)
 
     # allow to pass the logging path as an argument
-    default_yaml_file_path = os.path.expanduser("~/gps_waypoints.yaml")
+    default_yaml_file_path = os.path.expanduser("~/gnss_waypoints.yaml")
     if len(sys.argv) > 1:
         yaml_file_path = sys.argv[1]
     else:
         yaml_file_path = default_yaml_file_path
+    print("saving waypoints to ", yaml_file_path)
 
     gps_gui_logger = GpsGuiLogger(yaml_file_path)
 
