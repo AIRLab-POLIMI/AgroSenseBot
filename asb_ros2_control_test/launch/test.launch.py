@@ -145,7 +145,6 @@ def generate_launch_description():
 
     include_nav_launch = IncludeLaunchDescription(
         launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg('asb_nav'), 'launch/gnss_nav.launch.py')),
-        launch_arguments={'test': 'true'}.items(),
     )
 
     ld = launch.LaunchDescription()

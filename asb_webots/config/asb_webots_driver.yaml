@@ -6,4 +6,4 @@ asb_webots_robot:
     gnss_topic: /gps/fix
     gnss_frame_id: gnss_link
     gnss_update_rate: 10.0
-    gnss_covariance_diagonal: [0.0001, 0.0001, 0.0001]
+    gnss_covariance_diagonal: [0.01, 0.01, 0.01]
