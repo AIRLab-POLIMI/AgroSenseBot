@@ -112,14 +112,3 @@ def generate_launch_description():
     ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
 
     return ld
-
-    # nodes = [
-    #     control_node,
-    #     robot_state_publisher_node,
-    #     joint_state_broadcaster_spawner,
-    #     delay_rviz_after_joint_state_broadcaster_spawner,
-    #     delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner,
-    #     delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-    # ]
-    #
-    # return LaunchDescription(declared_arguments + nodes)

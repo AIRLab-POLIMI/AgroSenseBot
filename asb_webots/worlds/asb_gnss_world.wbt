@@ -30,8 +30,8 @@ WorldInfo {
 }
 
 Viewpoint {
-  orientation -0.33185733874619844 -0.09874274160469809 0.9381474178937331 3.686018050088086
-  position 1.700313773507203 1.0549607538959629 1.4846240848267684
+  orientation -0.5773502691896246 0.5773502691896271 0.5773502691896257 2.0943999999999994
+  position 0 0 110
   follow "asb_webots_robot"
 }
 
@@ -76,7 +76,7 @@ WoodenBox {
 
 WoodenBox {
   name "workbench"
-  translation 0 1.7 0.35
+  translation -0.0033977 5.33 0.35
   rotation 0 0 1 -1.5698603061004253
   size 0.6 1.5 0.7
 }
@@ -424,6 +424,20 @@ DEF TRACKED_ROBOT Robot {
       children [
         GPS {
           name "gnss_link"
+          type "satellite"
+          accuracy 0.01
+          noiseCorrelation 0
+          resolution -1
+          speedNoise 0
+          speedResolution -1
+        }
+      ]
+    }
+    DEF GNSS_2 Pose {
+      translation -0.57 0 1.37
+      children [
+        GPS {
+          name "gnss_link_2"
           type "satellite"
           accuracy 0.01
           noiseCorrelation 0

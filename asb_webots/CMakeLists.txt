@@ -41,7 +41,7 @@ install(TARGETS
 
 install(DIRECTORY
         launch
-        resource
+        config
         worlds
         DESTINATION share/${PROJECT_NAME}/
 )

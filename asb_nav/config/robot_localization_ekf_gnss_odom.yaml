@@ -1,5 +1,5 @@
 # For parameter descriptions, see https://github.com/cra-ros-pkg/robot_localization/blob/ros2/params/ekf.yaml
-ekf_filter_node_map:
+ekf_filter_map_odom:
   ros__parameters:
     frequency: 30.0
     two_d_mode: true  # Recommended to use 2d mode for nav2 in mostly planar environments
@@ -55,6 +55,20 @@ navsat_transform:
     yaw_offset: 0.0
     zero_altitude: true
     broadcast_utm_transform: true
+    publish_filtered_gps: true
+    use_odometry_yaw: true
+    wait_for_datum: false
+    datum: [38.16147759561979, -122.45458617258019, 0.0]
+
+# For parameter descriptions, see https://github.com/cra-ros-pkg/robot_localization/blob/ros2/params/navsat_transform.yaml
+navsat_transform2:
+  ros__parameters:
+    frequency: 30.0
+    delay: 3.0
+    magnetic_declination_radians: 0.0
+    yaw_offset: 0.0
+    zero_altitude: true
+    broadcast_utm_transform: false
     publish_filtered_gps: true
     use_odometry_yaw: true
     wait_for_datum: false

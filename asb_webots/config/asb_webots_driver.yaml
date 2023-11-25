@@ -1,0 +1,9 @@
+asb_webots_robot:
+  ros__parameters:
+    sim_state_topic : /system_test/state
+    sim_state_cmd_topic : /system_test/state_cmd
+
+    gnss_topic: /gps/fix
+    gnss_frame_id: gnss_link
+    gnss_update_rate: 10.0
+    gnss_covariance_diagonal: [0.0001, 0.0001, 0.0001]

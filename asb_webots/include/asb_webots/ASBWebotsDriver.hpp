@@ -22,11 +22,22 @@ namespace asb_webots_driver {
         rclcpp::Subscription<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_subscriber_;
         rclcpp::Publisher<asb_msgs::msg::SimState>::SharedPtr sim_state_publisher_;
         rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr nav_sat_fix_publisher_;
+        rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr nav_sat_fix_publisher2_;
         asb_msgs::msg::SimStateCmd sim_state_cmd_msg_;
+
+        std::string sim_state_topic_;
+        std::string sim_state_cmd_topic_;
+
+        rclcpp::Time last_gnss_fix_;
+        std::string gnss_topic_;
+        std::string gnss_frame_id_;
+        double gnss_update_rate_;
+        std::vector<double> gnss_covariance_diagonal_;
 
         WbDeviceTag right_motor_;
         WbDeviceTag left_motor_;
         WbDeviceTag gnss_;
+        WbDeviceTag gnss2_;
     };
 } // namespace asb_webots_driver
 #endif
