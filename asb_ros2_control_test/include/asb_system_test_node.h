@@ -5,6 +5,9 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
+#include "asb_msgs/msg/sim_state_cmd.hpp"
+#include "asb_msgs/msg/sim_state.hpp"
+
 #include <chrono>
 
 #define RAW_DATA_STEP_VALUE_temperature 0.1 // 0.1 °C
@@ -25,10 +28,15 @@ class MotorDriveTestState {
 public:
   int speed_ref = 0;
   int motor_rpm = 0;
-  int32_t rotor_position_raw = 2147483648 - 8 * 4096;
+  int32_t rotor_position_raw = 0;
+//  int32_t rotor_position_raw = 2147483648 - 8 * 4096;
 
   void apply_motor_speed_ref(rclcpp::Duration time_delta) {
     motor_rpm = speed_ref;
+    apply_motor_speed(time_delta);
+  }
+
+  void apply_motor_speed(rclcpp::Duration time_delta) {
     rotor_position_raw += (int32_t)((motor_rpm / 60.) * time_delta.seconds() / RAW_DATA_STEP_VALUE_rotor_position);
   }
 
@@ -47,6 +55,8 @@ enum ControlMode {
 
 class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
 
+  bool print_debug_ = false;
+  bool use_simulator_ = false;
   std::string VCU_canopen_node_config_;
   std::string MDL_canopen_node_config_;
   std::string MDR_canopen_node_config_;
@@ -63,6 +73,9 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   rclcpp::TimerBase::SharedPtr gcu_is_alive_timer_;
   rclcpp::TimerBase::SharedPtr test_loop_timer_;
 
+  rclcpp::Subscription<asb_msgs::msg::SimState>::SharedPtr sim_state_subscriber_;
+  rclcpp::Publisher<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_publisher_;
+
   std::atomic<bool> lifecycle_node_active_ = false;
 
   bool VCU_alive_bit_ = false;
@@ -78,7 +91,7 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   MotorDriveTestState fan_motor_drive_test_state_;
   bool pump_test_state_ = false;
 
-//  void timer();
+  void sim_ros2_callback(const asb_msgs::msg::SimState::SharedPtr msg);
 
   void test_loop_timer_ros2_callback();
 
@@ -95,6 +108,8 @@ public:
   explicit ASBSystemTestNode(const std::string &node_name, bool intra_process_comms = false)
           : rclcpp_lifecycle::LifecycleNode(node_name, rclcpp::NodeOptions().use_intra_process_comms(
           intra_process_comms)) {
+    this->declare_parameter<bool>("print_debug", false);
+    this->declare_parameter<bool>("use_simulator", false);
     this->declare_parameter<std::string>("dummy_VCU_canopen_node_config", "test_slave.eds");
     this->declare_parameter<std::string>("dummy_MDL_canopen_node_config", "test_slave.eds");
     this->declare_parameter<std::string>("dummy_MDR_canopen_node_config", "test_slave.eds");

@@ -14,8 +14,6 @@ import launch_ros.events.lifecycle
 
 
 def generate_launch_description():
-    path_to_test = os.path.dirname(__file__)
-
     joy_node = launch_ros.actions.Node(
         namespace="",
         name="joy",
@@ -33,12 +31,9 @@ def generate_launch_description():
                 {  # these keybindings are for a G-LAB K-PAD-THORIUM joy-pad (SHANWAN Android Gamepad)
                     "enable_button": 7,
                     "axis_linear.x": 1,
-                    "scale_linear.x": 0.5,
-                    "scale_angular.yaw": 0.2,
+                    "scale_linear.x": 0.01,
+                    "scale_angular.yaw": 0.1,
                 },
-            ],
-        remappings=[
-                ('/cmd_vel', '/asb_base_controller/cmd_vel_unstamped'),
             ],
     )
 

@@ -24,6 +24,8 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
         msg/ControlSystemState.msg
         msg/PumpCmd.msg
+        msg/SimState.msg
+        msg/SimStateCmd.msg
         msg/EmergencyStopCmd.msg
         msg/FanCmd.msg
         msg/Heartbeat.msg

@@ -1,3 +1,4 @@
 **/.idea/**
 **/cmake-build-debug/**
 asb_ros2_control/bringup/rviz/asb_ros2_control_rviz.rviz
+**/__pycache__/**

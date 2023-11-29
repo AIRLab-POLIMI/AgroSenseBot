@@ -37,4 +37,16 @@ https://github.com/ros-simulation/gazebo_ros_demos/blob/kinetic-devel/rrbot_desc
     <color rgba="1.0 1.0 1.0 1.0"/>
   </material>
 
+  <material name="tire_color">
+      <color rgba="0.3 0.3 0.3 1.0"/>
+  </material>
+
+  <material name="base_color">
+      <color rgba="0.4 0.4 0.4 1.0"/>
+  </material>
+
+  <material name="lidar_color">
+      <color rgba="0.0 0.0 0.8 1.0"/>
+  </material>
+
 </robot>

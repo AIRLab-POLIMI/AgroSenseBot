@@ -23,6 +23,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
+find_package(asb_msgs REQUIRED)
 
 add_executable(
         test_node
@@ -48,6 +49,7 @@ ament_target_dependencies(
         liblely-coapp
         rclcpp_lifecycle
         lifecycle_msgs
+        asb_msgs
 )
 
 install(

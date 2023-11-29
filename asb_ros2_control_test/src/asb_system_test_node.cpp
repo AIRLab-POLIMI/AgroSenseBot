@@ -10,11 +10,15 @@ ASBSystemTestNode::on_configure(const rclcpp_lifecycle::State &) {
 
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
+  get_parameter("print_debug", print_debug_);
+  get_parameter("use_simulator", use_simulator_);
   get_parameter("dummy_VCU_canopen_node_config", VCU_canopen_node_config_);
   get_parameter("dummy_MDL_canopen_node_config", MDL_canopen_node_config_);
   get_parameter("dummy_MDR_canopen_node_config", MDR_canopen_node_config_);
   get_parameter("dummy_FAN_canopen_node_config", FAN_canopen_node_config_);
   get_parameter("can_interface_name", can_interface_name_);
+
+  RCLCPP_INFO(this->get_logger(), "use_simulator: %s", use_simulator_ ? "True" : "False");
   RCLCPP_INFO(this->get_logger(), "dummy_canopen_node_config: %s", VCU_canopen_node_config_.c_str());
   RCLCPP_INFO(this->get_logger(), "can_interface_name: %s", can_interface_name_.c_str());
 
@@ -22,6 +26,11 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
     RCLCPP_FATAL(this->get_logger(), "Using a CAN interface different than vcan0 for testing!");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
   }
+
+  sim_state_subscriber_ = this->create_subscription<asb_msgs::msg::SimState>(
+      "state", rclcpp::SensorDataQoS().reliable(), std::bind(&ASBSystemTestNode::sim_ros2_callback, this, _1));
+  sim_state_cmd_publisher_ = this->create_publisher<asb_msgs::msg::SimStateCmd>(
+      "state_cmd", rclcpp::SensorDataQoS().reliable());
 
   lifecycle_node_active_.store(true);
 
@@ -126,40 +135,55 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
   rclcpp::Duration time_delta = now - last_test_loop_time_;
   last_test_loop_time_ = now;
 
-  left_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
-//  RCLCPP_INFO(this->get_logger(),
-//              "\n"
-//              "left    time_delta          : %f s\n"
-//              "        motor_rpm           : %i RPM\n"
-//              "        rotor_position_raw  : %i raw\n"
-//              "        rotor_position      : %f rev\n",
-//              time_delta.seconds(),
-//              left_motor_drive_test_state_.motor_rpm,
-//              left_motor_drive_test_state_.rotor_position_raw,
-//              left_motor_drive_test_state_.rotor_position()
-//  );
+  if(use_simulator_) {
+    left_motor_drive_test_state_.apply_motor_speed(time_delta);
+  } else {
+    left_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
+  }
+  if(print_debug_) RCLCPP_INFO(
+      this->get_logger(),
+      "\n"
+      "left    time_delta          : %f s\n"
+      "        motor_rpm           : %i RPM\n"
+      "        rotor_position_raw  : %i raw\n"
+      "        rotor_position      : %f rev\n",
+      time_delta.seconds(),
+      left_motor_drive_test_state_.motor_rpm,
+      left_motor_drive_test_state_.rotor_position_raw,
+      left_motor_drive_test_state_.rotor_position()
+      );
 
-  right_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
-//  RCLCPP_INFO(this->get_logger(),
-//              "\n"
-//              "right   motor_rpm           : %i RPM\n"
-//              "        rotor_position_raw  : %i raw\n"
-//              "        rotor_position      : %f rev\n",
-//              right_motor_drive_test_state_.motor_rpm,
-//              right_motor_drive_test_state_.rotor_position_raw,
-//              right_motor_drive_test_state_.rotor_position()
-//  );
+  if(use_simulator_) {
+    right_motor_drive_test_state_.apply_motor_speed(time_delta);
+  } else {
+    right_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
+  }
+  if(print_debug_) RCLCPP_INFO(
+      this->get_logger(),
+      "\n"
+      "right   motor_rpm           : %i RPM\n"
+      "        rotor_position_raw  : %i raw\n"
+      "        rotor_position      : %f rev\n",
+      right_motor_drive_test_state_.motor_rpm,
+      right_motor_drive_test_state_.rotor_position_raw,
+      right_motor_drive_test_state_.rotor_position()
+      );
 
-  fan_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
-//  RCLCPP_INFO(this->get_logger(),
-//              "\n"
-//              "fan     motor_rpm           : %i RPM\n"
-//              "        rotor_position_raw  : %i raw\n"
-//              "        rotor_position      : %f rev\n",
-//              fan_motor_drive_test_state_.motor_rpm,
-//              fan_motor_drive_test_state_.rotor_position_raw,
-//              fan_motor_drive_test_state_.rotor_position()
-//  );
+  if(use_simulator_) {
+    fan_motor_drive_test_state_.apply_motor_speed(time_delta);
+  } else {
+    fan_motor_drive_test_state_.apply_motor_speed_ref(time_delta);
+  }
+  if(print_debug_) RCLCPP_INFO(
+      this->get_logger(),
+      "\n"
+      "fan     motor_rpm           : %i RPM\n"
+      "        rotor_position_raw  : %i raw\n"
+      "        rotor_position      : %f rev\n",
+      fan_motor_drive_test_state_.motor_rpm,
+      fan_motor_drive_test_state_.rotor_position_raw,
+      fan_motor_drive_test_state_.rotor_position()
+      );
 
   vcu_alive_test_callback(pump_test_state_, false,
                           ControlMode::GCU,
@@ -183,6 +207,29 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
           false,
           fan_motor_drive_test_state_.rotor_position_raw);
 
+  asb_msgs::msg::SimStateCmd sim_state_cmd_msg;
+  sim_state_cmd_msg.left_motor_speed_ref = 2 * M_PI * left_motor_drive_test_state_.speed_ref / 60.;
+  sim_state_cmd_msg.right_motor_speed_ref = 2 * M_PI * right_motor_drive_test_state_.speed_ref / 60.;
+  sim_state_cmd_msg.fan_motor_speed_ref = 2 * M_PI * fan_motor_drive_test_state_.speed_ref / 60.;
+  sim_state_cmd_publisher_->publish(sim_state_cmd_msg);
+
+}
+
+void ASBSystemTestNode::sim_ros2_callback(const asb_msgs::msg::SimState::SharedPtr msg) {
+  if(print_debug_) RCLCPP_INFO(
+      this->get_logger(),
+      "sim_state.left_motor_speed  : %f\n"
+      "sim_state.right_motor_speed : %f\n"
+      "sim_state.fan_motor_speed   : %f\n",
+      msg->left_motor_speed,
+      msg->right_motor_speed,
+      msg->fan_motor_speed
+      );
+  if(use_simulator_) {
+    left_motor_drive_test_state_.motor_rpm = (int) (60 * msg->left_motor_speed / (2 * M_PI));
+    right_motor_drive_test_state_.motor_rpm = (int) (60 * msg->right_motor_speed / (2 * M_PI));
+    fan_motor_drive_test_state_.motor_rpm = (int) (60 * msg->fan_motor_speed / (2 * M_PI));
+  }
 }
 
 void ASBSystemTestNode::gcu_is_alive_timer_ros2_callback() {
@@ -283,8 +330,8 @@ void ASBSystemTestNode::motor_drive_fan_test_callback(
 
 void ASBSystemTestNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool pump_cmd_bit) {
   rclcpp::Time now = this->get_clock()->now();
-//  RCLCPP_INFO(this->get_logger(), "           GCU COMM AGE (%f s)", (now - last_GCU_message_time_).seconds());
-//  RCLCPP_INFO(this->get_logger(), "           GCU ALIVE BIT CHANGE AGE (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
+  if(print_debug_) RCLCPP_INFO(this->get_logger(), "           GCU COMM AGE (%f s)", (now - last_GCU_message_time_).seconds());
+  if(print_debug_) RCLCPP_INFO(this->get_logger(), "           GCU ALIVE BIT CHANGE AGE (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
   last_GCU_message_time_ = now;
   if (last_GCU_alive_bit_ != GCU_is_alive_bit) {
     last_GCU_alive_bit_change_time_ = now;

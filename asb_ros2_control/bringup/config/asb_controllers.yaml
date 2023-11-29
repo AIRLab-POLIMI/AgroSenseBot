@@ -22,15 +22,16 @@ asb_base_controller:
     # The equivalent wheel radius is 0.151 m / 40.61
     wheel_radius: 0.003718296
 
-    wheel_separation_multiplier: 1.0
+    wheel_separation_multiplier: 2.943851999  # account for track kinematics slippage (still assuming center of mass is in base_link, which is not)
+#    wheel_separation_multiplier: 1.0
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
 
     publish_rate: 50.0
     odom_frame_id: odom
-    base_frame_id: base_link
-    pose_covariance_diagonal : [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
-    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    base_frame_id: base_footprint
+    pose_covariance_diagonal : [0.00001, 0.00001, 1000000000000.0, 1000000000000.0, 1000000000000.0, 0.001]
+    twist_covariance_diagonal: [0.00001, 0.00001, 1000000000000.0, 1000000000000.0, 1000000000000.0, 0.1]
 
     open_loop: false
     enable_odom_tf: true
