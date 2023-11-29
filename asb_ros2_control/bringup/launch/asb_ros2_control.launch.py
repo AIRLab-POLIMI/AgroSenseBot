@@ -24,9 +24,9 @@ from launch_ros.substitutions import FindPackageShare as pkg
 
 def generate_launch_description():
 
-    test_launch_configuration = LaunchConfiguration("test")
-    test_launch_argument = DeclareLaunchArgument(
-        "test",
+    use_vcan0_launch_configuration = LaunchConfiguration("use_vcan0")
+    use_vcan0_launch_argument = DeclareLaunchArgument(
+        "use_vcan0",
         default_value="false",
         description="Use the virtual CAN network vcan0 instead of the physical CAN network (can0).",
     )
@@ -39,7 +39,7 @@ def generate_launch_description():
             PathJoinSubstitution([pkg("asb_ros2_control"), "urdf", "asb.urdf.xacro"]),
             " ",
             "test:=",
-            test_launch_configuration,
+            use_vcan0_launch_configuration,
         ]
     )
 
@@ -103,7 +103,7 @@ def generate_launch_description():
     # Create the launch description and populate
     ld = LaunchDescription()
 
-    ld.add_action(test_launch_argument)
+    ld.add_action(use_vcan0_launch_argument)
 
     ld.add_action(control_node)
     ld.add_action(robot_state_publisher_node)
