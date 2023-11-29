@@ -2,9 +2,13 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>asb_webots</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="enry2077@gmail.com">enrico</maintainer>
+  <version>0.0.1</version>
+  <description>Package with everything about Webots for AgroSenseBot</description>
+
+  <author email="enrico.piazza@unimi.it">Enrico Piazza</author>
+  <author email="enrico.piazza@polimi.it">Enrico Piazza</author>
+  <maintainer email="enrico.piazza@polimi.it">Enrico Piazza</maintainer>
+
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -12,7 +16,9 @@
   <depend>rclcpp</depend>
   <depend>asb_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>webots_ros2</depend>
   <depend>webots_ros2_driver</depend>
+  <depend>robot_state_publisher</depend>
   <depend>pluginlib</depend>
 
   <test_depend>ament_lint_auto</test_depend>

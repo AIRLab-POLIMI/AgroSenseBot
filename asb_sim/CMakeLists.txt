@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(asb_ros2_control_test)
+project(asb_sim)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)

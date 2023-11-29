@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>asb_ros2_control_test</name>
+  <name>asb_sim</name>
   <version>0.0.1</version>
-  <description>Dummy CANOpen node which sends and receives PDOs on a CAN interface for AgroSenseBot</description>
+  <description>Package to simulate and test the AgroSenseBot system, including CANOpen nodes which send and receive PDOs on a CAN interface.</description>
 
   <author email="enrico.piazza@unimi.it">Enrico Piazza</author>
   <author email="enrico.piazza@polimi.it">Enrico Piazza</author>
@@ -14,7 +14,10 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>asb_msgs</depend>
-
+  <depend>asb_ros2_control</depend>
+  <depend>asb_nav</depend>
+  <depend>asb_webots</depend>
+  
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

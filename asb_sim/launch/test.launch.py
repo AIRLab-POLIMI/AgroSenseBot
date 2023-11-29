@@ -104,7 +104,7 @@ def generate_launch_description():
     system_test_node = launch_ros.actions.LifecycleNode(
         name=LaunchConfiguration("test_node_name"),
         namespace="system_test",
-        package="asb_ros2_control_test",
+        package="asb_sim",
         output="screen",
         executable="test_node",
         parameters=[{

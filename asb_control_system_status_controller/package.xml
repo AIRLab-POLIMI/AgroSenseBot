@@ -14,6 +14,7 @@
 
   <depend>controller_interface</depend>
   <depend>asb_msgs</depend>
+  <depend>asb_ros2_control</depend>
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>

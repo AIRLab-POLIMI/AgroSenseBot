@@ -1,5 +1,5 @@
-#ifndef ASB_ROS2_CONTROL_TEST__ASB_SYSTEM_TEST_NODE_H_H
-#define ASB_ROS2_CONTROL_TEST__ASB_SYSTEM_TEST_NODE_H_H
+#ifndef ASB_SIM__ASB_SYSTEM_TEST_NODE_H_H
+#define ASB_SIM__ASB_SYSTEM_TEST_NODE_H_H
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
@@ -158,4 +158,4 @@ public:
 
 };
 
-#endif //ASB_ROS2_CONTROL_TEST__ASB_SYSTEM_TEST_NODE_H_H
+#endif //ASB_SIM__ASB_SYSTEM_TEST_NODE_H_H
