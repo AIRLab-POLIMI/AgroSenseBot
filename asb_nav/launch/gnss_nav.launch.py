@@ -32,7 +32,7 @@ def generate_launch_description():
     use_sim_time_launch_argument = DeclareLaunchArgument(
         'use_sim_time',
         default_value='false',
-        description='Whether to set the use_sim_time parameter to true. Should be the same as the use_gazebo parameter.',
+        description='Whether to set the use_sim_time parameter to true. Should only be set to true if using Gazebo (not Webots).',
     )
 
     rviz_launch_configuration = LaunchConfiguration('rviz')
