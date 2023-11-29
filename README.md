@@ -1,17 +1,17 @@
 # AgroSenseBot
 
 ## Install
-After [installing ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html) (Ubuntu 22.04), run these commands:
+After [installing ROS2 Iron](https://docs.ros.org/en/iron/Installation/Ubuntu-Install-Debians.html) (Ubuntu 22.04) and [installing Webots](https://cyberbotics.com/doc/guide/installing-webots), run these commands:
 ```shell
 sudo add-apt-repository -y ppa:lely/ppa  # lely PPA repo
 sudo apt-get update
 sudo apt-get install -y liblely-coapp-dev liblely-co-tools python3-dcf-tools  # lely canopen
 sudo apt-get install -y can-utils  # linux can utility
-sudo apt-get install -y ros-humble-xacro ros-humble-ros2controlcli ros-humble-ros2-controllers-test-nodes ros-humble-diff-drive-controller ros-humble-joint-state-broadcaster  # ROS2 dependencies
 sudo apt-get install -y libqwt-qt5-dev  # Qwt widgets for the Qt UI
+sudo apt-get install -y ros-iron-xacro ros-iron-ros2controlcli ros-iron-ros2-controllers-test-nodes ros-iron-diff-drive-controller ros-iron-joint-state-broadcaster ros-iron-webots-ros2 ros-iron-rqt-gui ros-iron-rqt-tf-tree ros-iron-nav2-* ros-iron-robot-localization # ROS2 dependencies
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
-git clone -b humble https://github.com/AIRLab-POLIMI/AgroSenseBot.git
+git clone -b iron https://github.com/AIRLab-POLIMI/AgroSenseBot.git
 cd ~/w/agrosensebot_ws/
 colcon build --symlink-install
 ```
