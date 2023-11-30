@@ -30,10 +30,7 @@ class MinimalPublisher(Node):
 
     def timer_callback(self):
         now_s = self.get_clock().now().nanoseconds * 1e-9
-        delta_time_s = now_s - self.last_timer_time_s
         self.last_timer_time_s = now_s
-        print(f"delta_time:                             {delta_time_s}")
-
         self.alive_bit = not self.alive_bit
 
         msg = Heartbeat(

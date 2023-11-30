@@ -16,6 +16,7 @@ import launch_ros.events
 import launch_ros.events.lifecycle
 
 import lifecycle_msgs.msg
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
@@ -85,6 +86,13 @@ def generate_launch_description():
         launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "gnss_nav.launch.py")),
     )
 
+    test_heartbeat_publisher_node = Node(
+        package="asb_sim",
+        executable="test_heartbeat.py",
+        name="test_heartbeat_publisher",
+        output="screen",
+    )
+
     ld = launch.LaunchDescription()
 
     ld.add_action(print_debug_launch_argument)
@@ -96,5 +104,6 @@ def generate_launch_description():
     ld.add_action(lifecycle_configure)
     ld.add_action(include_control_launch)
     ld.add_action(include_nav_launch)
+    ld.add_action(test_heartbeat_publisher_node)
 
     return ld
