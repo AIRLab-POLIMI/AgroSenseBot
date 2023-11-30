@@ -50,7 +50,7 @@ controller_server:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.25
+      yaw_goal_tolerance: 6.3
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
@@ -98,6 +98,7 @@ local_costmap:
   local_costmap:
     ros__parameters:
       update_frequency: 5.0
+      always_send_full_costmap: True
       publish_frequency: 2.0
       global_frame: odom
       robot_base_frame: base_link
@@ -123,6 +124,7 @@ local_costmap:
         z_voxels: 16
         max_obstacle_height: 2.0
         mark_threshold: 0
+        footprint_clearing_enabled: False
         observation_sources: "scan_front scan_rear"
         scan_front:
           topic: /scan_front
@@ -144,12 +146,12 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 5.5
           obstacle_min_range: 0.0
-      always_send_full_costmap: True
 
 global_costmap:
   global_costmap:
     ros__parameters:
       update_frequency: 1.0
+      always_send_full_costmap: True
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
@@ -197,7 +199,6 @@ global_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 1.5
-      always_send_full_costmap: True
 
 map_saver:
   ros__parameters:
