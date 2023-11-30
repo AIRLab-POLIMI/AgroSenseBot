@@ -40,7 +40,7 @@ ekf_filter_map_odom:
 
     process_noise_covariance: [  # diagonal of the process noise covariance matrix
       0.2, 0.2, 1e-3,  # x, y, z
-      0.3, 0.3, 0.2,  # roll, pitch, yaw
+      0.3, 0.3, 0.1,  # roll, pitch, yaw
       0.5, 0.5, 0.1,   # v_x, v_y, v_z
       0.3, 0.3, 0.3,   # v_roll, v_pitch, v_yaw
       0.3, 0.3, 0.3    # a_x, a_y, a_z

@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <robot name="asb_webots_robot">
     <webots>
+
+        <plugin type="asb_webots_driver::ASBWebotsDriver" />
+
         <device reference="base_scan_front" type="Lidar">
             <ros>
                 <enabled>true</enabled>
@@ -11,14 +14,16 @@
             </ros>
         </device>
 
-<!--        <device reference="gnss_link" type="GPS">-->
-<!--            <ros>-->
-<!--                <topicName>/gps/fix</topicName>-->
-<!--                <frameName>gnss_link</frameName>-->
-<!--            </ros>-->
-<!--        </device>-->
+        <device reference="base_scan_rear" type="Lidar">
+            <ros>
+                <enabled>true</enabled>
+                <updateRate>10</updateRate>
+                <topicName>/scan_rear</topicName>
+                <alwaysOn>false</alwaysOn>
+                <frameName>base_scan_rear</frameName>
+            </ros>
+        </device>
 
-        <plugin type="asb_webots_driver::ASBWebotsDriver" />
     </webots>
 
 </robot>
