@@ -88,10 +88,12 @@ def generate_launch_description():
     )
 
     nav2_bringup_include = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg("nav2_bringup"), "launch", "navigation_launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav2_navigation_launch.py")),
         launch_arguments={
             "use_sim_time": use_sim_time_launch_configuration,
-            "params_file": os.path.join(pkg("asb_nav"), "config", "nav2_params_gnss_nav.yaml"),
+            "params_file": os.path.join(pkg("asb_nav"), "config", "gnss_nav", "nav2_params.yaml"),
+            "controller_params_file": os.path.join(pkg("asb_nav"), "config", "gnss_nav", "nav2_controller_params_dwb.yaml"),
+            "planner_params_file": os.path.join(pkg("asb_nav"), "config", "gnss_nav", "nav2_planner_params_navfn.yaml"),
             "autostart": "true",
         }.items(),
     )
