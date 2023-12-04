@@ -5,9 +5,9 @@
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <PipelineSequence name="NavigateWithReplanning">
-      <RateController hz="0.333">
+      <RateController hz="1.0">
         <ReactiveSequence>
-          <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="0.7"/>
+          <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="2.0"/>
           <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased" error_code_id="{compute_path_error_code}"/>
         </ReactiveSequence>
       </RateController>
