@@ -14,7 +14,7 @@ namespace asb_rviz_plugins {
 //  Battery
     battery_voltage_ = new ASBThermo;
     substitute_widget(battery_voltage_, ui_->battery_voltage, ui_->battery_voltage_layout,
-                      28, 22);
+                      56, 48);
 
     battery_soc_ = new ASBThermo;
     substitute_widget(battery_soc_, ui_->battery_soc, ui_->battery_soc_layout,
@@ -27,11 +27,11 @@ namespace asb_rviz_plugins {
 
     left_motor_current_ = new ASBThermo;
     substitute_widget(left_motor_current_, ui_->left_motor_current, ui_->left_motor_current_layout,
-                      900, 0);
+                      80, 0);
 
-    left_motor_torque_ = new ASBThermo;
-    substitute_widget(left_motor_torque_, ui_->left_motor_torque, ui_->left_motor_torque_layout,
-                      900, 0);
+//    left_motor_torque_ = new ASBThermo;
+//    substitute_widget(left_motor_torque_, ui_->left_motor_torque, ui_->left_motor_torque_layout,
+//                      900, 0);
 
     left_motor_temperature_ = new ASBThermo;
     substitute_widget(left_motor_temperature_, ui_->left_motor_temperature, ui_->left_motor_temperature_layout,
@@ -48,11 +48,11 @@ namespace asb_rviz_plugins {
 
     right_motor_current_ = new ASBThermo;
     substitute_widget(right_motor_current_, ui_->right_motor_current, ui_->right_motor_current_layout,
-                      900, 0);
+                      80, 0);
 
-    right_motor_torque_ = new ASBThermo;
-    substitute_widget(right_motor_torque_, ui_->right_motor_torque, ui_->right_motor_torque_layout,
-                      900, 0);
+//    right_motor_torque_ = new ASBThermo;
+//    substitute_widget(right_motor_torque_, ui_->right_motor_torque, ui_->right_motor_torque_layout,
+//                      900, 0);
 
     right_motor_temperature_ = new ASBThermo;
     substitute_widget(right_motor_temperature_, ui_->right_motor_temperature, ui_->right_motor_temperature_layout,
@@ -69,11 +69,11 @@ namespace asb_rviz_plugins {
 
     fan_motor_current_ = new ASBThermo;
     substitute_widget(fan_motor_current_, ui_->fan_motor_current, ui_->fan_motor_current_layout,
-                      900, 0);
+                      20, 0);
 
-    fan_motor_torque_ = new ASBThermo;
-    substitute_widget(fan_motor_torque_, ui_->fan_motor_torque, ui_->fan_motor_torque_layout,
-                      900, 0);
+//    fan_motor_torque_ = new ASBThermo;
+//    substitute_widget(fan_motor_torque_, ui_->fan_motor_torque, ui_->fan_motor_torque_layout,
+//                      900, 0);
 
     fan_motor_temperature_ = new ASBThermo;
     substitute_widget(fan_motor_temperature_, ui_->fan_motor_temperature, ui_->fan_motor_temperature_layout,
@@ -138,8 +138,8 @@ namespace asb_rviz_plugins {
         ui_->vcu_comm_disp->setText(QString("OK"));
         ui_->vcu_comm_disp->setStyleSheet(no_bg);
 
-        ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status ? "LOCK":"OK"));
-        ui_->vcu_safety_disp->setStyleSheet(control_system_state->vcu_safety_status ? yel_bg:no_bg);
+        ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status ? "OK":"LOCK"));
+        ui_->vcu_safety_disp->setStyleSheet(control_system_state->vcu_safety_status ? no_bg:yel_bg);
 
         ui_->control_mode_disp->setText(control_mode_string[control_system_state->control_mode]);
         ui_->control_mode_disp->setStyleSheet(no_bg);
@@ -148,11 +148,12 @@ namespace asb_rviz_plugins {
         ui_->pump_disp->setStyleSheet(no_bg);
 
         control_system_state->more_recent_active_alarm_id ?
-        ui_->vcu_error_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)) :
-        ui_->vcu_error_disp->setText(QString("NONE"));
-        control_system_state->more_recent_active_alarm_id ?
-        ui_->vcu_error_disp->setStyleSheet(yel_bg) :
+            ui_->vcu_error_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)) :
+            ui_->vcu_error_disp->setText(QString("NONE"));
         ui_->vcu_error_disp->setStyleSheet(no_bg);
+//        control_system_state->more_recent_active_alarm_id ?
+//            ui_->vcu_error_disp->setStyleSheet(yel_bg) :
+//            ui_->vcu_error_disp->setStyleSheet(no_bg);
       } else {
         ui_->vcu_comm_disp->setText(QString("DOWN"));
         ui_->vcu_comm_disp->setStyleSheet(yel_bg);
@@ -206,15 +207,15 @@ namespace asb_rviz_plugins {
             left_motor_velocity_RPM, 0, 'f', 0));
     ui_->left_motor_velocity_disp->setStyleSheet(is_alarm_on(left_motor_velocity_) ? red_bg:no_bg);
 
-    left_motor_current_->setValue(control_system_state->left_motor_battery_current);
+    left_motor_current_->setValue(std::abs(control_system_state->left_motor_battery_current));
     ui_->left_motor_current_disp->setText(QString("%1 A").arg(
-            control_system_state->left_motor_battery_current, 0, 'f', 0));
+            control_system_state->left_motor_battery_current, 0, 'f', 1));
     ui_->left_motor_current_disp->setStyleSheet(is_alarm_on(left_motor_current_) ? red_bg:no_bg);
 
-    left_motor_torque_->setValue(control_system_state->left_motor_torque);
-    ui_->left_motor_torque_disp->setText(QString("%1 Nm").arg(
-            control_system_state->left_motor_torque, 0, 'f', 0));
-    ui_->left_motor_torque_disp->setStyleSheet(is_alarm_on(left_motor_torque_) ? red_bg:no_bg);
+//    left_motor_torque_->setValue(control_system_state->left_motor_torque);
+//    ui_->left_motor_torque_disp->setText(QString("%1 Nm").arg(
+//            control_system_state->left_motor_torque, 0, 'f', 0));
+//    ui_->left_motor_torque_disp->setStyleSheet(is_alarm_on(left_motor_torque_) ? red_bg:no_bg);
 
     left_motor_temperature_->setValue(control_system_state->left_motor_temperature);
     ui_->left_motor_temperature_disp->setText(QString("%1 °C").arg(
@@ -235,15 +236,15 @@ namespace asb_rviz_plugins {
             right_motor_velocity_RPM, 0, 'f', 0));
     ui_->right_motor_velocity_disp->setStyleSheet(is_alarm_on(right_motor_velocity_) ? red_bg:no_bg);
 
-    right_motor_current_->setValue(control_system_state->right_motor_battery_current);
+    right_motor_current_->setValue(std::abs(control_system_state->right_motor_battery_current));
     ui_->right_motor_current_disp->setText(QString("%1 A").arg(
-            control_system_state->right_motor_battery_current, 0, 'f', 0));
+            control_system_state->right_motor_battery_current, 0, 'f', 1));
     ui_->right_motor_current_disp->setStyleSheet(is_alarm_on(right_motor_current_) ? red_bg:no_bg);
 
-    right_motor_torque_->setValue(control_system_state->right_motor_torque);
-    ui_->right_motor_torque_disp->setText(QString("%1 Nm").arg(
-            control_system_state->right_motor_torque, 0, 'f', 0));
-    ui_->right_motor_torque_disp->setStyleSheet(is_alarm_on(right_motor_torque_) ? red_bg:no_bg);
+//    right_motor_torque_->setValue(control_system_state->right_motor_torque);
+//    ui_->right_motor_torque_disp->setText(QString("%1 Nm").arg(
+//            control_system_state->right_motor_torque, 0, 'f', 0));
+//    ui_->right_motor_torque_disp->setStyleSheet(is_alarm_on(right_motor_torque_) ? red_bg:no_bg);
 
     right_motor_temperature_->setValue(control_system_state->right_motor_temperature);
     ui_->right_motor_temperature_disp->setText(QString("%1 °C").arg(
@@ -262,15 +263,15 @@ namespace asb_rviz_plugins {
             control_system_state->fan_motor_velocity_rpm, 0, 'f', 0));
     ui_->fan_motor_velocity_disp->setStyleSheet(is_alarm_on(fan_motor_velocity_) ? red_bg:no_bg);
 
-    fan_motor_current_->setValue(control_system_state->fan_motor_battery_current);
+    fan_motor_current_->setValue(std::abs(control_system_state->fan_motor_battery_current));
     ui_->fan_motor_current_disp->setText(QString("%1 A").arg(
-            control_system_state->fan_motor_battery_current, 0, 'f', 0));
+            control_system_state->fan_motor_battery_current, 0, 'f', 1));
     ui_->fan_motor_current_disp->setStyleSheet(is_alarm_on(fan_motor_current_) ? red_bg:no_bg);
 
-    fan_motor_torque_->setValue(control_system_state->fan_motor_torque);
-    ui_->fan_motor_torque_disp->setText(QString("%1 Nm").arg(
-            control_system_state->fan_motor_torque, 0, 'f', 0));
-    ui_->fan_motor_torque_disp->setStyleSheet(is_alarm_on(fan_motor_torque_) ? red_bg:no_bg);
+//    fan_motor_torque_->setValue(control_system_state->fan_motor_torque);
+//    ui_->fan_motor_torque_disp->setText(QString("%1 Nm").arg(
+//            control_system_state->fan_motor_torque, 0, 'f', 0));
+//    ui_->fan_motor_torque_disp->setStyleSheet(is_alarm_on(fan_motor_torque_) ? red_bg:no_bg);
 
     fan_motor_temperature_->setValue(control_system_state->fan_motor_temperature);
     ui_->fan_motor_temperature_disp->setText(QString("%1 °C").arg(
