@@ -34,7 +34,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: scan_front history
   - Class: asb_rviz_plugins/AgroSenseBot
     Name: AgroSenseBot
 Visualization Manager:
@@ -156,6 +156,8 @@ Visualization Manager:
           Value: true
         left_track:
           Value: true
+        map:
+          Value: true
         odom:
           Value: true
         right_track:
@@ -166,14 +168,29 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        map:
+          odom:
+            base_footprint:
+              base_link:
+                base_scan_front:
+                  {}
+                base_scan_rear:
+                  {}
+                gnss_link:
+                  {}
+                gnss_link_2:
+                  {}
+                left_track:
+                  {}
+                right_track:
+                  {}
       Update Interval: 0
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: -1.768746256828308
-        Min Value: -4.763622283935547
+        Max Value: -9999
+        Min Value: 9999
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -218,9 +235,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
+      Max Intensity: 5
       Min Color: 0; 0; 0
-      Min Intensity: 0
+      Min Intensity: 5
       Name: scan_front
       Position Transformer: XYZ
       Selectable: true
@@ -777,7 +794,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 148.70550537109375
+      Scale: 56.741302490234375
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0.04977679252624512
