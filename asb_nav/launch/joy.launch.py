@@ -28,8 +28,8 @@ def generate_launch_description():
         parameters=[{  # these keybindings are for a G-LAB K-PAD-THORIUM joy-pad (SHANWAN Android Gamepad)
             "enable_button": 7,
             "axis_linear.x": 1,
-            "scale_linear.x": 0.5,
-            "scale_angular.yaw": 0.6,
+            "scale_linear.x": 0.3,
+            "scale_angular.yaw": 0.3,
         }],
         # remappings=[
         #     ('/cmd_vel', '/cmd_vel_teleop'),
