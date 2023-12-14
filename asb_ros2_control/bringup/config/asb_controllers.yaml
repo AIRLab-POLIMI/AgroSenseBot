@@ -22,8 +22,9 @@ asb_base_controller:
     # The equivalent wheel radius is 0.151 m / 40.61
     wheel_radius: 0.003718296
 
-    wheel_separation_multiplier: 1.6  # account for track kinematics slippage (still assuming center of mass is in base_link, which is not)
-#    wheel_separation_multiplier: 1.0
+    # account for track kinematics slippage (still assuming center of mass is in base_link, which is not always)
+    wheel_separation_multiplier: 1.6  # real robot on concrete
+#    wheel_separation_multiplier: 2.943851999  # simulated robot on terrain
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
 
