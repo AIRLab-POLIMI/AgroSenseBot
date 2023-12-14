@@ -36,7 +36,7 @@ def generate_launch_description():
     )
 
     webots_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg("asb_webots"), "launch", "sim.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_webots"), "launch", "sim_webots.launch.py")),
         condition=IfCondition(use_simulator_launch_configuration)
     )
 
