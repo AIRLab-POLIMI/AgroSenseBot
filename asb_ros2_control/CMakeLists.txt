@@ -28,7 +28,7 @@ add_library(
   asb_ros2_control
   SHARED
   hardware/asb_system.cpp
-        hardware/canopen_gcu_slave_node.cpp
+  hardware/canopen_gcu_slave_node.cpp
   hardware/canopen_motor_drive_receiver.cpp
 )
 target_compile_features(asb_ros2_control PUBLIC cxx_std_17)
@@ -36,7 +36,6 @@ target_include_directories(asb_ros2_control PUBLIC
 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
 $<INSTALL_INTERFACE:include/asb_ros2_control>
 )
-#target_link_libraries(asb_ros2_control ${liblely-io2_LIBRARIES} ${liblely-coapp_LIBRARIES})
 ament_target_dependencies(
   asb_ros2_control PUBLIC
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
@@ -66,7 +65,7 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 install(
-  DIRECTORY bringup/launch bringup/config bringup/rviz
+  DIRECTORY bringup/launch bringup/config bringup/rviz can_config
   DESTINATION share/${PROJECT_NAME}
 )
 install(TARGETS asb_ros2_control
