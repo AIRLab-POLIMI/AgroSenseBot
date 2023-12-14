@@ -55,9 +55,9 @@ local_costmap:
         max_obstacle_height: 2.0
         mark_threshold: 0
         footprint_clearing_enabled: False
-        observation_sources: "scan_front_blind scan_rear_blind"
-        scan_front_blind:
-          topic: /scan_front_blind
+        observation_sources: "scan_front_fake scan_rear_fake"
+        scan_front_fake:
+          topic: /scan_front_fake
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -66,8 +66,8 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 5.5
           obstacle_min_range: 0.0
-        scan_rear_blind:
-          topic: /scan_rear_blind
+        scan_rear_fake:
+          topic: /scan_rear_fake
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -102,9 +102,9 @@ global_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: "scan_front_blind scan_rear_blind"
-        scan_front_blind:
-          topic: /scan_front_blind
+        observation_sources: "scan_front_fake scan_rear_fake"
+        scan_front_fake:
+          topic: /scan_front_fake
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -114,8 +114,8 @@ global_costmap:
           obstacle_max_range: 5.5
           obstacle_min_range: 0.0
           inf_is_valid: true
-        scan_rear_blind:
-          topic: /scan_rear_blind
+        scan_rear_fake:
+          topic: /scan_rear_fake
           max_obstacle_height: 2.0
           clearing: True
           marking: True

@@ -41,37 +41,15 @@ def generate_launch_description():
         description='Whether to start RViz',
     )
 
-    # ekf_filter_node = Node(
-    #     package="robot_localization",
-    #     executable="ekf_node",
-    #     name="ekf_filter_map_odom",
-    #     output="screen",
-    #     parameters=[
-    #         os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
-    #         {"use_sim_time": use_sim_time_launch_configuration},
-    #     ],
-    #     remappings=[
-    #         ("odometry/filtered", "odometry/global"),
-    #     ],
-    # )
-    #
-    # navsat_transform_node = Node(
-    #     package="robot_localization",
-    #     executable="navsat_transform_node",
-    #     name="navsat_transform",
-    #     output="screen",
-    #     parameters=[
-    #         os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
-    #         {"use_sim_time": use_sim_time_launch_configuration},
-    #     ],
-    #     remappings=[
-    #         ("odometry/filtered", "odometry/global"),
-    #     ],
-    # )
+    fake_localization_transform_publisher = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
+    )
 
     fake_scan_node = Node(
         package="asb_sim",
-        executable="test_scan_pub",
+        executable="fake_scan_pub.py",
         name="fake_scan_publisher",
         output="screen",
     )
@@ -102,8 +80,7 @@ def generate_launch_description():
     ld.add_action(rviz_launch_argument)
 
     # localization
-    # ld.add_action(ekf_filter_node)
-    # ld.add_action(navsat_transform_node)
+    ld.add_action(fake_localization_transform_publisher)
 
     # navigation
     ld.add_action(nav2_bringup_include)
