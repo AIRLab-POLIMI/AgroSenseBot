@@ -55,8 +55,7 @@ local_costmap:
         max_obstacle_height: 2.0
         mark_threshold: 0
         footprint_clearing_enabled: False
-        observation_sources: "scan_front"
-#        observation_sources: "scan_front scan_rear"
+        observation_sources: "scan_front scan_rear"
         scan_front:
           topic: /scan_front
           max_obstacle_height: 2.0
@@ -103,8 +102,7 @@ global_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: "scan_front"
-#        observation_sources: "scan_front scan_rear"
+        observation_sources: "scan_front scan_rear"
         scan_front:
           topic: /scan_front
           max_obstacle_height: 2.0

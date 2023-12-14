@@ -41,43 +41,50 @@ def generate_launch_description():
         description='Whether to start RViz',
     )
 
-    ekf_filter_node = Node(
-        package="robot_localization",
-        executable="ekf_node",
-        name="ekf_filter_map_odom",
-        output="screen",
-        parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
-            {"use_sim_time": use_sim_time_launch_configuration},
-        ],
-        remappings=[
-            ("odometry/filtered", "odometry/global"),
-        ],
-    )
+    # ekf_filter_node = Node(
+    #     package="robot_localization",
+    #     executable="ekf_node",
+    #     name="ekf_filter_map_odom",
+    #     output="screen",
+    #     parameters=[
+    #         os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
+    #         {"use_sim_time": use_sim_time_launch_configuration},
+    #     ],
+    #     remappings=[
+    #         ("odometry/filtered", "odometry/global"),
+    #     ],
+    # )
+    #
+    # navsat_transform_node = Node(
+    #     package="robot_localization",
+    #     executable="navsat_transform_node",
+    #     name="navsat_transform",
+    #     output="screen",
+    #     parameters=[
+    #         os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
+    #         {"use_sim_time": use_sim_time_launch_configuration},
+    #     ],
+    #     remappings=[
+    #         ("odometry/filtered", "odometry/global"),
+    #     ],
+    # )
 
-    navsat_transform_node = Node(
-        package="robot_localization",
-        executable="navsat_transform_node",
-        name="navsat_transform",
+    fake_scan_node = Node(
+        package="asb_sim",
+        executable="test_scan_pub",
+        name="fake_scan_publisher",
         output="screen",
-        parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
-            {"use_sim_time": use_sim_time_launch_configuration},
-        ],
-        remappings=[
-            ("odometry/filtered", "odometry/global"),
-        ],
     )
 
     nav2_bringup_include = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav2_navigation_launch.py")),
         launch_arguments={
             "use_sim_time": use_sim_time_launch_configuration,
-            "params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_params.yaml"),
-            "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_controller_params_rpp.yaml"),
-            # "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_controller_params_dwb.yaml"),
-            # "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
-            "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_planner_params_navfn.yaml"),
+            "params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_params.yaml"),
+            "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_controller_params_rpp.yaml"),
+            # "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_controller_params_dwb.yaml"),
+            # "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
+            "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_planner_params_navfn.yaml"),
             "autostart": "true",
         }.items(),
     )
@@ -87,18 +94,6 @@ def generate_launch_description():
         condition=IfCondition(rviz_launch_configuration)
     )
 
-    # has been bugged for months and still not fixed...
-    # lidar_filter_node = Node(
-    #     package="laser_filters",
-    #     executable="scan_to_scan_filter_chain",
-    #     parameters=[
-    #         os.path.join(pkg("asb_nav"), "config", "lidar_filter.yaml")
-    #     ],
-    #     remappings=[
-    #         ("/scan", "/scan_front"),
-    #     ],
-    # )
-
     # Create the launch description and populate
     ld = LaunchDescription()
 
@@ -107,14 +102,14 @@ def generate_launch_description():
     ld.add_action(rviz_launch_argument)
 
     # localization
-    ld.add_action(ekf_filter_node)
-    ld.add_action(navsat_transform_node)
+    # ld.add_action(ekf_filter_node)
+    # ld.add_action(navsat_transform_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)
 
     # sensors
-    # ld.add_action(lidar_filter_node)
+    ld.add_action(fake_scan_node)
 
     # viz
     ld.add_action(rviz_include)

@@ -8,7 +8,7 @@
             <ros>
                 <enabled>true</enabled>
                 <updateRate>10</updateRate>
-                <topicName>/scan_front_asd</topicName>
+                <topicName>/scan_front</topicName>
                 <alwaysOn>false</alwaysOn>
                 <frameName>base_scan_front</frameName>
             </ros>
@@ -18,7 +18,7 @@
             <ros>
                 <enabled>true</enabled>
                 <updateRate>10</updateRate>
-                <topicName>/scan_rear_asd</topicName>
+                <topicName>/scan_rear</topicName>
                 <alwaysOn>false</alwaysOn>
                 <frameName>base_scan_rear</frameName>
             </ros>
