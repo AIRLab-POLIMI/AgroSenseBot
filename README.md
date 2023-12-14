@@ -30,10 +30,10 @@ The can0 network is used to communicate with the real hardware, and the vcan0 vi
 tests in the simulator.
 To persistently set up the CAN networks can0 and vcan0, run the following command in a terminal.
 ```shell
-ros2 run asb_ros2_control setup_startup_can_networks.sh
+ros2 run asb_ros2_control setup_can_networks.sh
 ```
 
-Otherwise, the CAN networks can be set up with the commands:
+Otherwise, the CAN networks can be manually set up with the following commands, but will not persist after rebooting the operating system:
 ```shell
 ros2 run asb_ros2_control setup_vcan0.sh  # to set up the vcan0 network, or
 ros2 run asb_ros2_control setup_can0.sh  # to set up the can0 network
