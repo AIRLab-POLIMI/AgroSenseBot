@@ -83,7 +83,7 @@ def generate_launch_description():
     )
 
     include_nav_launch = IncludeLaunchDescription(
-        launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "gnss_nav.launch.py")),
+        launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav_gnss.launch.py")),
     )
 
     test_heartbeat_publisher_node = Node(
