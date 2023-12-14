@@ -81,7 +81,7 @@ If the network is not up, an error is printed.
 
 Launch the hardware interface and test node with the following command
 ```shell
-ros2 launch asb_sim nav_gnss.launch.py
+ros2 launch asb_sim nav_gnss_sim.launch.py
 ```
 
 *Either* run the `teleop_twist_keyboard` node to publish cmd_vel and press the forward key (i), with the following command
