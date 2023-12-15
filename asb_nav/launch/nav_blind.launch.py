@@ -61,8 +61,8 @@ def generate_launch_description():
             "params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_params.yaml"),
             "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_controller_params_rpp.yaml"),
             # "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_controller_params_dwb.yaml"),
-            # "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
-            "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_planner_params_navfn.yaml"),
+            "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
+            # "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_blind", "nav2_params", "nav2_planner_params_navfn.yaml"),
             "autostart": "true",
         }.items(),
     )
