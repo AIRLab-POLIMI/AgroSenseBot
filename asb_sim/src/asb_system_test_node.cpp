@@ -185,7 +185,7 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
       fan_motor_drive_test_state_.rotor_position()
       );
 
-  vcu_alive_test_callback(pump_test_state_, false,
+  vcu_alive_test_callback(pump_test_state_, true,
                           ControlMode::GCU,
                           0, 0);
 
