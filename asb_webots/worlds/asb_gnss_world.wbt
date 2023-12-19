@@ -383,7 +383,7 @@ DEF VINEYARD Pose {
 
 
 DEF TRACKED_ROBOT Robot {
-  translation -0.809535838711239 -0.42212756733335793 0.40
+  translation -0.8066057606629656 -0.436468605494891 0.7
   rotation 0 0 0 0
   children [
     DEF BASE Pose {
