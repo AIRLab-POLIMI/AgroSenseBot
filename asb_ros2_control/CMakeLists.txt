@@ -14,7 +14,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 )
 
 include(FindPkgConfig)
-pkg_search_module(liblely-coapp REQUIRED liblely-coapp=2.3.2)  # 2.3.2 is the latest version from the lely PPA at the moment
+pkg_search_module(liblely-coapp REQUIRED liblely-coapp)  # 2.3.2 is the latest version from the lely PPA at the time of writing
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
