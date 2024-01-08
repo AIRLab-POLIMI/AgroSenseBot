@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /tf1/Frames1
+        - /Controller1
         - /Controller1/Trajectories1/Topic1
         - /Controller1/mppi trajectories1/Namespaces1
         - /waypoints1/Topic1
@@ -191,8 +192,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 23.271230697631836
-        Min Value: -74.95552825927734
+        Max Value: 24.799829483032227
+        Min Value: -41.93716049194336
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -570,8 +571,7 @@ Visualization Manager:
           Enabled: true
           Name: mppi trajectories
           Namespaces:
-            Candidate Trajectories: false
-            Optimal Trajectory: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -606,6 +606,21 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /lookahead_collision_arc
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/PointStamped
+          Color: 204; 41; 204
+          Enabled: true
+          History Length: 1
+          Name: rpp lookahead
+          Radius: 0.20000000298023224
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /lookahead_point
           Value: true
         - Alpha: 1
           Axes Length: 1
@@ -896,7 +911,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 269.3365783691406
+      Scale: 374.8815002441406
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
       X: -0.12274257838726044
