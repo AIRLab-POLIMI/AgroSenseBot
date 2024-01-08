@@ -14,7 +14,7 @@ planner_server:
       max_planning_time: 5.0              # max time in s for planner to plan, smooth
       analytic_expansion_ratio: 3.5       # The ratio to attempt analytic expansions during search for final approach.
       analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
-      motion_model_for_search: "DUBIN"    # Hybrid-A* DUBIN or REEDS_SHEPP
+      motion_model_for_search: "REEDS_SHEPP"    # Hybrid-A* DUBIN or REEDS_SHEPP
       angle_quantization_bins: 72         # Number of angle bins for search
       reverse_penalty: 2.0                # Penalty to apply if motion is reversing, must be => 1 (only used for REEDS_SHEPP)
       change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0

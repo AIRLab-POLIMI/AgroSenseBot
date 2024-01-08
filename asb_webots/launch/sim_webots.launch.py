@@ -8,6 +8,7 @@ from webots_ros2_driver.webots_controller import WebotsController
 
 def generate_launch_description():
     webots_launcher = WebotsLauncher(
+        gui=False,
         world=os.path.join(pkg('asb_webots'), 'worlds', 'asb_gnss_world.wbt')
     )
 
