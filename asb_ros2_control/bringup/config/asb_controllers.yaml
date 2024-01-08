@@ -6,7 +6,7 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     asb_base_controller:
-      type: diff_drive_controller/DiffDriveController
+      type: asb_track_controller/DiffDriveController
 
     asb_control_system_status_controller:
       type: asb_control_system_status_controller/ASBControlSystemStatusController
@@ -41,6 +41,8 @@ asb_base_controller:
     #publish_limited_velocity: true
     use_stamped_vel: false
     #velocity_rolling_window_size: 10
+
+    min_turning_radius: 0.9
 
     # Velocity and acceleration limits. Whenever a min_* is unspecified, default to -max_*
     linear.x.has_velocity_limits: true
