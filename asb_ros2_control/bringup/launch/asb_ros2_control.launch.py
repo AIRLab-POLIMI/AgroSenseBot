@@ -55,6 +55,7 @@ def generate_launch_description():
         remappings=[
             ("/asb_base_controller/cmd_vel_unstamped", "/cmd_vel"),
             ("/asb_base_controller/odom", "/odom"),
+            ("/asb_base_controller/imu", "/imu"),
         ],
     )
 

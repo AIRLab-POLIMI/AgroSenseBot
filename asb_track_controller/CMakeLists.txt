@@ -9,6 +9,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   controller_interface
   generate_parameter_library
   geometry_msgs
+  sensor_msgs
   hardware_interface
   nav_msgs
   pluginlib
@@ -60,6 +61,7 @@ if(BUILD_TESTING)
   )
   ament_target_dependencies(test_diff_drive_controller
     geometry_msgs
+    sensor_msgs
     hardware_interface
     nav_msgs
     rclcpp

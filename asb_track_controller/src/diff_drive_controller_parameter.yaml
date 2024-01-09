@@ -109,6 +109,11 @@ diff_drive_controller:
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages.",
   }
+  use_imu: {
+    type: bool,
+    default_value: true,
+    description: "Whether to use the imu angular velocity to compute the control of the angular command.",
+  }
   min_turning_radius: {
     type: double,
     default_value: 0.0, # meters

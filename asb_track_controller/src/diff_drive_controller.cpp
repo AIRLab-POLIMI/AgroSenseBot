@@ -51,6 +51,7 @@ namespace
 constexpr auto DEFAULT_COMMAND_TOPIC = "~/cmd_vel";
 constexpr auto DEFAULT_COMMAND_UNSTAMPED_TOPIC = "~/cmd_vel_unstamped";
 constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
+constexpr auto DEFAULT_IMU_TOPIC = "~/imu";
 constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
 constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
 }  // namespace
@@ -154,7 +155,7 @@ controller_interface::return_type DiffDriveController::update(
   double & linear_command = command.twist.linear.x;
   double & angular_command = command.twist.angular.z;
 
-  previous_update_timestamp_ = time;
+  previous_update_timestamp_ = time;  // this is never used??
 
   // Apply (possibly new) multipliers:
   const double wheel_separation = params_.wheel_separation_multiplier * params_.wheel_separation;
@@ -172,14 +173,11 @@ controller_interface::return_type DiffDriveController::update(
     for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
     {
       const double left_feedback = registered_left_wheel_handles_[index].feedback.get().get_value();
-      const double right_feedback =
-        registered_right_wheel_handles_[index].feedback.get().get_value();
+      const double right_feedback = registered_right_wheel_handles_[index].feedback.get().get_value();
 
       if (std::isnan(left_feedback) || std::isnan(right_feedback))
       {
-        RCLCPP_ERROR(
-          logger, "Either the left or right wheel %s is invalid for index [%zu]", feedback_type(),
-          index);
+        RCLCPP_ERROR(logger, "Either the left or right wheel %s is invalid for index [%zu]", feedback_type(), index);
         return controller_interface::return_type::ERROR;
       }
 
@@ -253,24 +251,23 @@ controller_interface::return_type DiffDriveController::update(
 
   auto & last_command = previous_commands_.back().twist;
   auto & second_to_last_command = previous_commands_.front().twist;
-  limiter_linear_.limit(
-    linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
-  limiter_angular_.limit(
-    angular_command, last_command.angular.z, second_to_last_command.angular.z, period.seconds());
+  limiter_linear_.limit(linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
+  limiter_angular_.limit(angular_command, last_command.angular.z, second_to_last_command.angular.z, period.seconds());
 
   previous_commands_.pop();
   previous_commands_.emplace(command);
 
+  std::shared_ptr<Imu> last_imu_msg;
+  received_imu_msg_ptr_.get(last_imu_msg);
+
   bool turning_radius_infinite = std::fabs(angular_command) < 0.01;
   double turning_radius = std::fabs(linear_command / angular_command);
 
-//  RCLCPP_INFO(
-//    get_node()->get_logger(),
-//    "linear_command: %f, angular_command: %f\n"
-//    "Turning radius : %f m. Minimum turning radius: %f m.",
-//    linear_command, angular_command,
-//    turning_radius, params_.min_turning_radius
-//    );
+  RCLCPP_INFO(
+    get_node()->get_logger(),
+    "angular_velocity.z: %f, angular_command: %f",
+    last_imu_msg->angular_velocity.z, angular_command
+    );
 
   if(!turning_radius_infinite && (turning_radius < params_.min_turning_radius))
   {
@@ -425,6 +422,30 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
         });
   }
 
+  const Imu empty_imu_msg;
+  received_imu_msg_ptr_.set(std::make_shared<Imu>(empty_imu_msg));
+
+  // initialize imu subscriber
+  if (params_.use_imu)
+  {
+    imu_subscriber_ = get_node()->create_subscription<Imu>(
+      DEFAULT_IMU_TOPIC, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<Imu> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(get_node()->get_logger(), "Can't accept imu message. Subscriber is inactive");
+          return;
+        }
+        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+        {
+          RCLCPP_WARN(get_node()->get_logger(), "Received Imu with zero timestamp, ignoring.");
+          return;
+        }
+        received_imu_msg_ptr_.set(std::move(msg));
+      });
+  }
+
   // initialize odometry publisher and message
   odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
     DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
@@ -499,10 +520,8 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
 controller_interface::CallbackReturn DiffDriveController::on_activate(
   const rclcpp_lifecycle::State &)
 {
-  const auto left_result =
-    configure_side("left", params_.left_wheel_names, registered_left_wheel_handles_);
-  const auto right_result =
-    configure_side("right", params_.right_wheel_names, registered_right_wheel_handles_);
+  const auto left_result = configure_side("left", params_.left_wheel_names, registered_left_wheel_handles_);
+  const auto right_result = configure_side("right", params_.right_wheel_names, registered_right_wheel_handles_);
 
   if (
     left_result == controller_interface::CallbackReturn::ERROR ||
@@ -549,6 +568,7 @@ controller_interface::CallbackReturn DiffDriveController::on_cleanup(
   }
 
   received_velocity_msg_ptr_.set(std::make_shared<Twist>());
+  received_imu_msg_ptr_.set(std::make_shared<Imu>());
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -575,8 +595,10 @@ bool DiffDriveController::reset()
   subscriber_is_active_ = false;
   velocity_command_subscriber_.reset();
   velocity_command_unstamped_subscriber_.reset();
+  imu_subscriber_.reset();
 
   received_velocity_msg_ptr_.set(nullptr);
+  received_imu_msg_ptr_.set(nullptr);
   is_halted = false;
   return true;
 }

@@ -42,6 +42,8 @@ asb_base_controller:
     use_stamped_vel: false
     #velocity_rolling_window_size: 10
 
+    use_imu: true
+
     min_turning_radius: 0.9
 
     # Velocity and acceleration limits. Whenever a min_* is unspecified, default to -max_*
