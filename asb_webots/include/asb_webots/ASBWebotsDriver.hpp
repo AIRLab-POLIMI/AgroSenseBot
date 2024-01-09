@@ -6,6 +6,7 @@
 #include "asb_msgs/msg/sim_state_cmd.hpp"
 #include "asb_msgs/msg/sim_state.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 
 #include "webots_ros2_driver/PluginInterface.hpp"
 #include "webots_ros2_driver/WebotsNode.hpp"
@@ -23,21 +24,30 @@ namespace asb_webots_driver {
         rclcpp::Publisher<asb_msgs::msg::SimState>::SharedPtr sim_state_publisher_;
         rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr nav_sat_fix_publisher_;
         rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr nav_sat_fix_publisher2_;
+        rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
         asb_msgs::msg::SimStateCmd sim_state_cmd_msg_;
 
         std::string sim_state_topic_;
         std::string sim_state_cmd_topic_;
 
+        WbDeviceTag gnss_;
+        WbDeviceTag gnss2_;
         rclcpp::Time last_gnss_fix_;
         std::string gnss_topic_;
         std::string gnss_frame_id_;
         double gnss_update_rate_;
         std::vector<double> gnss_covariance_diagonal_;
 
+        double imu_update_rate_;
+        rclcpp::Time last_imu_update_;
+        std::string imu_topic_;
+        std::string imu_frame_id_;
+        WbDeviceTag gyro_;
+        std::string gyro_frame_id_;
+        std::vector<double> gyro_covariance_diagonal_;
+
         WbDeviceTag right_motor_;
         WbDeviceTag left_motor_;
-        WbDeviceTag gnss_;
-        WbDeviceTag gnss2_;
     };
 } // namespace asb_webots_driver
 #endif

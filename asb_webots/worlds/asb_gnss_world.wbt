@@ -748,6 +748,43 @@ DEF TRACKED_ROBOT Robot {
         }
       ]
     }
+    DEF Imu Solid {
+      translation 0 0 0.23
+      name "imu_link"
+      physics Physics {
+        mass 0.01
+        density -1
+        centerOfMass [0 0 0]
+        inertiaMatrix [
+          1 1 1
+          0 0 0
+        ]
+      }
+      children [
+        Accelerometer {
+          name "accelerometer_link"
+          xAxis TRUE
+          yAxis TRUE
+          zAxis TRUE
+          resolution  -1
+        }
+        Gyro {
+          name "gyro_link"
+          xAxis TRUE
+          yAxis TRUE
+          zAxis TRUE
+          resolution -1
+        }
+        InertialUnit {
+          name "inertial_link"
+          xAxis TRUE
+          zAxis TRUE
+          yAxis TRUE
+          resolution -1
+          noise 0
+        }
+      ]
+    }
     SickLms291 {
       translation 1.05 0 0.32
       rotation 0 0 1 0

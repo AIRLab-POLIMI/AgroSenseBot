@@ -7,3 +7,9 @@ asb_webots_robot:
     gnss_frame_id: gnss_link
     gnss_update_rate: 10.0
     gnss_covariance_diagonal: [0.1, 0.1, 0.1]
+
+    imu_topic: /imu
+    imu_update_rate: 1000.0
+    imu_frame_id: imu_link
+    gyro_frame_id: gyro_link
+    gyro_covariance_diagonal: [0.1, 0.1, 0.1]
