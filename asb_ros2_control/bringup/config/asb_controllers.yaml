@@ -6,7 +6,7 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     asb_base_controller:
-      type: diff_drive_controller/DiffDriveController
+      type: asb_track_controller/DiffDriveController
 
     asb_control_system_status_controller:
       type: asb_control_system_status_controller/ASBControlSystemStatusController
@@ -24,7 +24,8 @@ asb_base_controller:
 
     # account for track kinematics slippage (still assuming center of mass is in base_link, which is not always)
 #    wheel_separation_multiplier: 1.6  # real robot on concrete
-    wheel_separation_multiplier: 2.943851999  # simulated robot on terrain
+#    wheel_separation_multiplier: 2.943851999  # simulated robot on terrain
+    wheel_separation_multiplier: 1.0  # no adjustment
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
 
@@ -42,6 +43,18 @@ asb_base_controller:
     use_stamped_vel: false
     #velocity_rolling_window_size: 10
 
+    use_angular_velocity_pid: true
+    angular_velocity_pid_params:
+      p: 1.0
+      i: 10.0
+      d: 0.0
+      i_min: -1.0
+      i_max: +1.0
+
+    publish_pid_state: true
+
+    min_turning_radius: 0.9
+
     # Velocity and acceleration limits. Whenever a min_* is unspecified, default to -max_*
     linear.x.has_velocity_limits: true
     linear.x.has_acceleration_limits: true
@@ -49,8 +62,8 @@ asb_base_controller:
 
     # The maximum motor vel is 2400 RPM = 40 RPS. The maximum track velocity is 40 RPS * C_eq,
     # where C_eq is the equivalent circumference of the wheel when factoring the gearbox, C_eq = 2 π r_W / 40.61
-    linear.x.max_velocity: 0.4
-    linear.x.max_acceleration: 1.0
+    linear.x.max_velocity: 0.5
+    linear.x.max_acceleration: 5.0
     linear.x.max_jerk: 0.0
 
     angular.z.has_velocity_limits: true
@@ -59,5 +72,5 @@ asb_base_controller:
 
     # TODO compute with the real wheel separation
     angular.z.max_velocity: 0.4
-    angular.z.max_acceleration: 1.0
+    angular.z.max_acceleration: 5.0
     angular.z.max_jerk: 0.0

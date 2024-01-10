@@ -3,6 +3,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <functional>
 #include <webots/gps.h>
+#include <webots/gyro.h>
 #include <webots/motor.h>
 #include <webots/robot.h>
 #include <chrono>
@@ -49,13 +50,44 @@ namespace asb_webots_driver {
                 gnss_covariance_diagonal_[0], gnss_covariance_diagonal_[1], gnss_covariance_diagonal_[2]);
         }
 
-        right_motor_ = wb_robot_get_device("right_motor");
-        left_motor_ = wb_robot_get_device("left_motor");
         gnss_ = wb_robot_get_device(gnss_frame_id_.c_str());
         gnss2_ = wb_robot_get_device("gnss_link_2");
 
+        node->declare_parameter<double>("imu_update_rate", 1000.0);
+        imu_update_rate_ = node->get_parameter("imu_update_rate").as_double();
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "imu_update_rate: %f", imu_update_rate_);
+
+        node->declare_parameter<std::string>("imu_topic", "imu");
+        imu_topic_ = node->get_parameter("imu_topic").as_string();
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "imu_topic: %s", imu_topic_.c_str());
+
+        node->declare_parameter<std::string>("imu_frame_id", "imu_link");
+        imu_frame_id_ = node->get_parameter("imu_frame_id").as_string();
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "imu_frame_id: %s", imu_frame_id_.c_str());
+
+        node->declare_parameter<std::string>("gyro_frame_id", "gyro_link");
+        gyro_frame_id_ = node->get_parameter("gyro_frame_id").as_string();
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gyro_frame_id: %s", gyro_frame_id_.c_str());
+        gyro_ = wb_robot_get_device(gyro_frame_id_.c_str());
+
+        node->declare_parameter("gyro_covariance_diagonal", rclcpp::PARAMETER_DOUBLE_ARRAY);
+        gyro_covariance_diagonal_ = node->get_parameter("gyro_covariance_diagonal").as_double_array();
+        if(gyro_covariance_diagonal_.size() != 3) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "gyro_covariance_diagonal must have 3 elements");
+            gyro_covariance_diagonal_ = {0.0, 0.0, 0.0};
+        } else {
+            RCLCPP_INFO(
+                rclcpp::get_logger("ASBWebotsDriver"),
+                "gyro_covariance_diagonal: %f, %f, %f",
+                gyro_covariance_diagonal_[0], gyro_covariance_diagonal_[1], gyro_covariance_diagonal_[2]);
+        }
+
+        right_motor_ = wb_robot_get_device("right_motor");
+        left_motor_ = wb_robot_get_device("left_motor");
+
         wb_gps_enable(gnss_, 1);
         wb_gps_enable(gnss2_, 1);
+        wb_gyro_enable(gyro_, 1);
 
         if (wb_gps_get_coordinate_system(gnss_) != WB_GPS_WGS84_COORDINATE) {
             RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "The GPS world or sensor is not using 'WGS84' coordinates system");
@@ -80,7 +112,11 @@ namespace asb_webots_driver {
         nav_sat_fix_publisher2_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
             "/gps2/fix", rclcpp::SensorDataQoS().reliable());
 
+        imu_publisher_ = node->create_publisher<sensor_msgs::msg::Imu>(
+            imu_topic_, rclcpp::SensorDataQoS().reliable());
+
         last_gnss_fix_ = rclcpp::Clock().now();
+        last_imu_update_ = rclcpp::Clock().now();
     }
 
     void ASBWebotsDriver::sim_state_cmd_callback(const asb_msgs::msg::SimStateCmd::SharedPtr msg) {
@@ -152,6 +188,27 @@ namespace asb_webots_driver {
                 NavSatStatus::SERVICE_COMPASS |
                 NavSatStatus::SERVICE_GALILEO;
             nav_sat_fix_publisher2_->publish(nav_sat_fix_msg2);
+        }
+
+        if(now - last_imu_update_ > rclcpp::Duration::from_seconds(1/imu_update_rate_)) {
+            last_imu_update_ = now;
+
+            const double *vel = wb_gyro_get_values(gyro_);
+            double gyro_x = vel[0];
+            double gyro_y = vel[1];
+            double gyro_z = vel[2];
+            auto imu_msg = sensor_msgs::msg::Imu();
+            imu_msg.header.stamp = now;
+            imu_msg.header.frame_id = imu_frame_id_;
+            imu_msg.angular_velocity.x = gyro_x;
+            imu_msg.angular_velocity.y = gyro_y;
+            imu_msg.angular_velocity.z = gyro_z;
+            imu_msg.angular_velocity_covariance = {
+                gyro_covariance_diagonal_[0], 0.0, 0.0,
+                0.0, gyro_covariance_diagonal_[1], 0.0,
+                0.0, 0.0, gyro_covariance_diagonal_[2]
+            };
+            imu_publisher_->publish(imu_msg);
         }
 
     }

@@ -40,6 +40,34 @@
       <child link="base_scan_front"/>
       <origin xyz="1.05 0 0.32" rpy="0 0 0"/>
     </joint>
+    <link name="imu_link">
+    </link>
+    <joint name="base_link_imu_link_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="imu_link"/>
+      <origin xyz="0 0 0.23" rpy="0 0 0"/>
+    </joint>
+    <link name="inertial_link">
+    </link>
+    <joint name="imu_link_inertial_link_joint" type="fixed">
+      <parent link="imu_link"/>
+      <child link="inertial_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+    <link name="gyro_link">
+    </link>
+    <joint name="imu_link_gyro_link_joint" type="fixed">
+      <parent link="imu_link"/>
+      <child link="gyro_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+    <link name="accelerometer_link">
+    </link>
+    <joint name="imu_link_accelerometer_link_joint" type="fixed">
+      <parent link="imu_link"/>
+      <child link="accelerometer_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
     <link name="gnss_link_2">
     </link>
     <joint name="base_link_gnss_link_2_joint" type="fixed">

@@ -21,8 +21,16 @@ def generate_launch_description():
     #     output="screen",
     # )
 
+    system_status_logger_node = Node(
+        package="asb_logging",
+        executable="system_status_logger.py",
+        name="asb_system_status_logger",
+        output="screen",
+    )
+
     ld = launch.LaunchDescription()
 
     # ld.add_action(record_node)  TODO ros2 bag record
+    ld.add_action(system_status_logger_node)
 
     return ld

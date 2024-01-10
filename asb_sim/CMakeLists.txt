@@ -16,7 +16,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 include(FindPkgConfig)
-pkg_search_module(liblely-coapp REQUIRED liblely-coapp=2.3.2)  # 2.3.2 is the latest version from the lel PPA at the moment
+pkg_search_module(liblely-coapp REQUIRED liblely-coapp)  # 2.3.2 is the latest version from the lely PPA at the time of writing
 
 # find dependencies
 find_package(ament_cmake REQUIRED)

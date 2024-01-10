@@ -45,11 +45,11 @@ TexturedBackgroundLight {
 UnevenTerrain {
   translation 0 12.26 -0.49
   name "terrain"
-  size 50 50 1.5
+  size 200 200 1.5
   perlinNOctaves 6
   appearance Soil {
     textureTransform TextureTransform {
-      scale 25 25
+      scale 100 100
     }
   }
 }
@@ -383,7 +383,7 @@ DEF VINEYARD Pose {
 
 
 DEF TRACKED_ROBOT Robot {
-  translation -0.809535838711239 -0.42212756733335793 0.40
+  translation -0.8066057606629656 -0.436468605494891 0.7
   rotation 0 0 0 0
   children [
     DEF BASE Pose {
@@ -745,6 +745,43 @@ DEF TRACKED_ROBOT Robot {
           resolution -1
           speedNoise 0
           speedResolution -1
+        }
+      ]
+    }
+    DEF Imu Solid {
+      translation 0 0 0.23
+      name "imu_link"
+      physics Physics {
+        mass 0.01
+        density -1
+        centerOfMass [0 0 0]
+        inertiaMatrix [
+          1 1 1
+          0 0 0
+        ]
+      }
+      children [
+        Accelerometer {
+          name "accelerometer_link"
+          xAxis TRUE
+          yAxis TRUE
+          zAxis TRUE
+          resolution  -1
+        }
+        Gyro {
+          name "gyro_link"
+          xAxis TRUE
+          yAxis TRUE
+          zAxis TRUE
+          resolution -1
+        }
+        InertialUnit {
+          name "inertial_link"
+          xAxis TRUE
+          zAxis TRUE
+          yAxis TRUE
+          resolution -1
+          noise 0
         }
       ]
     }
