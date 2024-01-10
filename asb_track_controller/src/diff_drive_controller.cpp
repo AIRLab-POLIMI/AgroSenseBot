@@ -53,6 +53,7 @@ constexpr auto DEFAULT_COMMAND_UNSTAMPED_TOPIC = "~/cmd_vel_unstamped";
 constexpr auto DEFAULT_COMMAND_OUT_TOPIC = "~/cmd_vel_out";
 constexpr auto DEFAULT_IMU_TOPIC = "~/imu";
 constexpr auto DEFAULT_ODOMETRY_TOPIC = "~/odom";
+constexpr auto DEFAULT_PID_STATE_TOPIC = "~/pid_state";
 constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
 }  // namespace
 
@@ -118,8 +119,7 @@ InterfaceConfiguration DiffDriveController::state_interface_configuration() cons
   return {interface_configuration_type::INDIVIDUAL, conf_names};
 }
 
-controller_interface::return_type DiffDriveController::update(
-  const rclcpp::Time & time, const rclcpp::Duration & period)
+controller_interface::return_type DiffDriveController::update(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   auto logger = get_node()->get_logger();
   if (get_state().id() == State::PRIMARY_STATE_INACTIVE)
@@ -152,8 +152,8 @@ controller_interface::return_type DiffDriveController::update(
   // command may be limited further by SpeedLimit,
   // without affecting the stored twist command
   Twist command = *last_command_msg;
-  double & linear_command = command.twist.linear.x;
-  double & angular_command = command.twist.angular.z;
+  double & linear_vel_reference = command.twist.linear.x;
+  double & angular_vel_reference = command.twist.angular.z;
 
   previous_update_timestamp_ = time;  // this is never used??
 
@@ -164,7 +164,7 @@ controller_interface::return_type DiffDriveController::update(
 
   if (params_.open_loop)
   {
-    odometry_.updateOpenLoop(linear_command, angular_command, time);
+    odometry_.updateOpenLoop(linear_vel_reference, angular_vel_reference, time);
   }
   else
   {
@@ -251,28 +251,19 @@ controller_interface::return_type DiffDriveController::update(
 
   auto & last_command = previous_commands_.back().twist;
   auto & second_to_last_command = previous_commands_.front().twist;
-  limiter_linear_.limit(linear_command, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
-  limiter_angular_.limit(angular_command, last_command.angular.z, second_to_last_command.angular.z, period.seconds());
+  limiter_linear_.limit(linear_vel_reference, last_command.linear.x, second_to_last_command.linear.x, period.seconds());
+  limiter_angular_.limit(angular_vel_reference, last_command.angular.z, second_to_last_command.angular.z, period.seconds());
 
   previous_commands_.pop();
   previous_commands_.emplace(command);
 
-  std::shared_ptr<Imu> last_imu_msg;
-  received_imu_msg_ptr_.get(last_imu_msg);
-
-  bool turning_radius_infinite = std::fabs(angular_command) < 0.01;
-  double turning_radius = std::fabs(linear_command / angular_command);
-
-  RCLCPP_INFO(
-    get_node()->get_logger(),
-    "angular_velocity.z: %f, angular_command: %f",
-    last_imu_msg->angular_velocity.z, angular_command
-    );
+  bool turning_radius_infinite = std::fabs(angular_vel_reference) < 0.01;
+  double turning_radius = std::fabs(linear_vel_reference / angular_vel_reference);
 
   if(!turning_radius_infinite && (turning_radius < params_.min_turning_radius))
   {
-    linear_command = 0.0;
-    angular_command = 0.0;
+    linear_vel_reference = 0.0;
+    angular_vel_reference = 0.0;
 
     RCLCPP_WARN(
       get_node()->get_logger(),
@@ -280,8 +271,33 @@ controller_interface::return_type DiffDriveController::update(
       turning_radius, params_.min_turning_radius);
   }
 
-  //    Publish limited velocity
-  if (publish_limited_velocity_ && realtime_limited_velocity_publisher_->trylock())
+  double angular_command;
+  if(params_.use_angular_velocity_pid)
+  {
+    std::shared_ptr<Imu> last_imu_msg;
+    received_imu_msg_ptr_.get(last_imu_msg);
+    double angular_vel_error = angular_vel_reference - last_imu_msg->angular_velocity.z;
+    if(angular_vel_reference == 0.0)
+    {
+      angular_command = 0.0;
+    }
+    else
+    {
+      angular_command = angular_command_pid_.computeCommand(angular_vel_error, (uint64_t)period.nanoseconds());
+    }
+
+    if (params_.publish_pid_state)
+    {
+      publishPIDState(angular_command, angular_vel_error, period);  // publish PID state message for debug
+    }
+  }
+  else
+  {
+    angular_command = angular_vel_reference;
+  }
+
+  // Publish limited velocity
+  if(publish_limited_velocity_ && realtime_limited_velocity_publisher_->trylock())
   {
     auto & limited_velocity_command = realtime_limited_velocity_publisher_->msg_;
     limited_velocity_command.header.stamp = time;
@@ -290,10 +306,8 @@ controller_interface::return_type DiffDriveController::update(
   }
 
   // Compute wheels velocities:
-  const double velocity_left =
-    (linear_command - angular_command * wheel_separation / 2.0) / left_wheel_radius;
-  const double velocity_right =
-    (linear_command + angular_command * wheel_separation / 2.0) / right_wheel_radius;
+  const double velocity_left = (linear_vel_reference - angular_command * wheel_separation / 2.0) / left_wheel_radius;
+  const double velocity_right = (linear_vel_reference + angular_command * wheel_separation / 2.0) / right_wheel_radius;
 
   // Set wheels velocities:
   for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
@@ -304,8 +318,35 @@ controller_interface::return_type DiffDriveController::update(
   return controller_interface::return_type::OK;
 }
 
-controller_interface::CallbackReturn DiffDriveController::on_configure(
-  const rclcpp_lifecycle::State &)
+void DiffDriveController::publishPIDState(double cmd, double error, rclcpp::Duration dt)
+{
+  if (params_.use_angular_velocity_pid && params_.publish_pid_state)
+  {
+    auto gains = angular_command_pid_.getGains();
+    double p_error_, i_error_, d_error_;
+    angular_command_pid_.getCurrentPIDErrors(p_error_, i_error_, d_error_);
+
+    // Publish controller state if configured
+    if (realtime_pid_state_publisher_->trylock()) {
+      realtime_pid_state_publisher_->msg_.header.stamp = rclcpp::Clock().now();
+      realtime_pid_state_publisher_->msg_.timestep = dt;
+      realtime_pid_state_publisher_->msg_.error = error;
+      realtime_pid_state_publisher_->msg_.error_dot = angular_command_pid_.getDerivativeError();
+      realtime_pid_state_publisher_->msg_.p_error = p_error_;
+      realtime_pid_state_publisher_->msg_.i_error = i_error_;
+      realtime_pid_state_publisher_->msg_.d_error = d_error_;
+      realtime_pid_state_publisher_->msg_.p_term = gains.p_gain_;
+      realtime_pid_state_publisher_->msg_.i_term = gains.i_gain_;
+      realtime_pid_state_publisher_->msg_.d_term = gains.d_gain_;
+      realtime_pid_state_publisher_->msg_.i_max = gains.i_max_;
+      realtime_pid_state_publisher_->msg_.i_min = gains.i_min_;
+      realtime_pid_state_publisher_->msg_.output = cmd;
+      realtime_pid_state_publisher_->unlockAndPublish();
+    }
+  }
+}
+
+controller_interface::CallbackReturn DiffDriveController::on_configure(const rclcpp_lifecycle::State &)
 {
   auto logger = get_node()->get_logger();
 
@@ -422,37 +463,6 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
         });
   }
 
-  const Imu empty_imu_msg;
-  received_imu_msg_ptr_.set(std::make_shared<Imu>(empty_imu_msg));
-
-  // initialize imu subscriber
-  if (params_.use_imu)
-  {
-    imu_subscriber_ = get_node()->create_subscription<Imu>(
-      DEFAULT_IMU_TOPIC, rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<Imu> msg) -> void
-      {
-        if (!subscriber_is_active_)
-        {
-          RCLCPP_WARN(get_node()->get_logger(), "Can't accept imu message. Subscriber is inactive");
-          return;
-        }
-        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-        {
-          RCLCPP_WARN(get_node()->get_logger(), "Received Imu with zero timestamp, ignoring.");
-          return;
-        }
-        received_imu_msg_ptr_.set(std::move(msg));
-      });
-  }
-
-  // initialize odometry publisher and message
-  odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
-    DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
-  realtime_odometry_publisher_ =
-    std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(
-      odometry_publisher_);
-
   // Append the tf prefix if there is one
   std::string tf_prefix = "";
   if (params_.tf_frame_prefix_enable)
@@ -479,6 +489,47 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
   const auto odom_frame_id = tf_prefix + params_.odom_frame_id;
   const auto base_frame_id = tf_prefix + params_.base_frame_id;
 
+  const Imu empty_imu_msg;
+  received_imu_msg_ptr_.set(std::make_shared<Imu>(empty_imu_msg));
+
+  // initialize imu subscriber
+  if (params_.use_angular_velocity_pid)
+  {
+    imu_subscriber_ = get_node()->create_subscription<Imu>(
+      DEFAULT_IMU_TOPIC, rclcpp::SystemDefaultsQoS(),
+      [this](const std::shared_ptr<Imu> msg) -> void
+      {
+        if (!subscriber_is_active_)
+        {
+          RCLCPP_WARN(get_node()->get_logger(), "Can't accept imu message. Subscriber is inactive");
+          return;
+        }
+        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+        {
+          RCLCPP_WARN(get_node()->get_logger(), "Received Imu with zero timestamp, ignoring.");
+          return;
+        }
+        received_imu_msg_ptr_.set(std::move(msg));
+      });
+
+    auto & pid_params = params_.angular_velocity_pid_params;
+    angular_command_pid_.initPid(pid_params.p, pid_params.i, pid_params.d, pid_params.i_max, pid_params.i_min, true);
+
+    if (params_.publish_pid_state)
+    {
+      pid_state_publisher_ = get_node()->create_publisher<PidState>(DEFAULT_PID_STATE_TOPIC, rclcpp::SystemDefaultsQoS());
+      realtime_pid_state_publisher_ = std::make_shared<realtime_tools::RealtimePublisher<PidState>>(pid_state_publisher_);
+      realtime_pid_state_publisher_->msg_.header.frame_id = tf_prefix + params_.base_frame_id;
+    }
+
+  }
+
+  // initialize odometry publisher and message
+  odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
+    DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
+  realtime_odometry_publisher_ = std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(
+      odometry_publisher_);
+
   auto & odometry_message = realtime_odometry_publisher_->msg_;
   odometry_message.header.frame_id = odom_frame_id;
   odometry_message.child_frame_id = base_frame_id;
@@ -488,8 +539,7 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
   publish_period_ = rclcpp::Duration::from_seconds(1.0 / publish_rate_);
 
   // initialize odom values zeros
-  odometry_message.twist =
-    geometry_msgs::msg::TwistWithCovariance(rosidl_runtime_cpp::MessageInitialization::ALL);
+  odometry_message.twist = geometry_msgs::msg::TwistWithCovariance(rosidl_runtime_cpp::MessageInitialization::ALL);
 
   constexpr size_t NUM_DIMENSIONS = 6;
   for (size_t index = 0; index < 6; ++index)
@@ -503,8 +553,7 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
   // initialize transform publisher and message
   odometry_transform_publisher_ = get_node()->create_publisher<tf2_msgs::msg::TFMessage>(
     DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
-  realtime_odometry_transform_publisher_ =
-    std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
+  realtime_odometry_transform_publisher_ = std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
       odometry_transform_publisher_);
 
   // keeping track of odom and base_link transforms only
@@ -517,8 +566,7 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn DiffDriveController::on_activate(
-  const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn DiffDriveController::on_activate(const rclcpp_lifecycle::State &)
 {
   const auto left_result = configure_side("left", params_.left_wheel_names, registered_left_wheel_handles_);
   const auto right_result = configure_side("right", params_.right_wheel_names, registered_right_wheel_handles_);
@@ -545,8 +593,7 @@ controller_interface::CallbackReturn DiffDriveController::on_activate(
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn DiffDriveController::on_deactivate(
-  const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn DiffDriveController::on_deactivate(const rclcpp_lifecycle::State &)
 {
   subscriber_is_active_ = false;
   if (!is_halted)
@@ -559,8 +606,7 @@ controller_interface::CallbackReturn DiffDriveController::on_deactivate(
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn DiffDriveController::on_cleanup(
-  const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn DiffDriveController::on_cleanup(const rclcpp_lifecycle::State &)
 {
   if (!reset())
   {
@@ -603,8 +649,7 @@ bool DiffDriveController::reset()
   return true;
 }
 
-controller_interface::CallbackReturn DiffDriveController::on_shutdown(
-  const rclcpp_lifecycle::State &)
+controller_interface::CallbackReturn DiffDriveController::on_shutdown(const rclcpp_lifecycle::State &)
 {
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -624,8 +669,7 @@ void DiffDriveController::halt()
 }
 
 controller_interface::CallbackReturn DiffDriveController::configure_side(
-  const std::string & side, const std::vector<std::string> & wheel_names,
-  std::vector<WheelHandle> & registered_handles)
+  const std::string & side, const std::vector<std::string> & wheel_names, std::vector<WheelHandle> & registered_handles)
 {
   auto logger = get_node()->get_logger();
 

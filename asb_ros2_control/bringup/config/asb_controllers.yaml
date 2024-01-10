@@ -24,7 +24,8 @@ asb_base_controller:
 
     # account for track kinematics slippage (still assuming center of mass is in base_link, which is not always)
 #    wheel_separation_multiplier: 1.6  # real robot on concrete
-    wheel_separation_multiplier: 2.943851999  # simulated robot on terrain
+#    wheel_separation_multiplier: 2.943851999  # simulated robot on terrain
+    wheel_separation_multiplier: 1.0  # no adjustment
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
 
@@ -42,7 +43,15 @@ asb_base_controller:
     use_stamped_vel: false
     #velocity_rolling_window_size: 10
 
-    use_imu: true
+    use_angular_velocity_pid: true
+    angular_velocity_pid_params:
+      p: 1.0
+      i: 10.0
+      d: 0.0
+      i_min: -1.0
+      i_max: +1.0
+
+    publish_pid_state: true
 
     min_turning_radius: 0.9
 

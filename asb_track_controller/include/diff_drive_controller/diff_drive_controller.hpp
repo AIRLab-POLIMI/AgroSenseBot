@@ -45,6 +45,8 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
+#include "control_toolbox/pid.hpp"
+#include "control_msgs/msg/pid_state.hpp"
 #include "diff_drive_controller/odometry.hpp"
 #include "diff_drive_controller/speed_limiter.hpp"
 #include "diff_drive_controller/visibility_control.h"
@@ -53,6 +55,7 @@
 #include "sensor_msgs/msg/imu.hpp"
 #include "hardware_interface/handle.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "std_msgs/msg/string.hpp"
 #include "odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -70,6 +73,7 @@ class DiffDriveController : public controller_interface::ControllerInterface
 {
   using Twist = geometry_msgs::msg::TwistStamped;
   using Imu = sensor_msgs::msg::Imu;
+  using PidState = control_msgs::msg::PidState;
 
 public:
   DIFF_DRIVE_CONTROLLER_PUBLIC
@@ -156,7 +160,10 @@ protected:
   SpeedLimiter limiter_linear_;
   SpeedLimiter limiter_angular_;
 
-//  control_toolbox::Pid angular_command_pid_;
+  control_toolbox::Pid angular_command_pid_;
+
+  std::shared_ptr<rclcpp::Publisher<PidState>> pid_state_publisher_ = nullptr;
+  std::shared_ptr<realtime_tools::RealtimePublisher<PidState>> realtime_pid_state_publisher_ = nullptr;
 
   bool publish_limited_velocity_ = false;
   std::shared_ptr<rclcpp::Publisher<Twist>> limited_velocity_publisher_ = nullptr;
@@ -172,6 +179,7 @@ protected:
   bool is_halted = false;
   bool use_stamped_vel_ = true;
 
+  void publishPIDState(double cmd, double error, rclcpp::Duration dt);
   bool reset();
   void halt();
 };

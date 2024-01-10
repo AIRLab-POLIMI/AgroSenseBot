@@ -7,6 +7,8 @@ endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   controller_interface
+  control_toolbox
+  control_msgs
   generate_parameter_library
   geometry_msgs
   sensor_msgs

@@ -109,10 +109,41 @@ diff_drive_controller:
     default_value: 50.0, # Hz
     description: "Publishing rate (Hz) of the odometry and TF messages.",
   }
-  use_imu: {
+  use_angular_velocity_pid: {
     type: bool,
     default_value: true,
     description: "Whether to use the imu angular velocity to compute the control of the angular command.",
+  }
+  angular_velocity_pid_params:
+    p: {
+      type: double,
+      default_value: 1.0, # meters
+      description: "P gain of the angular velocity PID controller.",
+    }
+    i: {
+      type: double,
+      default_value: 1.0, # meters
+      description: "I gain of the angular velocity PID controller.",
+    }
+    d: {
+      type: double,
+      default_value: 1.0, # meters
+      description: "D gain of the angular velocity PID controller.",
+    }
+    i_min: {
+      type: double,
+      default_value: -1.0, # meters
+      description: "Min integral windup of the angular velocity PID controller.",
+    }
+    i_max: {
+      type: double,
+      default_value: 1.0, # meters
+      description: "Max integral windup of the angular velocity PID controller.",
+    }
+  publish_pid_state: {
+    type: bool,
+    default_value: true,
+    description: "Whether to publish the state of the PID controlling the angular command.",
   }
   min_turning_radius: {
     type: double,
