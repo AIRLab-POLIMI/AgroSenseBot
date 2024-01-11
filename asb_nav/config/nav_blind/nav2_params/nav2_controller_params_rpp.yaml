@@ -12,7 +12,7 @@ controller_server:
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
-      movement_time_allowance: 10.0
+      movement_time_allowance: 30.0
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
       stateful: True
@@ -20,10 +20,11 @@ controller_server:
       yaw_goal_tolerance: 0.2
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.4
-      lookahead_dist: 0.6
+      allow_reversing: true
+      desired_linear_vel: 0.5
+      lookahead_dist: 0.4
       min_lookahead_dist: 0.3
-      max_lookahead_dist: 0.9
+      max_lookahead_dist: 0.5
       lookahead_time: 1.5
       rotate_to_heading_angular_vel: 0.0
       transform_tolerance: 0.1
