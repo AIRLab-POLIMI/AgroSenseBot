@@ -50,7 +50,6 @@ asb_base_controller:
       d: 0.0
       i_min: -1.0
       i_max: +1.0
-
     publish_pid_state: true
 
     min_turning_radius: 0.9
@@ -64,13 +63,11 @@ asb_base_controller:
     # where C_eq is the equivalent circumference of the wheel when factoring the gearbox, C_eq = 2 π r_W / 40.61
     linear.x.max_velocity: 0.5
     linear.x.max_acceleration: 5.0
-    linear.x.max_jerk: 0.0
 
     angular.z.has_velocity_limits: true
     angular.z.has_acceleration_limits: false
     angular.z.has_jerk_limits: false
 
-    # TODO compute with the real wheel separation
+    # TODO compute with the real max track RPM
     angular.z.max_velocity: 0.4
     angular.z.max_acceleration: 5.0
-    angular.z.max_jerk: 0.0
