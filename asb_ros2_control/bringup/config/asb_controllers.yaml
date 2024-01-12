@@ -67,7 +67,7 @@ asb_base_controller:
     linear.x.max_jerk: 0.0
 
     angular.z.has_velocity_limits: true
-    angular.z.has_acceleration_limits: true
+    angular.z.has_acceleration_limits: false
     angular.z.has_jerk_limits: false
 
     # TODO compute with the real wheel separation
