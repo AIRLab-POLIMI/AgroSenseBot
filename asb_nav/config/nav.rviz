@@ -8,8 +8,6 @@ Panels:
         - /Controller1
         - /Controller1/Trajectories1/Topic1
         - /Controller1/mppi trajectories1/Namespaces1
-        - /Controller1/rpp collision arc1
-        - /Controller1/rpp lookahead1
         - /waypoints1/Topic1
         - /gnss1/Shape1
         - /gnss1/Covariance1
@@ -227,8 +225,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 2.579063653945923
-        Min Value: -3.8760242462158203
+        Max Value: 21.422332763671875
+        Min Value: 3.8680896759033203
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -617,12 +615,12 @@ Visualization Manager:
         - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 25; 255; 0
+          Color: 255; 0; 255
           Enabled: true
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
-          Line Style: Lines
+          Line Style: Billboards
           Line Width: 0.029999999329447746
           Name: rpp collision arc
           Offset:
@@ -630,7 +628,7 @@ Visualization Manager:
             Y: 0
             Z: 0
           Pose Color: 255; 85; 255
-          Pose Style: Arrows
+          Pose Style: None
           Radius: 0.029999999329447746
           Shaft Diameter: 0.004999999888241291
           Shaft Length: 0.009999999776482582
@@ -985,11 +983,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 349.95281982421875
+      Scale: 383.5596618652344
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.1017676591873169
-      Y: -0.27550193667411804
+      X: 0.04071648418903351
+      Y: 0.028444966301321983
     Saved: ~
 Window Geometry:
   AgroSenseBot:
