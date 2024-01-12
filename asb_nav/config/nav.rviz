@@ -15,7 +15,6 @@ Panels:
         - /gnss1/Covariance1/Orientation1
         - /gnss history1/Covariance1/Position1
         - /robot localization1/Covariance1/Orientation1
-        - /Odometry orientation1/Shape1
         - /Odometry orientation1/Covariance1/Position1
         - /Odometry orientation1/Covariance1/Orientation1
         - /Odometry position1/Shape1
@@ -225,8 +224,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 21.422332763671875
-        Min Value: 3.8680896759033203
+        Max Value: 12.07126235961914
+        Min Value: -0.7442087531089783
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -983,7 +982,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 383.5596618652344
+      Scale: 230.87353515625
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0.04071648418903351
