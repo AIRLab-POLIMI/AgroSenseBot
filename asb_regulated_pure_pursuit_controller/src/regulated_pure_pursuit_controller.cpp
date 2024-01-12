@@ -230,7 +230,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     if(params_->min_turning_radius > 0.001)
     {
       double max_curvature = 1.0/params_->min_turning_radius;
-      constrained_lookahead_curvature = std::max(-max_curvature, std::min(max_curvature, lookahead_curvature));
+      constrained_lookahead_curvature = std::clamp(lookahead_curvature, -max_curvature, max_curvature);
     }
     else
     {
@@ -259,8 +259,7 @@ bool RegulatedPurePursuitController::shouldRotateToPath(
 {
   // Whether we should rotate robot to rough path heading
   angle_to_path = atan2(carrot_pose.pose.position.y, carrot_pose.pose.position.x);
-  return params_->use_rotate_to_heading &&
-         fabs(angle_to_path) > params_->rotate_to_heading_min_angle;
+  return params_->use_rotate_to_heading && fabs(angle_to_path) > params_->rotate_to_heading_min_angle;
 }
 
 bool RegulatedPurePursuitController::shouldRotateToGoalHeading(
