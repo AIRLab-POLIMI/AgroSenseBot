@@ -118,7 +118,7 @@ std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController
   carrot_msg->header = carrot_pose.header;
   carrot_msg->point.x = carrot_pose.pose.position.x;
   carrot_msg->point.y = carrot_pose.pose.position.y;
-  carrot_msg->point.z = 0.01;  // publish right over map to stand out
+  carrot_msg->point.z = 0.01;  // publish above the map to stand out
   return carrot_msg;
 }
 
@@ -194,9 +194,39 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   auto carrot_pose = getLookAheadPoint(lookahead_dist, transformed_plan);
   carrot_pub_->publish(createCarrotMsg(carrot_pose));
 
-  double linear_vel, angular_vel;
+  std::vector<double> c, d;
+  bool use_weighted_lookahead_curvature = true;
+  double lookahead_curvature = 0.0;
+  if(use_weighted_lookahead_curvature)
+  {
+    auto t_start = std::chrono::high_resolution_clock::now();
+    RCLCPP_INFO(logger_, "\n\nlookahead_curvature BEGIN");
 
-  double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
+    unsigned int num_weighted_lookahead_dist = 5;
+    double weight_sum = 0.0;
+    for (unsigned int i = 1; i <= num_weighted_lookahead_dist; ++i) {
+      double lookahead_dist_i = lookahead_dist * i / num_weighted_lookahead_dist;
+      auto carrot_pose_i = getLookAheadPoint(lookahead_dist_i, transformed_plan);
+      double lookahead_curvature_i = calculateCurvature(carrot_pose_i.pose.position);
+//      unsigned int weight = num_weighted_lookahead_dist - i + 1;
+      weight_sum += 1;
+      lookahead_curvature += lookahead_curvature_i;
+//      lookahead_curvature += lookahead_curvature_i * weight;
+      RCLCPP_INFO(logger_, "%f %f", lookahead_curvature_i, lookahead_dist_i);
+    }
+    lookahead_curvature /= weight_sum;
+
+//    RCLCPP_INFO(logger_, "%f %f , %f %f , %f %f , %f %f , %f %f", c[0], d[0], c[1], d[1], c[2], d[2], c[3], d[3], c[4], d[4]);
+    RCLCPP_INFO(logger_, "lookahead_curvature: %f", lookahead_curvature);
+    auto t_end = std::chrono::high_resolution_clock::now();
+    double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
+//    std::cout << "weighted_curvature: " << elapsed_time_ms << std::endl;
+    RCLCPP_INFO(logger_, "compute time: %.6f", elapsed_time_ms);
+  }
+  else
+  {
+    lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
+  }
 
   double regulation_curvature = lookahead_curvature;
   if (params_->use_fixed_curvature_lookahead) {
@@ -210,6 +240,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     sign = carrot_pose.pose.position.x >= 0.0 ? 1.0 : -1.0;
   }
 
+  double linear_vel, angular_vel;
   linear_vel = params_->desired_linear_vel;
 
   // Make sure we're in compliance with basic constraints
@@ -330,7 +361,7 @@ geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getLookAheadPoin
       return hypot(ps.pose.position.x, ps.pose.position.y) >= lookahead_dist;
     });
 
-  // If the no pose is not far enough, take the last pose
+  // If the pose is not far enough, take the last pose
   if (goal_pose_it == transformed_plan.poses.end()) {
     goal_pose_it = std::prev(transformed_plan.poses.end());
   } else if (params_->use_interpolation && goal_pose_it != transformed_plan.poses.begin()) {
