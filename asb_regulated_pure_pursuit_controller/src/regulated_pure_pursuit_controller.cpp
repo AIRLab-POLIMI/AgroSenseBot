@@ -226,7 +226,17 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
       linear_vel, sign);
 
     // Apply curvature to angular velocity after constraining linear velocity
-    angular_vel = linear_vel * lookahead_curvature;
+    double constrained_lookahead_curvature;
+    if(params_->min_turning_radius > 0.001)
+    {
+      double max_curvature = 1.0/params_->min_turning_radius;
+      constrained_lookahead_curvature = std::max(-max_curvature, std::min(max_curvature, lookahead_curvature));
+    }
+    else
+    {
+      constrained_lookahead_curvature = lookahead_curvature;
+    }
+    angular_vel = linear_vel * constrained_lookahead_curvature;
   }
 
   // Collision checking on this velocity heading

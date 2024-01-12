@@ -38,6 +38,8 @@ ParameterHandler::ParameterHandler(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.5));
   declare_parameter_if_not_declared(
+    node, plugin_name_ + ".min_turning_radius", rclcpp::ParameterValue(0.0));
+  declare_parameter_if_not_declared(
     node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".min_lookahead_dist", rclcpp::ParameterValue(0.3));
@@ -99,6 +101,7 @@ ParameterHandler::ParameterHandler(
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", params_.desired_linear_vel);
   params_.base_desired_linear_vel = params_.desired_linear_vel;
+  node->get_parameter(plugin_name_ + ".min_turning_radius", params_.min_turning_radius);
   node->get_parameter(plugin_name_ + ".lookahead_dist", params_.lookahead_dist);
   node->get_parameter(plugin_name_ + ".min_lookahead_dist", params_.min_lookahead_dist);
   node->get_parameter(plugin_name_ + ".max_lookahead_dist", params_.max_lookahead_dist);
@@ -215,6 +218,8 @@ ParameterHandler::dynamicParametersCallback(
       } else if (name == plugin_name_ + ".desired_linear_vel") {
         params_.desired_linear_vel = parameter.as_double();
         params_.base_desired_linear_vel = parameter.as_double();
+      } else if (name == plugin_name_ + ".min_turning_radius") {
+        params_.min_turning_radius = parameter.as_double();
       } else if (name == plugin_name_ + ".lookahead_dist") {
         params_.lookahead_dist = parameter.as_double();
       } else if (name == plugin_name_ + ".max_lookahead_dist") {

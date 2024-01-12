@@ -1,3 +1,4 @@
+// Copyright (c) 2024 Università degli Studi di Milano, Enrico Piazza
 // Copyright (c) 2022 Samsung Research America
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +34,7 @@ namespace asb_regulated_pure_pursuit_controller
 struct Parameters
 {
   double desired_linear_vel, base_desired_linear_vel;
+  double min_turning_radius;
   double lookahead_dist;
   double rotate_to_heading_angular_vel;
   double max_lookahead_dist;
@@ -77,7 +79,7 @@ public:
     rclcpp::Logger & logger, const double costmap_size_x);
 
   /**
-   * @brief Destrructor for asb_regulated_pure_pursuit_controller::ParameterHandler
+   * @brief Destructor for asb_regulated_pure_pursuit_controller::ParameterHandler
    */
   ~ParameterHandler() = default;
 
