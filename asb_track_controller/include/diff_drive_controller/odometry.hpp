@@ -1,3 +1,4 @@
+// Copyright 2024 Università degli Studi di Milano
 // Copyright 2020 PAL Robotics S.L.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,7 @@
 // limitations under the License.
 
 /*
+ * Author: Enrico Piazza
  * Author: Luca Marchionni
  * Author: Bence Magyar
  * Author: Enrique Fernández
@@ -36,7 +38,9 @@ public:
 
   void init(const rclcpp::Time & time);
   bool update(double left_pos, double right_pos, const rclcpp::Time & time);
+  bool update(double left_pos, double right_pos, double imu_angular_velocity, const rclcpp::Time & time);
   bool updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time);
+  bool updateFromVelocity(double left_vel, double right_vel, double imu_angular_velocity, const rclcpp::Time & time);
   void updateOpenLoop(double linear, double angular, const rclcpp::Time & time);
   void resetOdometry();
 

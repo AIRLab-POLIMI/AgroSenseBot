@@ -16,7 +16,7 @@
  * Author: Bence Magyar, Enrique Fernández, Manuel Meraz
  */
 
-// Copyright 2023 Università degli Studi di Milano
+// Copyright 2024 Università degli Studi di Milano
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.

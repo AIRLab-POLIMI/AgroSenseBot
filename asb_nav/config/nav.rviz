@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Controller1
         - /Controller1/Trajectories1/Topic1
         - /Controller1/mppi trajectories1/Namespaces1
         - /waypoints1/Topic1
@@ -18,7 +17,7 @@ Panels:
         - /Odometry orientation1/Covariance1/Position1
         - /Odometry orientation1/Covariance1/Orientation1
         - /Odometry position1/Shape1
-      Splitter Ratio: 0.5193236470222473
+      Splitter Ratio: 0.6131805181503296
     Tree Height: 464
   - Class: rviz_common/Selection
     Name: Selection
@@ -224,8 +223,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 12.07126235961914
-        Min Value: -0.7442087531089783
+        Max Value: -9999
+        Min Value: 9999
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -612,6 +611,26 @@ Visualization Manager:
             Value: /trajectories
           Value: true
         - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 0.10000000149011612
+          Class: rviz_default_plugins/Pose
+          Color: 255; 0; 255
+          Enabled: true
+          Head Length: 0.05000000074505806
+          Head Radius: 0.10000000149011612
+          Name: rpp lookahead pose
+          Shaft Length: 0.10000000149011612
+          Shaft Radius: 0.05000000074505806
+          Shape: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /lookahead_pose
+          Value: true
+        - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
           Color: 255; 0; 255
@@ -644,7 +663,7 @@ Visualization Manager:
           Color: 204; 41; 204
           Enabled: true
           History Length: 1
-          Name: rpp lookahead
+          Name: rpp lookahead point
           Radius: 0.05000000074505806
           Topic:
             Depth: 5
@@ -982,7 +1001,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 230.87353515625
+      Scale: 178.73353576660156
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0.04071648418903351
