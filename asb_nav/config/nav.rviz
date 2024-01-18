@@ -13,6 +13,9 @@ Panels:
         - /gnss1/Covariance1/Position1
         - /gnss1/Covariance1/Orientation1
         - /gnss history1/Covariance1/Position1
+        - /robot localization1
+        - /robot localization1/Shape1
+        - /robot localization1/Covariance1
         - /robot localization1/Covariance1/Orientation1
         - /Odometry orientation1/Covariance1/Position1
         - /Odometry orientation1/Covariance1/Orientation1
@@ -189,6 +192,8 @@ Visualization Manager:
           Value: false
         right_track:
           Value: false
+        utm:
+          Value: true
       Marker Scale: 1
       Name: tf
       Show Arrows: false
@@ -218,13 +223,15 @@ Visualization Manager:
                   {}
                 right_track:
                   {}
+          utm:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: -9999
-        Min Value: 9999
+        Max Value: 22.819395065307617
+        Min Value: 4.4304962158203125
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -414,8 +421,8 @@ Visualization Manager:
           Class: rviz_default_plugins/Path
           Color: 255; 255; 0
           Enabled: true
-          Head Diameter: 0.03999999910593033
-          Head Length: 0.03999999910593033
+          Head Diameter: 0.05999999865889549
+          Head Length: 0.05999999865889549
           Length: 0.30000001192092896
           Line Style: Billboards
           Line Width: 0.009999999776482582
@@ -812,10 +819,10 @@ Visualization Manager:
         Position:
           Alpha: 0.6000000238418579
           Color: 204; 51; 204
-          Scale: 0.20000000298023224
+          Scale: 0.05000000074505806
           Value: true
         Value: true
-      Enabled: false
+      Enabled: true
       Keep: 1000
       Name: gnss history
       Position Tolerance: 0
@@ -825,7 +832,7 @@ Visualization Manager:
         Axes Radius: 0.10000000149011612
         Color: 255; 25; 0
         Head Length: 0.10000000149011612
-        Head Radius: 0.10000000149011612
+        Head Radius: 0
         Shaft Length: 0
         Shaft Radius: 0
         Value: Arrow
@@ -836,7 +843,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odometry/gps
-      Value: false
+      Value: true
     - Angle Tolerance: 0
       Class: rviz_default_plugins/Odometry
       Covariance:
@@ -846,7 +853,7 @@ Visualization Manager:
           Color Style: RGB
           Frame: Local
           Offset: 0.10000000149011612
-          Scale: 2
+          Scale: 1
           Value: true
         Position:
           Alpha: 0.30000001192092896
@@ -854,7 +861,7 @@ Visualization Manager:
           Scale: 1
           Value: false
         Value: true
-      Enabled: false
+      Enabled: true
       Keep: 100
       Name: robot localization
       Position Tolerance: 0
@@ -875,7 +882,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odometry/global
-      Value: false
+      Value: true
     - Angle Tolerance: 0.05000000074505806
       Class: rviz_default_plugins/Odometry
       Covariance:
@@ -893,7 +900,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: true
-      Enabled: true
+      Enabled: false
       Keep: 1000
       Name: Odometry orientation
       Position Tolerance: 0.10000000149011612
@@ -914,7 +921,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odom
-      Value: true
+      Value: false
     - Angle Tolerance: 0.05000000074505806
       Class: rviz_default_plugins/Odometry
       Covariance:
@@ -932,7 +939,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: true
+      Enabled: false
       Keep: 1000
       Name: Odometry position
       Position Tolerance: 0.10000000149011612
@@ -953,7 +960,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odom
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -991,7 +998,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
+      Angle: 0.004999999888241291
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -1001,11 +1008,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 178.73353576660156
+      Scale: 119.10408782958984
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.04071648418903351
-      Y: 0.028444966301321983
+      X: 1.5476434230804443
+      Y: 0.3248438835144043
     Saved: ~
 Window Geometry:
   AgroSenseBot:
