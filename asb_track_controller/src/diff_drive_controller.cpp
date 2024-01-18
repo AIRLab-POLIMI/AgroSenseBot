@@ -312,6 +312,7 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
     if(angular_vel_reference == 0.0)
     {
       angular_command = 0.0;
+      angular_command_pid_.reset();
     }
     else
     {
