@@ -52,6 +52,7 @@ struct Parameters
   double regulated_linear_scaling_min_radius;
   double regulated_linear_scaling_min_speed;
   bool use_fixed_curvature_lookahead;
+  bool use_averaged_lookahead_curvature;
   double curvature_lookahead_dist;
   bool use_rotate_to_heading;
   double max_angular_accel;

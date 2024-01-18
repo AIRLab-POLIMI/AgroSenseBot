@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Controller1
         - /Controller1/Trajectories1/Topic1
         - /Controller1/mppi trajectories1/Namespaces1
         - /waypoints1/Topic1
@@ -18,7 +17,7 @@ Panels:
         - /Odometry orientation1/Covariance1/Position1
         - /Odometry orientation1/Covariance1/Orientation1
         - /Odometry position1/Shape1
-      Splitter Ratio: 0.5193236470222473
+      Splitter Ratio: 0.6131805181503296
     Tree Height: 464
   - Class: rviz_common/Selection
     Name: Selection
@@ -190,8 +189,6 @@ Visualization Manager:
           Value: false
         right_track:
           Value: false
-        utm:
-          Value: true
       Marker Scale: 1
       Name: tf
       Show Arrows: false
@@ -221,15 +218,13 @@ Visualization Manager:
                   {}
                 right_track:
                   {}
-          utm:
-            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 24.585535049438477
-        Min Value: 4.28464937210083
+        Max Value: -9999
+        Min Value: 9999
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -623,7 +618,7 @@ Visualization Manager:
           Enabled: true
           Head Length: 0.05000000074505806
           Head Radius: 0.10000000149011612
-          Name: rpp carrot pose
+          Name: rpp lookahead pose
           Shaft Length: 0.10000000149011612
           Shaft Radius: 0.05000000074505806
           Shape: Arrow
@@ -633,7 +628,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /lookahead_point_2
+            Value: /lookahead_pose
           Value: true
         - Alpha: 1
           Buffer Length: 1
@@ -668,7 +663,7 @@ Visualization Manager:
           Color: 204; 41; 204
           Enabled: true
           History Length: 1
-          Name: rpp lookahead
+          Name: rpp lookahead point
           Radius: 0.05000000074505806
           Topic:
             Depth: 5

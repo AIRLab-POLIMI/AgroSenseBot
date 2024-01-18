@@ -1,3 +1,4 @@
+// Copyright 2024 Università degli Studi di Milano
 // Copyright 2020 PAL Robotics S.L.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,7 @@
 // limitations under the License.
 
 /*
+ * Author: Enrico Piazza
  * Author: Enrique Fernández
  */
 
@@ -71,6 +73,32 @@ bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & ti
   return true;
 }
 
+bool Odometry::update(double left_pos, double right_pos, double imu_angular_velocity, const rclcpp::Time & time)
+{
+  // We cannot estimate the speed with very small time intervals:
+  const double dt = time.seconds() - timestamp_.seconds();
+  if (dt < 0.0001)
+  {
+    return false;  // Interval too small to integrate with
+  }
+
+  // Get current wheel joint positions:
+  const double left_wheel_cur_pos = left_pos * left_wheel_radius_;
+  const double right_wheel_cur_pos = right_pos * right_wheel_radius_;
+
+  // Estimate velocity of wheels using old and current position:
+  const double left_wheel_est_vel = left_wheel_cur_pos - left_wheel_old_pos_;
+  const double right_wheel_est_vel = right_wheel_cur_pos - right_wheel_old_pos_;
+
+  // Update old position with current:
+  left_wheel_old_pos_ = left_wheel_cur_pos;
+  right_wheel_old_pos_ = right_wheel_cur_pos;
+
+  updateFromVelocity(left_wheel_est_vel, right_wheel_est_vel, imu_angular_velocity, time);
+
+  return true;
+}
+
 bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time)
 {
   const double dt = time.seconds() - timestamp_.seconds();
@@ -91,6 +119,28 @@ bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcp
 
   linear_ = linear_accumulator_.getRollingMean();
   angular_ = angular_accumulator_.getRollingMean();
+
+  return true;
+}
+
+bool Odometry::updateFromVelocity(double left_vel, double right_vel, double imu_angular_velocity, const rclcpp::Time & time)
+{
+  const double dt = time.seconds() - timestamp_.seconds();
+
+  // Compute linear and angular diff:
+  const double linear = (left_vel + right_vel) * 0.5;
+  // Now there is a bug about scout angular velocity
+
+  // Integrate odometry:
+  integrateExact(linear, imu_angular_velocity * dt);
+
+  timestamp_ = time;
+
+  // Estimate speeds using a rolling mean to filter them out:
+  linear_accumulator_.accumulate(linear / dt);
+
+  linear_ = linear_accumulator_.getRollingMean();
+  angular_ = imu_angular_velocity;
 
   return true;
 }

@@ -16,7 +16,7 @@
  * Author: Bence Magyar, Enrique Fernández, Manuel Meraz
  */
 
-// Copyright 2023 Università degli Studi di Milano
+// Copyright 2024 Università degli Studi di Milano
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -162,6 +162,14 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   const double left_wheel_radius = params_.left_wheel_radius_multiplier * params_.wheel_radius;
   const double right_wheel_radius = params_.right_wheel_radius_multiplier * params_.wheel_radius;
 
+  // update IMU angular velocity if we are using it
+  double last_imu_angular_velocity = 0.0;
+  if(params_.use_angular_velocity_pid) {
+    std::shared_ptr<Imu> last_imu_msg;
+    received_imu_msg_ptr_.get(last_imu_msg);
+    last_imu_angular_velocity = last_imu_msg->angular_velocity.z;
+  }
+
   if (params_.open_loop)
   {
     odometry_.updateOpenLoop(linear_vel_reference, angular_vel_reference, time);
@@ -189,13 +197,39 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
 
     if (params_.position_feedback)
     {
-      odometry_.update(left_feedback_mean, right_feedback_mean, time);
+      if (params_.use_angular_velocity_pid)
+      {
+        odometry_.update(
+          left_feedback_mean,
+          right_feedback_mean,
+          last_imu_angular_velocity,
+          time);
+      }
+      else
+      {
+        odometry_.update(
+          left_feedback_mean,
+          right_feedback_mean,
+          time);
+      }
     }
     else
     {
-      odometry_.updateFromVelocity(
-        left_feedback_mean * left_wheel_radius * period.seconds(),
-        right_feedback_mean * right_wheel_radius * period.seconds(), time);
+      if (params_.use_angular_velocity_pid)
+      {
+        odometry_.updateFromVelocity(
+          left_feedback_mean * left_wheel_radius * period.seconds(),
+          right_feedback_mean * right_wheel_radius * period.seconds(),
+          last_imu_angular_velocity,
+          time);
+      }
+      else
+      {
+        odometry_.updateFromVelocity(
+          left_feedback_mean * left_wheel_radius * period.seconds(),
+          right_feedback_mean * right_wheel_radius * period.seconds(),
+          time);
+      }
     }
   }
 
@@ -274,9 +308,7 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   double angular_command;
   if(params_.use_angular_velocity_pid)
   {
-    std::shared_ptr<Imu> last_imu_msg;
-    received_imu_msg_ptr_.get(last_imu_msg);
-    double angular_vel_error = angular_vel_reference - last_imu_msg->angular_velocity.z;
+    double angular_vel_error = angular_vel_reference - last_imu_angular_velocity;
     if(angular_vel_reference == 0.0)
     {
       angular_command = 0.0;

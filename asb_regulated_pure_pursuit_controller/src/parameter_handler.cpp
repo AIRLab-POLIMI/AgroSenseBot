@@ -1,3 +1,4 @@
+// Copyright (c) 2024 Università degli Studi di Milano, Enrico Piazza
 // Copyright (c) 2022 Samsung Research America
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,6 +81,8 @@ ParameterHandler::ParameterHandler(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_fixed_curvature_lookahead", rclcpp::ParameterValue(false));
   declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_averaged_lookahead_curvature", rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
     node, plugin_name_ + ".curvature_lookahead_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_rotate_to_heading", rclcpp::ParameterValue(true));
@@ -147,6 +150,9 @@ ParameterHandler::ParameterHandler(
   node->get_parameter(
     plugin_name_ + ".use_fixed_curvature_lookahead",
     params_.use_fixed_curvature_lookahead);
+  node->get_parameter(
+    plugin_name_ + ".use_averaged_lookahead_curvature",
+    params_.use_averaged_lookahead_curvature);
   node->get_parameter(
     plugin_name_ + ".curvature_lookahead_dist",
     params_.curvature_lookahead_dist);
@@ -256,6 +262,8 @@ ParameterHandler::dynamicParametersCallback(
         params_.use_regulated_linear_velocity_scaling = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_fixed_curvature_lookahead") {
         params_.use_fixed_curvature_lookahead = parameter.as_bool();
+      } else if (name == plugin_name_ + ".use_averaged_lookahead_curvature") {
+        params_.use_averaged_lookahead_curvature = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_cost_regulated_linear_velocity_scaling") {
         params_.use_cost_regulated_linear_velocity_scaling = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_collision_detection") {

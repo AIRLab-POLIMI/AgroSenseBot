@@ -210,6 +210,7 @@ protected:
 
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>> carrot_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> carrot_pose_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::PathHandler> path_handler_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::ParameterHandler> param_handler_;
