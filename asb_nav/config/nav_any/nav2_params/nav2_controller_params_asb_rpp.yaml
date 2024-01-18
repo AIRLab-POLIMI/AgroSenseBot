@@ -14,15 +14,13 @@ controller_server:
       required_movement_radius: 0.5
       movement_time_allowance: 30.0
     goal_checker:
-      plugin: "nav2_controller::SimpleGoalChecker"
-      stateful: True
+      plugin: "asb_nav2_plugins::ASBGoalChecker"
       xy_goal_tolerance: 0.3
       yaw_goal_tolerance: 0.6
     FollowPath:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-#      min_turning_radius: 0.0
       min_turning_radius: 0.91
       desired_linear_vel: 0.3
       lookahead_dist: 0.4
