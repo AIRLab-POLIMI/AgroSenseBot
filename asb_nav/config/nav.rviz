@@ -190,6 +190,8 @@ Visualization Manager:
           Value: false
         right_track:
           Value: false
+        utm:
+          Value: true
       Marker Scale: 1
       Name: tf
       Show Arrows: false
@@ -219,13 +221,15 @@ Visualization Manager:
                   {}
                 right_track:
                   {}
+          utm:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 12.07126235961914
-        Min Value: -0.7442087531089783
+        Max Value: 24.585535049438477
+        Min Value: 4.28464937210083
         Value: true
       Axis: Y
       Channel Name: intensity
@@ -612,6 +616,26 @@ Visualization Manager:
             Value: /trajectories
           Value: true
         - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 0.10000000149011612
+          Class: rviz_default_plugins/Pose
+          Color: 255; 0; 255
+          Enabled: true
+          Head Length: 0.05000000074505806
+          Head Radius: 0.10000000149011612
+          Name: rpp carrot pose
+          Shaft Length: 0.10000000149011612
+          Shaft Radius: 0.05000000074505806
+          Shape: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /lookahead_point_2
+          Value: true
+        - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
           Color: 255; 0; 255
@@ -982,7 +1006,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 230.87353515625
+      Scale: 178.73353576660156
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0.04071648418903351
