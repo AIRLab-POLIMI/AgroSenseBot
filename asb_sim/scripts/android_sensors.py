@@ -20,10 +20,10 @@ class AndroidSensorsPublisher(Node):
         self.print_debug_ = False
         self.shutting_down_ = False
         self.covariance_imu_ = 0.01
-        self.covariance_gnss_ = 0.0001
+        self.covariance_gnss_ = 0.1
 
         self.imu_pub_ = self.create_publisher(Imu, "/imu", 10)
-        self.gnss_pub_ = self.create_publisher(NavSatFix, "/gnss", 10)
+        self.gnss_pub_ = self.create_publisher(NavSatFix, "/gnss/fix", 10)
 
         url_imu = "ws://192.168.1.54:8080/sensor/connect?type=android.sensor.gyroscope"
         self.ws_imu_ = websocket.WebSocketApp(

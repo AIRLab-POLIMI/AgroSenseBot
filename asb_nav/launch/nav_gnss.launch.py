@@ -55,6 +55,13 @@ def generate_launch_description():
         ],
     )
 
+    odometry_brake_node = Node(
+        package="asb_nav",
+        executable="odometry_brake.py",
+        name="odometry_brake",
+        output="screen",
+    )
+
     navsat_transform_node = Node(
         package="robot_localization",
         executable="navsat_transform_node",
@@ -65,6 +72,7 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
+            ("gps/fix", "gnss/fix"),
             ("odometry/filtered", "odometry/global"),
         ],
     )
@@ -106,6 +114,7 @@ def generate_launch_description():
 
     # localization
     ld.add_action(ekf_filter_node)
+    ld.add_action(odometry_brake_node)
     ld.add_action(navsat_transform_node)
 
     # navigation
