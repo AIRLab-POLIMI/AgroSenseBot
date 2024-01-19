@@ -18,69 +18,110 @@ namespace asb_webots_driver {
     void ASBWebotsDriver::init(webots_ros2_driver::WebotsNode *node, std::unordered_map<std::string, std::string> &parameters) {
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "initializing webots driver");
 
-        node->declare_parameter<std::string>("sim_state_topic", "sim_state");
-        sim_state_topic_ = node->get_parameter("sim_state_topic").as_string();
+        try{
+            node->declare_parameter<std::string>("sim_state_topic", "sim_state");
+            sim_state_topic_ = node->get_parameter("sim_state_topic").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "sim_state_topic: %s", sim_state_topic_.c_str());
 
-        node->declare_parameter<std::string>("sim_state_cmd_topic", "sim_state_cmd");
-        sim_state_cmd_topic_ = node->get_parameter("sim_state_cmd_topic").as_string();
+        try{
+            node->declare_parameter<std::string>("sim_state_cmd_topic", "sim_state_cmd");
+            sim_state_cmd_topic_ = node->get_parameter("sim_state_cmd_topic").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "sim_state_cmd_topic: %s", sim_state_cmd_topic_.c_str());
 
-        node->declare_parameter<std::string>("gnss_topic", "gps/fix");
-        gnss_topic_ = node->get_parameter("gnss_topic").as_string();
+        try{
+            node->declare_parameter<std::string>("gnss_topic", "gps/fix");
+            gnss_topic_ = node->get_parameter("gnss_topic").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_topic: %s", gnss_topic_.c_str());
 
-        node->declare_parameter<std::string>("gnss_frame_id", "gnss_link");
-        gnss_frame_id_ = node->get_parameter("gnss_frame_id").as_string();
+        try{
+            node->declare_parameter<std::string>("gnss_frame_id", "gnss_link");
+            gnss_frame_id_ = node->get_parameter("gnss_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_frame_id: %s", gnss_frame_id_.c_str());
 
-        node->declare_parameter<double>("gnss_update_rate", 10.0);
-        gnss_update_rate_ = node->get_parameter("gnss_update_rate").as_double();
+        try{
+            node->declare_parameter<double>("gnss_update_rate", 10.0);
+            gnss_update_rate_ = node->get_parameter("gnss_update_rate").as_double();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_update_rate: %f", gnss_update_rate_);
 
-        node->declare_parameter("gnss_covariance_diagonal", rclcpp::PARAMETER_DOUBLE_ARRAY);
-        gnss_covariance_diagonal_ = node->get_parameter("gnss_covariance_diagonal").as_double_array();
-        if(gnss_covariance_diagonal_.size() != 3) {
-            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "gnss_covariance_diagonal must have 3 elements");
-            gnss_covariance_diagonal_ = {0.0, 0.0, 0.0};
-        } else {
-            RCLCPP_INFO(
-                rclcpp::get_logger("ASBWebotsDriver"),
-                "gnss_covariance_diagonal: %f, %f, %f",
-                gnss_covariance_diagonal_[0], gnss_covariance_diagonal_[1], gnss_covariance_diagonal_[2]);
+        try{
+            node->declare_parameter("gnss_covariance_diagonal", rclcpp::PARAMETER_DOUBLE_ARRAY);
+            gnss_covariance_diagonal_ = node->get_parameter("gnss_covariance_diagonal").as_double_array();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
         }
+        if(gnss_covariance_diagonal_.size() != 3) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "gnss_covariance_diagonal must have 3 elements. Using default values.");
+            gnss_covariance_diagonal_ = {1.0, 1.0, 1.0};
+        }
+        RCLCPP_INFO(
+            rclcpp::get_logger("ASBWebotsDriver"),
+            "gnss_covariance_diagonal: %f, %f, %f",
+            gnss_covariance_diagonal_[0], gnss_covariance_diagonal_[1], gnss_covariance_diagonal_[2]);
 
-        gnss_ = wb_robot_get_device(gnss_frame_id_.c_str());
-
-        node->declare_parameter<double>("imu_update_rate", 1000.0);
-        imu_update_rate_ = node->get_parameter("imu_update_rate").as_double();
+        try{
+            node->declare_parameter<double>("imu_update_rate", 1000.0);
+            imu_update_rate_ = node->get_parameter("imu_update_rate").as_double();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "imu_update_rate: %f", imu_update_rate_);
 
-        node->declare_parameter<std::string>("imu_topic", "imu");
-        imu_topic_ = node->get_parameter("imu_topic").as_string();
+        try{
+            node->declare_parameter<std::string>("imu_topic", "imu");
+            imu_topic_ = node->get_parameter("imu_topic").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "imu_topic: %s", imu_topic_.c_str());
 
-        node->declare_parameter<std::string>("imu_frame_id", "imu_link");
-        imu_frame_id_ = node->get_parameter("imu_frame_id").as_string();
+        try{
+            node->declare_parameter<std::string>("imu_frame_id", "imu_link");
+            imu_frame_id_ = node->get_parameter("imu_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "imu_frame_id: %s", imu_frame_id_.c_str());
 
-        node->declare_parameter<std::string>("gyro_frame_id", "gyro_link");
-        gyro_frame_id_ = node->get_parameter("gyro_frame_id").as_string();
-        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gyro_frame_id: %s", gyro_frame_id_.c_str());
-        gyro_ = wb_robot_get_device(gyro_frame_id_.c_str());
-
-        node->declare_parameter("gyro_covariance_diagonal", rclcpp::PARAMETER_DOUBLE_ARRAY);
-        gyro_covariance_diagonal_ = node->get_parameter("gyro_covariance_diagonal").as_double_array();
-        if(gyro_covariance_diagonal_.size() != 3) {
-            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "gyro_covariance_diagonal must have 3 elements");
-            gyro_covariance_diagonal_ = {0.0, 0.0, 0.0};
-        } else {
-            RCLCPP_INFO(
-                rclcpp::get_logger("ASBWebotsDriver"),
-                "gyro_covariance_diagonal: %f, %f, %f",
-                gyro_covariance_diagonal_[0], gyro_covariance_diagonal_[1], gyro_covariance_diagonal_[2]);
+        try{
+            node->declare_parameter<std::string>("gyro_frame_id", "gyro_link");
+            gyro_frame_id_ = node->get_parameter("gyro_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
         }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gyro_frame_id: %s", gyro_frame_id_.c_str());
 
+        try{
+            node->declare_parameter("gyro_covariance_diagonal", rclcpp::PARAMETER_DOUBLE_ARRAY);
+            gyro_covariance_diagonal_ = node->get_parameter("gyro_covariance_diagonal").as_double_array();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        if(gyro_covariance_diagonal_.size() != 3) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "gyro_covariance_diagonal must have 3 elements. Using default values.");
+            gyro_covariance_diagonal_ = {1.0, 1.0, 1.0};
+        }
+        RCLCPP_INFO(
+            rclcpp::get_logger("ASBWebotsDriver"),
+            "gyro_covariance_diagonal: %f, %f, %f",
+            gyro_covariance_diagonal_[0], gyro_covariance_diagonal_[1], gyro_covariance_diagonal_[2]);
+
+        gnss_ = wb_robot_get_device(gnss_frame_id_.c_str());
+        gyro_ = wb_robot_get_device(gyro_frame_id_.c_str());
         right_motor_ = wb_robot_get_device("right_motor");
         left_motor_ = wb_robot_get_device("left_motor");
 
