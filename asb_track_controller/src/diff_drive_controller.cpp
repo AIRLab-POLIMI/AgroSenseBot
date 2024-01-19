@@ -575,7 +575,7 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(const rcl
   odometry_message.twist = geometry_msgs::msg::TwistWithCovariance(rosidl_runtime_cpp::MessageInitialization::ALL);
 
   constexpr size_t NUM_DIMENSIONS = 6;
-  for (size_t index = 0; index < 6; ++index)
+  for (size_t index = 0; index < NUM_DIMENSIONS; ++index)
   {
     // 0, 7, 14, 21, 28, 35
     const size_t diagonal_index = NUM_DIMENSIONS * index + index;
