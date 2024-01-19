@@ -14,6 +14,7 @@ sudo apt-get install -y can-utils  # linux can utility
 sudo apt-get install -y openssh-server byobu  # ssh
 sudo apt-get install -y libqwt-qt5-dev  # Qwt widgets for the Qt UI
 sudo apt-get install -y ros-iron-xacro ros-iron-ros2controlcli ros-iron-ros2-controllers-test-nodes ros-iron-diff-drive-controller ros-iron-joint-state-broadcaster ros-iron-webots-ros2 ros-iron-rqt-gui ros-iron-rqt-tf-tree ros-iron-nav2-* ros-iron-robot-localization # ROS2 dependencies
+mkdir -p ~/asb_logs/
 mkdir -p ~/w/agrosensebot_ws/src/
 cd ~/w/agrosensebot_ws/src/
 git clone -b iron https://github.com/AIRLab-POLIMI/AgroSenseBot.git

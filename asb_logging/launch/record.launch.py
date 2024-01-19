@@ -14,13 +14,6 @@ from ament_index_python import get_package_share_directory as pkg
 
 def generate_launch_description():
 
-    # record_node = Node(  TODO ros2 bag record
-    #     package="",
-    #     executable="",
-    #     name="",
-    #     output="screen",
-    # )
-
     system_status_logger_node = Node(
         package="asb_logging",
         executable="system_status_logger.py",
@@ -30,7 +23,6 @@ def generate_launch_description():
 
     ld = launch.LaunchDescription()
 
-    # ld.add_action(record_node)  TODO ros2 bag record
     ld.add_action(system_status_logger_node)
 
     return ld
