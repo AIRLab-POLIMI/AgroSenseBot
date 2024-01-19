@@ -24,6 +24,13 @@
             </ros>
         </device>
 
+        <!-- disable the default ROS2 topic for the sensor, which is published from the driver -->
+        <device reference="gnss_link" type="GPS">
+            <ros>
+                <enabled>false</enabled>
+            </ros>
+        </device>
+
     </webots>
 
 </robot>

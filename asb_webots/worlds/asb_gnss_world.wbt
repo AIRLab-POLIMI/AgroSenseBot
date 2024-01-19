@@ -734,20 +734,6 @@ DEF TRACKED_ROBOT Robot {
         }
       ]
     }
-    DEF GNSS_2 Pose {
-      translation -0.57 0 1.37
-      children [
-        GPS {
-          name "gnss_link_2"
-          type "satellite"
-          accuracy 0.01
-          noiseCorrelation 0
-          resolution -1
-          speedNoise 0
-          speedResolution -1
-        }
-      ]
-    }
     DEF Imu Solid {
       translation 0 0 0.23
       name "imu_link"
