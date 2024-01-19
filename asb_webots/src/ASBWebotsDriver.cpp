@@ -51,7 +51,6 @@ namespace asb_webots_driver {
         }
 
         gnss_ = wb_robot_get_device(gnss_frame_id_.c_str());
-        gnss2_ = wb_robot_get_device("gnss_link_2");
 
         node->declare_parameter<double>("imu_update_rate", 1000.0);
         imu_update_rate_ = node->get_parameter("imu_update_rate").as_double();
@@ -86,7 +85,6 @@ namespace asb_webots_driver {
         left_motor_ = wb_robot_get_device("left_motor");
 
         wb_gps_enable(gnss_, 1);
-        wb_gps_enable(gnss2_, 1);
         wb_gyro_enable(gyro_, 1);
 
         if (wb_gps_get_coordinate_system(gnss_) != WB_GPS_WGS84_COORDINATE) {
@@ -108,9 +106,6 @@ namespace asb_webots_driver {
 
         nav_sat_fix_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
             gnss_topic_, rclcpp::SensorDataQoS().reliable());
-
-        nav_sat_fix_publisher2_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
-            "/gps2/fix", rclcpp::SensorDataQoS().reliable());
 
         imu_publisher_ = node->create_publisher<sensor_msgs::msg::Imu>(
             imu_topic_, rclcpp::SensorDataQoS().reliable());
@@ -165,29 +160,6 @@ namespace asb_webots_driver {
                 NavSatStatus::SERVICE_GALILEO;
             nav_sat_fix_publisher_->publish(nav_sat_fix_msg);
 
-            const double *position2 = wb_gps_get_values(gnss2_);
-            const double latitude2 = position2[0];
-            const double longitude2 = position2[1];
-            const double altitude2 = position2[2];
-            auto nav_sat_fix_msg2 = sensor_msgs::msg::NavSatFix();
-            nav_sat_fix_msg2.header.stamp = now;
-            nav_sat_fix_msg2.header.frame_id = "gnss_link_2";
-            nav_sat_fix_msg2.latitude = latitude2;
-            nav_sat_fix_msg2.longitude = longitude2;
-            nav_sat_fix_msg2.altitude = altitude2;
-            nav_sat_fix_msg2.position_covariance = {
-                0.0001, 0.0,    0.0,
-                0.0,    0.0001, 0.0,
-                0.0,    0.0,    0.0001
-            };
-            nav_sat_fix_msg2.position_covariance_type = NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
-            nav_sat_fix_msg.status.status = NavSatStatus::STATUS_GBAS_FIX;
-            nav_sat_fix_msg.status.service =
-                NavSatStatus::SERVICE_GPS |
-                NavSatStatus::SERVICE_GLONASS |
-                NavSatStatus::SERVICE_COMPASS |
-                NavSatStatus::SERVICE_GALILEO;
-            nav_sat_fix_publisher2_->publish(nav_sat_fix_msg2);
         }
 
         if(now - last_imu_update_ > rclcpp::Duration::from_seconds(1/imu_update_rate_)) {
