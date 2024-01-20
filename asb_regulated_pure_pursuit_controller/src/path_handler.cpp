@@ -1,3 +1,4 @@
+// Copyright (c) 2024 Università degli Studi di Milano, Enrico Piazza
 // Copyright (c) 2022 Samsung Research America
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,6 @@
 
 #include <algorithm>
 #include <string>
-#include <limits>
 #include <memory>
 #include <vector>
 #include <utility>
@@ -63,12 +63,14 @@ nav_msgs::msg::Path PathHandler::transformGlobalPlan(
     nav2_util::geometry_utils::first_after_integrated_distance(
     global_plan_.poses.begin(), global_plan_.poses.end(), max_robot_pose_search_dist);
 
+  auto next_cusp = findCusp(global_plan_.poses.begin(), closest_pose_upper_bound);
+
   // First find the closest pose on the path to the robot
   // bounded by when the path turns around (if it does) so we don't get a pose from a later
   // portion of the path
   auto transformation_begin =
     nav2_util::geometry_utils::min_by(
-    global_plan_.poses.begin(), closest_pose_upper_bound,
+    global_plan_.poses.begin(), next_cusp,
     [&robot_pose](const geometry_msgs::msg::PoseStamped & ps) {
       return euclidean_distance(robot_pose, ps);
     });
@@ -103,7 +105,7 @@ nav_msgs::msg::Path PathHandler::transformGlobalPlan(
   transformed_plan.header.frame_id = costmap_ros_->getBaseFrameID();
   transformed_plan.header.stamp = robot_pose.header.stamp;
 
-  // Remove the portion of the global plan that we've already passed so we don't
+  // Remove the portion of the global plan that we've already passed, so we don't
   // process it on the next iteration (this is called path pruning)
   global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
 
@@ -112,6 +114,25 @@ nav_msgs::msg::Path PathHandler::transformGlobalPlan(
   }
 
   return transformed_plan;
+}
+
+template<typename Iter>
+Iter PathHandler::findCusp(
+  Iter begin, Iter end)
+{
+  if (begin == end) return end;
+  if (begin + 1 == end) return end;
+  if (begin + 2 == end) return end;
+  // Iterating through the transformed global path to determine the position of the cusp
+  for (Iter it = begin + 1; it != end - 1; it++) {
+    double oa_x = it->pose.position.x - (it - 1)->pose.position.x;
+    double oa_y = it->pose.position.y - (it - 1)->pose.position.y;
+    double ab_x = (it + 1)->pose.position.x - it->pose.position.x;
+    double ab_y = (it + 1)->pose.position.y - it->pose.position.y;
+    if ((oa_x * ab_x) + (oa_y * ab_y) < 0.0) return it + 1;
+  }
+
+  return end;
 }
 
 bool PathHandler::transformPose(

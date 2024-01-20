@@ -1,3 +1,4 @@
+// Copyright (c) 2024 Università degli Studi di Milano, Enrico Piazza
 // Copyright (c) 2022 Samsung Research America
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +49,7 @@ public:
     std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros);
 
   /**
-   * @brief Destrructor for asb_regulated_pure_pursuit_controller::PathHandler
+   * @brief Destructor for asb_regulated_pure_pursuit_controller::PathHandler
    */
   ~PathHandler() = default;
 
@@ -86,6 +87,14 @@ protected:
    * @return max of distance from center in meters to edge of costmap
    */
   double getCostmapMaxExtent() const;
+
+  /**
+   * Find a cusp in the path between begin and end.
+   * @param begin begin iterator of the path
+   * @param end end iterator of the path
+   * @return the iterator past the pose where there is a cusp, or the end iterator if there is no cusp
+   */
+  template<typename Iter> Iter findCusp(Iter begin, Iter end);
 
   rclcpp::Logger logger_ {rclcpp::get_logger("RPPPathHandler")};
   tf2::Duration transform_tolerance_;
