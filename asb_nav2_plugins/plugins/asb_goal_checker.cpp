@@ -37,6 +37,7 @@
 #include <string>
 #include <limits>
 #include <vector>
+#include <cmath>
 #include "asb_nav2_plugins/plugins/asb_goal_checker.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "angles/angles.h"
@@ -98,8 +99,8 @@ bool ASBGoalChecker::isGoalReached(
   const geometry_msgs::msg::Pose & query_pose, const geometry_msgs::msg::Pose & goal_pose,
   const geometry_msgs::msg::Twist &)
 {
-  double dx = query_pose.position.x - goal_pose.position.x;
-  double dy = query_pose.position.y - goal_pose.position.y;
+  double dx = goal_pose.position.x - query_pose.position.x;
+  double dy = goal_pose.position.y - query_pose.position.y;
   double dyaw = angles::shortest_angular_distance(
     tf2::getYaw(query_pose.orientation),
     tf2::getYaw(goal_pose.orientation));
@@ -110,16 +111,20 @@ bool ASBGoalChecker::isGoalReached(
     return false;
   }
 
+  // compute the goal x coordinate in the robot frame
+  double theta = tf2::getYaw(query_pose.orientation);
+  double gx = dx * cos(-theta) - dy * sin(-theta);
+
   if (!in_goal_proximity_) {
     // We just entered the window
     in_goal_proximity_ = true;
     // If the goal is in front, we must move forward to reach the goal
-    forward_ = dx >= 0;
+    forward_ = gx >= 0;
   }
 
   // From now on, as soon as we pass the goal (disregarding the y coordinate),
   // we are as close to the goal as we are going to be
-  return forward_ ? dx <= 0 : dx >= 0;
+  return forward_ ? gx <= 0 : gx >= 0;
 }
 
 bool ASBGoalChecker::getTolerances(
