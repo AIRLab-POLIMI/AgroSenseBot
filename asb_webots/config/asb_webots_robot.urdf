@@ -24,6 +24,26 @@
             </ros>
         </device>
 
+        <device reference="base_scan_front_right" type="Lidar">
+            <ros>
+                <enabled>true</enabled>
+                <updateRate>20</updateRate>
+                <topicName>/scan_front_right</topicName>
+                <alwaysOn>false</alwaysOn>
+                <frameName>base_scan_front_right</frameName>
+            </ros>
+        </device>
+
+        <device reference="base_scan_rear_left" type="Lidar">
+            <ros>
+                <enabled>true</enabled>
+                <updateRate>20</updateRate>
+                <topicName>/scan_rear_left</topicName>
+                <alwaysOn>false</alwaysOn>
+                <frameName>base_scan_rear_left</frameName>
+            </ros>
+        </device>
+
         <!-- disable the default ROS2 topic for the sensor, which is published from the driver -->
         <device reference="gnss_link" type="GPS">
             <ros>

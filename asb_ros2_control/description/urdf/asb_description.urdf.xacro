@@ -25,7 +25,81 @@
           <box size="1.2 1.5 0.1"/>
         </geometry>
       </collision>
+      <visual>
+        <origin xyz="0 0.6 0.53" rpy="0 0 0"/>
+        <geometry>
+          <box size="1.5 0.2 0.4"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0.6 0.53" rpy="0 0 0"/>
+        <geometry>
+          <box size="1.5 0.2 0.4"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 -0.6 0.53" rpy="0 0 0"/>
+        <geometry>
+          <box size="1.5 0.2 0.4"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 -0.6 0.53" rpy="0 0 0"/>
+        <geometry>
+          <box size="1.5 0.2 0.4"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0.83" rpy="0 0 0"/>
+        <geometry>
+          <box size="1.5 0.9 1"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.83" rpy="0 0 0"/>
+        <geometry>
+          <box size="1.5 0.9 1"/>
+        </geometry>
+      </collision>
     </link>
+    <link name="base_scan_rear_left">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0435" length="0.0742"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0435" length="0.0742"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="base_link_base_scan_rear_left_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_rear_left"/>
+      <origin xyz="-1.18 0.76 0.52" rpy="0 0 2.356194"/>
+    </joint>
+    <link name="base_scan_front_right">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0435" length="0.0742"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0435" length="0.0742"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="base_link_base_scan_front_right_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_front_right"/>
+      <origin xyz="1.18 -0.76 0.52" rpy="0 0 -0.785398"/>
+    </joint>
     <link name="base_scan_rear">
     </link>
     <joint name="base_link_base_scan_rear_joint" type="fixed">
@@ -68,13 +142,6 @@
       <child link="accelerometer_link"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
-    <link name="gnss_link_2">
-    </link>
-    <joint name="base_link_gnss_link_2_joint" type="fixed">
-      <parent link="base_link"/>
-      <child link="gnss_link_2"/>
-      <origin xyz="-0.57 0 1.37" rpy="0 0 0"/>
-    </joint>
     <link name="gnss_link">
     </link>
     <joint name="base_link_gnss_link_joint" type="fixed">
@@ -83,6 +150,18 @@
       <origin xyz="0.57 0 1.37" rpy="0 0 0"/>
     </joint>
     <link name="right_track">
+      <visual>
+        <origin xyz="0 0 0.1" rpy="1.570796 0 0"/>
+        <geometry>
+          <box size="2 0.1 0.2"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.1" rpy="1.570796 0 0"/>
+        <geometry>
+          <box size="2 0.1 0.2"/>
+        </geometry>
+      </collision>
       <visual>
         <origin xyz="0 0 -0.0245" rpy="1.570796 0 0"/>
         <geometry>
@@ -150,6 +229,18 @@
       <origin xyz="0 -0.5 0" rpy="0 0 0"/>
     </joint>
     <link name="left_track">
+      <visual>
+        <origin xyz="0 0 0.1" rpy="1.570796 0 0"/>
+        <geometry>
+          <box size="2 0.1 0.2"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.1" rpy="1.570796 0 0"/>
+        <geometry>
+          <box size="2 0.1 0.2"/>
+        </geometry>
+      </collision>
       <visual>
         <origin xyz="0 0 -0.0245" rpy="1.570796 0 0"/>
         <geometry>

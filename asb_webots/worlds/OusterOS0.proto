@@ -1,0 +1,36 @@
+#VRML_SIM R2023b utf8
+# license: Apache-2.0, Copyright (c) 2024 Università degli Studi di Milano, Enrico Piazza
+# license url: http://www.apache.org/licenses/LICENSE-2.0
+# keywords: sensor/lidar
+# Ouster OS0-32.
+
+EXTERNPROTO "MultiLayerLidar.proto"
+
+PROTO OusterOS0 [
+  field   SFVec3f     translation           0 0 0
+  field   SFRotation  rotation              0 0 1 0
+  field   SFString    name                  "OusterOS0"
+  field   SFString    model                 "OS0"
+  field   SFString    version               "32"
+  field   SFBool      enablePhysics         TRUE
+  field   SFFloat     fieldOfView           4.71238898038469
+  field   SFInt32     numberOfLayers        32
+]
+{
+  MultiLayerLidar {
+    translation IS translation
+    rotation IS rotation
+    name IS name
+    model IS model
+    version IS version
+    enablePhysics IS enablePhysics
+    horizontalResolution 7200
+    fieldOfView IS fieldOfView
+    verticalFieldOfView 1.570796326794896
+    numberOfLayers IS numberOfLayers
+    minRange 0.5
+    maxRange 35.0
+    noise 0.000571429  # 0.02 m / 35 m (standard deviation of range measurement / max range)
+    defaultFrequency 20
+  }
+}

@@ -4,15 +4,18 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /tf1
+        - /Sensors1
+        - /Sensors1/scan_rear_left1/Autocompute Value Bounds1
+        - /Sensors1/scan_front_right1/Autocompute Value Bounds1
         - /Controller1/Trajectories1/Topic1
         - /Controller1/mppi trajectories1/Namespaces1
         - /waypoints1/Topic1
-        - /Localization1
-        - /Localization1/Odometry position1
         - /Localization1/Odometry position1/Shape1
-      Splitter Ratio: 0.6131805181503296
+        - /Localization1/gnss history1/Shape1
+        - /Localization1/gnss history1/Covariance1/Position1
+        - /Localization1/gnss1/Covariance1/Position1
+        - /scan_velodyne1/Autocompute Value Bounds1
+      Splitter Ratio: 0.46418339014053345
     Tree Height: 464
   - Class: rviz_common/Selection
     Name: Selection
@@ -32,334 +35,413 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: scan_front history
+    SyncSource: scan_velodyne
   - Class: asb_rviz_plugins/AgroSenseBot
     Name: AgroSenseBot
 Visualization Manager:
   Class: ""
   Displays:
-    - Alpha: 0.5
-      Cell Size: 1
-      Class: rviz_default_plugins/Grid
-      Color: 160; 160; 164
-      Enabled: true
-      Line Style:
-        Line Width: 0.029999999329447746
-        Value: Lines
-      Name: grid major
-      Normal Cell Count: 0
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Plane: XY
-      Plane Cell Count: 100
-      Reference Frame: map
-      Value: true
-    - Alpha: 0.10000000149011612
-      Cell Size: 0.10000000149011612
-      Class: rviz_default_plugins/Grid
-      Color: 160; 160; 164
-      Enabled: true
-      Line Style:
-        Line Width: 0.029999999329447746
-        Value: Lines
-      Name: grid minor
-      Normal Cell Count: 0
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Plane: XY
-      Plane Cell Count: 1000
-      Reference Frame: map
-      Value: true
-    - Alpha: 0.20000000298023224
-      Class: rviz_default_plugins/RobotModel
-      Collision Enabled: false
-      Description File: ""
-      Description Source: Topic
-      Description Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /robot_description
-      Enabled: true
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        accelerometer_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_scan_front:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_scan_rear:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        gnss_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        gnss_link_2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        gyro_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        inertial_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_track:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_track:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Mass Properties:
-        Inertia: false
-        Mass: false
-      Name: robot model
-      TF Prefix: ""
-      Update Interval: 0
-      Value: true
-      Visual Enabled: true
-    - Class: rviz_default_plugins/TF
-      Enabled: true
-      Frame Timeout: 15
-      Frames:
-        All Enabled: false
-        accelerometer_link:
+    - Class: rviz_common/Group
+      Displays:
+        - Alpha: 1
+          Binary representation: false
+          Binary threshold: 100
+          Class: rviz_default_plugins/Map
+          Color Scheme: map
+          Draw Behind: true
+          Enabled: false
+          Name: map
+          Topic:
+            Depth: 1
+            Durability Policy: Transient Local
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /map
+          Update Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /map_updates
+          Use Timestamp: false
           Value: false
-        base_footprint:
-          Value: false
-        base_link:
-          Value: true
-        base_scan_front:
-          Value: true
-        base_scan_rear:
-          Value: false
-        gnss_link:
-          Value: false
-        gnss_link_2:
-          Value: false
-        gyro_link:
-          Value: false
-        imu_link:
-          Value: false
-        inertial_link:
-          Value: false
-        left_track:
-          Value: false
-        map:
-          Value: true
-        odom:
-          Value: false
-        right_track:
-          Value: false
-        utm:
-          Value: true
-      Marker Scale: 0.5
-      Name: tf
-      Show Arrows: false
-      Show Axes: true
-      Show Names: true
-      Tree:
-        map:
-          odom:
+        - Class: rviz_default_plugins/TF
+          Enabled: true
+          Frame Timeout: 15
+          Frames:
+            All Enabled: false
+            accelerometer_link:
+              Value: false
             base_footprint:
-              base_link:
-                base_scan_front:
-                  {}
-                base_scan_rear:
-                  {}
-                gnss_link:
-                  {}
-                gnss_link_2:
-                  {}
-                imu_link:
-                  accelerometer_link:
-                    {}
-                  gyro_link:
-                    {}
-                  inertial_link:
-                    {}
-                left_track:
-                  {}
-                right_track:
-                  {}
-          utm:
-            {}
-      Update Interval: 0
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 23.82003402709961
-        Min Value: 3.733867883682251
-        Value: true
-      Axis: Y
-      Channel Name: intensity
-      Class: rviz_default_plugins/LaserScan
-      Color: 255; 255; 255
-      Color Transformer: AxisColor
-      Decay Time: 10
+              Value: false
+            base_link:
+              Value: true
+            base_scan_front:
+              Value: true
+            base_scan_front_right:
+              Value: true
+            base_scan_rear:
+              Value: false
+            base_scan_rear_left:
+              Value: true
+            base_scan_velodyne:
+              Value: true
+            gnss_link:
+              Value: false
+            gyro_link:
+              Value: false
+            imu_link:
+              Value: false
+            inertial_link:
+              Value: false
+            left_track:
+              Value: false
+            map:
+              Value: true
+            odom:
+              Value: false
+            right_track:
+              Value: false
+            utm:
+              Value: true
+          Marker Scale: 0.5
+          Name: tf
+          Show Arrows: false
+          Show Axes: true
+          Show Names: true
+          Tree:
+            map:
+              odom:
+                base_footprint:
+                  base_link:
+                    base_scan_front:
+                      {}
+                    base_scan_front_right:
+                      {}
+                    base_scan_rear:
+                      {}
+                    base_scan_rear_left:
+                      {}
+                    base_scan_velodyne:
+                      {}
+                    gnss_link:
+                      {}
+                    imu_link:
+                      accelerometer_link:
+                        {}
+                      gyro_link:
+                        {}
+                      inertial_link:
+                        {}
+                    left_track:
+                      {}
+                    right_track:
+                      {}
+              utm:
+                {}
+          Update Interval: 0
+          Value: true
+        - Alpha: 0.75
+          Class: rviz_default_plugins/RobotModel
+          Collision Enabled: false
+          Description File: ""
+          Description Source: Topic
+          Description Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /robot_description
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            accelerometer_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_footprint:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            base_scan_front:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_scan_front_right:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            base_scan_rear:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_scan_rear_left:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            base_scan_velodyne:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            gnss_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            gyro_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            imu_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            inertial_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            left_track:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            right_track:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Mass Properties:
+            Inertia: false
+            Mass: false
+          Name: robot model
+          TF Prefix: ""
+          Update Interval: 0
+          Value: true
+          Visual Enabled: true
+        - Alpha: 0.10000000149011612
+          Cell Size: 0.10000000149011612
+          Class: rviz_default_plugins/Grid
+          Color: 160; 160; 164
+          Enabled: true
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: grid minor
+          Normal Cell Count: 0
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Plane: XY
+          Plane Cell Count: 1000
+          Reference Frame: map
+          Value: true
+        - Alpha: 0.5
+          Cell Size: 1
+          Class: rviz_default_plugins/Grid
+          Color: 160; 160; 164
+          Enabled: true
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: grid major
+          Normal Cell Count: 0
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Plane: XY
+          Plane Cell Count: 100
+          Reference Frame: map
+          Value: true
       Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 0
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: scan_front history
-      Position Transformer: XYZ
-      Selectable: true
-      Size (Pixels): 1
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: /scan_front
-      Use Fixed Frame: false
-      Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz_default_plugins/LaserScan
-      Color: 255; 255; 255
-      Color Transformer: Intensity
-      Decay Time: 0
+      Name: Environment
+    - Class: rviz_common/Group
+      Displays:
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.05000000074505806
+            Min Value: -0.25
+            Value: false
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/PointCloud2
+          Color: 255; 0; 0
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 4096
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: scan_rear_left
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /scan_rear_left/point_cloud
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.05000000074505806
+            Min Value: -0.25
+            Value: false
+          Axis: Z
+          Channel Name: z
+          Class: rviz_default_plugins/PointCloud2
+          Color: 0; 0; 255
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 0.8198546767234802
+          Min Color: 0; 0; 0
+          Min Intensity: -0.9134474396705627
+          Name: scan_front_right
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /scan_front_right/point_cloud
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/LaserScan
+          Color: 255; 255; 255
+          Color Transformer: Intensity
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 0
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: scan_rear
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Best Effort
+            Value: /scan_rear
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz_default_plugins/LaserScan
+          Color: 255; 255; 255
+          Color Transformer: Intensity
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 5
+          Min Color: 0; 0; 0
+          Min Intensity: 5
+          Name: scan_front
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Best Effort
+            Value: /scan_front
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 24.953765869140625
+            Min Value: 4.514716625213623
+            Value: true
+          Axis: Y
+          Channel Name: intensity
+          Class: rviz_default_plugins/LaserScan
+          Color: 255; 255; 255
+          Color Transformer: AxisColor
+          Decay Time: 10
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 0
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: scan_front history
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 1
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Best Effort
+            Value: /scan_front
+          Use Fixed Frame: false
+          Use rainbow: true
+          Value: false
       Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 5
-      Min Color: 0; 0; 0
-      Min Intensity: 5
-      Name: scan_front
-      Position Transformer: XYZ
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: /scan_front
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz_default_plugins/LaserScan
-      Color: 255; 255; 255
-      Color Transformer: Intensity
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 0
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: scan_rear
-      Position Transformer: XYZ
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: /scan_rear
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Alpha: 1
-      Binary representation: false
-      Binary threshold: 100
-      Class: rviz_default_plugins/Map
-      Color Scheme: map
-      Draw Behind: true
-      Enabled: false
-      Name: map
-      Topic:
-        Depth: 1
-        Durability Policy: Transient Local
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /map
-      Update Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /map_updates
-      Use Timestamp: false
-      Value: false
-    - Alpha: 1
-      Class: nav2_rviz_plugins/ParticleCloud
-      Color: 0; 180; 0
-      Enabled: false
-      Max Arrow Length: 0.30000001192092896
-      Min Arrow Length: 0.019999999552965164
-      Name: amcl particle swarm
-      Shape: Arrow (Flat)
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: /particle_cloud
-      Value: false
+      Name: Sensors
     - Class: rviz_common/Group
       Displays:
         - Alpha: 0.20000000298023224
@@ -805,7 +887,7 @@ Visualization Manager:
               Scale: 1
               Value: true
             Value: false
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: Odometry position
           Position Tolerance: 0.10000000149011612
@@ -826,7 +908,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /odom
-          Value: true
+          Value: false
         - Angle Tolerance: 0.05000000074505806
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -844,7 +926,7 @@ Visualization Manager:
               Scale: 1
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: Odometry orientation
           Position Tolerance: 0.10000000149011612
@@ -865,7 +947,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /odom
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -919,10 +1001,10 @@ Visualization Manager:
             Position:
               Alpha: 0.6000000238418579
               Color: 204; 51; 204
-              Scale: 0.05000000074505806
+              Scale: 1
               Value: true
             Value: true
-          Enabled: false
+          Enabled: true
           Keep: 1000
           Name: gnss history
           Position Tolerance: 0
@@ -943,7 +1025,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /odometry/gps
-          Value: false
+          Value: true
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -958,10 +1040,10 @@ Visualization Manager:
             Position:
               Alpha: 0.6000000238418579
               Color: 0; 50; 255
-              Scale: 5
+              Scale: 2
               Value: true
             Value: true
-          Enabled: false
+          Enabled: true
           Keep: 1
           Name: gnss
           Position Tolerance: 0
@@ -982,9 +1064,59 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /odometry/gps
+          Value: true
+        - Alpha: 1
+          Class: nav2_rviz_plugins/ParticleCloud
+          Color: 0; 180; 0
+          Enabled: false
+          Max Arrow Length: 0.30000001192092896
+          Min Arrow Length: 0.019999999552965164
+          Name: amcl particle swarm
+          Shape: Arrow (Flat)
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Best Effort
+            Value: /particle_cloud
           Value: false
-      Enabled: true
+      Enabled: false
       Name: Localization
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 0.05000000074505806
+        Min Value: -0.25
+        Value: false
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz_default_plugins/PointCloud2
+      Color: 255; 255; 0
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: scan_velodyne
+      Position Transformer: XYZ
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /scan_velodyne/point_cloud
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1022,21 +1154,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
-      Class: rviz_default_plugins/TopDownOrtho
+      Class: rviz_default_plugins/Orbit
+      Distance: 47.997459411621094
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Focal Point:
+        X: -0.09931095689535141
+        Y: 0.09876659512519836
+        Z: 2.1642727851867676
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 584.2896728515625
+      Pitch: 1.3947969675064087
       Target Frame: base_link
-      Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.05929458886384964
-      Y: -0.03623683750629425
+      Value: Orbit (rviz_default_plugins)
+      Yaw: 3.8478617668151855
     Saved: ~
 Window Geometry:
   AgroSenseBot:
@@ -1048,7 +1185,7 @@ Window Geometry:
   Hide Right Dock: true
   Navigation 2:
     collapsed: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000015f000004bdfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e700000253000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001a700fffffffb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000002800ffffff00000001000001a5000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000003d000004bd0000041100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000050000000039fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000500000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000015f000004bdfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e700000253000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000002800ffffff00000001000001a5000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000003d000004bd0000041100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000050000000039fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000500000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   RealsenseCamera:
     collapsed: false
   Selection:

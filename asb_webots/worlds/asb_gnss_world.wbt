@@ -10,6 +10,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/project
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/robotis/protos/RobotisLds01.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/sick/protos/SickLms291.proto"
+EXTERNPROTO "OusterOS0.proto"
 
 WorldInfo {
   title "AgroSenseBot"
@@ -566,6 +567,15 @@ DEF TRACKED_ROBOT Robot {
       boundingObject DEF TRACK_BO Group {
         children [
           Pose {
+            translation 0 0 0.1
+            rotation 1 0 0 1.570796
+            children [
+              Box {
+                size 2 0.1 0.2
+              }
+            ]
+          }
+          Pose {
             translation 0 0 -0.0245
             rotation 1 0 0 1.570796
             children [
@@ -785,9 +795,30 @@ DEF TRACKED_ROBOT Robot {
       noise 0.01
       resolution 180
     }
+    OusterOS0 {
+      translation 1.18 -0.76 0.52
+      rotation 0 0 1 5.497787143782138
+      name "base_scan_front_right"
+      numberOfLayers 32
+      version "32"
+    }
+    OusterOS0 {
+      translation -1.18 0.76 0.52
+      rotation 0 0 1 2.356194490192345
+      name "base_scan_rear_left"
+      numberOfLayers 32
+      version "32"
+    }
   ]
   name "asb_webots_robot"
-  boundingObject USE BASE
+  boundingObject Group {
+     children [
+      USE BASE
+      USE BATTERY_PACK_LEFT
+      USE BATTERY_PACK_RIGHT
+      USE BODY
+     ]
+   }
   physics Physics {
     density -1
     mass 40

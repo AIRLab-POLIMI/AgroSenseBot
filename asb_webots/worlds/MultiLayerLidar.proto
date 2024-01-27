@@ -1,0 +1,78 @@
+#VRML_SIM R2023b utf8
+# license: Apache-2.0, Copyright (c) 2024 Università degli Studi di Milano, Enrico Piazza
+# license url: http://www.apache.org/licenses/LICENSE-2.0
+# keywords: sensor/lidar
+# Generic multy layer lidar sensor model based on the Lidar PROTO.
+# template language: javascript
+
+PROTO MultiLayerLidar [
+  field   SFVec3f     translation           0 0 0
+  field   SFRotation  rotation              0 0 1 0
+  field   SFString    name                  "GENERIC_LIDAR"
+  field   SFString    model                 "generic_model"
+  field   SFString    version               "generic_version"
+  field   SFBool      enablePhysics         TRUE
+  field   SFFloat     defaultFrequency      20
+  field   SFFloat     fieldOfView           6.283185307179586
+  field   SFInt32     horizontalResolution  3600
+  field   SFFloat     verticalFieldOfView   1.570796326794896
+  field   SFInt32     numberOfLayers        32
+  field   SFFloat     minRange              0.5
+  field   SFFloat     maxRange              100
+  field   SFFloat     noise                 0.003 # 0.3 / 100
+]
+{
+  Lidar {
+    translation IS translation
+    rotation IS rotation
+    children [
+      DEF CHASSIS Pose {
+        translation 0 0 0
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.5 0.5 0.5
+              metalness 1
+              roughness 0.5
+            }
+            geometry Cylinder {
+              height 0.0742
+              radius 0.0435
+              subdivision 24
+            }
+          }
+        ]
+      }
+    ]
+    name IS name
+    model IS model
+    boundingObject Pose {
+      translation 0 0 0
+      children [
+        Cylinder {
+          height 0.0742
+          radius 0.0435
+        }
+      ]
+    }
+    %< if (fields.enablePhysics.value) { >%
+    physics Physics {
+      density -1
+      mass 0.530
+    }
+    %< } >%
+    horizontalResolution IS horizontalResolution
+    fieldOfView IS fieldOfView
+    verticalFieldOfView IS verticalFieldOfView
+    numberOfLayers IS numberOfLayers
+    minRange IS minRange
+    maxRange IS maxRange
+    projection "cylindrical"
+    type "fixed"
+    noise IS noise
+    resolution -1
+    defaultFrequency IS defaultFrequency
+    minFrequency 1
+    maxFrequency 20
+  }
+}
