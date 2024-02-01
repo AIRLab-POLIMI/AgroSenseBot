@@ -4,30 +4,10 @@
 
         <plugin type="asb_webots_driver::ASBWebotsDriver" />
 
-        <device reference="base_scan_front" type="Lidar">
-            <ros>
-                <enabled>true</enabled>
-                <updateRate>10</updateRate>
-                <topicName>/scan_front</topicName>
-                <alwaysOn>false</alwaysOn>
-                <frameName>base_scan_front</frameName>
-            </ros>
-        </device>
-
-        <device reference="base_scan_rear" type="Lidar">
-            <ros>
-                <enabled>true</enabled>
-                <updateRate>10</updateRate>
-                <topicName>/scan_rear</topicName>
-                <alwaysOn>false</alwaysOn>
-                <frameName>base_scan_rear</frameName>
-            </ros>
-        </device>
-
         <device reference="base_scan_front_right" type="Lidar">
             <ros>
                 <enabled>true</enabled>
-                <updateRate>20</updateRate>
+                <updateRate>10</updateRate>
                 <topicName>/scan_front_right</topicName>
                 <alwaysOn>false</alwaysOn>
                 <frameName>base_scan_front_right</frameName>
@@ -37,10 +17,30 @@
         <device reference="base_scan_rear_left" type="Lidar">
             <ros>
                 <enabled>true</enabled>
-                <updateRate>20</updateRate>
+                <updateRate>10</updateRate>
                 <topicName>/scan_rear_left</topicName>
                 <alwaysOn>false</alwaysOn>
                 <frameName>base_scan_rear_left</frameName>
+            </ros>
+        </device>
+
+        <device reference="base_scan_front_right_multilayer" type="Lidar">
+            <ros>
+                <enabled>true</enabled>
+                <updateRate>10</updateRate>
+                <topicName>/scan_front_right_multilayer</topicName>
+                <alwaysOn>false</alwaysOn>
+                <frameName>base_scan_front_right_multilayer</frameName>
+            </ros>
+        </device>
+
+        <device reference="base_scan_rear_left_multilayer" type="Lidar">
+            <ros>
+                <enabled>true</enabled>
+                <updateRate>10</updateRate>
+                <topicName>/scan_rear_left_multilayer</topicName>
+                <alwaysOn>false</alwaysOn>
+                <frameName>base_scan_rear_left_multilayer</frameName>
             </ros>
         </device>
 
