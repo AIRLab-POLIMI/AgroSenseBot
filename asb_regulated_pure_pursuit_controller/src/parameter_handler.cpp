@@ -53,21 +53,21 @@ ParameterHandler::ParameterHandler(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".use_velocity_scaled_lookahead_dist",
-    rclcpp::ParameterValue(false));
+    node, plugin_name_ + ".use_velocity_scaled_lookahead_dist", rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_adaptive_lookahead_dist", rclcpp::ParameterValue(false));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".adaptive_lookahead_path_distance_margin", rclcpp::ParameterValue(0.3));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".min_approach_linear_velocity", rclcpp::ParameterValue(0.05));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".approach_velocity_scaling_dist",
-    rclcpp::ParameterValue(0.6));
+    node, plugin_name_ + ".approach_velocity_scaling_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot",
-    rclcpp::ParameterValue(1.0));
+    node, plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", rclcpp::ParameterValue(1.0));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".use_cost_regulated_linear_velocity_scaling",
-    rclcpp::ParameterValue(true));
+    node, plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".cost_scaling_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
@@ -93,14 +93,13 @@ ParameterHandler::ParameterHandler(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".allow_reversing", rclcpp::ParameterValue(false));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_robot_pose_search_dist",
-    rclcpp::ParameterValue(costmap_size_x / 2.0));
+    node, plugin_name_ + ".max_robot_path_dist", rclcpp::ParameterValue(costmap_size_x));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".use_interpolation",
-    rclcpp::ParameterValue(true));
+    node, plugin_name_ + ".max_robot_pose_search_dist", rclcpp::ParameterValue(costmap_size_x / 2.0));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".use_collision_detection",
-    rclcpp::ParameterValue(true));
+    node, plugin_name_ + ".use_interpolation", rclcpp::ParameterValue(true));
+  declare_parameter_if_not_declared(
+    node, plugin_name_ + ".use_collision_detection", rclcpp::ParameterValue(true));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", params_.desired_linear_vel);
   params_.base_desired_linear_vel = params_.desired_linear_vel;
@@ -109,61 +108,35 @@ ParameterHandler::ParameterHandler(
   node->get_parameter(plugin_name_ + ".min_lookahead_dist", params_.min_lookahead_dist);
   node->get_parameter(plugin_name_ + ".max_lookahead_dist", params_.max_lookahead_dist);
   node->get_parameter(plugin_name_ + ".lookahead_time", params_.lookahead_time);
-  node->get_parameter(
-    plugin_name_ + ".rotate_to_heading_angular_vel",
-    params_.rotate_to_heading_angular_vel);
+  node->get_parameter(plugin_name_ + ".rotate_to_heading_angular_vel", params_.rotate_to_heading_angular_vel);
   node->get_parameter(plugin_name_ + ".transform_tolerance", params_.transform_tolerance);
-  node->get_parameter(
-    plugin_name_ + ".use_velocity_scaled_lookahead_dist",
-    params_.use_velocity_scaled_lookahead_dist);
-  node->get_parameter(
-    plugin_name_ + ".min_approach_linear_velocity",
-    params_.min_approach_linear_velocity);
-  node->get_parameter(
-    plugin_name_ + ".approach_velocity_scaling_dist",
-    params_.approach_velocity_scaling_dist);
+  node->get_parameter(plugin_name_ + ".use_velocity_scaled_lookahead_dist", params_.use_velocity_scaled_lookahead_dist);
+  node->get_parameter(plugin_name_ + ".use_adaptive_lookahead_dist", params_.use_adaptive_lookahead_dist);
+  node->get_parameter(plugin_name_ + ".adaptive_lookahead_path_distance_margin", params_.adaptive_lookahead_path_distance_margin);
+  node->get_parameter(plugin_name_ + ".min_approach_linear_velocity", params_.min_approach_linear_velocity);
+  node->get_parameter(plugin_name_ + ".approach_velocity_scaling_dist", params_.approach_velocity_scaling_dist);
   if (params_.approach_velocity_scaling_dist > costmap_size_x / 2.0) {
     RCLCPP_WARN(
       logger_, "approach_velocity_scaling_dist is larger than forward costmap extent, "
       "leading to permanent slowdown");
   }
-  node->get_parameter(
-    plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot",
-    params_.max_allowed_time_to_collision_up_to_carrot);
-  node->get_parameter(
-    plugin_name_ + ".use_regulated_linear_velocity_scaling",
-    params_.use_regulated_linear_velocity_scaling);
-  node->get_parameter(
-    plugin_name_ + ".use_cost_regulated_linear_velocity_scaling",
-    params_.use_cost_regulated_linear_velocity_scaling);
+  node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", params_.max_allowed_time_to_collision_up_to_carrot);
+  node->get_parameter(plugin_name_ + ".use_regulated_linear_velocity_scaling", params_.use_regulated_linear_velocity_scaling);
+  node->get_parameter(plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", params_.use_cost_regulated_linear_velocity_scaling);
   node->get_parameter(plugin_name_ + ".cost_scaling_dist", params_.cost_scaling_dist);
   node->get_parameter(plugin_name_ + ".cost_scaling_gain", params_.cost_scaling_gain);
-  node->get_parameter(
-    plugin_name_ + ".inflation_cost_scaling_factor",
-    params_.inflation_cost_scaling_factor);
-  node->get_parameter(
-    plugin_name_ + ".regulated_linear_scaling_min_radius",
-    params_.regulated_linear_scaling_min_radius);
-  node->get_parameter(
-    plugin_name_ + ".regulated_linear_scaling_min_speed",
-    params_.regulated_linear_scaling_min_speed);
-  node->get_parameter(
-    plugin_name_ + ".use_fixed_curvature_lookahead",
-    params_.use_fixed_curvature_lookahead);
-  node->get_parameter(
-    plugin_name_ + ".use_averaged_lookahead_curvature",
-    params_.use_averaged_lookahead_curvature);
-  node->get_parameter(
-    plugin_name_ + ".curvature_lookahead_dist",
-    params_.curvature_lookahead_dist);
+  node->get_parameter(plugin_name_ + ".inflation_cost_scaling_factor", params_.inflation_cost_scaling_factor);
+  node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_radius", params_.regulated_linear_scaling_min_radius);
+  node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_speed", params_.regulated_linear_scaling_min_speed);
+  node->get_parameter(plugin_name_ + ".use_fixed_curvature_lookahead", params_.use_fixed_curvature_lookahead);
+  node->get_parameter(plugin_name_ + ".use_averaged_lookahead_curvature", params_.use_averaged_lookahead_curvature);
+  node->get_parameter(plugin_name_ + ".curvature_lookahead_dist", params_.curvature_lookahead_dist);
   node->get_parameter(plugin_name_ + ".use_rotate_to_heading", params_.use_rotate_to_heading);
-  node->get_parameter(
-    plugin_name_ + ".rotate_to_heading_min_angle", params_.rotate_to_heading_min_angle);
+  node->get_parameter(plugin_name_ + ".rotate_to_heading_min_angle", params_.rotate_to_heading_min_angle);
   node->get_parameter(plugin_name_ + ".max_angular_accel", params_.max_angular_accel);
   node->get_parameter(plugin_name_ + ".allow_reversing", params_.allow_reversing);
-  node->get_parameter(
-    plugin_name_ + ".max_robot_pose_search_dist",
-    params_.max_robot_pose_search_dist);
+  node->get_parameter(plugin_name_ + ".max_robot_path_dist", params_.max_robot_path_dist);
+  node->get_parameter(plugin_name_ + ".max_robot_pose_search_dist", params_.max_robot_pose_search_dist);
   if (params_.max_robot_pose_search_dist < 0.0) {
     RCLCPP_WARN(
       logger_, "Max robot search distance is negative, setting to max to search"
@@ -171,12 +144,8 @@ ParameterHandler::ParameterHandler(
     params_.max_robot_pose_search_dist = std::numeric_limits<double>::max();
   }
 
-  node->get_parameter(
-    plugin_name_ + ".use_interpolation",
-    params_.use_interpolation);
-  node->get_parameter(
-    plugin_name_ + ".use_collision_detection",
-    params_.use_collision_detection);
+  node->get_parameter(plugin_name_ + ".use_interpolation", params_.use_interpolation);
+  node->get_parameter(plugin_name_ + ".use_collision_detection", params_.use_collision_detection);
 
   if (params_.inflation_cost_scaling_factor <= 0.0) {
     RCLCPP_WARN(
@@ -236,6 +205,8 @@ ParameterHandler::dynamicParametersCallback(
         params_.lookahead_time = parameter.as_double();
       } else if (name == plugin_name_ + ".rotate_to_heading_angular_vel") {
         params_.rotate_to_heading_angular_vel = parameter.as_double();
+      } else if (name == plugin_name_ + ".adaptive_lookahead_path_distance_margin") {
+        params_.adaptive_lookahead_path_distance_margin = parameter.as_double();
       } else if (name == plugin_name_ + ".min_approach_linear_velocity") {
         params_.min_approach_linear_velocity = parameter.as_double();
       } else if (name == plugin_name_ + ".curvature_lookahead_dist") {
@@ -254,10 +225,14 @@ ParameterHandler::dynamicParametersCallback(
         params_.max_angular_accel = parameter.as_double();
       } else if (name == plugin_name_ + ".rotate_to_heading_min_angle") {
         params_.rotate_to_heading_min_angle = parameter.as_double();
+      } else if (name == plugin_name_ + ".max_robot_path_dist") {
+        params_.max_robot_path_dist = parameter.as_double();
       }
     } else if (type == ParameterType::PARAMETER_BOOL) {
       if (name == plugin_name_ + ".use_velocity_scaled_lookahead_dist") {
         params_.use_velocity_scaled_lookahead_dist = parameter.as_bool();
+      } else if (name == plugin_name_ + ".use_adaptive_lookahead_dist") {
+        params_.use_adaptive_lookahead_dist = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_regulated_linear_velocity_scaling") {
         params_.use_regulated_linear_velocity_scaling = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_fixed_curvature_lookahead") {

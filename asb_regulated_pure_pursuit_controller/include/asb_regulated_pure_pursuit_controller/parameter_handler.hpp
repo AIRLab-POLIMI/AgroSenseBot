@@ -41,6 +41,8 @@ struct Parameters
   double min_lookahead_dist;
   double lookahead_time;
   bool use_velocity_scaled_lookahead_dist;
+  bool use_adaptive_lookahead_dist;
+  double adaptive_lookahead_path_distance_margin;
   double min_approach_linear_velocity;
   double approach_velocity_scaling_dist;
   double max_allowed_time_to_collision_up_to_carrot;
@@ -58,6 +60,7 @@ struct Parameters
   double max_angular_accel;
   double rotate_to_heading_min_angle;
   bool allow_reversing;
+  double max_robot_path_dist;
   double max_robot_pose_search_dist;
   bool use_interpolation;
   bool use_collision_detection;

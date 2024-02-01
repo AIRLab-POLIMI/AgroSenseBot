@@ -118,7 +118,7 @@ protected:
    * @param cmd the current speed to use to compute lookahead point
    * @return lookahead distance
    */
-  double getLookAheadDistance(const geometry_msgs::msg::Twist &);
+//  double getLookAheadDistance(const geometry_msgs::msg::Twist &);
 
   /**
    * @brief Creates a PointStamped message for visualization

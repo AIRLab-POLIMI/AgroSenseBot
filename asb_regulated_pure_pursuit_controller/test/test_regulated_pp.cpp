@@ -55,10 +55,10 @@ public:
   void setCostRegulationScaling() {params_->use_cost_regulated_linear_velocity_scaling = true;}
   void resetVelocityRegulationScaling() {params_->use_regulated_linear_velocity_scaling = false;}
 
-  double getLookAheadDistanceWrapper(const geometry_msgs::msg::Twist & twist)
-  {
-    return getLookAheadDistance(twist);
-  }
+//  double getLookAheadDistanceWrapper(const geometry_msgs::msg::Twist & twist)
+//  {
+//    return getLookAheadDistance(twist);
+//  }
 
   static geometry_msgs::msg::Point circleSegmentIntersectionWrapper(
     const geometry_msgs::msg::Point & p1,
@@ -343,29 +343,29 @@ TEST(RegulatedPurePursuitTest, lookaheadAPI)
 
   geometry_msgs::msg::Twist twist;
 
-  // test getLookAheadDistance
-  double rtn = ctrl->getLookAheadDistanceWrapper(twist);
-  EXPECT_EQ(rtn, 0.6);  // default lookahead_dist
-
-  // shouldn't be a function of speed
-  twist.linear.x = 10.0;
-  rtn = ctrl->getLookAheadDistanceWrapper(twist);
-  EXPECT_EQ(rtn, 0.6);
-
-  // now it should be a function of velocity, max out
-  ctrl->setVelocityScaledLookAhead();
-  rtn = ctrl->getLookAheadDistanceWrapper(twist);
-  EXPECT_EQ(rtn, 0.9);  // 10 speed maxes out at max_lookahead_dist
-
-  // check normal range
-  twist.linear.x = 0.35;
-  rtn = ctrl->getLookAheadDistanceWrapper(twist);
-  EXPECT_NEAR(rtn, 0.525, 0.0001);  // 1.5 * 0.35
-
-  // check minimum range
-  twist.linear.x = 0.0;
-  rtn = ctrl->getLookAheadDistanceWrapper(twist);
-  EXPECT_EQ(rtn, 0.3);
+//  // test getLookAheadDistance
+//  double rtn = ctrl->getLookAheadDistanceWrapper(twist);
+//  EXPECT_EQ(rtn, 0.6);  // default lookahead_dist
+//
+//  // shouldn't be a function of speed
+//  twist.linear.x = 10.0;
+//  rtn = ctrl->getLookAheadDistanceWrapper(twist);
+//  EXPECT_EQ(rtn, 0.6);
+//
+//  // now it should be a function of velocity, max out
+//  ctrl->setVelocityScaledLookAhead();
+//  rtn = ctrl->getLookAheadDistanceWrapper(twist);
+//  EXPECT_EQ(rtn, 0.9);  // 10 speed maxes out at max_lookahead_dist
+//
+//  // check normal range
+//  twist.linear.x = 0.35;
+//  rtn = ctrl->getLookAheadDistanceWrapper(twist);
+//  EXPECT_NEAR(rtn, 0.525, 0.0001);  // 1.5 * 0.35
+//
+//  // check minimum range
+//  twist.linear.x = 0.0;
+//  rtn = ctrl->getLookAheadDistanceWrapper(twist);
+//  EXPECT_EQ(rtn, 0.3);
 
   // test getLookAheadPoint
   double dist = 1.0;

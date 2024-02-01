@@ -126,20 +126,20 @@ std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController
   return carrot_msg;
 }
 
-double RegulatedPurePursuitController::getLookAheadDistance(
-  const geometry_msgs::msg::Twist & speed)
-{
-  // If using velocity-scaled look ahead distances, find and clamp the dist
-  // Else, use the static look ahead distance
-  double lookahead_dist = params_->lookahead_dist;
-  if (params_->use_velocity_scaled_lookahead_dist) {
-    lookahead_dist = fabs(speed.linear.x) * params_->lookahead_time;
-    lookahead_dist = std::clamp(
-      lookahead_dist, params_->min_lookahead_dist, params_->max_lookahead_dist);
-  }
-
-  return lookahead_dist;
-}
+//double RegulatedPurePursuitController::getLookAheadDistance(
+//  const geometry_msgs::msg::Twist & speed)
+//{
+//  // If using velocity-scaled look ahead distances, find and clamp the dist
+//  // Else, use the static look ahead distance
+//  double lookahead_dist = params_->lookahead_dist;
+//  if (params_->use_velocity_scaled_lookahead_dist) {
+//    lookahead_dist = fabs(speed.linear.x) * params_->lookahead_time;
+//    lookahead_dist = std::clamp(
+//      lookahead_dist, params_->min_lookahead_dist, params_->max_lookahead_dist);
+//  }
+//
+//  return lookahead_dist;
+//}
 
 double calculateCurvature(geometry_msgs::msg::Point lookahead_point)
 {
@@ -180,8 +180,24 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   auto transformed_plan = path_handler_->transformGlobalPlan(pose, params_->max_robot_pose_search_dist);
   global_path_pub_->publish(transformed_plan);
 
-  // Find look ahead distance and point on path and publish
-  double lookahead_dist = getLookAheadDistance(speed);
+  double robot_path_distance = std::hypot(transformed_plan.poses[0].pose.position.x, transformed_plan.poses[0].pose.position.y);
+  if (robot_path_distance > params_->max_robot_path_dist) {
+    throw nav2_core::NoValidControl("RegulatedPurePursuitController robot too far from global plan!");
+  }
+
+  double lookahead_dist = params_->lookahead_dist;
+
+  // Compute lookahead distance based on velocity
+  if (params_->use_velocity_scaled_lookahead_dist) {
+    lookahead_dist = fabs(speed.linear.x) * params_->lookahead_time;
+    lookahead_dist = std::clamp(lookahead_dist, params_->min_lookahead_dist, params_->max_lookahead_dist);
+  }
+
+  // Compute lookahead distance based on path distance, which only increases the lookahead distance when the
+  // lookahead margin is not respected
+  if (params_->use_adaptive_lookahead_dist && (lookahead_dist < robot_path_distance + params_->adaptive_lookahead_path_distance_margin)) {
+    lookahead_dist = robot_path_distance + params_->adaptive_lookahead_path_distance_margin;
+  }
 
   // Check for reverse driving
   if (params_->allow_reversing) {
