@@ -1,6 +1,8 @@
 #! /usr/bin/python3
 
 import threading
+
+
 import websocket
 import json
 
@@ -8,6 +10,52 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
+
+import numpy as np
+import scipy
+import scipy.signal
+from collections import deque
+
+
+class LiveFilter:
+    """Base class for live filters.
+    """
+    def process(self, x):
+        # do not process NaNs
+        if np.isnan(x):
+            return x
+
+        return self._process(x)
+
+    def __call__(self, x):
+        return self.process(x)
+
+    def _process(self, x):
+        raise NotImplementedError("Derived class must implement _process")
+
+
+class LiveLFilter(LiveFilter):
+    def __init__(self, b, a):
+        """Initialize live filter based on difference equation.
+
+        Args:
+            b (array-like): numerator coefficients obtained from scipy.
+            a (array-like): denominator coefficients obtained from scipy.
+        """
+        self.b = b
+        self.a = a
+        self._xs = deque([0] * len(b), maxlen=len(b))
+        self._ys = deque([0] * (len(a) - 1), maxlen=len(a)-1)
+
+    def _process(self, x):
+        """Filter incoming data with standard difference equations.
+        """
+        self._xs.appendleft(x)
+        y = np.dot(self.b, self._xs) - np.dot(self.a[1:], self._ys)
+        y = y / self.a[0]
+        self._ys.appendleft(y)
+
+        return y
 
 
 class AndroidSensorsPublisher(Node):
@@ -21,13 +69,20 @@ class AndroidSensorsPublisher(Node):
         self.covariance_imu_ = 0.01
         self.covariance_gnss_ = 0.1
 
+        self.imu_gyro_unfiltered_pub_ = self.create_publisher(Imu, "/imu/unfiltered", 10)
         self.imu_gyro_pub_ = self.create_publisher(Imu, "/imu", 10)
         self.imu_accelerometer_pub_ = self.create_publisher(Imu, "/imu/accelerometer", 10)
         self.gnss_pub_ = self.create_publisher(NavSatFix, "/gnss/fix", 10)
 
+        b, a = scipy.signal.iirfilter(4, Wn=5.0, fs=200, btype="low", ftype="butter")
+        print("b: ", b)
+        print("a: ", a)
+        self.filter_ = LiveLFilter(b, a)
+
         self.shutting_down_ = False
 
-        ws_ip = "192.168.1.54"
+        ws_ip = "10.42.0.207"
+        # ws_ip = "192.168.1.54"
         ws_port = 8080
 
         url_gyro = f"ws://{ws_ip}:{ws_port}/sensor/connect?type=android.sensor.gyroscope"
@@ -81,23 +136,40 @@ class AndroidSensorsPublisher(Node):
         if self.shutting_down_:
             return
 
+        now = self.get_clock().now().to_msg()
+
         x, y, z = json.loads(message)['values']
         if self.print_debug_:
             self.get_logger().info(f"Websocket gyro received: x = {x:+.3f} y={y:+.3f}, z={z:+.3f}")
 
         cov = self.covariance_imu_
-        msg = Imu()
-        msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "imu_link"
-        msg.angular_velocity.x = x
-        msg.angular_velocity.y = y
-        msg.angular_velocity.z = z
-        msg.angular_velocity_covariance = [
+        msg_unfiltered = Imu()
+        msg_unfiltered.header.stamp = now
+        msg_unfiltered.header.frame_id = "imu_link"
+        msg_unfiltered.angular_velocity.x = x
+        msg_unfiltered.angular_velocity.y = y
+        msg_unfiltered.angular_velocity.z = z
+        msg_unfiltered.angular_velocity_covariance = [
             cov, 0.0, 0.0,
             0.0, cov, 0.0,
             0.0, 0.0, cov,
         ]
-        self.imu_gyro_pub_.publish(msg)
+        self.imu_gyro_unfiltered_pub_.publish(msg_unfiltered)
+
+        z_filtered = self.filter_(z)
+
+        msg_filtered = Imu()
+        msg_filtered.header.stamp = now
+        msg_filtered.header.frame_id = "imu_link"
+        msg_filtered.angular_velocity.x = x
+        msg_filtered.angular_velocity.y = y
+        msg_filtered.angular_velocity.z = z_filtered
+        msg_filtered.angular_velocity_covariance = [
+            cov, 0.0, 0.0,
+            0.0, cov, 0.0,
+            0.0, 0.0, cov,
+        ]
+        self.imu_gyro_pub_.publish(msg_filtered)
 
     def on_ws_accelerometer_message(self, _, message):
         if self.shutting_down_:
