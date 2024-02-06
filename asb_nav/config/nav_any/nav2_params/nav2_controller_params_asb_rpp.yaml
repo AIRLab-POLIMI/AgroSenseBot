@@ -21,7 +21,7 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 0.91
+      min_turning_radius: 1.91
       desired_linear_vel: 0.3
       lookahead_dist: 0.4
       use_adaptive_lookahead_dist: true
