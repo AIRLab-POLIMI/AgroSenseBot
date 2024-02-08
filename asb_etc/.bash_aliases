@@ -16,7 +16,7 @@ _disable_alias () {
     # We don't know the original no-alias completion for $cmd because it has
     # been overwritten by the alias completion function. What we do here is that
     # we reset all static completions to those in vanilla bash_completion. This
-    # may be an overkill becase we only need to reset completion for $cmd, but
+    # may be an overkill because we only need to reset completion for $cmd, but
     # it works.
     complete -u groups slay w sux
     complete -A stopped -P '"%' -S '"' bg
