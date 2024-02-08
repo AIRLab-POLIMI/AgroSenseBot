@@ -15,7 +15,7 @@ controller_server:
       movement_time_allowance: 30.0
     goal_checker:
       plugin: "asb_nav2_plugins::ASBGoalChecker"
-      xy_goal_tolerance: 0.3
+      xy_goal_tolerance: 0.5
       yaw_goal_tolerance: 0.6
     FollowPath:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
@@ -23,7 +23,7 @@ controller_server:
       allow_reversing: true
       min_turning_radius: 1.91
       desired_linear_vel: 0.5
-      lookahead_dist: 0.4
+      lookahead_dist: 1.0
       use_adaptive_lookahead_dist: true
       adaptive_lookahead_path_distance_margin: 0.3
       max_robot_path_dist: 0.5
