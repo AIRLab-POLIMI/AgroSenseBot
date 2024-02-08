@@ -125,6 +125,9 @@ complete -F _complete_alias sai
 alias s='clr; git status'
 complete -F _complete_alias s
 
+alias a='git add'
+complete -F _complete_alias a
+
 alias c='git commit -m'
 complete -F _complete_alias c
 

@@ -137,6 +137,7 @@ export DO_NOT_CLEAR=true
 
 export RCUTILS_COLORIZED_OUTPUT=1
 export COLCON_WS=~/w/agrosensebot_ws
+export ROS_DOMAIN_ID=109
 
 alias cdasb='cd $COLCON_WS/src/AgroSenseBot/'
 
