@@ -64,7 +64,7 @@ class AndroidSensorsPublisher(Node):
     """
 
     def __init__(self):
-        super().__init__('scan_test_publisher')
+        super().__init__('android_sensors_publisher')
         self.print_debug_ = False
         self.covariance_imu_ = 0.01
         self.covariance_gnss_ = 0.1
