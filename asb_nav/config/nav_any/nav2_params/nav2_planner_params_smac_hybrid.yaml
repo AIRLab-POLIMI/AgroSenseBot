@@ -4,7 +4,7 @@ planner_server:
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_smac_planner/SmacPlannerHybrid"
-      minimum_turning_radius: 1.0         # default: 0.4. minimum turning radius in m of path / vehicle
+      minimum_turning_radius: 2.0         # default: 0.4. minimum turning radius in m of path / vehicle
       downsample_costmap: false           # whether to downsample the map
       downsampling_factor: 1              # multiplier for the resolution of the costmap layer (e.g. 2 on a 5cm costmap would be 10cm)
       allow_unknown: true                 # allow traveling in unknown space
