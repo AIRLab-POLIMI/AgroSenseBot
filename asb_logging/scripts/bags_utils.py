@@ -13,8 +13,6 @@ def bag_to_dataframe(bag_path: str, topics: Dict[str, list]) -> Dict[str, pd.Dat
     topic_timestamps = defaultdict(list)
 
     with AnyReader([Path(bag_path)]) as reader:
-        # for c in reader.connections:
-        #     print(c.topic)
         connections = [x for x in reader.connections if x.topic in topics.keys()]
         for connection, timestamp, rawdata in reader.messages(connections=connections):
             msg = reader.deserialize(rawdata, connection.msgtype)
