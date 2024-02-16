@@ -1,0 +1,456 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/devices/hokuyo/protos/HokuyoUtm30lx.proto"
+EXTERNPROTO "OusterOS0.proto"
+
+PROTO AgroSenseBot [
+  field SFVec3f     translation   0 0 0
+  field SFRotation  rotation      0 0 0 0
+  field SFString    name          "asb_webots_robot"
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    children [
+      DEF BASE Pose {
+        translation 0 0 0.28
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor .2 .2 .2
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 1.2 1.5 0.1
+            }
+          }
+        ]
+      }
+      DEF BODY Pose {
+        translation 0 0 0.83
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 1 1 0
+              roughness 1
+              metalness 0
+            }
+            geometry Box {
+              size 1.5 0.9 1
+            }
+          }
+        ]
+      }
+      DEF BATTERY_PACK_LEFT Pose {
+        translation 0 0.6 0.53
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor .6 .6 .6
+              roughness 1
+              metalness .4
+            }
+            geometry Box {
+              size 1.5 0.2 0.4
+            }
+          }
+        ]
+      }
+      DEF BATTERY_PACK_RIGHT Pose {
+        translation 0 -0.6 0.53
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor .6 .6 .6
+              roughness 1
+              metalness .4
+            }
+            geometry Box {
+              size 1.5 0.2 0.4
+            }
+          }
+        ]
+      }
+      DEF TRACK_STRUCT_LEFT Pose {
+        translation 0 0.5 -0.04
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor .2 .2 .2
+              roughness 1
+              metalness .6
+            }
+            geometry Box {
+              size 1.9 0.1 0.2
+            }
+          }
+        ]
+      }
+      DEF TRACK_STRUCT_RIGHT Pose {
+        translation 0 -0.5 -0.04
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor .2 .2 .2
+              roughness 1
+              metalness .6
+            }
+            geometry Box {
+              size 1.9 0.1 0.2
+            }
+          }
+        ]
+      }
+      DEF LEFT_TRACK Track {
+        translation 0 0.5 0
+        children [
+          DEF WHEEL1_LEFT TrackWheel {
+            position -1.0 0.0
+            radius 0.151
+            children [
+              DEF TRACK_WHEEL_BIG Pose {
+                rotation -1 0 0 3.141589
+                children [
+                  Shape {
+                    appearance PBRAppearance {
+                      baseColor 0.1 0.1 0.1
+                      roughness 1
+                      metalness 0
+                    }
+                    geometry Cylinder {
+                      height 0.2
+                      radius 0.151
+                      subdivision 20
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+          DEF WHEEL2_LEFT TrackWheel {
+            position 1.0 0.0
+            radius 0.151
+            children [
+              USE TRACK_WHEEL_BIG
+            ]
+          }
+          DEF WHEEL3_LEFT TrackWheel {
+            position 0.66 -0.145
+            radius 0.05
+            children [
+              DEF TRACK_WHEEL_SMALL Pose {
+                rotation -1 0 0 3.141589
+                children [
+                  Shape {
+                    appearance PBRAppearance {
+                      baseColor 0.1 0.1 0.1
+                      roughness 1
+                      metalness 0
+                    }
+                    geometry Cylinder {
+                      height 0.2
+                      radius 0.05
+                      subdivision 20
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+          DEF WHEEL4_LEFT TrackWheel {
+            position 0.33 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+          DEF WHEEL5_LEFT TrackWheel {
+            position 0.0 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+          DEF WHEEL6_LEFT TrackWheel {
+            position -0.33 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+          DEF WHEEL7_LEFT TrackWheel {
+            position -0.66 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+        ]
+        name "left_track"
+        contactMaterial "track material"
+        boundingObject DEF TRACK_BO Group {
+          children [
+            Pose {
+              translation 0 0 0.1
+              rotation 1 0 0 1.570796
+              children [
+                Box {
+                  size 2 0.1 0.2
+                }
+              ]
+            }
+            Pose {
+              translation 0 0 -0.0245
+              rotation 1 0 0 1.570796
+              children [
+                Box {
+                  size 1.32 0.351 0.2
+                }
+              ]
+            }
+            Pose {
+              translation 0.844504 0.0 -0.125681
+              rotation -0.9955620943022894 0.0665435063031779 -0.06654380630320632 -1.575255307179586
+              children [
+                Box {
+                  size 0.385 0.1 0.2
+                }
+              ]
+              translationStep 0.001
+              rotationStep 0.00261799
+            }
+            Pose {
+              translation -0.845 0 -0.126
+              rotation -0.9957287426293203 -0.06528588312525149 0.0652841831256909 -1.5750853071795863
+              children [
+                Box {
+                  size 0.385 0.1 0.2
+                }
+              ]
+              translationStep 0.001
+              rotationStep 0.00261799
+            }
+            Pose {
+              translation -1 0 0
+              rotation 1 0 0 1.5708
+              children [
+                DEF WHEEL_BO Cylinder {
+                  height 0.2
+                  radius 0.151
+                  subdivision 16
+                }
+              ]
+            }
+            Pose {
+              translation 1 0 0
+              rotation 1 0 0 1.5708
+              children [
+                USE WHEEL_BO
+              ]
+            }
+          ]
+        }
+        physics Physics {
+        }
+        device [
+          LinearMotor {
+            name "left_motor"
+          }
+        ]
+        animatedGeometry DEF ANIMATED_GEOM Group {
+          children [
+            Shape {
+              appearance PBRAppearance {
+                baseColor 0.141176 0.141176 0.141176
+                roughness 1
+                metalness 0
+              }
+              geometry Box {
+                size 0.041 0.2 0.0025
+              }
+            }
+            Pose {
+              translation 0 0 0.003
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColor 0.141176 0.141176 0.141176
+                    roughness 1
+                    metalness 0
+                  }
+                  geometry Box {
+                    size 0.01 0.2 0.003
+                  }
+                }
+              ]
+            }
+          ]
+        }
+        geometriesCount 121
+      }
+      DEF RIGHT_TRACK Track {
+        translation 0 -0.5 0
+        children [
+          DEF WHEEL1_RIGHT TrackWheel {
+            position -1 0
+            radius 0.151
+            children [
+              USE TRACK_WHEEL_BIG
+            ]
+          }
+          DEF WHEEL2_RIGHT TrackWheel {
+            position 1 0
+            radius 0.151
+            children [
+              USE TRACK_WHEEL_BIG
+            ]
+          }
+          DEF WHEEL3_RIGHT TrackWheel {
+            position 0.66 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+          DEF WHEEL4_RIGHT TrackWheel {
+            position 0.33 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+          DEF WHEEL5_RIGHT TrackWheel {
+            position 0.0 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+          DEF WHEEL6_RIGHT TrackWheel {
+            position -0.33 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+          DEF WHEEL7_RIGHT TrackWheel {
+            position -0.66 -0.145
+            radius 0.05
+            children [
+              USE TRACK_WHEEL_SMALL
+            ]
+          }
+        ]
+        name "right_track"
+        contactMaterial "track material"
+        boundingObject USE TRACK_BO
+        physics Physics {
+        }
+        device [
+          LinearMotor {
+            name "right_motor"
+          }
+        ]
+        animatedGeometry USE ANIMATED_GEOM
+        geometriesCount 121
+      }
+      DEF GNSS Pose {
+        translation 0.57 0 1.37
+        children [
+          GPS {
+            name "gnss_link"
+            type "satellite"
+            accuracy 0.01
+            noiseCorrelation 0
+            resolution -1
+            speedNoise 0
+            speedResolution -1
+          }
+        ]
+      }
+      DEF Imu Solid {
+        translation 0 0 0.23
+        name "imu_link"
+        physics Physics {
+          mass 0.01
+          density -1
+          centerOfMass [0 0 0]
+          inertiaMatrix [
+            1 1 1
+            0 0 0
+          ]
+        }
+        children [
+          Accelerometer {
+            name "accelerometer_link"
+            xAxis TRUE
+            yAxis TRUE
+            zAxis TRUE
+            resolution  -1
+          }
+          Gyro {
+            name "gyro_link"
+            xAxis TRUE
+            yAxis TRUE
+            zAxis TRUE
+            resolution -1
+          }
+          InertialUnit {
+            name "inertial_link"
+            xAxis TRUE
+            zAxis TRUE
+            yAxis TRUE
+            resolution -1
+            noise 0
+          }
+        ]
+      }
+      HokuyoUtm30lx {
+        translation 1.18 -0.76 0.3
+        rotation 0 0 1 5.497787143782138
+        name "base_scan_front_right"
+        noise 0.01
+        resolution 1080
+      }
+      HokuyoUtm30lx {
+        translation -1.18 0.76 0.3
+        rotation 0 0 1 2.356194490192345
+        name "base_scan_rear_left"
+        noise 0.01
+        resolution 1080
+      }
+      OusterOS0 {
+        translation 1.18 -0.76 0.4
+        rotation 0 0 1 5.497787143782138
+        name "base_scan_front_right_multilayer"
+        fieldOfView 4.71238898038469
+        numberOfLayers 32
+        version "32"
+      }
+      OusterOS0 {
+        translation -1.18 0.76 0.4
+        rotation 0 0 1 2.356194490192345
+        name "base_scan_rear_left_multilayer"
+        fieldOfView 4.71238898038469
+        numberOfLayers 32
+        version "32"
+      }
+    ]
+    name IS name
+    boundingObject Group {
+       children [
+        USE BASE
+        USE BATTERY_PACK_LEFT
+        USE BATTERY_PACK_RIGHT
+        USE BODY
+       ]
+     }
+    physics Physics {
+      density -1
+      mass 40
+    }
+    controller "<extern>"
+  }
+}

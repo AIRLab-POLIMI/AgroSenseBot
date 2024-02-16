@@ -1,0 +1,347 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/UnevenTerrain.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/Soil.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/RoughOak.proto"
+
+PROTO SimpleVineyard [
+  field SFVec3f     translation   0 0 0
+  field SFRotation  rotation      0 0 0 0
+]
+{
+  Pose {
+    translation IS translation
+    rotation IS rotation
+    children [
+      UnevenTerrain {
+        translation 0 12.26 -0.49
+        name "terrain"
+        size 200 200 1.5
+        perlinNOctaves 6
+        appearance Soil {
+          textureTransform TextureTransform {
+            scale 100 100
+          }
+        }
+      }
+      DEF ROW_0 Pose {
+        translation 0 0 0
+        children [
+          DEF ROW Pose {
+            translation 0 0 1
+            children [
+              Pose {
+                translation 0 0.0 0
+                children [
+                  DEF PLANT Shape {
+                    appearance RoughOak {
+                    }
+                    geometry Cylinder {
+                      height 2
+                      radius 0.02
+                      subdivision 8
+                    }
+                  }
+                ]
+              }
+              Pose {
+                translation 0 0.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 1.0 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 1.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 2.0 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 2.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 3.0 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 3.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 4 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 4.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 5.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 6 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 6.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 7 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 7.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 8 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 8.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 9 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 9.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 10 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 10.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 11 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 11.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 12 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 12.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 13 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 13.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 14 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 14.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 15 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 15.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 16 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 16.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 17 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 17.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 18 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 18.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 19 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 19.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 20 0
+                children [
+                  USE PLANT
+                ]
+              }
+              Pose {
+                translation 0 20.5 0
+                children [
+                  USE PLANT
+                ]
+              }
+            ]
+          }
+        ]
+      }
+      DEF ROW_1 Pose {
+        translation 2.5 0 0
+        children [
+          USE ROW
+        ]
+      }
+      DEF ROW_2 Pose {
+        translation 5 0 0
+        children [
+          USE ROW
+        ]
+      }
+      DEF ROW_3 Pose {
+        translation 7.5 0 0
+        children [
+          USE ROW
+        ]
+      }
+      DEF ROW_4 Pose {
+        translation 10 0 0
+        children [
+          USE ROW
+        ]
+      }
+      DEF ROW_5 Pose {
+        translation 12.5 0 0
+        children [
+          USE ROW
+        ]
+      }
+      DEF ROW_6 Pose {
+        translation 15 0 0
+        children [
+          USE ROW
+        ]
+      }
+      DEF ROW_7 Pose {
+        translation 17.5 0 0
+        children [
+          USE ROW
+        ]
+      }
+      DEF ROW_8 Pose {
+        translation 20 0 0
+        children [
+          USE ROW
+        ]
+      }
+    ]
+  }
+}
