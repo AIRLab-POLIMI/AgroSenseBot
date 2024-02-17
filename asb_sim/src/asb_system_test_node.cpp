@@ -191,19 +191,19 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
 
   motor_drive_left_test_callback(
           42.5, 57.2, left_motor_drive_test_state_.motor_rpm, 0.2,
-          0, 63, 24.5, 5,
+          0, 63, 50.0, 5,
           false,
           left_motor_drive_test_state_.rotor_position_raw);
 
   motor_drive_right_test_callback(
           42.5, 57.2, right_motor_drive_test_state_.motor_rpm, 0.2,
-          0, 63, 24.5, 5,
+          0, 63, 50.0, 5,
           false,
           right_motor_drive_test_state_.rotor_position_raw);
 
   motor_drive_fan_test_callback(
           42.5, 57.2, fan_motor_drive_test_state_.motor_rpm, 0.2,
-          0, 63, 24.5, 5,
+          0, 63, 50.0, 5,
           false,
           fan_motor_drive_test_state_.rotor_position_raw);
 
