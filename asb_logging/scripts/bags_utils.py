@@ -25,6 +25,9 @@ def bag_to_dataframe(bag_path: str, topics: Dict[str, list]) -> Dict[str, pd.Dat
     dfs = dict()
     for topic_name in topics:
         df = pd.DataFrame({'timestamp': topic_timestamps[topic_name]})
+        if not len(topic_timestamps[topic_name]):
+            print(f"Invalid topic {topic_name}")
+            continue
         for field_name in topics[topic_name]:
             if len(topic_field_data[topic_name][field_name]):
                 df[field_name] = topic_field_data[topic_name][field_name]
@@ -45,6 +48,9 @@ def dataframe_to_csv(bag_path: str, topics: Dict[str, list]) -> None:
 def test():
     test_bag_path = path.expanduser('~/tmp/rosbag2_2024_02_06-14_36_14')
     test_topics = {
+        '/not_a_topic': [
+            'not_a_field',
+        ],
         '/scan_rear_fake': [
             'ranges',
             'angle_min',
