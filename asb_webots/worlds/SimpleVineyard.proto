@@ -1,4 +1,9 @@
 #VRML_SIM R2023b utf8
+# license: Apache-2.0, Copyright (c) 2024 Università degli Studi di Milano, Enrico Piazza
+# license url: http://www.apache.org/licenses/LICENSE-2.0
+# keywords: robot
+# Simple vineyard model.
+# template language: javascript
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/UnevenTerrain.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/Soil.proto"

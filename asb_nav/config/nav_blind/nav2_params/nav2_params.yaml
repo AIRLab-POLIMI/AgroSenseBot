@@ -37,7 +37,7 @@ local_costmap:
       height: 6
       resolution: 0.05
 
-      footprint: "[[1.16, 0.75], [1.17, -0.75], [-1.17, -0.75], [-1.17, 0.75]]"
+      footprint: "[[1.0, 0.75], [1.0, -0.75], [-1.0, -0.75], [-1.0, 0.75]]"
       footprint_padding: 0.2
 
       plugins: ["voxel_layer", "inflation_layer"]
@@ -86,7 +86,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
 
-      footprint: "[[1.16, 0.75], [1.17, -0.75], [-1.17, -0.75], [-1.17, 0.75]]"
+      footprint: "[[1.0, 0.75], [1.0, -0.75], [-1.0, -0.75], [-1.0, 0.75]]"
       footprint_padding: 0.2
 
       resolution: 0.1
