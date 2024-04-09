@@ -77,6 +77,20 @@ def generate_launch_description():
         ],
     )
 
+    # fake_scan_node = Node(
+    #     package="asb_sim",
+    #     executable="fake_scan_pub.py",
+    #     name="fake_scan_publisher",
+    #     output="screen",
+    # )
+
+    android_sensors_node = Node(
+        package="asb_sim",
+        executable="android_sensors.py",
+        name="android_sensors",
+        output="screen",
+    )
+
     nav2_bringup_include = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav2_navigation_launch.py")),
         launch_arguments={
@@ -107,6 +121,10 @@ def generate_launch_description():
 
     # navigation
     ld.add_action(nav2_bringup_include)
+
+    # sensors
+    # ld.add_action(fake_scan_node)
+    ld.add_action(android_sensors_node)
 
     # viz
     ld.add_action(rviz_include)
