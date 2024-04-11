@@ -22,7 +22,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     include_sim_launch = IncludeLaunchDescription(
-        launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_sim"), "launch", "nav_sim.launch.py")),
+        launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_sim"), "launch", "bringup_sim.launch.py")),
     )
 
     include_nav_launch = IncludeLaunchDescription(

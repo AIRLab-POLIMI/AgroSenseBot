@@ -77,10 +77,6 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    microstrain_3dm_gq7_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg("microstrain_inertial_examples"), "launch", "gq7_launch.py")),
-    )
-
     effective_cmd_vel_publisher_node = Node(
         package="asb_ros2_control",
         executable="effective_cmd_vel_pub.py",
@@ -132,8 +128,6 @@ def generate_launch_description():
     ld.add_action(record_launch_argument)
 
     ld.add_action(control_node)
-
-    ld.add_action(microstrain_3dm_gq7_launch)
 
     ld.add_action(robot_state_publisher_node)
     ld.add_action(effective_cmd_vel_publisher_node)
