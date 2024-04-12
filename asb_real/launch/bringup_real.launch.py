@@ -1,22 +1,13 @@
 
 import os
-
 import launch
 import launch.actions
 import launch.events
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
 
 from ament_index_python import get_package_share_directory as pkg
-
-import launch_ros
-import launch_ros.events
-import launch_ros.events.lifecycle
-
-import lifecycle_msgs.msg
-from launch_ros.actions import Node
 
 
 def generate_launch_description():
@@ -26,7 +17,7 @@ def generate_launch_description():
     )
 
     microstrain_3dm_gq7_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg("microstrain_inertial_examples"), "launch", "gq7_launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_real"), "launch", "gq7_launch.py")),
     )
 
     # TODO lidar
