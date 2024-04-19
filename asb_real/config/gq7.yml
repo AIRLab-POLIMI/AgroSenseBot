@@ -11,7 +11,7 @@ microstrain_inertial_driver:
     use_enu_frame : True
 
     # Configure some frame IDs
-    frame_id          : 'gq7_link'                # Frame ID of all the filter messages. Represents the location of the CV7-INS in the tf tree
+    frame_id          : 'imu_link'                # Frame ID of all the filter messages. Represents the location of the GQ7 in the tf tree
     map_frame_id      : "map"                     # Frame ID of the local tangent plane.
     earth_frame_id    : "earth"                   # Frame ID of the global frame
     gnss1_frame_id    : "gq7_gnss_1_antenna_link"
@@ -22,24 +22,41 @@ microstrain_inertial_driver:
     # Disable the transform from the mount to frame id transform as it will be handled in the launch file
     publish_mount_to_frame_id_transform : False
 
-    # We will use relative transform mode, meaning that we will publish the following transforms from this node
-    #   earth_frame_id -> map_frame_id
-    #   map_frame_id -> target_frame_id
-    # This helps ROS standard tools consume and display position information produced by the device
-    tf_mode: 2
+    # The mode in which we will publish transforms to the below frame IDs
+    #     0 - No transforms will be published between any of the non-static frame ids. (if publish_mount_to_frame_id_transform is true, it will still be published, and so will the antenna and odometer transforms)
+    #     1 - Global mode:
+    #             Transform will be published from earth_frame_id to target_frame_id containing global position
+    #     2 - Relative mode:
+    #             Note: In order to use relative mode, you must configure filter_relative_position
+    #             Transform will be published from earth_frame_id to map_frame_id using relative position configuration
+    #             Transform between map_frame_id and target_frame_id will be published using position information reported by the device
+    # for more information, see: https://wiki.ros.org/microstrain_inertial_driver/transforms
+    tf_mode: 0
 
-    # Enable the RTK dongle interface for communication with the 3DM-RTK.
-    # Note: Even if you do not have a 3DM-RTK connected to the aux port, this boolean can remain true
+    # (GQ7 Only) Allow the node to receive RTCM messages on the /rtcm topic and publish NMEA sentences from the aux port on /nmea.
+    #            It is suggested to use https://github.com/LORD-MicroStrain/ntrip_client with this interface
+    # Note: This will require the aux_port configuration to be valid and pointing to a valid aux port
     rtk_dongle_enable : False
     ntrip_interface_enable : True
 
-    # We will use base station relative position configuration for this example. This configuration does a couple of things:
-    #   We will set up a local tangent plane at the location of the RTK base station being used by the GQ7.
-    #   We will publish this location as the transform from the earth_frame_id to map_frame_id frame
-    # Note: This configuration requires a 3DM-RTK to be connected to the aux port of the GQ7.
-    #       If you do not have that device, see https://wiki.ros.org/microstrain_inertial_driver/relative_position_configuration for more options.
-    filter_relative_position_config : True
-    filter_relative_position_source : 0
+    # (GQ7 only) Relative Position Configuration
+    #     Reference frame =
+    #         1 - Relative ECEF position
+    #         2 - Relative LLH position
+    #
+    #     Source =
+    #         0 - Position will be reported relative to the base station. filter_relative_position_ref will be ignored
+    #         1 - Position will be reported relative to filter_relative_position_ref
+    #         2 - Position will be reported relative to the first position reported by the device after it enters full nav. filter_relative_position_ref will be ignored
+    #         3 - We will wait for a transform to be made available between earth_frame_id and map_frame_id and use that as the relative position reference. filter_relative_position_ref will be ignored
+    #
+    #     Reference position - Units provided by reference frame (ECEF - meters, LLH - deg, deg, meters)
+    # Note: The source selected here will determine the transform published between earth_frame_id and map_frame_id when running in relative transform mode
+    # For more information, see: https://wiki.ros.org/microstrain_inertial_driver/relative_position_configuration
+    filter_relative_position_config: False
+    filter_relative_position_frame: 2
+    filter_relative_position_source: 1
+    filter_relative_position_ref: [45.9199684, 9.3217055, 0.0]
 
     # Set the antenna offsets.
     # Note: These should be changed for your setup, otherwise dual antenna heading will not initialize.
@@ -54,10 +71,10 @@ microstrain_inertial_driver:
 
     # The default is to publish LLH position and velocity, but rviz has a hard time displaying that.
     # Instead, we will publish the position in the ECEF frame
-    gnss1_llh_position_data_rate   : 1
+    gnss1_llh_position_data_rate   : 0
     gnss1_velocity_data_rate       : 0
     gnss1_odometry_earth_data_rate : 2
-    gnss2_llh_position_data_rate   : 1
+    gnss2_llh_position_data_rate   : 0
     gnss2_velocity_data_rate       : 0
     gnss2_odometry_earth_data_rate : 2
 
@@ -74,7 +91,8 @@ microstrain_inertial_driver:
     # Optional odometer config. Useful if using a wheeled vehicle with a wheel encoder connected to the GQ7 over GPIO
     # This configuration will not cause any issues if you do not have an odometer connected
     #################################################################################################################
-    # TODO set up odometry from topic
+
+#    subscribe_ext_vel_body    : False  # TODO set up odometry from topic
 
 #    # Enable the hardware odometer
 #    enable_hardware_odometer : True
