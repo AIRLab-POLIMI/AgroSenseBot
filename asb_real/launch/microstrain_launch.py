@@ -46,7 +46,7 @@ def generate_launch_description():
     microstrain_node = LifecycleNode(
         package=_PACKAGE_NAME,
         executable="microstrain_inertial_driver_node",
-        name=LaunchConfiguration('node_name'),
+        name='microstrain_inertial_driver',
         namespace=LaunchConfiguration('namespace'),
         parameters=[
             # Load the default params file manually, since this is a ROS params file, we will need to load the file manually

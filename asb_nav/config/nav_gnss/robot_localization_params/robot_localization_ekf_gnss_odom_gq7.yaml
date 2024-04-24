@@ -24,7 +24,7 @@ ekf_filter_map_odom:
     odom0_differential: false
     odom0_relative: false
 
-    odom1: rtk/ekf/odometry_map
+    odom1: /ekf/odometry_map
     odom1_config: [
       true,  true,  false,  # x, y, z
       false, false, true,  # roll, pitch, yaw

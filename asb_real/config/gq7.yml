@@ -53,15 +53,15 @@ microstrain_inertial_driver:
     #     Reference position - Units provided by reference frame (ECEF - meters, LLH - deg, deg, meters)
     # Note: The source selected here will determine the transform published between earth_frame_id and map_frame_id when running in relative transform mode
     # For more information, see: https://wiki.ros.org/microstrain_inertial_driver/relative_position_configuration
-    filter_relative_position_config: False
+    filter_relative_position_config: True
     filter_relative_position_frame: 2
     filter_relative_position_source: 1
-    filter_relative_position_ref: [45.9199684, 9.3217055, 0.0]
+    filter_relative_position_ref: [45.502924, 9.016230, 0.0]
 
     # Set the antenna offsets.
     # Note: These should be changed for your setup, otherwise dual antenna heading will not initialize.
-    gnss1_antenna_offset : [0.0222, -0.2615, 0.00737]
-    gnss2_antenna_offset : [0.0222, 0.257, 0.00737]
+    gnss1_antenna_offset : [-0.3100, 1.4200, -0.63063]
+    gnss2_antenna_offset : [-0.3100, 0.0030, -0.63063]
 
     # This will set the heading alignment to be dual antenna
     filter_auto_heading_alignment_selector : 1

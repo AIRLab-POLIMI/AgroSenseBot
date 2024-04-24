@@ -47,7 +47,7 @@ def generate_launch_description():
         name="ekf_filter_map_odom",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom_gq7.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -62,32 +62,25 @@ def generate_launch_description():
         output="screen",
     )
 
-    navsat_transform_node = Node(
-        package="robot_localization",
-        executable="navsat_transform_node",
-        name="navsat_transform",
-        output="screen",
-        parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
-            {"use_sim_time": use_sim_time_launch_configuration},
-        ],
-        remappings=[
-            ("gps/fix", "gnss/fix"),
-            ("odometry/filtered", "odometry/global"),
-        ],
-    )
-
-    # fake_scan_node = Node(
-    #     package="asb_sim",
-    #     executable="fake_scan_pub.py",
-    #     name="fake_scan_publisher",
+    # navsat_transform_node = Node(
+    #     package="robot_localization",
+    #     executable="navsat_transform_node",
+    #     name="navsat_transform",
     #     output="screen",
+    #     parameters=[
+    #         os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
+    #         {"use_sim_time": use_sim_time_launch_configuration},
+    #     ],
+    #     remappings=[
+    #         ("gps/fix", "gnss/fix"),
+    #         ("odometry/filtered", "odometry/global"),
+    #     ],
     # )
 
-    android_sensors_node = Node(
+    fake_scan_node = Node(
         package="asb_sim",
-        executable="android_sensors.py",
-        name="android_sensors",
+        executable="fake_scan_pub.py",
+        name="fake_scan_publisher",
         output="screen",
     )
 
@@ -117,14 +110,13 @@ def generate_launch_description():
     # localization
     ld.add_action(ekf_filter_node)
     ld.add_action(odometry_brake_node)
-    ld.add_action(navsat_transform_node)
+    # ld.add_action(navsat_transform_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)
 
     # sensors
-    # ld.add_action(fake_scan_node)
-    ld.add_action(android_sensors_node)
+    ld.add_action(fake_scan_node)
 
     # viz
     ld.add_action(rviz_include)
