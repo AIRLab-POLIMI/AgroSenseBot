@@ -21,7 +21,7 @@ class ScanTestPublisher(Node):
 
         msg = LaserScan()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "base_scan_front"
+        msg.header.frame_id = "base_scan_front_right"
         msg.angle_min = 0.
         msg.angle_max = pi
         msg.angle_increment = 2*pi/300

@@ -47,11 +47,11 @@ def generate_launch_description():
         name="ekf_filter_map_odom",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom_gq7.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
-            ("odometry/filtered", "odometry/global"),
+            ("odometry/filtered", "/gnss_2/odometry"),
         ],
     )
 
@@ -62,20 +62,20 @@ def generate_launch_description():
         output="screen",
     )
 
-    # navsat_transform_node = Node(
-    #     package="robot_localization",
-    #     executable="navsat_transform_node",
-    #     name="navsat_transform",
-    #     output="screen",
-    #     parameters=[
-    #         os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
-    #         {"use_sim_time": use_sim_time_launch_configuration},
-    #     ],
-    #     remappings=[
-    #         ("gps/fix", "gnss/fix"),
-    #         ("odometry/filtered", "odometry/global"),
-    #     ],
-    # )
+    navsat_transform_node = Node(
+        package="robot_localization",
+        executable="navsat_transform_node",
+        name="navsat_transform",
+        output="screen",
+        parameters=[
+            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            {"use_sim_time": use_sim_time_launch_configuration},
+        ],
+        remappings=[
+            ("gps/fix", "/gnss_2/llh_position"),
+            ("odometry/filtered", "/gnss_2/odometry"),
+        ],
+    )
 
     fake_scan_node = Node(
         package="asb_sim",
@@ -110,7 +110,7 @@ def generate_launch_description():
     # localization
     ld.add_action(ekf_filter_node)
     ld.add_action(odometry_brake_node)
-    # ld.add_action(navsat_transform_node)
+    ld.add_action(navsat_transform_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)
