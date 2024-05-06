@@ -52,15 +52,16 @@ def generate_launch_description():
         ],
         remappings=[
             ("odometry/filtered", "/gnss_2/odometry"),
+            ("odometry/gps", "/gnss_2/navsat_odometry"),  # TODO
         ],
     )
 
-    odometry_brake_node = Node(
-        package="asb_nav",
-        executable="odometry_brake.py",
-        name="odometry_brake",
-        output="screen",
-    )
+    # odometry_brake_node = Node(
+    #     package="asb_nav",
+    #     executable="odometry_brake.py",
+    #     name="odometry_brake",
+    #     output="screen",
+    # )
 
     navsat_transform_node = Node(
         package="robot_localization",
@@ -72,8 +73,9 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
-            ("gps/fix", "/gnss_2/llh_position"),
-            ("odometry/filtered", "/gnss_2/odometry"),
+            ("odometry/filtered", "/gnss_2/odometry"),  # Subscribed. A nav_msgs/Odometry message of your robot’s current position. This is needed in the event that your first GPS reading comes after your robot has attained some non-zero pose.
+            ("gps/fix", "/gnss_2/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GPS coordinates
+            ("odometry/gps", "/gnss_2/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GPS coordinates of your robot, transformed into its world coordinate frame. This message can be directly fused into robot_localization’s state estimation nodes.
         ],
     )
 
@@ -109,7 +111,7 @@ def generate_launch_description():
 
     # localization
     ld.add_action(ekf_filter_node)
-    ld.add_action(odometry_brake_node)
+    # ld.add_action(odometry_brake_node)
     ld.add_action(navsat_transform_node)
 
     # navigation

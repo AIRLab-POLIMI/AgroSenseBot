@@ -36,7 +36,7 @@ ekf_filter_map_odom:
     odom1_differential: false
     odom1_relative: false
 
-    odom2: /gnss_2/odometry
+    odom2: /gnss_2/navsat_odometry
     odom2_config: [
       true,  true,  false,  # x, y, z
       false, false, false,  # roll, pitch, yaw

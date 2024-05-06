@@ -1011,7 +1011,7 @@ Visualization Manager:
           Enabled: true
           Keep: 1000
           Name: gnss history
-          Position Tolerance: 0
+          Position Tolerance: 0.20000000298023224
           Shape:
             Alpha: 1
             Axes Length: 1
@@ -1028,7 +1028,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /ekf/odometry_map
+            Value: /gnss_2/navsat_odometry
           Value: true
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
@@ -1067,7 +1067,7 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /gnss_2/odometry
+            Value: /gnss_2/navsat_odometry
           Value: true
         - Alpha: 1
           Class: nav2_rviz_plugins/ParticleCloud
@@ -1134,7 +1134,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 36.79380798339844
+      Scale: 125.68677520751953
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0
