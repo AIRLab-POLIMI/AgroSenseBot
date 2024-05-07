@@ -40,7 +40,11 @@ local_costmap:
       footprint: "[[1.0, 0.75], [1.0, -0.75], [-1.0, -0.75], [-1.0, 0.75]]"
       footprint_padding: 0.2
 
-      plugins: ["voxel_layer", "inflation_layer"]
+      plugins: ["static_layer", "voxel_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_topic: /geofence_map
+        map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -97,8 +101,11 @@ global_costmap:
       width: 50
       height: 50
       track_unknown_space: true
-      # no static map
-      plugins: ["obstacle_layer", "inflation_layer"]
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_topic: /geofence_map
+        map_subscribe_transient_local: True
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True

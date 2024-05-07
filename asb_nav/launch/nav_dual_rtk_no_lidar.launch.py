@@ -86,6 +86,7 @@ def generate_launch_description():
             "params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_params.yaml"),
             "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_any", "nav2_params", "nav2_controller_params_asb_rpp.yaml"),
             "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_any", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
+            "map_server_params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "map_server_params", "map_server_params.yaml"),
             "autostart": "true",
         }.items(),
     )
