@@ -47,19 +47,13 @@ def generate_launch_description():
         name="ekf_filter_map_odom",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
-            ("odometry/filtered", "odometry/global"),
+            ("odometry/filtered", "/gnss_2/odometry"),  # Published. A nav_msgs/Odometry message of the robot’s current position, used by navsat_transform_node.
+            ("odometry/gps", "/gnss_2/navsat_odometry"),  # Subscribed. A nav_msgs/Odometry message from navsat_transform_node containing the GNSS coordinates of the robot.
         ],
-    )
-
-    odometry_brake_node = Node(
-        package="asb_nav",
-        executable="odometry_brake.py",
-        name="odometry_brake",
-        output="screen",
     )
 
     navsat_transform_node = Node(
@@ -68,13 +62,21 @@ def generate_launch_description():
         name="navsat_transform",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_gnss_odom.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
-            ("gps/fix", "gnss/fix"),
-            ("odometry/filtered", "odometry/global"),
+            ("odometry/filtered", "/gnss_2/odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
+            ("gps/fix", "/gnss_2/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GPS coordinates as LLH.
+            ("odometry/gps", "/gnss_2/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GNSS coordinates, transformed into its world coordinate frame.
         ],
+    )
+
+    fake_scan_node = Node(
+        package="asb_sim",
+        executable="fake_scan_pub.py",
+        name="fake_scan_publisher",
+        output="screen",
     )
 
     nav2_bringup_include = IncludeLaunchDescription(
@@ -84,6 +86,7 @@ def generate_launch_description():
             "params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_params.yaml"),
             "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_any", "nav2_params", "nav2_controller_params_asb_rpp.yaml"),
             "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_any", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
+            "map_server_params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "map_server_params", "map_server_params.yaml"),
             "autostart": "true",
         }.items(),
     )
@@ -102,11 +105,13 @@ def generate_launch_description():
 
     # localization
     ld.add_action(ekf_filter_node)
-    ld.add_action(odometry_brake_node)
     ld.add_action(navsat_transform_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)
+
+    # sensors
+    ld.add_action(fake_scan_node)
 
     # viz
     ld.add_action(rviz_include)

@@ -128,6 +128,7 @@ def generate_launch_description():
     ld.add_action(record_launch_argument)
 
     ld.add_action(control_node)
+
     ld.add_action(robot_state_publisher_node)
     ld.add_action(effective_cmd_vel_publisher_node)
     ld.add_action(joint_state_broadcaster_spawner)

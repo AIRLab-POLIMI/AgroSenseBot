@@ -16,6 +16,7 @@ sudo apt-get install -y libqwt-qt5-dev &&  # Qwt widgets for the Qt UI
 sudo apt-get install -y python3-websocket &&  # websocket python package for asb_sim android_sensors.py
 sudo apt-get install -y xterm &&  # used in asb_logging play_bag.launch.py
 sudo apt-get install -y ros-iron-xacro ros-iron-ros2controlcli ros-iron-ros2-controllers-test-nodes ros-iron-diff-drive-controller ros-iron-joint-state-broadcaster ros-iron-webots-ros2 ros-iron-rqt-gui ros-iron-rqt-tf-tree ros-iron-nav2-* ros-iron-robot-localization &&  # ROS2 dependencies
+sudo apt-get install -y ros-iron-microstrain-inertial-driver ros-iron-microstrain-inertial-rqt ros-iron-ntrip-client &&  # MicroStrain 3DM-GQ7-GNSS/INS and RTK NTRIP client
 pip3 install rosbags &&  # used in asb_logging bags_utils.py
 mkdir -p ~/asb_logs/ &&
 mkdir -p ~/w/agrosensebot_ws/src/ &&
@@ -26,6 +27,10 @@ colcon build --symlink-install
 ```
 
 Installing openssh-server and byobu is only necessary on the onboard computer.
+
+To use the MicroStrain 3DM-GQ7-GNSS/INS and RTK NTRIP client it is necessary to create a file at `~/NTRIP_caster_password` 
+containing the password used to authenticate with the NTRIP caster of the RTK correction service (such as SPIN3 GNSS).
+The password is not stored on this repository since it should not be published.
 
 ### Set up the CAN network
 

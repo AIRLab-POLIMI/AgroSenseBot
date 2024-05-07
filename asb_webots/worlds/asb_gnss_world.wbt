@@ -13,7 +13,7 @@ WorldInfo {
   ]
 
   gpsCoordinateSystem "WGS84"
-  gpsReference 45.502738 9.016319 488.0
+  gpsReference 45.502924 9.016230 0.0
   basicTimeStep 8
   contactProperties [
     ContactProperties {
