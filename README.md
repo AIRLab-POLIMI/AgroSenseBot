@@ -17,6 +17,7 @@ sudo apt-get install -y python3-websocket &&  # websocket python package for asb
 sudo apt-get install -y xterm &&  # used in asb_logging play_bag.launch.py
 sudo apt-get install -y ros-iron-xacro ros-iron-ros2controlcli ros-iron-ros2-controllers-test-nodes ros-iron-diff-drive-controller ros-iron-joint-state-broadcaster ros-iron-webots-ros2 ros-iron-rqt-gui ros-iron-rqt-tf-tree ros-iron-nav2-* ros-iron-robot-localization &&  # ROS2 dependencies
 sudo apt-get install -y ros-iron-microstrain-inertial-driver ros-iron-microstrain-inertial-rqt ros-iron-ntrip-client &&  # MicroStrain 3DM-GQ7-GNSS/INS and RTK NTRIP client
+sudo apt-get install -y ros-iron-octomap-ros &&  # Octomap packages for canopy estimation
 pip3 install rosbags &&  # used in asb_logging bags_utils.py
 mkdir -p ~/asb_logs/ &&
 mkdir -p ~/w/agrosensebot_ws/src/ &&
@@ -90,7 +91,7 @@ If the network is not up, an error is printed.
 
 Launch the hardware interface and test node with the following command
 ```shell
-ros2 launch asb_sim nav_gnss_sim.launch.py
+ros2 launch asb_sim nav_dual_rtk_no_lidar_sim.launch.py record:=false
 ```
 
 *Either* run the `teleop_twist_keyboard` node to publish cmd_vel and press the forward key (i), with the following command
