@@ -12,6 +12,7 @@ ekf_filter_map_odom:
     base_link_frame: base_footprint
     world_frame: map  # publish the map->odom transform
 
+    # odometry from asb_track_controller obtained from the track odometry kinematic function and from the yaw measured by the IMU gyroscope
     odom0: odom
     odom0_config: [
       false, false, false,  # x, y, z
@@ -24,6 +25,8 @@ ekf_filter_map_odom:
     odom0_differential: false
     odom0_relative: false
 
+    # heading measurement obtained by the GNSS dual antenna compassing
+    # TODO rename topic, it's not really an odometry
     odom1: /ekf/odometry_map
     odom1_config: [
       false, false, false,  # x, y, z
@@ -36,6 +39,8 @@ ekf_filter_map_odom:
     odom1_differential: false
     odom1_relative: false
 
+    # position measurement obtained by GNSS on antenna 2, translated from LLH to local coordinates by the navsat_transform node (configured below)
+    # TODO rename topic, it's not really an odometry
     odom2: /gnss_2/navsat_odometry
     odom2_config: [
       true,  true,  false,  # x, y, z

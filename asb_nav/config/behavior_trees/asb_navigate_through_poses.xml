@@ -1,16 +1,11 @@
 
 <!--
-  This Behavior Tree replans the global path periodically at 1 Hz through an array of poses continuously, with no recovery action.
+  This Behavior Tree computes the global path once through an array of poses, with no recovery action nor replanning.
 -->
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <PipelineSequence name="NavigateWithReplanning">
-      <RateController hz="1.0">
-        <ReactiveSequence>
-          <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="2.0"/>
-          <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased" error_code_id="{compute_path_error_code}"/>
-        </ReactiveSequence>
-      </RateController>
+    <PipelineSequence name="NavigateWithoutReplanning">
+      <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased" error_code_id="{compute_path_error_code}"/>
       <FollowPath path="{path}" controller_id="FollowPath" error_code_id="{follow_path_error_code}"/>
     </PipelineSequence>
   </BehaviorTree>
