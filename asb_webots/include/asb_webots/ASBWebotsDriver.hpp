@@ -6,6 +6,7 @@
 #include "asb_msgs/msg/sim_state_cmd.hpp"
 #include "asb_msgs/msg/sim_state.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
 #include "webots_ros2_driver/PluginInterface.hpp"
@@ -22,7 +23,8 @@ namespace asb_webots_driver {
 
         rclcpp::Subscription<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_subscriber_;
         rclcpp::Publisher<asb_msgs::msg::SimState>::SharedPtr sim_state_publisher_;
-        rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr nav_sat_fix_publisher_;
+        rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr gnss_publisher_;
+        rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr inertial_unit_publisher_;
         rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
         asb_msgs::msg::SimStateCmd sim_state_cmd_msg_;
 
@@ -35,6 +37,14 @@ namespace asb_webots_driver {
         std::string gnss_frame_id_;
         double gnss_update_rate_;
         std::vector<double> gnss_covariance_diagonal_;
+
+        WbDeviceTag inertial_unit_;
+        rclcpp::Time last_inertial_unit_update_;
+        std::string inertial_unit_topic_;
+        std::string inertial_unit_parent_frame_id_;
+        std::string inertial_unit_child_frame_id_;
+        double inertial_unit_update_rate_;
+        std::vector<double> inertial_unit_covariance_diagonal_;
 
         double imu_update_rate_;
         rclcpp::Time last_imu_update_;

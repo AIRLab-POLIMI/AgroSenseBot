@@ -12,6 +12,7 @@ WorldInfo {
     "ASB in simple vineyard."
   ]
 
+  coordinateSystem "ENU"
   gpsCoordinateSystem "WGS84"
   gpsReference 45.502924 9.016230 0.0
   basicTimeStep 8
@@ -41,6 +42,6 @@ SimpleVineyard {}
 
 AgroSenseBot {
   translation 4.907248709113336 -3.093665483199549 0.590218218127438
-  rotation 0 0 0 0
+  rotation 0 0 1 0
   name "asb_webots_robot"
 }

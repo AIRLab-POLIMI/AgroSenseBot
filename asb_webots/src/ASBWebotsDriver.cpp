@@ -3,6 +3,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <functional>
 #include <webots/gps.h>
+#include <webots/inertial_unit.h>
 #include <webots/gyro.h>
 #include <webots/motor.h>
 #include <webots/robot.h>
@@ -74,6 +75,53 @@ namespace asb_webots_driver {
             gnss_covariance_diagonal_[0], gnss_covariance_diagonal_[1], gnss_covariance_diagonal_[2]);
 
         try{
+            node->declare_parameter<std::string>("inertial_unit_topic", "inertial_unit");
+            inertial_unit_topic_ = node->get_parameter("inertial_unit_topic").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "inertial_unit_topic: %s", inertial_unit_topic_.c_str());
+
+        try{
+            node->declare_parameter<std::string>("inertial_unit_parent_frame_id", "map");
+            inertial_unit_parent_frame_id_ = node->get_parameter("inertial_unit_parent_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "inertial_unit_parent_frame_id: %s", inertial_unit_parent_frame_id_.c_str());
+
+        try{
+            node->declare_parameter<std::string>("inertial_unit_child_frame_id", "inertial_frame");
+            inertial_unit_child_frame_id_ = node->get_parameter("inertial_unit_child_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "inertial_unit_child_frame_id: %s", inertial_unit_child_frame_id_.c_str());
+
+        try{
+            node->declare_parameter<double>("inertial_unit_update_rate", 10.0);
+            inertial_unit_update_rate_ = node->get_parameter("inertial_unit_update_rate").as_double();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "inertial_unit_update_rate: %f", inertial_unit_update_rate_);
+
+        try{
+            node->declare_parameter("inertial_unit_covariance_diagonal", rclcpp::PARAMETER_DOUBLE_ARRAY);
+            inertial_unit_covariance_diagonal_ = node->get_parameter("inertial_unit_covariance_diagonal").as_double_array();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        if(inertial_unit_covariance_diagonal_.size() != 3) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "inertial_unit_covariance_diagonal must have 3 elements. Using default values.");
+            inertial_unit_covariance_diagonal_ = {1.0, 1.0, 1.0};
+        }
+        RCLCPP_INFO(
+            rclcpp::get_logger("ASBWebotsDriver"),
+            "inertial_unit_covariance_diagonal: %f, %f, %f",
+            inertial_unit_covariance_diagonal_[0], inertial_unit_covariance_diagonal_[1], inertial_unit_covariance_diagonal_[2]);
+
+        try{
             node->declare_parameter<double>("imu_update_rate", 1000.0);
             imu_update_rate_ = node->get_parameter("imu_update_rate").as_double();
         } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
@@ -121,11 +169,13 @@ namespace asb_webots_driver {
             gyro_covariance_diagonal_[0], gyro_covariance_diagonal_[1], gyro_covariance_diagonal_[2]);
 
         gnss_ = wb_robot_get_device(gnss_frame_id_.c_str());
+        inertial_unit_ = wb_robot_get_device(inertial_unit_child_frame_id_.c_str());
         gyro_ = wb_robot_get_device(gyro_frame_id_.c_str());
         right_motor_ = wb_robot_get_device("right_motor");
         left_motor_ = wb_robot_get_device("left_motor");
 
         wb_gps_enable(gnss_, 1);
+        wb_inertial_unit_enable(inertial_unit_, 1);
         wb_gyro_enable(gyro_, 1);
 
         if (wb_gps_get_coordinate_system(gnss_) != WB_GPS_WGS84_COORDINATE) {
@@ -145,13 +195,17 @@ namespace asb_webots_driver {
         sim_state_publisher_ = node->create_publisher<asb_msgs::msg::SimState>(
             sim_state_topic_, rclcpp::SensorDataQoS().reliable());
 
-        nav_sat_fix_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
+        gnss_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
             gnss_topic_, rclcpp::SensorDataQoS().reliable());
+
+        inertial_unit_publisher_ = node->create_publisher<nav_msgs::msg::Odometry>(
+            inertial_unit_topic_, rclcpp::SensorDataQoS().reliable());
 
         imu_publisher_ = node->create_publisher<sensor_msgs::msg::Imu>(
             imu_topic_, rclcpp::SensorDataQoS().reliable());
 
         last_gnss_fix_ = rclcpp::Clock().now();
+        last_inertial_unit_update_ = rclcpp::Clock().now();
         last_imu_update_ = rclcpp::Clock().now();
     }
 
@@ -181,26 +235,48 @@ namespace asb_webots_driver {
             const double latitude = position[0];
             const double longitude = position[1];
             const double altitude = position[2];
-            auto nav_sat_fix_msg = sensor_msgs::msg::NavSatFix();
-            nav_sat_fix_msg.header.stamp = now;
-            nav_sat_fix_msg.header.frame_id = gnss_frame_id_;
-            nav_sat_fix_msg.latitude = latitude;
-            nav_sat_fix_msg.longitude = longitude;
-            nav_sat_fix_msg.altitude = altitude;
-            nav_sat_fix_msg.position_covariance = {
+            auto gnss_msg = sensor_msgs::msg::NavSatFix();
+            gnss_msg.header.stamp = now;
+            gnss_msg.header.frame_id = gnss_frame_id_;
+            gnss_msg.latitude = latitude;
+            gnss_msg.longitude = longitude;
+            gnss_msg.altitude = altitude;
+            gnss_msg.position_covariance = {
                 gnss_covariance_diagonal_[0], 0.0, 0.0,
                 0.0, gnss_covariance_diagonal_[1], 0.0,
                 0.0, 0.0, gnss_covariance_diagonal_[2]
             };
-            nav_sat_fix_msg.position_covariance_type = NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
-            nav_sat_fix_msg.status.status = NavSatStatus::STATUS_GBAS_FIX;
-            nav_sat_fix_msg.status.service =
+            gnss_msg.position_covariance_type = NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
+            gnss_msg.status.status = NavSatStatus::STATUS_GBAS_FIX;
+            gnss_msg.status.service =
                 NavSatStatus::SERVICE_GPS |
                 NavSatStatus::SERVICE_GLONASS |
                 NavSatStatus::SERVICE_COMPASS |
                 NavSatStatus::SERVICE_GALILEO;
-            nav_sat_fix_publisher_->publish(nav_sat_fix_msg);
+            gnss_publisher_->publish(gnss_msg);
+        }
 
+        if(now - last_inertial_unit_update_ > rclcpp::Duration::from_seconds(1/inertial_unit_update_rate_)) {
+            last_inertial_unit_update_ = now;
+
+            const double *q = wb_inertial_unit_get_quaternion(inertial_unit_);
+            const double x = q[0];
+            const double y = q[1];
+            const double z = q[2];
+            const double w = q[3];
+
+            auto inertial_unit_msg = nav_msgs::msg::Odometry();
+            inertial_unit_msg.header.stamp = now;
+            inertial_unit_msg.header.frame_id = inertial_unit_parent_frame_id_;
+            inertial_unit_msg.child_frame_id = inertial_unit_child_frame_id_;
+            inertial_unit_msg.pose.pose.orientation.x = x;
+            inertial_unit_msg.pose.pose.orientation.y = y;
+            inertial_unit_msg.pose.pose.orientation.z = z;
+            inertial_unit_msg.pose.pose.orientation.w = w;
+            inertial_unit_msg.pose.covariance[21] = inertial_unit_covariance_diagonal_[0];
+            inertial_unit_msg.pose.covariance[28] = inertial_unit_covariance_diagonal_[1];
+            inertial_unit_msg.pose.covariance[35] = inertial_unit_covariance_diagonal_[2];
+            inertial_unit_publisher_->publish(inertial_unit_msg);
         }
 
         if(now - last_imu_update_ > rclcpp::Duration::from_seconds(1/imu_update_rate_)) {

@@ -8,6 +8,13 @@ asb_webots_robot:
     gnss_update_rate: 2.0
     gnss_covariance_diagonal: [0.2, 0.2, 0.2]
 
+    # TODO rename topic, it's not really an odometry
+    inertial_unit_topic: /ekf/odometry_map
+    inertial_unit_parent_frame_id: map
+    inertial_unit_child_frame_id: inertial_link  # in the real robot, this message refers to imu_link
+    inertial_unit_update_rate: 2.0
+    inertial_unit_covariance_diagonal: [0.2, 0.2, 0.2]
+
     imu_topic: /imu
     imu_update_rate: 100.0
     imu_frame_id: imu_link

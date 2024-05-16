@@ -20,6 +20,14 @@ PROTO AgroSenseBot [
     children [
 
       # SENSORS
+      InertialUnit {
+        name "inertial_link"
+        xAxis TRUE
+        zAxis TRUE
+        yAxis TRUE
+        resolution -1
+        noise 0
+      }
       DEF GNSS Pose {
         translation 0.133 -0.659 0.91
         rotation 0 0 1 3.14159
@@ -62,14 +70,6 @@ PROTO AgroSenseBot [
             yAxis TRUE
             zAxis TRUE
             resolution -1
-          }
-          InertialUnit {
-            name "inertial_link"
-            xAxis TRUE
-            zAxis TRUE
-            yAxis TRUE
-            resolution -1
-            noise 0
           }
         ]
       }
