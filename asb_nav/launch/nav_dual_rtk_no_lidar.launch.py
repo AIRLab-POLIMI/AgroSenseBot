@@ -111,7 +111,7 @@ def generate_launch_description():
     ld.add_action(nav2_bringup_include)
 
     # sensors
-    ld.add_action(fake_scan_node)
+    # ld.add_action(fake_scan_node)
 
     # viz
     ld.add_action(rviz_include)

@@ -86,9 +86,9 @@ microstrain_inertial_driver:
 
     # Turning this on will cause the transform between gq7_link and gnss_1_antenna_link/gnss_2_antenna_link to be updated from the filter
     mip_filter_multi_antenna_offset_correction_data_rate: 2
-    mip_gnss1_fix_info_data_rate: 0  # Rate of mip/gnss_1/fix_info topic
-    mip_gnss2_fix_info_data_rate: 0  # Rate of mip/gnss_1/fix_info topic
-    mip_filter_status_data_rate: 0  # Rate of mip/filter/status topic
+    mip_gnss1_fix_info_data_rate: 1  # Rate of mip/gnss_1/fix_info topic
+    mip_gnss2_fix_info_data_rate: 1  # Rate of mip/gnss_1/fix_info topic
+    mip_filter_status_data_rate: 1  # Rate of mip/filter/status topic
 
     #################################################################################################################
     # Optional odometer config. Useful if using a wheeled vehicle with a wheel encoder connected to the GQ7 over GPIO
