@@ -58,9 +58,27 @@ microstrain_inertial_driver:
     filter_relative_position_source: 1
     filter_relative_position_ref: [45.502924, 9.016230, 0.0]
 
-    # Set the antenna offsets.
-    # Note: These should be changed for your setup, otherwise dual antenna heading will not initialize.
+
+    # Antenna #1 lever arm offset source
+    #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
+    #     1 - Manual:    We will use the provided vector to configure the device, and publish it as the transform between frame_id and gnss1_frame_id
+    #     2 - Transform: We will lookup the transform between frame_id and gnss1_frame_id and use it to configure the device. We will ignore gns1_antenna_offset
+    # Antenna #1 lever arm offset vector
+    #     For GQ7 - in the vehicle frame wrt IMU origin (meters)
+    #     For all other models - in the IMU frame wrt IMU origin (meters)
+    # Note: Make this as accurate as possible for good performance
+    gnss1_antenna_offset_source: 1
     gnss1_antenna_offset: [-0.3100, 1.4200, -0.63063]
+
+    # Antenna #2 lever arm offset source
+    #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
+    #     1 - Manual:    We will use the provided vector to configure the device, and publish it as the transform between frame_id and gnss2_frame_id
+    #     2 - Transform: We will lookup the transform between frame_id and gnss2_frame_id and use it to configure the device. We will ignore gns2_antenna_offset
+    # Antenna #2 lever arm offset vector
+    #     For GQ7 - in the vehicle frame wrt IMU origin (meters)
+    #     For all other models - in the IMU frame wrt IMU origin (meters)
+    # Note: Make this as accurate as possible for good performance
+    gnss2_antenna_offset_source: 1
     gnss2_antenna_offset: [-0.3100, 0.0030, -0.63063]
 
     # This will set the heading alignment to be dual antenna
@@ -71,18 +89,36 @@ microstrain_inertial_driver:
 
     # The default is to publish LLH position and velocity, but rviz has a hard time displaying that.
     # Instead, we will publish the position in the ECEF frame
-    gnss1_llh_position_data_rate: 0
+    gnss1_llh_position_data_rate: 2
     gnss1_velocity_data_rate: 0
-    gnss1_odometry_earth_data_rate: 0
+    gnss1_odometry_earth_data_rate: 2
     gnss2_llh_position_data_rate: 2
     gnss2_velocity_data_rate: 0
-    gnss2_odometry_earth_data_rate: 0
+    gnss2_odometry_earth_data_rate: 2
 
     # We will only publish the odometry messages from the filter in this example.
     # Also publish the human-readable message which can be echoed from the command line
     filter_human_readable_status_data_rate: 1
-    filter_odometry_earth_data_rate: 0
+    filter_odometry_earth_data_rate: 10
     filter_odometry_map_data_rate: 10
+    filter_dual_antenna_heading_data_rate: 0
+
+    # Sensor2vehicle frame transformation selector
+    #     0 = None
+    #     1 = Euler Angles
+    #     2 = matrix
+    #     3 = quaternion
+    # Note: These are different ways of setting the same parameter in the device.
+    #       The different options are provided as a convenience.
+    #       Support for matrix and quaternion options is firmware version dependent (GQ7 supports Quaternion as of firmware 1.0.07)
+    #       Quaternion order is [i, j, k, w]
+    # Note: This can cause strange behavior when also using the ROS transform tree.
+    #       It is recommended to not use this if you want to use the ROS transform tree unless you really know what you are doing
+    filter_sensor2vehicle_frame_selector : 0
+#    filter_sensor2vehicle_frame_transformation_euler      : [0.0, 0.0, 0.0]
+#    filter_sensor2vehicle_frame_transformation_matrix     : [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+#    filter_sensor2vehicle_frame_transformation_quaternion : [0.0, 0.0, 0.0, 1.0]
+
 
     # Turning this on will cause the transform between gq7_link and gnss_1_antenna_link/gnss_2_antenna_link to be updated from the filter
     mip_filter_multi_antenna_offset_correction_data_rate: 2
@@ -95,7 +131,7 @@ microstrain_inertial_driver:
     # This configuration will not cause any issues if you do not have an odometer connected
     #################################################################################################################
 
-#    subscribe_ext_vel_body: False  # TODO set up odometry from topic
+#    subscribe_ext_vel_body: True  # TODO only CV7-INS?
 
 #    # Enable the hardware odometer
 #    enable_hardware_odometer: True  # TODO try False

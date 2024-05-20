@@ -30,7 +30,7 @@ PROTO AgroSenseBot [
       }
       DEF GNSS Pose {
         translation 0.133 -0.659 0.91
-        rotation 0 0 1 3.14159
+        rotation 0 0 1 0  # rotated TODO check if works
         children [
           GPS {
             name "gnss_link"

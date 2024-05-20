@@ -51,22 +51,38 @@ def generate_launch_description():
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
-            ("odometry/filtered", "/gnss_2/odometry"),  # Published. A nav_msgs/Odometry message of the robot’s current position, used by navsat_transform_node.
+            ("odometry/filtered", "/ekf_filter_map_odometry"),  # Published. A nav_msgs/Odometry message of the robot’s current position, used by navsat_transform_node.
             ("odometry/gps", "/gnss_2/navsat_odometry"),  # Subscribed. A nav_msgs/Odometry message from navsat_transform_node containing the GNSS coordinates of the robot.
         ],
     )
 
-    navsat_transform_node = Node(
+    navsat_transform_1_node = Node(
         package="robot_localization",
         executable="navsat_transform_node",
-        name="navsat_transform",
+        name="navsat_transform_1",
         output="screen",
         parameters=[
             os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
-            ("odometry/filtered", "/gnss_2/odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
+            ("odometry/filtered", "/ekf_filter_map_odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
+            ("gps/fix", "/gnss_1/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GPS coordinates as LLH.
+            ("odometry/gps", "/gnss_1/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GNSS coordinates, transformed into its world coordinate frame.
+        ],
+    )
+
+    navsat_transform_2_node = Node(
+        package="robot_localization",
+        executable="navsat_transform_node",
+        name="navsat_transform_2",
+        output="screen",
+        parameters=[
+            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            {"use_sim_time": use_sim_time_launch_configuration},
+        ],
+        remappings=[
+            ("odometry/filtered", "/ekf_filter_map_odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
             ("gps/fix", "/gnss_2/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GPS coordinates as LLH.
             ("odometry/gps", "/gnss_2/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GNSS coordinates, transformed into its world coordinate frame.
         ],
@@ -105,7 +121,8 @@ def generate_launch_description():
 
     # localization
     ld.add_action(ekf_filter_node)
-    ld.add_action(navsat_transform_node)
+    ld.add_action(navsat_transform_1_node)
+    ld.add_action(navsat_transform_2_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)
