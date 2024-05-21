@@ -36,20 +36,36 @@ namespace asb_webots_driver {
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "sim_state_cmd_topic: %s", sim_state_cmd_topic_.c_str());
 
         try{
-            node->declare_parameter<std::string>("gnss_topic", "gps/fix");
-            gnss_topic_ = node->get_parameter("gnss_topic").as_string();
+            node->declare_parameter<std::string>("gnss_1_topic", "gps_1/fix");
+            gnss_1_topic_ = node->get_parameter("gnss_1_topic").as_string();
         } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
             RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
         }
-        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_topic: %s", gnss_topic_.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_1_topic: %s", gnss_1_topic_.c_str());
 
         try{
-            node->declare_parameter<std::string>("gnss_frame_id", "gnss_link");
-            gnss_frame_id_ = node->get_parameter("gnss_frame_id").as_string();
+            node->declare_parameter<std::string>("gnss_2_topic", "gps_2/fix");
+            gnss_2_topic_ = node->get_parameter("gnss_2_topic").as_string();
         } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
             RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
         }
-        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_frame_id: %s", gnss_frame_id_.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_2_topic: %s", gnss_2_topic_.c_str());
+
+        try{
+            node->declare_parameter<std::string>("gnss_1_frame_id", "gnss_1_link");
+            gnss_1_frame_id_ = node->get_parameter("gnss_1_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_1_frame_id: %s", gnss_1_frame_id_.c_str());
+
+        try{
+            node->declare_parameter<std::string>("gnss_2_frame_id", "gnss_2_link");
+            gnss_2_frame_id_ = node->get_parameter("gnss_2_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "gnss_2_frame_id: %s", gnss_2_frame_id_.c_str());
 
         try{
             node->declare_parameter<double>("gnss_update_rate", 10.0);
@@ -168,17 +184,20 @@ namespace asb_webots_driver {
             "gyro_covariance_diagonal: %f, %f, %f",
             gyro_covariance_diagonal_[0], gyro_covariance_diagonal_[1], gyro_covariance_diagonal_[2]);
 
-        gnss_ = wb_robot_get_device(gnss_frame_id_.c_str());
+        gnss_1_ = wb_robot_get_device(gnss_1_frame_id_.c_str());
+        gnss_2_ = wb_robot_get_device(gnss_2_frame_id_.c_str());
         inertial_unit_ = wb_robot_get_device(inertial_unit_child_frame_id_.c_str());
         gyro_ = wb_robot_get_device(gyro_frame_id_.c_str());
         right_motor_ = wb_robot_get_device("right_motor");
         left_motor_ = wb_robot_get_device("left_motor");
 
-        wb_gps_enable(gnss_, 1);
+        wb_gps_enable(gnss_1_, 1);
+        wb_gps_enable(gnss_2_, 1);
         wb_inertial_unit_enable(inertial_unit_, 1);
         wb_gyro_enable(gyro_, 1);
 
-        if (wb_gps_get_coordinate_system(gnss_) != WB_GPS_WGS84_COORDINATE) {
+        if ((wb_gps_get_coordinate_system(gnss_1_) != WB_GPS_WGS84_COORDINATE)
+        || (wb_gps_get_coordinate_system(gnss_2_) != WB_GPS_WGS84_COORDINATE)) {
             RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "The GPS world or sensor is not using 'WGS84' coordinates system");
         }
 
@@ -195,8 +214,11 @@ namespace asb_webots_driver {
         sim_state_publisher_ = node->create_publisher<asb_msgs::msg::SimState>(
             sim_state_topic_, rclcpp::SensorDataQoS().reliable());
 
-        gnss_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
-            gnss_topic_, rclcpp::SensorDataQoS().reliable());
+        gnss_1_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
+            gnss_1_topic_, rclcpp::SensorDataQoS().reliable());
+
+        gnss_2_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
+            gnss_2_topic_, rclcpp::SensorDataQoS().reliable());
 
         inertial_unit_publisher_ = node->create_publisher<nav_msgs::msg::Odometry>(
             inertial_unit_topic_, rclcpp::SensorDataQoS().reliable());
@@ -231,29 +253,54 @@ namespace asb_webots_driver {
         if(now - last_gnss_fix_ > rclcpp::Duration::from_seconds(1/gnss_update_rate_)) {
             last_gnss_fix_ = now;
 
-            const double *position = wb_gps_get_values(gnss_);
-            const double latitude = position[0];
-            const double longitude = position[1];
-            const double altitude = position[2];
-            auto gnss_msg = sensor_msgs::msg::NavSatFix();
-            gnss_msg.header.stamp = now;
-            gnss_msg.header.frame_id = gnss_frame_id_;
-            gnss_msg.latitude = latitude;
-            gnss_msg.longitude = longitude;
-            gnss_msg.altitude = altitude;
-            gnss_msg.position_covariance = {
+            const double *position_1 = wb_gps_get_values(gnss_1_);
+            const double latitude_1 = position_1[0];
+            const double longitude_1 = position_1[1];
+            const double altitude_1 = position_1[2];
+            auto gnss_1_msg = sensor_msgs::msg::NavSatFix();
+            gnss_1_msg.header.stamp = now;
+            gnss_1_msg.header.frame_id = gnss_1_frame_id_;
+            gnss_1_msg.latitude = latitude_1;
+            gnss_1_msg.longitude = longitude_1;
+            gnss_1_msg.altitude = altitude_1;
+            gnss_1_msg.position_covariance = {
                 gnss_covariance_diagonal_[0], 0.0, 0.0,
                 0.0, gnss_covariance_diagonal_[1], 0.0,
                 0.0, 0.0, gnss_covariance_diagonal_[2]
             };
-            gnss_msg.position_covariance_type = NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
-            gnss_msg.status.status = NavSatStatus::STATUS_GBAS_FIX;
-            gnss_msg.status.service =
+            gnss_1_msg.position_covariance_type = NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
+            gnss_1_msg.status.status = NavSatStatus::STATUS_GBAS_FIX;
+            gnss_1_msg.status.service =
                 NavSatStatus::SERVICE_GPS |
                 NavSatStatus::SERVICE_GLONASS |
                 NavSatStatus::SERVICE_COMPASS |
                 NavSatStatus::SERVICE_GALILEO;
-            gnss_publisher_->publish(gnss_msg);
+
+            const double *position_2 = wb_gps_get_values(gnss_2_);
+            const double latitude_2 = position_2[0];
+            const double longitude_2 = position_2[1];
+            const double altitude_2 = position_2[2];
+            auto gnss_2_msg = sensor_msgs::msg::NavSatFix();
+            gnss_2_msg.header.stamp = now;
+            gnss_2_msg.header.frame_id = gnss_2_frame_id_;
+            gnss_2_msg.latitude = latitude_2;
+            gnss_2_msg.longitude = longitude_2;
+            gnss_2_msg.altitude = altitude_2;
+            gnss_2_msg.position_covariance = {
+                gnss_covariance_diagonal_[0], 0.0, 0.0,
+                0.0, gnss_covariance_diagonal_[1], 0.0,
+                0.0, 0.0, gnss_covariance_diagonal_[2]
+            };
+            gnss_2_msg.position_covariance_type = NavSatFix::COVARIANCE_TYPE_DIAGONAL_KNOWN;
+            gnss_2_msg.status.status = NavSatStatus::STATUS_GBAS_FIX;
+            gnss_2_msg.status.service =
+                NavSatStatus::SERVICE_GPS |
+                NavSatStatus::SERVICE_GLONASS |
+                NavSatStatus::SERVICE_COMPASS |
+                NavSatStatus::SERVICE_GALILEO;
+
+            gnss_1_publisher_->publish(gnss_1_msg);
+            gnss_2_publisher_->publish(gnss_2_msg);
         }
 
         if(now - last_inertial_unit_update_ > rclcpp::Duration::from_seconds(1/inertial_unit_update_rate_)) {

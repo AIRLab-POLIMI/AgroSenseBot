@@ -38,7 +38,10 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 
-SimpleVineyard {}
+SimpleVineyard {
+  translation 14 -2 0
+  rotation 0 0 1 0.39
+}
 
 AgroSenseBot {
   translation 4.907248709113336 -3.093665483199549 0.590218218127438

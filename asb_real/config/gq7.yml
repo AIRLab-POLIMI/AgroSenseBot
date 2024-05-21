@@ -10,7 +10,7 @@ microstrain_inertial_driver:
     # This will also cause the node to convert any vehicle frame measurements to the ROS definition of a vehicle frame
     use_enu_frame: True
 
-    # Configure some frame IDs
+    # Configure some frame IDs  TODO make a gq7_link for both gnss and imu messages
     frame_id: 'imu_link'  # Frame ID of all the filter messages. Represents the location of the GQ7 in the tf tree
     map_frame_id: "map"  # Frame ID of the local tangent plane.
     earth_frame_id: "earth"  # Frame ID of the global frame
@@ -62,7 +62,7 @@ microstrain_inertial_driver:
     # Antenna #1 lever arm offset source
     #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
     #     1 - Manual:    We will use the provided vector to configure the device, and publish it as the transform between frame_id and gnss1_frame_id
-    #     2 - Transform: We will lookup the transform between frame_id and gnss1_frame_id and use it to configure the device. We will ignore gns1_antenna_offset
+    #     2 - Transform: We will look up the transform between frame_id and gnss1_frame_id and use it to configure the device. We will ignore gns1_antenna_offset
     # Antenna #1 lever arm offset vector
     #     For GQ7 - in the vehicle frame wrt IMU origin (meters)
     #     For all other models - in the IMU frame wrt IMU origin (meters)
@@ -73,7 +73,7 @@ microstrain_inertial_driver:
     # Antenna #2 lever arm offset source
     #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
     #     1 - Manual:    We will use the provided vector to configure the device, and publish it as the transform between frame_id and gnss2_frame_id
-    #     2 - Transform: We will lookup the transform between frame_id and gnss2_frame_id and use it to configure the device. We will ignore gns2_antenna_offset
+    #     2 - Transform: We will look up the transform between frame_id and gnss2_frame_id and use it to configure the device. We will ignore gns2_antenna_offset
     # Antenna #2 lever arm offset vector
     #     For GQ7 - in the vehicle frame wrt IMU origin (meters)
     #     For all other models - in the IMU frame wrt IMU origin (meters)
