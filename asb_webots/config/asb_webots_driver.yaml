@@ -3,8 +3,10 @@ asb_webots_robot:
     sim_state_topic : /system_test/state
     sim_state_cmd_topic : /system_test/state_cmd
 
-    gnss_topic: /gnss_2/llh_position
-    gnss_frame_id: gnss_link  # in the real robot, the NavSatFix message refers to the frame of the antenna 2
+    gnss_1_topic: /gnss_1/llh_position
+    gnss_1_frame_id: gnss_1_link  # in the real robot, the NavSatFix message refers to the frame of the antenna 1 published by the microstrain driver
+    gnss_2_topic: /gnss_2/llh_position
+    gnss_2_frame_id: gnss_2_link  # in the real robot, the NavSatFix message refers to the frame of the antenna 2 published by the microstrain driver
     gnss_update_rate: 2.0
     gnss_covariance_diagonal: [0.2, 0.2, 0.2]
 

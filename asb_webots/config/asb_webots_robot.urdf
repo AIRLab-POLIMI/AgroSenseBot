@@ -45,7 +45,12 @@
         </device>
 
         <!-- disable the default ROS2 topic for the sensor, which is published from the driver -->
-        <device reference="gnss_link" type="GPS">
+        <device reference="gnss_1_link" type="GPS">
+            <ros>
+                <enabled>false</enabled>
+            </ros>
+        </device>
+        <device reference="gnss_2_link" type="GPS">
             <ros>
                 <enabled>false</enabled>
             </ros>

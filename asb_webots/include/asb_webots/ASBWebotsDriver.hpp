@@ -23,7 +23,7 @@ namespace asb_webots_driver {
 
         rclcpp::Subscription<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_subscriber_;
         rclcpp::Publisher<asb_msgs::msg::SimState>::SharedPtr sim_state_publisher_;
-        rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr gnss_publisher_;
+        rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr gnss_1_publisher_, gnss_2_publisher_;
         rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr inertial_unit_publisher_;
         rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
         asb_msgs::msg::SimStateCmd sim_state_cmd_msg_;
@@ -31,10 +31,10 @@ namespace asb_webots_driver {
         std::string sim_state_topic_;
         std::string sim_state_cmd_topic_;
 
-        WbDeviceTag gnss_;
+        WbDeviceTag gnss_1_, gnss_2_;
+        std::string gnss_1_topic_, gnss_2_topic_;
+        std::string gnss_1_frame_id_, gnss_2_frame_id_;
         rclcpp::Time last_gnss_fix_;
-        std::string gnss_topic_;
-        std::string gnss_frame_id_;
         double gnss_update_rate_;
         std::vector<double> gnss_covariance_diagonal_;
 
