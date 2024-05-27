@@ -99,7 +99,7 @@ PROTO AgroSenseBot [
 
       DEF Imu Solid {
         translation 0.133 -0.659 0.91
-        rotation 0 0 1 3.14159  # TODO in real robot GQ7 publishes referring to this frame, it should also be facing forward?
+        rotation 0 0 1 0  # TODO in real robot GQ7 publishes referring to this frame, it should also be facing forward?
         name "imu_link"
         physics Physics {
           mass 0.01

@@ -4,12 +4,13 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Environment1/tf1
         - /Environment1/tf1/Frames1
+        - /Environment1/grid minor1
         - /Sensors1/scan_rear_left_multilayer1/Autocompute Value Bounds1
         - /Controller1/Trajectories1/Topic1
         - /Controller1/mppi trajectories1/Namespaces1
         - /waypoints1/Topic1
+        - /Localization1
         - /Localization1/Odometry position1/Shape1
         - /Localization1/robot localization1/Shape1
         - /Localization1/robot localization1/Covariance1
@@ -19,11 +20,12 @@ Panels:
         - /Localization1/gnss 1 history1/Covariance1
         - /Localization1/gnss 1 history1/Covariance1/Position1
         - /Localization1/gnss 1 history1/Covariance1/Orientation1
+        - /Localization1/gnss 21/Covariance1/Position1
         - /Localization1/gnss 21/Covariance1/Orientation1
         - /Localization1/gnss 2 history1/Covariance1/Position1
         - /Localization1/gnss 2 history1/Covariance1/Orientation1
       Splitter Ratio: 0.5300859808921814
-    Tree Height: 464
+    Tree Height: 621
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -42,7 +44,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: scan_front_right history
+    SyncSource: ""
   - Class: asb_rviz_plugins/AgroSenseBot
     Name: AgroSenseBot
 Visualization Manager:
@@ -93,9 +95,15 @@ Visualization Manager:
             base_scan_rear_left_multilayer:
               Value: false
             gnss_1_link:
-              Value: true
+              Value: false
             gnss_2_link:
-              Value: true
+              Value: false
+            gq7_gnss_1_antenna_link:
+              Value: false
+            gq7_gnss_2_antenna_link:
+              Value: false
+            gq7_odometer_link:
+              Value: false
             gyro_link:
               Value: false
             imu_link:
@@ -110,7 +118,7 @@ Visualization Manager:
               Value: false
             right_track:
               Value: false
-          Marker Scale: 3
+          Marker Scale: 1
           Name: tf
           Show Arrows: false
           Show Axes: true
@@ -135,6 +143,12 @@ Visualization Manager:
                     imu_link:
                       accelerometer_link:
                         {}
+                      gq7_gnss_1_antenna_link:
+                        {}
+                      gq7_gnss_2_antenna_link:
+                        {}
+                      gq7_odometer_link:
+                        {}
                       gyro_link:
                         {}
                     inertial_link:
@@ -156,83 +170,20 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /robot_description
-          Enabled: true
+          Enabled: false
           Links:
             All Links Enabled: true
             Expand Joint Details: false
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            accelerometer_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_footprint:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_front_right:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_front_right_multilayer:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_rear_left:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_rear_left_multilayer:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            gnss_1_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            gnss_2_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            gyro_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            inertial_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            left_track:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            right_track:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
           Mass Properties:
             Inertia: false
             Mass: false
           Name: robot model
           TF Prefix: ""
           Update Interval: 0
-          Value: true
+          Value: false
           Visual Enabled: true
         - Alpha: 0.5
           Cell Size: 1
@@ -252,7 +203,7 @@ Visualization Manager:
           Plane Cell Count: 1000
           Reference Frame: map
           Value: true
-        - Alpha: 0.10000000149011612
+        - Alpha: 0.30000001192092896
           Cell Size: 0.10000000149011612
           Class: rviz_default_plugins/Grid
           Color: 160; 160; 164
@@ -368,8 +319,8 @@ Visualization Manager:
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
-            Max Value: 18.97542381286621
-            Min Value: -0.05420008301734924
+            Max Value: 17.207523345947266
+            Min Value: -2.0149452686309814
             Value: true
           Axis: Y
           Channel Name: intensity
@@ -1054,7 +1005,7 @@ Visualization Manager:
               Scale: 0.5
               Value: true
             Value: true
-          Enabled: false
+          Enabled: true
           Keep: 1
           Name: gnss 1
           Position Tolerance: 0
@@ -1075,7 +1026,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_1/navsat_odometry
-          Value: false
+          Value: true
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1093,7 +1044,7 @@ Visualization Manager:
               Scale: 0.25
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: gnss 1 history
           Position Tolerance: 0.20000000298023224
@@ -1114,7 +1065,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_1/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1128,11 +1079,11 @@ Visualization Manager:
               Value: true
             Position:
               Alpha: 0.6000000238418579
-              Color: 0; 50; 255
+              Color: 255; 0; 0
               Scale: 0.5
               Value: true
             Value: true
-          Enabled: false
+          Enabled: true
           Keep: 1
           Name: gnss 2
           Position Tolerance: 0
@@ -1153,7 +1104,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_2/navsat_odometry
-          Value: false
+          Value: true
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1171,7 +1122,7 @@ Visualization Manager:
               Scale: 0.25
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: gnss 2 history
           Position Tolerance: 0.20000000298023224
@@ -1192,7 +1143,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_2/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1271,7 +1222,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
+      Angle: -0.3200001120567322
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -1281,23 +1232,23 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 84.90534973144531
+      Scale: 657.21240234375
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.6017417907714844
-      Y: 0.6472322940826416
+      X: -0.18070396780967712
+      Y: -0.10730870068073273
     Saved: ~
 Window Geometry:
   AgroSenseBot:
     collapsed: true
   Displays:
     collapsed: false
-  Height: 1366
+  Height: 1523
   Hide Left Dock: false
   Hide Right Dock: true
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001a2000004bdfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073010000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007301000000e700000253000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000018004e0061007600690067006100740069006f006e002000320100000340000001ba000001a700fffffffb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000002800ffffff00000001000001a50000055afc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000003d0000055a0000041100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000050000000039fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000358000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000015f0000055afc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073010000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007301000000e7000002f0000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000018004e0061007600690067006100740069006f006e0020003201000003dd000001ba000001ba00fffffffb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000002800ffffff00000001000001a50000055afc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000003d0000055a0000041100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000050000000039fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d006501000000000000045000000000000000000000039b0000055a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   RealsenseCamera:
     collapsed: false
   Selection:

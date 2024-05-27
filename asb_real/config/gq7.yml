@@ -68,7 +68,7 @@ microstrain_inertial_driver:
     #     For all other models - in the IMU frame wrt IMU origin (meters)
     # Note: Make this as accurate as possible for good performance
     gnss1_antenna_offset_source: 1
-    gnss1_antenna_offset: [-0.3100, 1.4200, -0.63063]
+    gnss1_antenna_offset: [0.3100, -0.0030, -0.63063]
 
     # Antenna #2 lever arm offset source
     #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
@@ -79,7 +79,7 @@ microstrain_inertial_driver:
     #     For all other models - in the IMU frame wrt IMU origin (meters)
     # Note: Make this as accurate as possible for good performance
     gnss2_antenna_offset_source: 1
-    gnss2_antenna_offset: [-0.3100, 0.0030, -0.63063]
+    gnss2_antenna_offset: [0.3100, -1.4200, -0.63063]
 
     # This will set the heading alignment to be dual antenna
     filter_auto_heading_alignment_selector: 1
@@ -89,12 +89,12 @@ microstrain_inertial_driver:
 
     # The default is to publish LLH position and velocity, but rviz has a hard time displaying that.
     # Instead, we will publish the position in the ECEF frame
-    gnss1_llh_position_data_rate: 2
+    gnss1_llh_position_data_rate: 1
     gnss1_velocity_data_rate: 0
-    gnss1_odometry_earth_data_rate: 2
-    gnss2_llh_position_data_rate: 2
+    gnss1_odometry_earth_data_rate: 1
+    gnss2_llh_position_data_rate: 1
     gnss2_velocity_data_rate: 0
-    gnss2_odometry_earth_data_rate: 2
+    gnss2_odometry_earth_data_rate: 1
 
     # We will only publish the odometry messages from the filter in this example.
     # Also publish the human-readable message which can be echoed from the command line
