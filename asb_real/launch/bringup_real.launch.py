@@ -21,6 +21,12 @@ def generate_launch_description():
     )
 
     # TODO lidar
+    fake_scan_node = Node(
+        package="asb_sim",
+        executable="fake_scan_pub.py",
+        name="fake_scan_publisher",
+        output="screen",
+    )
 
     test_heartbeat_publisher_node = Node(
         package="asb_sim",
@@ -33,6 +39,7 @@ def generate_launch_description():
 
     ld.add_action(include_control_launch)
     ld.add_action(microstrain_3dm_gq7_launch)
+    ld.add_action(fake_scan_node)
     ld.add_action(test_heartbeat_publisher_node)
 
     return ld

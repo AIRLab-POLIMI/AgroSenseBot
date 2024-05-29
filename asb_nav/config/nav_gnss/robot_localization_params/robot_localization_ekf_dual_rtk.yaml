@@ -53,19 +53,19 @@ ekf_filter_map_odom:
     odom2_differential: false
     odom2_relative: false
 
-    # position measurement obtained by GNSS on antenna 1, translated from LLH to local coordinates by the navsat_transform node (configured below)
-    # TODO rename topic, it's not really an odometry
-    odom3: /gnss_1/navsat_odometry
-    odom3_config: [
-      true,  true,  false,  # x, y, z
-      false, false, false,  # roll, pitch, yaw
-      false, false, false,  # v_x, v_y, v_z
-      false, false, false,  # v_roll, v_pitch, v_yaw
-      false, false, false,  # a_x, a_y, a_z
-    ]
-    odom3_queue_size: 10
-    odom3_differential: false
-    odom3_relative: false
+#    # position measurement obtained by GNSS on antenna 1, translated from LLH to local coordinates by the navsat_transform node (configured below)
+#    # TODO rename topic, it's not really an odometry
+#    odom3: /gnss_1/navsat_odometry
+#    odom3_config: [
+#      true,  true,  false,  # x, y, z
+#      false, false, false,  # roll, pitch, yaw
+#      false, false, false,  # v_x, v_y, v_z
+#      false, false, false,  # v_roll, v_pitch, v_yaw
+#      false, false, false,  # a_x, a_y, a_z
+#    ]
+#    odom3_queue_size: 10
+#    odom3_differential: false
+#    odom3_relative: false
 
     use_control: false
 
