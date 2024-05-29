@@ -26,14 +26,14 @@ def generate_launch_description():
         ),
 
         # NTRIP client node  TODO fix same name as microstrain_driver
-        # IncludeLaunchDescription(
-        #     PythonLaunchDescriptionSource(os.path.join(pkg('ntrip_client'), 'ntrip_client_launch.py')),
-        #     launch_arguments={
-        #         'host': '158.102.7.10',  # SPIN3 GNSS
-        #         'mountpoint': 'RTK_NRT_RTCM3',  # nearest base station
-        #         'username': 'agrosensebot',
-        #         'password': ntrip_caster_password,
-        #     }.items()
-        # ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(pkg('asb_real'), 'launch', 'ntrip_client_launch.py')),
+            launch_arguments={
+                'host': '158.102.7.10',  # SPIN3 GNSS
+                'mountpoint': 'RTK_NRT_RTCM3',  # nearest base station
+                'username': 'agrosensebot',
+                'password': ntrip_caster_password,
+            }.items()
+        ),
 
     ])
