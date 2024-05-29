@@ -33,7 +33,7 @@ PROTO AgroSenseBot [
         rotation 0 0 1 0
         children [
           DEF GNSS_1 Pose {
-            translation 0.40915 0.03414 0.63063
+            translation 0.408 0.027 0.63363
             rotation 0 0 1 0
             children [
               GPS {
@@ -48,7 +48,7 @@ PROTO AgroSenseBot [
             ]
           }
           DEF GNSS_2 Pose {
-            translation 0.40915 1.45114 0.63063
+            translation 0.408 1.352 0.63363
             rotation 0 0 1 0
             children [
               GPS {
@@ -65,8 +65,7 @@ PROTO AgroSenseBot [
         ]
       }
       DEF GNSS_1_VISUAL Pose {
-        translation 0.443 -0.65586 1.55188
-#        translation 0.443 0.761 1.55188
+        translation 0.44185 -0.663 1.54363
         rotation 0 0 1 0
         children [
           DEF GNSS_ANTENNA_SHAPE Shape {
@@ -82,8 +81,7 @@ PROTO AgroSenseBot [
         ]
       }
       DEF GNSS_2_VISUAL Pose {
-        translation 0.443 0.76114 1.55188  # antenna 1 and two should be symmetric on base_link y axis, but the y difference is 0.105 m difference instead of 0
-#        translation 0.443 -0.656 1.55188  # antenna 1 and two should be symmetric on base_link y axis, but the y difference is 0.105 m difference instead of 0
+        translation 0.44185 0.662 1.54363
         rotation 0 0 1 0
         children [
           DEF GNSS_ANTENNA_SHAPE Shape {

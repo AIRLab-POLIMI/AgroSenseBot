@@ -386,25 +386,25 @@
         </geometry>
       </collision>
       <visual>
-        <origin xyz="0.443 -0.65586 1.55188" rpy="0 0 0"/>
+        <origin xyz="0.44185 -0.663 1.54363" rpy="0 0 0"/>
         <geometry>
           <box size="0.06 0.06 0.0225"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0.443 -0.65586 1.55188" rpy="0 0 0"/>
+        <origin xyz="0.44185 -0.663 1.54363" rpy="0 0 0"/>
         <geometry>
           <box size="0.06 0.06 0.0225"/>
         </geometry>
       </collision>
       <visual>
-        <origin xyz="0.443 0.76114 1.55188" rpy="0 0 0"/>
+        <origin xyz="0.44185 0.662 1.54363" rpy="0 0 0"/>
         <geometry>
           <box size="0.06 0.06 0.0225"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0.443 0.76114 1.55188" rpy="0 0 0"/>
+        <origin xyz="0.44185 0.662 1.54363" rpy="0 0 0"/>
         <geometry>
           <box size="0.06 0.06 0.0225"/>
         </geometry>
@@ -670,14 +670,14 @@
     <joint name="base_link_gnss_2_link_joint" type="fixed">
       <parent link="base_link"/>
       <child link="gnss_2_link"/>
-      <origin xyz="0.443 0.76114 1.54063" rpy="0 0 0"/>
+      <origin xyz="0.44185 0.662 1.54363" rpy="0 0 0"/>
     </joint>
     <link name="gnss_1_link">
     </link>
     <joint name="base_link_gnss_1_link_joint" type="fixed">
       <parent link="base_link"/>
       <child link="gnss_1_link"/>
-      <origin xyz="0.443 -0.65586 1.54063" rpy="0 0 0"/>
+      <origin xyz="0.44185 -0.663 1.54363" rpy="0 0 0"/>
     </joint>
     <link name="inertial_link">
     </link>
