@@ -14,11 +14,11 @@ namespace asb_rviz_plugins {
 //  Battery
     battery_voltage_ = new ASBThermo;
     substitute_widget(battery_voltage_, ui_->battery_voltage, ui_->battery_voltage_layout,
-                      56, 48);
+                      56, 46);
 
     battery_soc_ = new ASBThermo;
     substitute_widget(battery_soc_, ui_->battery_soc, ui_->battery_soc_layout,
-                      100, 10);
+                      100, 20);
 
 //  Left Motor
     left_motor_velocity_ = new ASBThermo;
@@ -28,10 +28,6 @@ namespace asb_rviz_plugins {
     left_motor_current_ = new ASBThermo;
     substitute_widget(left_motor_current_, ui_->left_motor_current, ui_->left_motor_current_layout,
                       80, 0);
-
-//    left_motor_torque_ = new ASBThermo;
-//    substitute_widget(left_motor_torque_, ui_->left_motor_torque, ui_->left_motor_torque_layout,
-//                      900, 0);
 
     left_motor_temperature_ = new ASBThermo;
     substitute_widget(left_motor_temperature_, ui_->left_motor_temperature, ui_->left_motor_temperature_layout,
@@ -50,10 +46,6 @@ namespace asb_rviz_plugins {
     substitute_widget(right_motor_current_, ui_->right_motor_current, ui_->right_motor_current_layout,
                       80, 0);
 
-//    right_motor_torque_ = new ASBThermo;
-//    substitute_widget(right_motor_torque_, ui_->right_motor_torque, ui_->right_motor_torque_layout,
-//                      900, 0);
-
     right_motor_temperature_ = new ASBThermo;
     substitute_widget(right_motor_temperature_, ui_->right_motor_temperature, ui_->right_motor_temperature_layout,
                       70, -10);
@@ -70,10 +62,6 @@ namespace asb_rviz_plugins {
     fan_motor_current_ = new ASBThermo;
     substitute_widget(fan_motor_current_, ui_->fan_motor_current, ui_->fan_motor_current_layout,
                       20, 0);
-
-//    fan_motor_torque_ = new ASBThermo;
-//    substitute_widget(fan_motor_torque_, ui_->fan_motor_torque, ui_->fan_motor_torque_layout,
-//                      900, 0);
 
     fan_motor_temperature_ = new ASBThermo;
     substitute_widget(fan_motor_temperature_, ui_->fan_motor_temperature, ui_->fan_motor_temperature_layout,
@@ -133,7 +121,7 @@ namespace asb_rviz_plugins {
       ui_->gcu_comm_disp->setStyleSheet(yel_bg);
     }
 
-    if(control_system_state->vcu_comm_started){
+    if(control_system_state->vcu_comm_started) {
       if(control_system_state->vcu_comm_ok) {
         ui_->vcu_comm_disp->setText(QString("OK"));
         ui_->vcu_comm_disp->setStyleSheet(no_bg);
@@ -147,13 +135,13 @@ namespace asb_rviz_plugins {
         ui_->pump_disp->setText(QString(control_system_state->pump_state ? "ON":"OFF"));
         ui_->pump_disp->setStyleSheet(no_bg);
 
-        control_system_state->more_recent_active_alarm_id ?
-            ui_->vcu_error_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id)) :
-            ui_->vcu_error_disp->setText(QString("NONE"));
-        ui_->vcu_error_disp->setStyleSheet(no_bg);
-//        control_system_state->more_recent_active_alarm_id ?
-//            ui_->vcu_error_disp->setStyleSheet(yel_bg) :
-//            ui_->vcu_error_disp->setStyleSheet(no_bg);
+        if(control_system_state->more_recent_active_alarm_id == 92) {
+          ui_->vcu_error_disp->setText(QString("OK (%1)").arg(control_system_state->more_recent_active_alarm_id));
+          ui_->vcu_error_disp->setStyleSheet(no_bg);
+        } else {
+          ui_->vcu_error_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id));
+          ui_->vcu_error_disp->setStyleSheet(yel_bg);
+        }
       } else {
         ui_->vcu_comm_disp->setText(QString("DOWN"));
         ui_->vcu_comm_disp->setStyleSheet(yel_bg);
@@ -212,11 +200,6 @@ namespace asb_rviz_plugins {
             control_system_state->left_motor_battery_current, 0, 'f', 1));
     ui_->left_motor_current_disp->setStyleSheet(is_alarm_on(left_motor_current_) ? red_bg:no_bg);
 
-//    left_motor_torque_->setValue(control_system_state->left_motor_torque);
-//    ui_->left_motor_torque_disp->setText(QString("%1 Nm").arg(
-//            control_system_state->left_motor_torque, 0, 'f', 0));
-//    ui_->left_motor_torque_disp->setStyleSheet(is_alarm_on(left_motor_torque_) ? red_bg:no_bg);
-
     left_motor_temperature_->setValue(control_system_state->left_motor_temperature);
     ui_->left_motor_temperature_disp->setText(QString("%1 °C").arg(
             control_system_state->left_motor_temperature, 0, 'f', 1));
@@ -241,11 +224,6 @@ namespace asb_rviz_plugins {
             control_system_state->right_motor_battery_current, 0, 'f', 1));
     ui_->right_motor_current_disp->setStyleSheet(is_alarm_on(right_motor_current_) ? red_bg:no_bg);
 
-//    right_motor_torque_->setValue(control_system_state->right_motor_torque);
-//    ui_->right_motor_torque_disp->setText(QString("%1 Nm").arg(
-//            control_system_state->right_motor_torque, 0, 'f', 0));
-//    ui_->right_motor_torque_disp->setStyleSheet(is_alarm_on(right_motor_torque_) ? red_bg:no_bg);
-
     right_motor_temperature_->setValue(control_system_state->right_motor_temperature);
     ui_->right_motor_temperature_disp->setText(QString("%1 °C").arg(
             control_system_state->right_motor_temperature, 0, 'f', 1));
@@ -267,11 +245,6 @@ namespace asb_rviz_plugins {
     ui_->fan_motor_current_disp->setText(QString("%1 A").arg(
             control_system_state->fan_motor_battery_current, 0, 'f', 1));
     ui_->fan_motor_current_disp->setStyleSheet(is_alarm_on(fan_motor_current_) ? red_bg:no_bg);
-
-//    fan_motor_torque_->setValue(control_system_state->fan_motor_torque);
-//    ui_->fan_motor_torque_disp->setText(QString("%1 Nm").arg(
-//            control_system_state->fan_motor_torque, 0, 'f', 0));
-//    ui_->fan_motor_torque_disp->setStyleSheet(is_alarm_on(fan_motor_torque_) ? red_bg:no_bg);
 
     fan_motor_temperature_->setValue(control_system_state->fan_motor_temperature);
     ui_->fan_motor_temperature_disp->setText(QString("%1 °C").arg(
@@ -307,6 +280,48 @@ namespace asb_rviz_plugins {
 
     ui_->pump_disp->setText(QString("UNKNOWN"));
     ui_->pump_disp->setStyleSheet(no_bg);
+
+  }
+
+  void ASBWidget::rtk_status_callback(const microstrain_inertial_msgs::msg::HumanReadableStatus::SharedPtr rtk_status) const {
+
+    rtk_status_timeout_timer_->reset();
+
+    ui_->gnss_state_disp->setText(QString(rtk_status->gnss_state.c_str()));
+    ui_->gnss_state_disp->setStyleSheet(rtk_status->gnss_state == "RTK Fixed" ? no_bg : yel_bg);
+
+    auto dual_antenna_fix_type_qstring = QString(rtk_status->dual_antenna_fix_type.c_str());
+    dual_antenna_fix_type_qstring.replace("Dual Antenna", "Dual Ant.");
+    ui_->dual_antenna_fix_type_disp->setText(dual_antenna_fix_type_qstring);
+    ui_->dual_antenna_fix_type_disp->setStyleSheet(rtk_status->dual_antenna_fix_type == "Dual Antenna Fixed" ? no_bg : yel_bg);
+
+    ui_->filter_state_disp->setText(QString(rtk_status->filter_state.c_str()));
+    ui_->filter_state_disp->setStyleSheet(rtk_status->filter_state == "Full Nav" ? no_bg : yel_bg);
+
+    std::string status_flags_disp;
+    for(size_t i = 0; i < rtk_status->status_flags.size(); i++) {
+      if(rtk_status->status_flags.size() > 1) status_flags_disp.append("- ");
+      status_flags_disp.append(rtk_status->status_flags[i]);
+      if(i < rtk_status->status_flags.size() - 1) status_flags_disp.append("\n");
+    }
+    ui_->status_flags_disp->setText(QString(status_flags_disp.c_str()));
+    ui_->status_flags_disp->setStyleSheet((rtk_status->status_flags.size() == 1) && (rtk_status->status_flags[0] == "Stable") ? no_bg : yel_bg);
+
+  }
+
+  void ASBWidget::rtk_status_timeout_callback() {
+
+    ui_->gnss_state_disp->setText(QString("UNKNOWN"));
+    ui_->gnss_state_disp->setStyleSheet(yel_bg);
+
+    ui_->dual_antenna_fix_type_disp->setText(QString("UNKNOWN"));
+    ui_->dual_antenna_fix_type_disp->setStyleSheet(yel_bg);
+
+    ui_->filter_state_disp->setText(QString("UNKNOWN"));
+    ui_->filter_state_disp->setStyleSheet(yel_bg);
+
+    ui_->status_flags_disp->setText(QString("UNKNOWN"));
+    ui_->status_flags_disp->setStyleSheet(yel_bg);
 
   }
 
