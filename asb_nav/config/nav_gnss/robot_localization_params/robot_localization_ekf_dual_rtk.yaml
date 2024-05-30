@@ -2,7 +2,7 @@
 ekf_filter_map_odom:
   ros__parameters:
     frequency: 30.0
-    two_d_mode: true  # Recommended to use 2d mode for nav2 in mostly planar environments
+    two_d_mode: false  # Recommended to use 2d mode for nav2 in mostly planar environments
     print_diagnostics: false
     debug: false
     publish_tf: true
@@ -30,7 +30,7 @@ ekf_filter_map_odom:
     odom1: /ekf/odometry_map
     odom1_config: [
       false, false, false,  # x, y, z
-      false, false, true,   # roll, pitch, yaw
+      true,  true,  true,   # roll, pitch, yaw
       false, false, false,  # v_x, v_y, v_z
       false, false, false,  # v_roll, v_pitch, v_yaw
       false, false, false,  # a_x, a_y, a_z
@@ -43,7 +43,7 @@ ekf_filter_map_odom:
     # TODO rename topic, it's not really an odometry
     odom2: /gnss_2/navsat_odometry
     odom2_config: [
-      true,  true,  false,  # x, y, z
+      true,  true,  true,   # x, y, z
       false, false, false,  # roll, pitch, yaw
       false, false, false,  # v_x, v_y, v_z
       false, false, false,  # v_roll, v_pitch, v_yaw
@@ -57,7 +57,7 @@ ekf_filter_map_odom:
 #    # TODO rename topic, it's not really an odometry
 #    odom3: /gnss_1/navsat_odometry
 #    odom3_config: [
-#      true,  true,  false,  # x, y, z
+#      true,  true,  true,   # x, y, z
 #      false, false, false,  # roll, pitch, yaw
 #      false, false, false,  # v_x, v_y, v_z
 #      false, false, false,  # v_roll, v_pitch, v_yaw
