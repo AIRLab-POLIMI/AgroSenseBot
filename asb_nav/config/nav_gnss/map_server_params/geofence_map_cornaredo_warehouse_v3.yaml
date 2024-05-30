@@ -1,4 +1,4 @@
-image: geofence_map_cornaredo_warehouse_2_no_cars.pgm
+image: geofence_map_cornaredo_warehouse_v3.pgm
 mode: trinary
 resolution: 0.0687
 origin: [-105, -51.9, 0]
