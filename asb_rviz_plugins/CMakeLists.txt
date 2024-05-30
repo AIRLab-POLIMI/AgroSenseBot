@@ -18,6 +18,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(ament_cmake REQUIRED)
 find_package(asb_msgs REQUIRED)
+find_package(microstrain_inertial_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets Test Concurrent)
 find_package(Qwt REQUIRED)
@@ -32,6 +33,7 @@ find_package(yaml_cpp_vendor REQUIRED)
 
 set (THIS_PACKAGE_INCLUDE_DEPENDS
     asb_msgs
+    microstrain_inertial_msgs
     rclcpp
     class_loader
     pluginlib

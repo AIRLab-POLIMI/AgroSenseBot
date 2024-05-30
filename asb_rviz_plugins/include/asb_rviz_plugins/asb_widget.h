@@ -10,6 +10,7 @@
 
 #include <rclcpp/qos.hpp>
 #include "asb_msgs/msg/control_system_state.hpp"
+#include "microstrain_inertial_msgs/msg/human_readable_status.hpp"
 
 #include <asb_rviz_plugins/asb_linear_dial.h>
 
@@ -44,9 +45,15 @@ namespace asb_rviz_plugins
 
     void control_system_state_callback(asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const;
 
+    void rtk_status_callback(microstrain_inertial_msgs::msg::HumanReadableStatus::SharedPtr rtk_status) const;
+
     void control_system_state_timeout_callback();
 
+    void rtk_status_timeout_callback();
+
     rclcpp::TimerBase::SharedPtr control_system_state_timeout_timer_;
+
+    rclcpp::TimerBase::SharedPtr rtk_status_timeout_timer_;
 
   public Q_SLOTS:
   private Q_SLOTS:
@@ -60,24 +67,20 @@ namespace asb_rviz_plugins
 //  Left Motor
     ASBThermo* left_motor_velocity_ = nullptr;
     ASBThermo* left_motor_current_ = nullptr;
-    ASBThermo* left_motor_torque_ = nullptr;
     ASBThermo* left_motor_temperature_ = nullptr;
     ASBThermo* left_controller_temperature_ = nullptr;
 
 //  Right Motor
     ASBThermo* right_motor_velocity_ = nullptr;
     ASBThermo* right_motor_current_ = nullptr;
-    ASBThermo* right_motor_torque_ = nullptr;
     ASBThermo* right_motor_temperature_ = nullptr;
     ASBThermo* right_controller_temperature_ = nullptr;
 
 //  Fan Motor
     ASBThermo* fan_motor_velocity_ = nullptr;
     ASBThermo* fan_motor_current_ = nullptr;
-    ASBThermo* fan_motor_torque_ = nullptr;
     ASBThermo* fan_motor_temperature_ = nullptr;
     ASBThermo* fan_controller_temperature_ = nullptr;
-
 
   private:
     std::vector<QString> control_mode_string = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};

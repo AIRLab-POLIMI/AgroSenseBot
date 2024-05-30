@@ -31,13 +31,22 @@ namespace asb_rviz_plugins
   void ASBPanel::onInitialize() {
     auto node = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
     control_system_state_subscriber_ = node->create_subscription<asb_msgs::msg::ControlSystemState>(
-            "/asb_control_system_status_controller/control_system_state", rclcpp::SensorDataQoS(),
-            std::bind(&ASBWidget::control_system_state_callback, widget_, _1));
+      "/asb_control_system_status_controller/control_system_state", rclcpp::SensorDataQoS(),
+      std::bind(&ASBWidget::control_system_state_callback, widget_, _1));
 
     std::chrono::duration control_system_state_msg_timeout = 100ms;
     widget_->control_system_state_timeout_timer_ = rclcpp::create_timer(
-            node, node->get_clock(), rclcpp::Duration(control_system_state_msg_timeout),
-            std::bind(&ASBWidget::control_system_state_timeout_callback, widget_));
+      node, node->get_clock(), rclcpp::Duration(control_system_state_msg_timeout),
+      std::bind(&ASBWidget::control_system_state_timeout_callback, widget_));
+
+    rtk_status_subscriber_ = node->create_subscription<microstrain_inertial_msgs::msg::HumanReadableStatus>(
+      "/ekf/status", rclcpp::SensorDataQoS(),
+      std::bind(&ASBWidget::rtk_status_callback, widget_, _1));
+
+    std::chrono::duration rtk_status_msg_timeout = 2000ms;
+    widget_->rtk_status_timeout_timer_ = rclcpp::create_timer(
+      node, node->get_clock(), rclcpp::Duration(rtk_status_msg_timeout),
+      std::bind(&ASBWidget::rtk_status_timeout_callback, widget_));
 
     RCLCPP_INFO(node->get_logger(), "AgroSenseBot Panel initialized");
   }

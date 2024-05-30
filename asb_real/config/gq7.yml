@@ -68,7 +68,7 @@ microstrain_inertial_driver:
     #     For all other models - in the IMU frame wrt IMU origin (meters)
     # Note: Make this as accurate as possible for good performance
     gnss1_antenna_offset_source: 1
-    gnss1_antenna_offset: [0.3100, -0.0030, -0.63063]
+    gnss1_antenna_offset: [0.408, -0.027, -0.63363]  # -0.652 + 0.007+0.004+0.00737
 
     # Antenna #2 lever arm offset source
     #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
@@ -79,7 +79,7 @@ microstrain_inertial_driver:
     #     For all other models - in the IMU frame wrt IMU origin (meters)
     # Note: Make this as accurate as possible for good performance
     gnss2_antenna_offset_source: 1
-    gnss2_antenna_offset: [0.3100, -1.4200, -0.63063]
+    gnss2_antenna_offset: [0.408, -1.352, -0.63363]
 
     # This will set the heading alignment to be dual antenna
     filter_auto_heading_alignment_selector: 1
