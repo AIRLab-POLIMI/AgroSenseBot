@@ -245,42 +245,42 @@ PROTO SimpleVineyard [
           USE ROW
         ]
       }
-      DEF ROW_3 Pose {
-        translation 7.5 0 0
-        children [
-          USE ROW
-        ]
-      }
-      DEF ROW_4 Pose {
-        translation 10 0 0
-        children [
-          USE ROW
-        ]
-      }
-      DEF ROW_5 Pose {
-        translation 12.5 0 0
-        children [
-          USE ROW
-        ]
-      }
-      DEF ROW_6 Pose {
-        translation 15 0 0
-        children [
-          USE ROW
-        ]
-      }
-      DEF ROW_7 Pose {
-        translation 17.5 0 0
-        children [
-          USE ROW
-        ]
-      }
-      DEF ROW_8 Pose {
-        translation 20 0 0
-        children [
-          USE ROW
-        ]
-      }
+#      DEF ROW_3 Pose {
+#        translation 7.5 0 0
+#        children [
+#          USE ROW
+#        ]
+#      }
+#      DEF ROW_4 Pose {
+#        translation 10 0 0
+#        children [
+#          USE ROW
+#        ]
+#      }
+#      DEF ROW_5 Pose {
+#        translation 12.5 0 0
+#        children [
+#          USE ROW
+#        ]
+#      }
+#      DEF ROW_6 Pose {
+#        translation 15 0 0
+#        children [
+#          USE ROW
+#        ]
+#      }
+#      DEF ROW_7 Pose {
+#        translation 17.5 0 0
+#        children [
+#          USE ROW
+#        ]
+#      }
+#      DEF ROW_8 Pose {
+#        translation 20 0 0
+#        children [
+#          USE ROW
+#        ]
+#      }
     ]
   }
 }
