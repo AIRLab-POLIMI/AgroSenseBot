@@ -135,7 +135,7 @@ namespace asb_rviz_plugins {
         ui_->pump_disp->setText(QString(control_system_state->pump_state ? "ON":"OFF"));
         ui_->pump_disp->setStyleSheet(no_bg);
 
-        if(control_system_state->more_recent_active_alarm_id == 92) {
+        if((control_system_state->more_recent_active_alarm_id == 92) || (control_system_state->more_recent_active_alarm_id == 0)) {
           ui_->vcu_error_disp->setText(QString("OK (%1)").arg(control_system_state->more_recent_active_alarm_id));
           ui_->vcu_error_disp->setStyleSheet(no_bg);
         } else {
