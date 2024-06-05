@@ -33,7 +33,7 @@ def main():
     path_id = sys.argv[2] if len(sys.argv) > 2 else default_path_id
     print(f"Approach path id set to {path_id}")
 
-    default_behavior_tree_name = "asb_approach_row_navigate_through_poses.xml"
+    default_behavior_tree_name = "asb_no_replanning_navigate_through_poses.xml"
     behavior_tree_name = sys.argv[3] if len(sys.argv) > 3 else default_behavior_tree_name
     behavior_tree = os.path.join(get_package_share_directory("asb_nav"), "config", "behavior_trees", behavior_tree_name)
     print(f"Behavior tree name set to {behavior_tree_name}")
