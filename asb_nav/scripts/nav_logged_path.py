@@ -47,12 +47,24 @@ def main():
         with open(poses_file_path, 'r') as poses_file:
             paths_dict = yaml.safe_load(poses_file)
     except FileNotFoundError:
-        # if the file does not exist, use an empty dict
-        paths_dict = {path_id: []}
+        # if the file does not exist
+        print(f"Error: file does not exists [{poses_file_path}]")
+        return
     except Exception as ex:
         # if other exception, raise the warning
         print(f"Error logging pose: {str(ex)}")
         return
+
+    if path_id not in paths_dict:
+        print(f"Error: path does not exists [{path_id}]. Available paths:")
+        print('\n'.join(map(lambda x: f"- {x}", paths_dict.keys())))
+        return
+
+    if len(paths_dict[path_id]) == 0:
+        print(f"Error: empty path [{path_id}]")
+        return
+
+    print(f"Path has {len(paths_dict[path_id])} poses")
 
     goal_poses_stamped = []
     for goal_pose in paths_dict[path_id]:
