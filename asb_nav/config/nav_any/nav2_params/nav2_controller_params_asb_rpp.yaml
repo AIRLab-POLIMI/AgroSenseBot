@@ -21,7 +21,7 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 1.91
+      min_turning_radius: 1.7
       desired_linear_vel: 0.5
       lookahead_dist: 1.0
       use_adaptive_lookahead_dist: true
@@ -31,7 +31,6 @@ controller_server:
       min_approach_linear_velocity: 0.2
       approach_velocity_scaling_dist: 0.5
       max_allowed_time_to_collision_up_to_carrot: 2.0
-      use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles TODO set true
       regulated_linear_scaling_min_speed: 0.25
       cost_scaling_dist: 0.3
       cost_scaling_gain: 1.0
@@ -39,15 +38,18 @@ controller_server:
       use_collision_detection: true
       use_interpolation: true
 
+      use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles TODO set true
+
+      use_regulated_linear_velocity_scaling: false  # Reduces velocity based on curvature from desired_linear_vel when the current turning radius is regulated_linear_scaling_min_radius or above, to 0 when the current turning radius is 0 (linearly)
+      regulated_linear_scaling_min_radius: 3.0
+
       # unused features
       use_velocity_scaled_lookahead_dist: false
-      use_regulated_linear_velocity_scaling: false  # Reduces velocity based on curvature
       use_fixed_curvature_lookahead: false
       use_averaged_lookahead_curvature: false
       use_rotate_to_heading: false
 
       # unused features params
-#      regulated_linear_scaling_min_radius: 0.9
 #      min_lookahead_dist: 0.3
 #      max_lookahead_dist: 0.5
 #      lookahead_time: 1.5
