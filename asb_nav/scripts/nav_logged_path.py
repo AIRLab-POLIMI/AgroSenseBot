@@ -75,7 +75,7 @@ def main():
     try:
         navigator.goThroughPoses(goal_poses_stamped, behavior_tree=behavior_tree)
         i = 0
-        timeout = Duration(seconds=120.0)
+        timeout = Duration(seconds=600.0)
         while not navigator.isTaskComplete():
             i += 1
             feedback = navigator.getFeedback()
@@ -85,7 +85,7 @@ def main():
                     print("Timeout exceeded, cancelling navigation task")
 
                 print(f"ETA:     {Duration.from_msg(feedback.estimated_time_remaining).nanoseconds / 1e9:.1f} s")
-                print(f"Timeout: {Duration(seconds=60.0).nanoseconds / 1e9 - (Duration.from_msg(feedback.navigation_time)).nanoseconds / 1e9:.1f} s")
+                print(f"Timeout: {Duration(seconds=600.0).nanoseconds / 1e9 - (Duration.from_msg(feedback.navigation_time)).nanoseconds / 1e9:.1f} s")
 
         result = navigator.getResult()
         print(f"Nav result: {result2str(result)}")

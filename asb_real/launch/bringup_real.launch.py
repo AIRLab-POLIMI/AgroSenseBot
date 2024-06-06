@@ -39,7 +39,7 @@ def generate_launch_description():
 
     ld.add_action(include_control_launch)
     # ld.add_action(microstrain_3dm_gq7_launch)
-    # ld.add_action(fake_scan_node)
+    ld.add_action(fake_scan_node)
     ld.add_action(test_heartbeat_publisher_node)
 
     return ld
