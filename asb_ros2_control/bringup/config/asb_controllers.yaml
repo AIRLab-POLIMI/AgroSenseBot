@@ -46,7 +46,7 @@ asb_base_controller:
     use_angular_velocity_pid: true
     angular_velocity_pid_params:
       p: 1.0
-      i: 4.0
+      i: 6.0
       d: 0.0
       i_min: -2.0
       i_max: +2.0
