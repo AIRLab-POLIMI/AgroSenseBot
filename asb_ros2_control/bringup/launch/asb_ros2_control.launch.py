@@ -82,6 +82,11 @@ def generate_launch_description():
         executable="effective_cmd_vel_pub.py",
     )
 
+    cmd_vel_curvature_publisher_node = Node(
+        package="asb_ros2_control",
+        executable="cmd_vel_curvature_publisher.py",
+    )
+
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -131,6 +136,7 @@ def generate_launch_description():
 
     ld.add_action(robot_state_publisher_node)
     ld.add_action(effective_cmd_vel_publisher_node)
+    ld.add_action(cmd_vel_curvature_publisher_node)
     ld.add_action(joint_state_broadcaster_spawner)
     ld.add_action(delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
