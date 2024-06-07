@@ -2,13 +2,45 @@
 <!--
   This Behavior Tree replans the global path periodically at 1 Hz, without recovery actions.
 -->
+<!--<root main_tree_to_execute="MainTree">-->
+<!--  <BehaviorTree ID="MainTree">-->
+<!--    <PipelineSequence name="NavigateWithReplanning">-->
+<!--      <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" error_code_id="{compute_path_error_code}"/>-->
+<!--      <FollowPath path="{path}" controller_id="FollowPath" error_code_id="{follow_path_error_code}"/>-->
+<!--    </PipelineSequence>-->
+<!--  </BehaviorTree>-->
+<!--</root>-->
+
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
-    <PipelineSequence name="NavigateWithReplanning">
-      <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased" error_code_id="{compute_path_error_code}"/>
-<!--      <RateController hz="1.0">-->
-<!--      </RateController>-->
-      <FollowPath path="{path}" controller_id="FollowPath" error_code_id="{follow_path_error_code}"/>
-    </PipelineSequence>
+<!--    <RecoveryNode number_of_retries="6" name="NavigateRecovery">-->
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="2.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <Fallback>
+              <ReactiveSequence>
+                <Inverter>
+                  <PathExpiringTimer seconds="100" path="{path}"/>
+                </Inverter>
+                <Inverter>
+                  <GlobalUpdatedGoal/>
+                </Inverter>
+                <IsPathValid path="{path}"/>
+              </ReactiveSequence>
+              <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            </Fallback>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+<!--      <ReactiveFallback name="RecoveryFallback">-->
+<!--        <GoalUpdated/>-->
+<!--        <BackUp backup_dist="+0.6" backup_speed="0.2"/>-->
+<!--      </ReactiveFallback>-->
+<!--    </RecoveryNode>-->
   </BehaviorTree>
 </root>
