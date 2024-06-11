@@ -568,7 +568,7 @@
       <child link="left_track"/>
       <origin xyz="0 0.44 0" rpy="0 0 0"/>
     </joint>
-    <link name="base_scan_rear_left_multilayer">
+    <link name="base_scan_rear_left_multilayer_sim">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
@@ -582,12 +582,19 @@
         </geometry>
       </collision>
     </link>
+    <joint name="base_link_base_scan_rear_left_multilayer_sim_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_rear_left_multilayer_sim"/>
+      <origin xyz="-1 0.81 0.1859" rpy="0 0 2.356194"/>
+    </joint>
+    <link name="base_scan_rear_left_multilayer">
+    </link>
     <joint name="base_link_base_scan_rear_left_multilayer_joint" type="fixed">
       <parent link="base_link"/>
       <child link="base_scan_rear_left_multilayer"/>
       <origin xyz="-1 0.81 0.1859" rpy="0 0 -3.141593"/>
     </joint>
-    <link name="base_scan_front_right_multilayer">
+    <link name="base_scan_front_right_multilayer_sim">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
@@ -600,6 +607,13 @@
           <cylinder radius="0.0435" length="0.0742"/>
         </geometry>
       </collision>
+    </link>
+    <joint name="base_link_base_scan_front_right_multilayer_sim_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_front_right_multilayer_sim"/>
+      <origin xyz="0.9745 -0.81 0.1859" rpy="0 0 -0.785398"/>
+    </joint>
+    <link name="base_scan_front_right_multilayer">
     </link>
     <joint name="base_link_base_scan_front_right_multilayer_joint" type="fixed">
       <parent link="base_link"/>

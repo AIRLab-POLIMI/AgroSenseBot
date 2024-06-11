@@ -21,11 +21,9 @@ def generate_launch_description():
     )
 
     include_front_os0_launch = IncludeLaunchDescription(
-        # launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_real"), "launch", "ouster_os0_driver.launch.py")),
         launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("ouster_ros"), "launch", "driver.launch.py")),
         launch_arguments={
             "params_file": os.path.join(pkg("asb_real"), "config", "os0.yaml"),
-            # "os_driver_name": "scan_front_right_multilayer_driver",
             "ouster_ns": "scan_front_right_multilayer",
             "viz": "False",
         }.items(),

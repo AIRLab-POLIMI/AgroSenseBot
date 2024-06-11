@@ -36,14 +36,14 @@ scan_front_right_multilayer/os_driver:
     # - RNG15_RFL8_NIR8
     udp_profile_lidar: ''
     # metadata[optional]: path to save metadata file to, if left empty a file
-    # with the sensor hostname or ip will be crearted in ~/.ros folder.
+    # with the sensor hostname or ip will be created in ~/.ros folder.
     metadata: ''
     # lidar_port[optional]: port value should be in the range [0, 65535]. If you
-    # use 0 as the port value then the first avaliable port number will be
+    # use 0 as the port value then the first available port number will be
     # assigned.
     lidar_port: 0
     # imu_port[optional]: port value should be in the range [0, 65535]. If you
-    # use 0 as the port value then the first avaliable port number will be
+    # use 0 as the port value then the first available port number will be
     # assigned.
     imu_port: 0
     # sensor_frame[optional]: name to use when referring to the sensor frame.
@@ -64,7 +64,7 @@ scan_front_right_multilayer/os_driver:
     # message. Choose a value the range [0, sensor_beams_count).
     scan_ring: 0
     # use_system_default_qos[optional]: if false, data are published with sensor
-    # data QoS. This is preferrable for production but default QoS is needed for
+    # data QoS. This is preferable for production but default QoS is needed for
     # rosbag. See: https://github.com/ros2/rosbag2/issues/125
     use_system_default_qos: false
 
@@ -106,14 +106,14 @@ scan_rear_left_multilayer/os_driver:
     # - RNG15_RFL8_NIR8
     udp_profile_lidar: ''
     # metadata[optional]: path to save metadata file to, if left empty a file
-    # with the sensor hostname or ip will be crearted in ~/.ros folder.
+    # with the sensor hostname or ip will be created in ~/.ros folder.
     metadata: ''
     # lidar_port[optional]: port value should be in the range [0, 65535]. If you
-    # use 0 as the port value then the first avaliable port number will be
+    # use 0 as the port value then the first available port number will be
     # assigned.
     lidar_port: 0
     # imu_port[optional]: port value should be in the range [0, 65535]. If you
-    # use 0 as the port value then the first avaliable port number will be
+    # use 0 as the port value then the first available port number will be
     # assigned.
     imu_port: 0
     # sensor_frame[optional]: name to use when referring to the sensor frame.
@@ -134,6 +134,6 @@ scan_rear_left_multilayer/os_driver:
     # message. Choose a value the range [0, sensor_beams_count).
     scan_ring: 0
     # use_system_default_qos[optional]: if false, data are published with sensor
-    # data QoS. This is preferrable for production but default QoS is needed for
+    # data QoS. This is preferable for production but default QoS is needed for
     # rosbag. See: https://github.com/ros2/rosbag2/issues/125
     use_system_default_qos: false
