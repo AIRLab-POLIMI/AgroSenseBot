@@ -26,7 +26,7 @@ def generate_launch_description():
     )
 
     include_nav_launch = IncludeLaunchDescription(
-        launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav_dual_rtk_no_lidar.launch.py")),
+        launch_description_source=PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav_dual_rtk.launch.py")),
     )
 
     ld = launch.LaunchDescription()
