@@ -11,7 +11,7 @@ from math import pi
 class EffCmdVelPublisher(Node):
 
     def __init__(self):
-        super().__init__('scan_test_publisher')
+        super().__init__('eff_cmd_vel_publisher')
         self.control_system_state_sub_ = self.create_subscription(
             ControlSystemState, '/asb_control_system_status_controller/control_system_state', self.control_system_state_callback, 10)
         self.eff_cmd_vel_pub_ = self.create_publisher(Twist, '/eff_cmd_vel', 10)

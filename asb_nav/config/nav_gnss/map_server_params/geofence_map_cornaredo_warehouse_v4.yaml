@@ -1,0 +1,7 @@
+image: geofence_map_cornaredo_warehouse_v4.pgm
+mode: trinary
+resolution: 0.0687
+origin: [-105, -51.9, 0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.25

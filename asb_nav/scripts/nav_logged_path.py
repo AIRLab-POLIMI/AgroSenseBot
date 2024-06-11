@@ -33,7 +33,7 @@ def main():
     path_id = sys.argv[2] if len(sys.argv) > 2 else default_path_id
     print(f"Approach path id set to {path_id}")
 
-    default_behavior_tree_name = "asb_approach_row_navigate_through_poses.xml"
+    default_behavior_tree_name = "asb_no_replanning_navigate_through_poses.xml"
     behavior_tree_name = sys.argv[3] if len(sys.argv) > 3 else default_behavior_tree_name
     behavior_tree = os.path.join(get_package_share_directory("asb_nav"), "config", "behavior_trees", behavior_tree_name)
     print(f"Behavior tree name set to {behavior_tree_name}")
@@ -75,7 +75,7 @@ def main():
     try:
         navigator.goThroughPoses(goal_poses_stamped, behavior_tree=behavior_tree)
         i = 0
-        timeout = Duration(seconds=120.0)
+        timeout = Duration(seconds=600.0)
         while not navigator.isTaskComplete():
             i += 1
             feedback = navigator.getFeedback()
@@ -85,7 +85,7 @@ def main():
                     print("Timeout exceeded, cancelling navigation task")
 
                 print(f"ETA:     {Duration.from_msg(feedback.estimated_time_remaining).nanoseconds / 1e9:.1f} s")
-                print(f"Timeout: {Duration(seconds=60.0).nanoseconds / 1e9 - (Duration.from_msg(feedback.navigation_time)).nanoseconds / 1e9:.1f} s")
+                print(f"Timeout: {Duration(seconds=600.0).nanoseconds / 1e9 - (Duration.from_msg(feedback.navigation_time)).nanoseconds / 1e9:.1f} s")
 
         result = navigator.getResult()
         print(f"Nav result: {result2str(result)}")

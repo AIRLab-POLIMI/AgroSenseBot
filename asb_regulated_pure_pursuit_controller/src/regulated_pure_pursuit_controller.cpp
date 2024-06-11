@@ -75,6 +75,9 @@ void RegulatedPurePursuitController::configure(
   global_path_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
   carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("lookahead_point", 1);
   carrot_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("lookahead_pose", 1);
+  lookahead_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("lookahead_curvature", 1);
+  min_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("min_curvature", 1);
+  max_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("max_curvature", 1);
 
   RCLCPP_INFO(logger_, "ASB RPP configured.");
 }
@@ -89,6 +92,9 @@ void RegulatedPurePursuitController::cleanup()
   global_path_pub_.reset();
   carrot_pub_.reset();
   carrot_pose_pub_.reset();
+  lookahead_curvature_pub_.reset();
+  min_curvature_pub_.reset();
+  max_curvature_pub_.reset();
 }
 
 void RegulatedPurePursuitController::activate()
@@ -101,6 +107,9 @@ void RegulatedPurePursuitController::activate()
   global_path_pub_->on_activate();
   carrot_pub_->on_activate();
   carrot_pose_pub_->on_activate();
+  lookahead_curvature_pub_->on_activate();
+  min_curvature_pub_->on_activate();
+  max_curvature_pub_->on_activate();
 }
 
 void RegulatedPurePursuitController::deactivate()
@@ -113,6 +122,9 @@ void RegulatedPurePursuitController::deactivate()
   global_path_pub_->on_deactivate();
   carrot_pub_->on_deactivate();
   carrot_pose_pub_->on_deactivate();
+  lookahead_curvature_pub_->on_deactivate();
+  min_curvature_pub_->on_deactivate();
+  max_curvature_pub_->on_deactivate();
 }
 
 std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController::createCarrotMsg(
@@ -124,6 +136,13 @@ std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController
   carrot_msg->point.y = carrot_pose.pose.position.y;
   carrot_msg->point.z = 0.01;  // publish above the map to stand out
   return carrot_msg;
+}
+
+std::unique_ptr<std_msgs::msg::Float64> RegulatedPurePursuitController::createCurvatureMsg(double curvature)
+{
+  auto curvature_msg = std::make_unique<std_msgs::msg::Float64>();
+  curvature_msg->data = curvature;
+  return curvature_msg;
 }
 
 //double RegulatedPurePursuitController::getLookAheadDistance(
@@ -266,12 +285,16 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     {
       double max_curvature = 1.0/params_->min_turning_radius;
       constrained_lookahead_curvature = std::clamp(lookahead_curvature, -max_curvature, max_curvature);
+      min_curvature_pub_->publish(createCurvatureMsg(-max_curvature));
+      max_curvature_pub_->publish(createCurvatureMsg(max_curvature));
     }
     else
     {
       constrained_lookahead_curvature = lookahead_curvature;
     }
     angular_vel = linear_vel * constrained_lookahead_curvature;
+
+    lookahead_curvature_pub_->publish(createCurvatureMsg(constrained_lookahead_curvature));
   }
 
   // Collision checking on this velocity heading

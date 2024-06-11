@@ -17,22 +17,35 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
     pkg = get_package_share_directory
+
+    use_sim_time_launch_configuration = LaunchConfiguration('use_sim_time')
+    use_sim_time_launch_argument = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Whether to set the use_sim_time parameter to true. Should only be set to true if using Gazebo (not Webots).',
+    )
 
     # Launch rviz
     start_rviz_cmd = Node(
         package='rviz2',
         executable='rviz2',
         arguments=['-d', os.path.join(pkg('asb_nav'), 'config', 'nav.rviz')],
-        output='screen'
+        output='screen',
+        parameters=[
+            {"use_sim_time": use_sim_time_launch_configuration},
+        ],
     )
 
     # Create the launch description and populate
     ld = LaunchDescription()
+    ld.add_action(use_sim_time_launch_argument)
     ld.add_action(start_rviz_cmd)
 
     return ld

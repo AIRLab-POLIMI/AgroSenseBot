@@ -28,6 +28,7 @@
 #include "pluginlib/class_loader.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "std_msgs/msg/float64.hpp"
 #include "asb_regulated_pure_pursuit_controller/path_handler.hpp"
 #include "asb_regulated_pure_pursuit_controller/collision_checker.hpp"
 #include "asb_regulated_pure_pursuit_controller/parameter_handler.hpp"
@@ -129,6 +130,13 @@ protected:
     const geometry_msgs::msg::PoseStamped & carrot_pose);
 
   /**
+   * @brief Creates a Float64 message for plotting the current lookahead and maximum curvature
+   * @param curvature Input curvature as double
+   * @return Float64 message containing the curvature value
+   */
+  std::unique_ptr<std_msgs::msg::Float64> createCurvatureMsg(double curvature);
+
+  /**
    * @brief Whether robot should rotate to rough path heading
    * @param carrot_pose current lookahead point
    * @param angle_to_path Angle of robot output relative to carrot marker
@@ -211,7 +219,10 @@ protected:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>> carrot_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> carrot_pose_pub_;
-  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
+//  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> lookahead_curvature_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> min_curvature_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> max_curvature_pub_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::PathHandler> path_handler_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::ParameterHandler> param_handler_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::CollisionChecker> collision_checker_;
