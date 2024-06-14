@@ -1,22 +1,72 @@
 <launch>
+
 	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server">
+		<remap from="cloud_in" to="/scan_front_right_multilayer/points" />
+		<remap from="/occupied_cells_vis_array" to="/occupied_cells_vis_array_1" />
+		<param name="use_sim_time" value="True" />
 		<param name="resolution" value="0.05" />
 
-		<!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
-		<param name="frame_id" value="map" />
+		<param name="frame_id" value="hedge" />
 
-		<!-- Minimum height of points to consider for insertion in the callback.
-		Any point outside of this interval will be discarded before running any insertion or ground plane filtering.
-		You can do a rough filtering based on height with this, but if you enable the ground_filter this interval needs
-		to include the ground plane. -->
 		<param name="point_cloud_min_z" value="0.4" />
+		<param name="point_cloud_max_z" value="0.8" />
+		<param name="point_cloud_min_x" value="-12.0" />
+		<param name="point_cloud_max_x" value="12.0" />
+		<param name="point_cloud_min_y" value="-1.5" />
+		<param name="point_cloud_max_y" value="2.5" />
 
-		<!-- maximum range to integrate (speedup!) -->
-		<param name="sensor_model.max_range" value="3.0" />
+		<param name="color.r" value="1.0" />
+		<param name="color.g" value="0.4" />
+		<param name="color.b" value="0.0" />
+		<param name="color.a" value="1.0" />
 
-		<param name="use_sim_time" value="True" />
-
-		<!-- data source to integrate (PointCloud2) -->
-		<remap from="cloud_in" to="/scan_front_right_multilayer/points" />
+		<param name="sensor_model.max_range" value="10.0" />
 	</node>
+
+	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server">
+		<remap from="cloud_in" to="/scan_front_right_multilayer/points" />
+		<remap from="/occupied_cells_vis_array" to="/occupied_cells_vis_array_2" />
+		<param name="use_sim_time" value="True" />
+		<param name="resolution" value="0.05" />
+
+		<param name="frame_id" value="hedge" />
+
+		<param name="point_cloud_min_z" value="0.8" />
+		<param name="point_cloud_max_z" value="1.2" />
+		<param name="point_cloud_min_x" value="-12.0" />
+		<param name="point_cloud_max_x" value="12.0" />
+		<param name="point_cloud_min_y" value="-1.5" />
+		<param name="point_cloud_max_y" value="2.5" />
+
+		<param name="color.r" value="0.2" />
+		<param name="color.g" value="0.5" />
+		<param name="color.b" value="0.9" />
+		<param name="color.a" value="1.0" />
+
+		<param name="sensor_model.max_range" value="10.0" />
+	</node>
+
+	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server">
+		<remap from="cloud_in" to="/scan_front_right_multilayer/points" />
+		<remap from="/occupied_cells_vis_array" to="/occupied_cells_vis_array_3" />
+		<param name="use_sim_time" value="True" />
+		<param name="resolution" value="0.05" />
+
+		<param name="frame_id" value="hedge" />
+
+		<param name="point_cloud_min_z" value="1.2" />
+		<param name="point_cloud_max_z" value="2.1" />
+		<param name="point_cloud_min_x" value="-12.0" />
+		<param name="point_cloud_max_x" value="12.0" />
+		<param name="point_cloud_min_y" value="-1.5" />
+		<param name="point_cloud_max_y" value="2.5" />
+
+		<param name="color.r" value="0.0" />
+		<param name="color.g" value="0.7" />
+		<param name="color.b" value="0.0" />
+		<param name="color.a" value="1.0" />
+
+		<param name="sensor_model.max_range" value="10.0" />
+	</node>
+
 </launch>
