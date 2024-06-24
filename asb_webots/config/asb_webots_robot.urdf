@@ -24,13 +24,13 @@
             </ros>
         </device>
 
-        <device reference="base_scan_front_right_multilayer_sim" type="Lidar">
+        <device reference="base_scan_front_multilayer_sim" type="Lidar">
             <ros>
                 <enabled>true</enabled>
                 <updateRate>10</updateRate>
-                <topicName>/scan_front_right_multilayer</topicName>
+                <topicName>/scan_front_multilayer</topicName>
                 <alwaysOn>false</alwaysOn>
-                <frameName>base_scan_front_right_multilayer_sim</frameName>
+                <frameName>base_scan_front_multilayer_sim</frameName>
             </ros>
         </device>
 

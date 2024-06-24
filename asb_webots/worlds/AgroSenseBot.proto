@@ -142,15 +142,14 @@ PROTO AgroSenseBot [
         resolution 1080
       }
       Solid {
-        translation 0.9745 -0.81 0.1859
-        rotation 0 0 1 0
-        name "base_scan_front_right_multilayer"
+        translation 0.805 0 1.5359
+        rotation 1 0 0 3.141592654
+        name "base_scan_front_multilayer"
       }
       OusterOS0 {
-        translation 0.9745 -0.81 0.1859
-        rotation 0 0 1 5.497787143782138
-        name "base_scan_front_right_multilayer_sim"
-        fieldOfView 4.71238898038469
+        translation 0.805 0 1.5359
+        rotation 1 0 0 3.141592654
+        name "base_scan_front_multilayer_sim"
         numberOfLayers 32
         version "32"
       }

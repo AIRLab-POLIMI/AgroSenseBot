@@ -23,7 +23,7 @@ def generate_launch_description():
             {'robot_description': os.path.join(pkg('asb_webots'), 'config', 'asb_webots_robot.urdf')},
         ],
         remappings={
-            '/scan_front_right_multilayer/point_cloud': '/scan_front_right_multilayer/points',
+            '/scan_front_multilayer/point_cloud': '/scan_front_multilayer/points',
             '/scan_rear_left_multilayer/point_cloud': '/scan_rear_left_multilayer/points',
         }.items()
     )
