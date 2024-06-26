@@ -1,0 +1,8 @@
+<launch>
+
+  <node pkg="asb_lidar_filter" exec="asb_lidar_filter_node" name="asb_lidar_filter">
+    <remap from="points_in" to="/scan_front_multilayer/points"/>
+    <remap from="points_out" to="/scan_front_multilayer/points_filtered"/>
+  </node>
+
+</launch>
