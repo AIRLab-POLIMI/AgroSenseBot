@@ -16,6 +16,8 @@
 #define ASB_LIDAR_FILTER_ASB_LIDAR_FILTER_H
 
 #include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 
@@ -35,7 +37,11 @@ private:
 
   void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
 
-  rclcpp::TimerBase::SharedPtr timer_;
+  std::string frame_id_;
+  double x_min_, x_max_, y_min_, y_max_, z_min_, z_max_;
+
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr points_in_subscriber_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_publisher_;
 };

@@ -1,6 +1,10 @@
 <launch>
 
-  <node pkg="asb_lidar_filter" exec="asb_lidar_filter_node" name="asb_lidar_filter">
+  <arg name="use_sim_time" default="false" />
+
+  <node pkg="asb_lidar_filter" exec="asb_lidar_filter_node" name="lidar_filter_front">
+    <param name="use_sim_time" value="$(var use_sim_time)" />
+    <param from="$(find-pkg-share asb_lidar_filter)/config/lidar_filter.yaml" />
     <remap from="points_in" to="/scan_front_multilayer/points"/>
     <remap from="points_out" to="/scan_front_multilayer/points_filtered"/>
   </node>

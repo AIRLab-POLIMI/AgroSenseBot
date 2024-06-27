@@ -14,9 +14,37 @@
 
 #include "asb_lidar_filter/asb_lidar_filter.h"
 
+#include "pcl/point_types.h"
+#include "pcl/filters/crop_box.h"
+#include "pcl_conversions/pcl_conversions.h"
+
+#include "geometry_msgs/msg/point_stamped.hpp"
+
+#include "tf2/exceptions.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+
 using std::placeholders::_1;
 
 ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
+
+  this->declare_parameter("frame_id", "base_footprint");
+  this->declare_parameter("x_min", 0.0);
+  this->declare_parameter("x_max", 0.0);
+  this->declare_parameter("y_min", 0.0);
+  this->declare_parameter("y_max", 0.0);
+  this->declare_parameter("z_min", 0.0);
+  this->declare_parameter("z_max", 0.0);
+
+  frame_id_ = this->get_parameter("frame_id").as_string();
+  x_min_ = this->get_parameter("x_min").as_double();
+  x_max_ = this->get_parameter("x_max").as_double();
+  y_min_ = this->get_parameter("y_min").as_double();
+  y_max_ = this->get_parameter("y_max").as_double();
+  z_min_ = this->get_parameter("z_min").as_double();
+  z_max_ = this->get_parameter("z_max").as_double();
+
+  tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   points_in_subscriber_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
     "points_in", rclcpp::SensorDataQoS().durability_volatile().best_effort(),
@@ -25,16 +53,64 @@ ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
   points_out_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
     "points_out", rclcpp::SensorDataQoS().durability_volatile().best_effort());
 
-  //  TODO get footprint box
-
 }
 
 void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg)
 {
   RCLCPP_INFO(this->get_logger(), "received point cloud. frame_id: %s", points_in_msg->header.frame_id.c_str());
 
-//  TODO transform footprint box
-//  TODO apply box filter
+  geometry_msgs::msg::PointStamped p_min;
+  p_min.header.frame_id = frame_id_;
+  p_min.header.stamp = points_in_msg->header.stamp;
+  p_min.point.x = x_min_;
+  p_min.point.y = y_min_;
+  p_min.point.z = z_min_;
 
-  points_out_publisher_->publish(*points_in_msg);
+  geometry_msgs::msg::PointStamped p_max;
+  p_max.header.frame_id = frame_id_;
+  p_max.header.stamp = points_in_msg->header.stamp;
+  p_max.point.x = x_max_;
+  p_max.point.y = y_max_;
+  p_max.point.z = z_max_;
+
+  geometry_msgs::msg::PointStamped p_min_t;
+  geometry_msgs::msg::PointStamped p_max_t;
+  try {
+    tf_buffer_->transform(p_min, p_min_t, points_in_msg->header.frame_id);
+    tf_buffer_->transform(p_max, p_max_t, points_in_msg->header.frame_id);
+
+  } catch (tf2::TransformException &ex) {
+    RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
+    return;
+  }
+
+  typedef pcl::PointXYZ PointType;  // TODO use correct point type from os_driver
+  auto points_in = std::make_shared<pcl::PointCloud<PointType>>();
+  pcl::fromROSMsg(*points_in_msg, *points_in);
+  auto points_out = std::make_shared<pcl::PointCloud<PointType>>();
+
+  pcl::CropBox<PointType> crop_box_filter;
+  crop_box_filter.setNegative(true);
+  crop_box_filter.setInputCloud(points_in);
+  crop_box_filter.setMin(Eigen::Vector4f(
+    (float)std::min(p_min_t.point.x, p_max_t.point.x),
+    (float)std::min(p_min_t.point.y, p_max_t.point.y),
+    (float)std::min(p_min_t.point.z, p_max_t.point.z),
+    1.0
+    ));
+  crop_box_filter.setMax(Eigen::Vector4f(
+    (float)std::max(p_min_t.point.x, p_max_t.point.x),
+    (float)std::max(p_min_t.point.y, p_max_t.point.y),
+    (float)std::max(p_min_t.point.z, p_max_t.point.z),
+    1.0
+  ));
+  crop_box_filter.filter(*points_out);
+
+  // TODO filter based on intensity to remove reflections on aluminium profiles near the sensor (maybe), and points with range less than the sensor min range (some are in the sensor origin)
+
+  sensor_msgs::msg::PointCloud2::SharedPtr points_out_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+  points_out_msg->header = points_in_msg->header;
+  pcl::toROSMsg(*points_out, *points_out_msg);
+
+  points_out_publisher_->publish(*points_out_msg);
 }
