@@ -14,6 +14,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+#find_package(PCL REQUIRED COMPONENTS common)
 
 add_executable(asb_lidar_filter_node
         src/asb_lidar_filter_node.cpp
@@ -35,6 +36,10 @@ ament_target_dependencies(asb_lidar_filter_node
   tf2_ros
   geometry_msgs
 )
+
+#target_link_libraries(asb_lidar_filter_node
+#    pcl_common
+#)
 
 install(TARGETS asb_lidar_filter_node
   DESTINATION lib/${PROJECT_NAME})
