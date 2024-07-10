@@ -29,6 +29,18 @@ def generate_launch_description():
         }.items(),
     )
 
+    front_os0_filter_node = Node(
+        package="asb_lidar_filter",
+        executable="asb_lidar_filter_node",
+        name="lidar_filter_front",
+        parameters=[os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml")],
+        remappings={
+            "points_in": "/scan_front_multilayer/points",
+            "points_out": "/scan_front_multilayer/points_filtered",
+        }.items(),
+        output="screen",
+    )
+
     test_heartbeat_publisher_node = Node(
         package="asb_sim",
         executable="test_heartbeat.py",
@@ -41,6 +53,7 @@ def generate_launch_description():
     ld.add_action(include_control_launch)
     # ld.add_action(microstrain_3dm_gq7_launch)  # Launch separately to avoid resetting RTK fix when restarting nodes
     ld.add_action(include_front_os0_launch)
+    ld.add_action(front_os0_filter_node)
     ld.add_action(test_heartbeat_publisher_node)
 
     return ld
