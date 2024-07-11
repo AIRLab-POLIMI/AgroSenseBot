@@ -4,6 +4,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 
 EXTERNPROTO "SimpleVineyard.proto"
+EXTERNPROTO "ModelVineyard.proto"
 EXTERNPROTO "AgroSenseBot.proto"
 
 WorldInfo {
@@ -38,9 +39,14 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 
-SimpleVineyard {
-  translation 14 -2 0
-  rotation 0 0 1 0.39
+#SimpleVineyard {
+#  translation 14 -2 0
+#  rotation 0 0 1 0.39
+#}
+
+ModelVineyard {
+  translation 0 0 0
+  rotation 0 0 1 0
 }
 
 AgroSenseBot {
