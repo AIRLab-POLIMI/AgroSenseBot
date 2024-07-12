@@ -45,10 +45,10 @@ install(
     TARGETS asb_spraying_task_node
     DESTINATION lib/${PROJECT_NAME})
 
-#install(
-#        DIRECTORY scripts/
-#        DESTINATION lib/${PROJECT_NAME}
-#)
+install(
+    DIRECTORY scripts/
+    DESTINATION lib/${PROJECT_NAME}
+)
 
 install(
     DIRECTORY launch/

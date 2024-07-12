@@ -9,6 +9,8 @@
 	<arg name="min_y" default="-2.0" />
 	<arg name="max_y" default="1.5" />
 
+	<arg name="hit_probability" default="0.9" />
+	<arg name="miss_probability" default="0.4" />
 	<arg name="max_range" default="10.0" />
 
 	<node pkg="tf2_ros" exec="static_transform_publisher" name="hedge_tf_publisher"
@@ -32,6 +34,8 @@
 		<param name="point_cloud_max_y" value="$(var max_y)" />
 		<param name="point_cloud_min_z" value="0.4" />
 
+		<param name="sensor_model.hit" value="$(var hit_probability)" />
+		<param name="sensor_model.miss" value="$(var miss_probability)" />
 		<param name="sensor_model.max_range" value="$(var max_range)" />
 	</node>
 
@@ -54,6 +58,8 @@
 		<param name="point_cloud_min_z" value="0.4" />
 		<param name="point_cloud_max_z" value="0.8" />
 
+		<param name="sensor_model.hit" value="$(var hit_probability)" />
+		<param name="sensor_model.miss" value="$(var miss_probability)" />
 		<param name="sensor_model.max_range" value="$(var max_range)" />
 	</node>
 
@@ -76,6 +82,8 @@
 		<param name="point_cloud_min_z" value="0.8" />
 		<param name="point_cloud_max_z" value="1.2" />
 
+		<param name="sensor_model.hit" value="$(var hit_probability)" />
+		<param name="sensor_model.miss" value="$(var miss_probability)" />
 		<param name="sensor_model.max_range" value="$(var max_range)" />
 	</node>
 
@@ -98,6 +106,8 @@
 		<param name="point_cloud_min_z" value="1.2" />
 		<param name="point_cloud_max_z" value="2.1" />
 
+		<param name="sensor_model.hit" value="$(var hit_probability)" />
+		<param name="sensor_model.miss" value="$(var miss_probability)" />
 		<param name="sensor_model.max_range" value="$(var max_range)" />
 	</node>
 
