@@ -2,6 +2,7 @@
 
 	<arg name="use_sim_time" default="false" />
 	<arg name="lidar_topic" default="/scan_front_multilayer/points_filtered" />
+	<arg name="alpha" default="0.9" />
 
 	<arg name="min_x" default="0.5" />
 	<arg name="max_x" default="22.0" />
@@ -13,34 +14,36 @@
 	<node pkg="tf2_ros" exec="static_transform_publisher" name="hedge_tf_publisher"
 				args="--x 1.75 --y 10.8 --z 0.0 --qx 0.0 --qy 0.0 --qz -0.573 --qw 0.819 --frame-id map --child-frame-id hedge" />
 
-	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server_all">
+	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server" namespace="canopy_all">
 		<remap from="cloud_in" to="$(var lidar_topic)" />
-		<remap from="/occupied_cells_vis_array" to="/occupied_cells_vis_array_all" />
 		<param name="use_sim_time" value="$(var use_sim_time)" />
 		<param name="resolution" value="0.05" />
 
 		<param name="color.r" value="1.0" />
 		<param name="color.g" value="1.0" />
 		<param name="color.b" value="1.0" />
-		<param name="color.a" value="0.5" />
+		<param name="color.a" value="$(var alpha)" />
 
 		<param name="frame_id" value="hedge" />
 
+		<param name="point_cloud_min_x" value="$(var min_x)" />
+		<param name="point_cloud_max_x" value="$(var max_x)" />
+		<param name="point_cloud_min_y" value="$(var min_y)" />
+		<param name="point_cloud_max_y" value="$(var max_y)" />
 		<param name="point_cloud_min_z" value="0.4" />
 
 		<param name="sensor_model.max_range" value="$(var max_range)" />
 	</node>
 
-	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server_1">
+	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server" namespace="canopy_1">
 		<remap from="cloud_in" to="$(var lidar_topic)" />
-		<remap from="/occupied_cells_vis_array" to="/occupied_cells_vis_array_1" />
 		<param name="use_sim_time" value="$(var use_sim_time)" />
 		<param name="resolution" value="0.05" />
 
 		<param name="color.r" value="1.0" />
 		<param name="color.g" value="0.4" />
 		<param name="color.b" value="0.0" />
-		<param name="color.a" value="1.0" />
+		<param name="color.a" value="$(var alpha)" />
 
 		<param name="frame_id" value="hedge" />
 
@@ -54,16 +57,15 @@
 		<param name="sensor_model.max_range" value="$(var max_range)" />
 	</node>
 
-	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server_2">
+	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server" namespace="canopy_2">
 		<remap from="cloud_in" to="$(var lidar_topic)" />
-		<remap from="/occupied_cells_vis_array" to="/occupied_cells_vis_array_2" />
 		<param name="use_sim_time" value="$(var use_sim_time)" />
 		<param name="resolution" value="0.05" />
 
 		<param name="color.r" value="0.2" />
 		<param name="color.g" value="0.5" />
 		<param name="color.b" value="0.9" />
-		<param name="color.a" value="1.0" />
+		<param name="color.a" value="$(var alpha)" />
 
 		<param name="frame_id" value="hedge" />
 
@@ -77,16 +79,15 @@
 		<param name="sensor_model.max_range" value="$(var max_range)" />
 	</node>
 
-	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server_3">
+	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server" namespace="canopy_3">
 		<remap from="cloud_in" to="$(var lidar_topic)" />
-		<remap from="/occupied_cells_vis_array" to="/occupied_cells_vis_array_3" />
 		<param name="use_sim_time" value="$(var use_sim_time)" />
 		<param name="resolution" value="0.05" />
 
 		<param name="color.r" value="0.0" />
 		<param name="color.g" value="0.7" />
 		<param name="color.b" value="0.0" />
-		<param name="color.a" value="1.0" />
+		<param name="color.a" value="$(var alpha)" />
 
 		<param name="frame_id" value="hedge" />
 
