@@ -17,6 +17,33 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(asb_msgs REQUIRED)
+find_package(octomap REQUIRED)
+find_package(octomap_msgs REQUIRED)
+
+add_executable(asb_spraying_task_node
+    src/asb_spraying_task_node.cpp
+    src/asb_spraying_task.cpp
+)
+
+target_include_directories(asb_spraying_task_node PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_compile_features(asb_spraying_task_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+# Link the executable with the necessary libraries
+ament_target_dependencies(asb_spraying_task_node
+    rclcpp
+    asb_msgs
+    octomap
+    octomap_msgs
+)
+
+install(
+    TARGETS asb_spraying_task_node
+    DESTINATION lib/${PROJECT_NAME})
 
 #install(
 #        DIRECTORY scripts/
@@ -24,12 +51,12 @@ find_package(ament_cmake REQUIRED)
 #)
 
 install(
-        DIRECTORY launch/
-        DESTINATION share/${PROJECT_NAME}/launch/
+    DIRECTORY launch/
+    DESTINATION share/${PROJECT_NAME}/launch/
 )
 install(
-        DIRECTORY config/
-        DESTINATION share/${PROJECT_NAME}/config/
+    DIRECTORY config/
+    DESTINATION share/${PROJECT_NAME}/config/
 )
 
 if(BUILD_TESTING)

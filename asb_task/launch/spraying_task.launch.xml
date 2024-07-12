@@ -1,5 +1,10 @@
 <launch>
 
-  <!-- TODO -->
+  <arg name="use_sim_time" default="false" />
+
+  <node pkg="asb_task" exec="asb_spraying_task_node" name="spraying_task">
+    <remap from="octomap_full" to="/canopy_3/octomap_full" />
+    <param name="use_sim_time" value="$(var use_sim_time)" />
+  </node>
 
 </launch>
