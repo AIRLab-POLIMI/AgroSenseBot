@@ -33,7 +33,12 @@ def generate_launch_description():
         package="asb_lidar_filter",
         executable="asb_lidar_filter_node",
         name="lidar_filter_front",
-        parameters=[os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml")],
+        parameters=[
+            os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
+            {
+                "point_type": "asb_ouster_ros::Point",
+            },
+        ],
         remappings={
             "points_in": "/scan_front_multilayer/points",
             "points_out": "/scan_front_multilayer/points_filtered",

@@ -40,6 +40,23 @@ def generate_launch_description():
         condition=IfCondition(use_simulator_launch_configuration)
     )
 
+    front_os0_filter_node = Node(
+        package="asb_lidar_filter",
+        executable="asb_lidar_filter_node",
+        name="lidar_filter_front",
+        parameters=[
+            os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
+            {
+                "point_type": "pcl::PointXYZ",
+            },
+        ],
+        remappings={
+            "points_in": "/scan_front_multilayer/points",
+            "points_out": "/scan_front_multilayer/points_filtered",
+        }.items(),
+        output="screen",
+    )
+
     system_test_node = launch_ros.actions.LifecycleNode(
         name="test_node",
         namespace="system_test",
@@ -95,6 +112,7 @@ def generate_launch_description():
     ld.add_action(use_simulator_launch_argument)
 
     ld.add_action(webots_launch)
+    ld.add_action(front_os0_filter_node)
     ld.add_action(system_test_node)
     ld.add_action(lifecycle_inactive_state_handler)
     ld.add_action(lifecycle_configure)

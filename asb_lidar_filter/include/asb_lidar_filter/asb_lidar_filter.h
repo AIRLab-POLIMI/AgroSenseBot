@@ -20,6 +20,7 @@
 #include "tf2_ros/transform_listener.h"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "geometry_msgs/msg/point_stamped.hpp"
 
 #include <chrono>
 #include <functional>
@@ -35,9 +36,14 @@ public:
 
 private:
 
-  void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
+  void points_in_callback_xyz(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
+  void points_in_callback_os(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
 
-  std::string frame_id_;
+  bool transform_box(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg,
+                     geometry_msgs::msg::PointStamped* p_min_t,
+                     geometry_msgs::msg::PointStamped* p_max_t);
+
+  std::string point_type_, frame_id_;
   bool apply_range_min_filter_, apply_range_max_filter_, apply_box_filter_;
   float range_min_, range_max_;
   double x_min_, x_max_, y_min_, y_max_, z_min_, z_max_;
