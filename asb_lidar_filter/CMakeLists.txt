@@ -14,39 +14,35 @@ find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-#find_package(PCL REQUIRED COMPONENTS common)
 
 add_executable(asb_lidar_filter_node
-        src/asb_lidar_filter_node.cpp
-        src/asb_lidar_filter.cpp
+    src/asb_lidar_filter_node.cpp
+    src/asb_lidar_filter.cpp
 )
 
 target_include_directories(asb_lidar_filter_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_compile_features(asb_lidar_filter_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 # Link the executable with the necessary libraries
 ament_target_dependencies(asb_lidar_filter_node
-  rclcpp
-  pcl_conversions
-  pcl_ros
-  tf2
-  tf2_ros
-  geometry_msgs
+    rclcpp
+    pcl_conversions
+    pcl_ros
+    tf2
+    tf2_ros
+    geometry_msgs
 )
 
-#target_link_libraries(asb_lidar_filter_node
-#    pcl_common
-#)
-
-install(TARGETS asb_lidar_filter_node
-  DESTINATION lib/${PROJECT_NAME})
+install(
+    TARGETS asb_lidar_filter_node
+    DESTINATION lib/${PROJECT_NAME})
 
 install(
-  DIRECTORY launch config
-  DESTINATION share/${PROJECT_NAME}
+    DIRECTORY launch config
+    DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
