@@ -30,11 +30,11 @@ PROTO ModelVineyard [
         }
       }
       DEF ROW Pose {
-        translation 2.32411 9.92103 0.66
+        translation 2.32411 9.92103 1.8
         rotation 0 0 1 1.91
         children [
           CadShape {
-            url "models/vine.dae"
+            url "models/vine_tapered_2m_1m.dae"
           }
         ]
       }

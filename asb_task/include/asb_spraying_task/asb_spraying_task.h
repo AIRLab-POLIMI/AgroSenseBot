@@ -16,9 +16,10 @@
 #define ASB_SPRAYING_TASK_ASB_SPRAYING_TASK_H
 
 #include "rclcpp/rclcpp.hpp"
-#include "asb_msgs/msg/canopy_density.hpp"
-#include "octomap_msgs/msg/octomap.hpp"
 #include "octomap/OcTree.h"
+#include "asb_msgs/msg/canopy_data.hpp"
+#include "octomap_msgs/msg/octomap.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 #include <chrono>
 #include <functional>
@@ -28,8 +29,11 @@
 using namespace std::chrono_literals;
 using octomap::OcTree;
 using octomap::AbstractOcTree;
+using asb_msgs::msg::CanopyData;
 using octomap_msgs::msg::Octomap;
-using asb_msgs::msg::CanopyDensity;
+using std_msgs::msg::Header;
+using visualization_msgs::msg::MarkerArray;
+using visualization_msgs::msg::Marker;
 
 class ASBSprayingTask : public rclcpp::Node
 {
@@ -38,12 +42,15 @@ public:
 
 private:
 
+  void add_viz_marker(size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z);
   void octomap_callback(const Octomap::SharedPtr octomap_msg);
 
-  rclcpp::Subscription<Octomap>::SharedPtr octomap_subscriber_;
-  rclcpp::Publisher<CanopyDensity>::SharedPtr canopy_density_publisher_;
+  MarkerArray viz_marker_array_ = MarkerArray();
 
-  float canopy_density_res_ = 0.05;
+  rclcpp::Subscription<Octomap>::SharedPtr octomap_subscriber_;
+  rclcpp::Publisher<CanopyData>::SharedPtr canopy_data_publisher_;
+  rclcpp::Publisher<MarkerArray>::SharedPtr viz_publisher_;
+
 };
 
 

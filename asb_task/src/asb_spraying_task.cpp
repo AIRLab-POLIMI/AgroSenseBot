@@ -19,17 +19,40 @@ using std::placeholders::_1;
 
 ASBSprayingTask::ASBSprayingTask() : Node("asb_spraying_task") {
 
+  canopy_data_publisher_ = this->create_publisher<CanopyData>(
+    "canopy_data", rclcpp::SensorDataQoS().reliable().transient_local());
+
+  viz_publisher_ = this->create_publisher<MarkerArray>(
+    "canopy_visualization_markers", rclcpp::SensorDataQoS().reliable().transient_local());
+
   octomap_subscriber_ = this->create_subscription<Octomap>(
     "octomap_full", rclcpp::SensorDataQoS().reliable().transient_local(),
     std::bind(&ASBSprayingTask::octomap_callback, this, _1));
 
-  canopy_density_publisher_ = this->create_publisher<CanopyDensity>(
-    "canopy_density", rclcpp::SensorDataQoS().reliable().transient_local());
-
 }
 
-void ASBSprayingTask::octomap_callback(const octomap_msgs::msg::Octomap::SharedPtr octomap_msg) {
-  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+void ASBSprayingTask::add_viz_marker(size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z) {
+  viz_marker_array_.markers[marker_id].pose.position.x = x;
+  viz_marker_array_.markers[marker_id].pose.position.y = (y_min + y_max) / 2;
+  viz_marker_array_.markers[marker_id].pose.position.z = z;
+  viz_marker_array_.markers[marker_id].pose.orientation.w = 1;
+  viz_marker_array_.markers[marker_id].header = header;
+  viz_marker_array_.markers[marker_id].ns = "canopy";
+  viz_marker_array_.markers[marker_id].id = (int)marker_id;
+  viz_marker_array_.markers[marker_id].type = Marker::CUBE;
+  viz_marker_array_.markers[marker_id].action = Marker::ADD;
+  viz_marker_array_.markers[marker_id].scale.x = size;
+  viz_marker_array_.markers[marker_id].scale.y = size + y_max - y_min;
+  viz_marker_array_.markers[marker_id].scale.z = size;
+  viz_marker_array_.markers[marker_id].color.r = 0.1;
+  viz_marker_array_.markers[marker_id].color.g = 0.7;
+  viz_marker_array_.markers[marker_id].color.b = 0.1;
+  viz_marker_array_.markers[marker_id].color.a = 1.0;
+}
+
+void ASBSprayingTask::octomap_callback(const Octomap::SharedPtr octomap_msg) {
+
+  bool publish_viz_marker_array = viz_publisher_->get_subscription_count() > 0;
 
   auto* abstract_octree = octomap_msgs::msgToMap(*octomap_msg);
   if(!abstract_octree) {
@@ -43,57 +66,77 @@ void ASBSprayingTask::octomap_callback(const octomap_msgs::msg::Octomap::SharedP
     return;
   }
 
-  double x_min, y_min, z_min, x_max, y_max, z_max;
-  octree->getMetricMin(x_min, y_min, z_min);
-  octree->getMetricMax(x_max, y_max, z_max);
-  int i_min = floor(x_min/canopy_density_res_);
-  int i_max = ceil(x_max/canopy_density_res_);
+  // expand the tree to make sure all leaf nodes are the same size (resolution)
+  octree->expand();
 
-  RCLCPP_INFO(
-    this->get_logger(), "Map received, %zu nodes, %.2f m res, x_min: %f, x_max: %f, y_min: %f, y_max: %f, z_min: %f, z_max: %f, i_min: %i, i_max: %i",
-    octree->size(),
-    octree->getResolution(),
-    x_min,
-    x_max,
-    y_min,
-    y_max,
-    z_min,
-    z_max,
-    i_min,
-    i_max
-    );
+  CanopyData canopy_data_msg;
+  canopy_data_msg.header = octomap_msg->header;
+  canopy_data_msg.resolution = (float)octree->getResolution();
 
-  float res = (float) octree->getResolution();
-  double leaf_volume = pow(res, 3);
+  double bb_x_min, bb_y_min, bb_z_min, bb_x_max, bb_y_max, bb_z_max;
+  octree->getMetricMin(bb_x_min, bb_y_min, bb_z_min);
+  octree->getMetricMax(bb_x_max, bb_y_max, bb_z_max);
 
-  CanopyDensity canopy_density_msg;
-  canopy_density_msg.header = octomap_msg->header;
-  for(int i = i_min; i <= i_max; i++) {
-    float x_1 = (float)i * res;
-    float x_2 = x_1 + res;
-    float x = x_1 + res/2;
+//  bb_x_min = 1.0; // TODO get region of interest from somewhere
+//  bb_x_max = 3.0; // TODO get region of interest from somewhere
 
-    auto bbx_min = octomap::point3d(x_1, (float)y_min, (float)z_min);
-    auto bbx_max = octomap::point3d(x_2, (float)y_max, (float)z_max);
-
-    if(octree->begin() == octree->end()) {
-      RCLCPP_INFO(this->get_logger(), "slice is empty");
+  // collect y values for each x, z coordinate
+  auto bbx_min = octomap::point3d((float)bb_x_min, (float)bb_y_min, (float)bb_z_min);
+  auto bbx_max = octomap::point3d((float)bb_x_max, (float)bb_y_max, (float)bb_z_max);
+  std::map<std::pair<double, double>, std::vector<double>> y_vector_map;
+  for (auto v = octree->begin_leafs_bbx(bbx_min, bbx_max), end = octree->end_leafs_bbx(); v != end; ++v) {
+    if(octree->isNodeOccupied(*v)) {
+      auto x_z = std::pair(v.getX(), v.getZ());
+      y_vector_map[x_z].emplace_back(v.getY());
     }
+  }
 
-    long n = 0;
-    double v = 0.0;
-    for (auto it = octree->begin_leafs_bbx(bbx_min, bbx_max), end = octree->end_leafs_bbx(); it != end; ++it) {
-      if(octree->isNodeOccupied(*it)) n++;
-      v += it->getOccupancy() * leaf_volume;
+  if(y_vector_map.size() > viz_marker_array_.markers.size()) {
+    viz_marker_array_.markers.resize(y_vector_map.size());
+  }
+
+  // compute y_depth for each x, z coordinate
+  // Note: adding voxel_length to y_depth because y_depth is computed from the centroids of the voxels (otherwise the
+  // volume of a 1-voxel deep region would be 0 m^3)
+  double voxel_length = octree->getResolution();
+  std::map<std::pair<double, double>, double> y_depth_map;
+  int marker_id = 0;
+  for(auto [x_z, y_vector]: y_vector_map) {
+    auto const &[x, z] = x_z;
+    const auto [y_vector_min, y_vector_max] = std::minmax_element(std::begin(y_vector), std::end(y_vector));
+    y_depth_map[x_z] = voxel_length + *y_vector_max - *y_vector_min;
+
+    canopy_data_msg.depth_x_array.emplace_back(x);
+    canopy_data_msg.depth_y_array.emplace_back(y_depth_map[x_z]);
+    canopy_data_msg.depth_z_array.emplace_back(z);
+
+    if(publish_viz_marker_array) {
+      add_viz_marker(marker_id, octomap_msg->header, voxel_length, x, *y_vector_min, *y_vector_max, z);
+      marker_id++;
     }
-    canopy_density_msg.x_array.emplace_back(x);
-    canopy_density_msg.y_array.emplace_back(v);
+  }
+
+  if(publish_viz_marker_array) {
+    for(size_t further_marker_id = marker_id; further_marker_id < viz_marker_array_.markers.size(); further_marker_id++) {
+      viz_marker_array_.markers[further_marker_id].action = Marker::DELETE;
+    }
+    viz_publisher_->publish(viz_marker_array_);
+  }
+
+  // compute volume for each x coordinate
+  double voxel_area = pow(voxel_length, 2);
+  std::map<double, double> x_volume_map;
+  for(auto [x_z, y_depth]: y_depth_map) {
+    auto const &x = x_z.first;
+    x_volume_map[x] += y_depth * voxel_area;
+  }
+
+  for(auto [x, volume]: x_volume_map) {
+    canopy_data_msg.volume_x_array.emplace_back(x);
+    canopy_data_msg.volume_y_array.emplace_back(volume);
   }
 
   delete octree;
+  canopy_data_publisher_->publish(canopy_data_msg);
 
-  canopy_density_publisher_->publish(canopy_density_msg);
-
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  RCLCPP_INFO(this->get_logger(), "%f", (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()) / 1000000.0);
 }

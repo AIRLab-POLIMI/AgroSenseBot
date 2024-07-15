@@ -21,6 +21,7 @@ find_package(rclcpp REQUIRED)
 find_package(asb_msgs REQUIRED)
 find_package(octomap REQUIRED)
 find_package(octomap_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 add_executable(asb_spraying_task_node
     src/asb_spraying_task_node.cpp
@@ -31,7 +32,7 @@ target_include_directories(asb_spraying_task_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_compile_features(asb_spraying_task_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(asb_spraying_task_node PUBLIC c_std_99 cxx_std_17 cxx_std_20)  # Require C99 and C++17
 
 # Link the executable with the necessary libraries
 ament_target_dependencies(asb_spraying_task_node
@@ -39,6 +40,7 @@ ament_target_dependencies(asb_spraying_task_node
     asb_msgs
     octomap
     octomap_msgs
+    visualization_msgs
 )
 
 install(
