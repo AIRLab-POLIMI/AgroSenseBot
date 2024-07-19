@@ -20,7 +20,6 @@
 #include "pcl/filters/conditional_removal.h"
 #include "pcl_conversions/pcl_conversions.h"
 
-
 #include "tf2/exceptions.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
