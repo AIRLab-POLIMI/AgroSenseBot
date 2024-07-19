@@ -1,4 +1,5 @@
 std_msgs/Header header
+asb_msgs/CanopyRegionOfInterest roi  # the canopy region of interest for which the canopy data is computed
 
 float32 resolution  # [m], the size along the x-axis of the slice used to compute the canopy volume
 

@@ -30,6 +30,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         msg/FanCmd.msg
         msg/Heartbeat.msg
         msg/CanopyData.msg
+        msg/CanopyRegionOfInterest.msg
     DEPENDENCIES std_msgs builtin_interfaces
     )
 

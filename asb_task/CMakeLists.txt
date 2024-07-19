@@ -18,10 +18,14 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(asb_msgs REQUIRED)
-find_package(octomap REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(octomap_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(octomap REQUIRED)
 
 add_executable(asb_spraying_task_node
     src/asb_spraying_task_node.cpp
@@ -37,10 +41,14 @@ target_compile_features(asb_spraying_task_node PUBLIC c_std_99 cxx_std_17 cxx_st
 # Link the executable with the necessary libraries
 ament_target_dependencies(asb_spraying_task_node
     rclcpp
+    tf2
+    tf2_ros
+    tf2_geometry_msgs
     asb_msgs
-    octomap
+    geometry_msgs
     octomap_msgs
     visualization_msgs
+    octomap
 )
 
 install(

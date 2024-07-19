@@ -19,6 +19,9 @@ using std::placeholders::_1;
 
 ASBSprayingTask::ASBSprayingTask() : Node("asb_spraying_task") {
 
+  tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
   canopy_data_publisher_ = this->create_publisher<CanopyData>(
     "canopy_data", rclcpp::SensorDataQoS().reliable().transient_local());
 
@@ -28,6 +31,10 @@ ASBSprayingTask::ASBSprayingTask() : Node("asb_spraying_task") {
   octomap_subscriber_ = this->create_subscription<Octomap>(
     "octomap_full", rclcpp::SensorDataQoS().reliable().transient_local(),
     std::bind(&ASBSprayingTask::octomap_callback, this, _1));
+
+  roi_subscriber_ = this->create_subscription<CanopyRegionOfInterest>(
+    "canopy_region_of_interest", rclcpp::SensorDataQoS().reliable().transient_local(),
+    std::bind(&ASBSprayingTask::canopy_region_of_interest_callback, this, _1));
 
 }
 
@@ -48,6 +55,48 @@ void ASBSprayingTask::add_viz_marker(size_t marker_id, Header header, double siz
   viz_marker_array_.markers[marker_id].color.g = 0.7;
   viz_marker_array_.markers[marker_id].color.b = 0.1;
   viz_marker_array_.markers[marker_id].color.a = 1.0;
+}
+
+bool ASBSprayingTask::transform_region_of_interest(Header target_header) {
+
+  if(roi_.header.frame_id.empty()) {
+    RCLCPP_WARN(this->get_logger(), "No region of interest was received yet");
+    return false;
+  }
+
+  PointStamped p_1;
+  p_1.header = roi_.header;
+  p_1.point.x = roi_.x_1;
+
+  PointStamped p_2;
+  p_2.header = roi_.header;
+  p_2.point.x = roi_.x_2;
+
+  PointStamped p_1_transformed, p_2_transformed;
+  p_1_transformed.header = target_header;
+  p_2_transformed.header = target_header;
+
+  try {
+    tf2::doTransform(p_1, p_1_transformed, tf_buffer_->lookupTransform(p_1_transformed.header.frame_id, p_1.header.frame_id, tf2::TimePointZero));
+    tf2::doTransform(p_2, p_2_transformed, tf_buffer_->lookupTransform(p_2_transformed.header.frame_id, p_2.header.frame_id, tf2::TimePointZero));
+  } catch (tf2::TransformException &ex) {
+    RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
+    return false;
+  } catch (std::exception &ex) {
+    RCLCPP_WARN(this->get_logger(), "Exception: %s", ex.what());
+    return false;
+  }
+
+  roi_transformed_.header.frame_id = target_header.frame_id;
+  roi_transformed_.header.stamp = roi_.header.stamp;
+  roi_transformed_.x_1 = p_1_transformed.point.x;
+  roi_transformed_.x_2 = p_2_transformed.point.x;
+
+  return true;
+}
+
+void ASBSprayingTask::canopy_region_of_interest_callback(const CanopyRegionOfInterest::SharedPtr roi_msg) {
+  roi_ = *roi_msg;
 }
 
 void ASBSprayingTask::octomap_callback(const Octomap::SharedPtr octomap_msg) {
@@ -77,8 +126,14 @@ void ASBSprayingTask::octomap_callback(const Octomap::SharedPtr octomap_msg) {
   octree->getMetricMin(bb_x_min, bb_y_min, bb_z_min);
   octree->getMetricMax(bb_x_max, bb_y_max, bb_z_max);
 
-//  bb_x_min = 1.0; // TODO get region of interest from somewhere
-//  bb_x_max = 3.0; // TODO get region of interest from somewhere
+  bool roi_result = transform_region_of_interest(octomap_msg->header);
+  if(!roi_result) return;
+
+  canopy_data_msg.roi = roi_transformed_;
+
+  // sort the region of interest x_1, x_2 values so that x_min <= x_max, otherwise the bounding box will be considered empty
+  bb_x_min = std::min(roi_transformed_.x_1, roi_transformed_.x_2);
+  bb_x_max = std::max(roi_transformed_.x_1, roi_transformed_.x_2);
 
   // collect y values for each x, z coordinate
   auto bbx_min = octomap::point3d((float)bb_x_min, (float)bb_y_min, (float)bb_z_min);
