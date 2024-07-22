@@ -27,19 +27,19 @@ find_package(octomap_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(octomap REQUIRED)
 
-add_executable(asb_spraying_task_node
-    src/asb_spraying_task_node.cpp
-    src/asb_spraying_task.cpp
+add_executable(canopy_volume_estimation_node
+    src/canopy_volume_estimation_node.cpp
+    src/canopy_volume_estimation.cpp
 )
 
-target_include_directories(asb_spraying_task_node PUBLIC
+target_include_directories(canopy_volume_estimation_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_compile_features(asb_spraying_task_node PUBLIC c_std_99 cxx_std_17 cxx_std_20)  # Require C99 and C++17
+target_compile_features(canopy_volume_estimation_node PUBLIC c_std_99 cxx_std_17 cxx_std_20)  # Require C99 and C++17
 
 # Link the executable with the necessary libraries
-ament_target_dependencies(asb_spraying_task_node
+ament_target_dependencies(canopy_volume_estimation_node
     rclcpp
     tf2
     tf2_ros
@@ -52,7 +52,7 @@ ament_target_dependencies(asb_spraying_task_node
 )
 
 install(
-    TARGETS asb_spraying_task_node
+    TARGETS canopy_volume_estimation_node
     DESTINATION lib/${PROJECT_NAME})
 
 install(

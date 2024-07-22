@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "asb_spraying_task/asb_spraying_task.h"
+#include "canopy_volume_estimation/canopy_volume_estimation.h"
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<ASBSprayingTask>());
+  rclcpp::spin(std::make_shared<CanopyVolumeEstimation>());
   rclcpp::shutdown();
   return 0;
 }

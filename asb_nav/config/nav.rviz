@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Environment1
         - /Sensors1/front1/Autocompute Value Bounds1
+        - /Sensors1/filtered front1/Autocompute Value Bounds1
         - /Sensors1/rear1/Autocompute Value Bounds1
         - /Global Planner1/Global Costmap1
         - /Controller1/Trajectories1/Topic1
@@ -35,7 +36,7 @@ Panels:
         - /canopy_depth1/Topic1
         - /canopy_depth1/Namespaces1
       Splitter Ratio: 0.45330294966697693
-    Tree Height: 822
+    Tree Height: 367
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -1423,5 +1424,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1280
-  X: 0
+  X: 1280
   Y: 0

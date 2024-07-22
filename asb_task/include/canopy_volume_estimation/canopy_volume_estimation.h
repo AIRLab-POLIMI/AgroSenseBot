@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ASB_SPRAYING_TASK_ASB_SPRAYING_TASK_H
-#define ASB_SPRAYING_TASK_ASB_SPRAYING_TASK_H
+#ifndef CANOPY_VOLUME_ESTIMATION_CANOPY_VOLUME_ESTIMATION_H
+#define CANOPY_VOLUME_ESTIMATION_CANOPY_VOLUME_ESTIMATION_H
 
 #include "rclcpp/rclcpp.hpp"
 #include "asb_msgs/msg/canopy_data.hpp"
@@ -45,10 +45,10 @@ using octomap_msgs::msg::Octomap;
 using visualization_msgs::msg::MarkerArray;
 using visualization_msgs::msg::Marker;
 
-class ASBSprayingTask : public rclcpp::Node
+class CanopyVolumeEstimation : public rclcpp::Node
 {
 public:
-  ASBSprayingTask();
+  CanopyVolumeEstimation();
 
 private:
 
@@ -71,4 +71,4 @@ private:
 };
 
 
-#endif //ASB_SPRAYING_TASK_ASB_SPRAYING_TASK_H
+#endif //CANOPY_VOLUME_ESTIMATION_CANOPY_VOLUME_ESTIMATION_H

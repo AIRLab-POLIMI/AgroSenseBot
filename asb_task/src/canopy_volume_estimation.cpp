@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "asb_spraying_task/asb_spraying_task.h"
+#include "canopy_volume_estimation/canopy_volume_estimation.h"
 #include "octomap_msgs/conversions.h"
 
 using std::placeholders::_1;
 
-ASBSprayingTask::ASBSprayingTask() : Node("asb_spraying_task") {
+CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimation") {
 
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -30,15 +30,15 @@ ASBSprayingTask::ASBSprayingTask() : Node("asb_spraying_task") {
 
   octomap_subscriber_ = this->create_subscription<Octomap>(
     "octomap_full", rclcpp::SensorDataQoS().reliable().transient_local(),
-    std::bind(&ASBSprayingTask::octomap_callback, this, _1));
+    std::bind(&CanopyVolumeEstimation::octomap_callback, this, _1));
 
   roi_subscriber_ = this->create_subscription<CanopyRegionOfInterest>(
     "canopy_region_of_interest", rclcpp::SensorDataQoS().reliable().transient_local(),
-    std::bind(&ASBSprayingTask::canopy_region_of_interest_callback, this, _1));
+    std::bind(&CanopyVolumeEstimation::canopy_region_of_interest_callback, this, _1));
 
 }
 
-void ASBSprayingTask::add_viz_marker(size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z) {
+void CanopyVolumeEstimation::add_viz_marker(size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z) {
   viz_marker_array_.markers[marker_id].pose.position.x = x;
   viz_marker_array_.markers[marker_id].pose.position.y = (y_min + y_max) / 2;
   viz_marker_array_.markers[marker_id].pose.position.z = z;
@@ -57,7 +57,7 @@ void ASBSprayingTask::add_viz_marker(size_t marker_id, Header header, double siz
   viz_marker_array_.markers[marker_id].color.a = 1.0;
 }
 
-bool ASBSprayingTask::transform_region_of_interest(Header target_header) {
+bool CanopyVolumeEstimation::transform_region_of_interest(Header target_header) {
 
   if(roi_.header.frame_id.empty()) {
     RCLCPP_WARN(this->get_logger(), "No region of interest was received yet");
@@ -95,11 +95,11 @@ bool ASBSprayingTask::transform_region_of_interest(Header target_header) {
   return true;
 }
 
-void ASBSprayingTask::canopy_region_of_interest_callback(const CanopyRegionOfInterest::SharedPtr roi_msg) {
+void CanopyVolumeEstimation::canopy_region_of_interest_callback(const CanopyRegionOfInterest::SharedPtr roi_msg) {
   roi_ = *roi_msg;
 }
 
-void ASBSprayingTask::octomap_callback(const Octomap::SharedPtr octomap_msg) {
+void CanopyVolumeEstimation::octomap_callback(const Octomap::SharedPtr octomap_msg) {
 
   bool publish_viz_marker_array = viz_publisher_->get_subscription_count() > 0;
 
