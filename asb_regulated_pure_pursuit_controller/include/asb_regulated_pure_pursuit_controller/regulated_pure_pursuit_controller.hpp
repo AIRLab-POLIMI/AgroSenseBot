@@ -115,19 +115,19 @@ public:
 
 protected:
   /**
-   * @brief Get lookahead distance
-   * @param cmd the current speed to use to compute lookahead point
-   * @return lookahead distance
-   */
-//  double getLookAheadDistance(const geometry_msgs::msg::Twist &);
-
-  /**
    * @brief Creates a PointStamped message for visualization
    * @param carrot_pose Input carrot point as a PoseStamped
    * @return CarrotMsg a carrot point marker, PointStamped
    */
-  std::unique_ptr<geometry_msgs::msg::PointStamped> createCarrotMsg(
-    const geometry_msgs::msg::PoseStamped & carrot_pose);
+  std::unique_ptr<geometry_msgs::msg::PointStamped> createCarrotMsg(const geometry_msgs::msg::PoseStamped & carrot_pose);
+
+  /**
+   * @brief Creates a PolygonStamped message for visualization of the lookahead circle
+   * @param lookahead_dist Input lookahead_dist
+   * @return LookAheadCircleMsg a PolygonStamped visualizing the lookahead circle
+   */
+  std::unique_ptr<geometry_msgs::msg::PolygonStamped> createLookAheadCircleMsg(
+    const double & lookahead_dist, const builtin_interfaces::msg::Time & stamp);
 
   /**
    * @brief Creates a Float64 message for plotting the current lookahead and maximum curvature
@@ -219,7 +219,7 @@ protected:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>> carrot_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> carrot_pose_pub_;
-//  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>> lookahead_circle_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> lookahead_curvature_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> min_curvature_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> max_curvature_pub_;

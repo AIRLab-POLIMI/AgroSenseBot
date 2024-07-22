@@ -81,8 +81,6 @@ ParameterHandler::ParameterHandler(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_fixed_curvature_lookahead", rclcpp::ParameterValue(false));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".use_averaged_lookahead_curvature", rclcpp::ParameterValue(false));
-  declare_parameter_if_not_declared(
     node, plugin_name_ + ".curvature_lookahead_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".use_rotate_to_heading", rclcpp::ParameterValue(true));
@@ -129,7 +127,6 @@ ParameterHandler::ParameterHandler(
   node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_radius", params_.regulated_linear_scaling_min_radius);
   node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_speed", params_.regulated_linear_scaling_min_speed);
   node->get_parameter(plugin_name_ + ".use_fixed_curvature_lookahead", params_.use_fixed_curvature_lookahead);
-  node->get_parameter(plugin_name_ + ".use_averaged_lookahead_curvature", params_.use_averaged_lookahead_curvature);
   node->get_parameter(plugin_name_ + ".curvature_lookahead_dist", params_.curvature_lookahead_dist);
   node->get_parameter(plugin_name_ + ".use_rotate_to_heading", params_.use_rotate_to_heading);
   node->get_parameter(plugin_name_ + ".rotate_to_heading_min_angle", params_.rotate_to_heading_min_angle);
@@ -237,8 +234,6 @@ ParameterHandler::dynamicParametersCallback(
         params_.use_regulated_linear_velocity_scaling = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_fixed_curvature_lookahead") {
         params_.use_fixed_curvature_lookahead = parameter.as_bool();
-      } else if (name == plugin_name_ + ".use_averaged_lookahead_curvature") {
-        params_.use_averaged_lookahead_curvature = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_cost_regulated_linear_velocity_scaling") {
         params_.use_cost_regulated_linear_velocity_scaling = parameter.as_bool();
       } else if (name == plugin_name_ + ".use_collision_detection") {

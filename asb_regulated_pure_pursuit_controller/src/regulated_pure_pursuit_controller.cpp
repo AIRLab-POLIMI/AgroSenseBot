@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 #include <utility>
+#include <cmath>
 
 #include "asb_regulated_pure_pursuit_controller/regulated_pure_pursuit_controller.hpp"
 #include "nav2_core/controller_exceptions.hpp"
@@ -75,6 +76,7 @@ void RegulatedPurePursuitController::configure(
   global_path_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
   carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("lookahead_point", 1);
   carrot_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("lookahead_pose", 1);
+  lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("lookahead_circle", 1);
   lookahead_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("lookahead_curvature", 1);
   min_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("min_curvature", 1);
   max_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("max_curvature", 1);
@@ -92,6 +94,7 @@ void RegulatedPurePursuitController::cleanup()
   global_path_pub_.reset();
   carrot_pub_.reset();
   carrot_pose_pub_.reset();
+  lookahead_circle_pub_.reset();
   lookahead_curvature_pub_.reset();
   min_curvature_pub_.reset();
   max_curvature_pub_.reset();
@@ -107,6 +110,7 @@ void RegulatedPurePursuitController::activate()
   global_path_pub_->on_activate();
   carrot_pub_->on_activate();
   carrot_pose_pub_->on_activate();
+  lookahead_circle_pub_->on_activate();
   lookahead_curvature_pub_->on_activate();
   min_curvature_pub_->on_activate();
   max_curvature_pub_->on_activate();
@@ -122,6 +126,7 @@ void RegulatedPurePursuitController::deactivate()
   global_path_pub_->on_deactivate();
   carrot_pub_->on_deactivate();
   carrot_pose_pub_->on_deactivate();
+  lookahead_circle_pub_->on_deactivate();
   lookahead_curvature_pub_->on_deactivate();
   min_curvature_pub_->on_deactivate();
   max_curvature_pub_->on_deactivate();
@@ -136,6 +141,23 @@ std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController
   carrot_msg->point.y = carrot_pose.pose.position.y;
   carrot_msg->point.z = 0.01;  // publish above the map to stand out
   return carrot_msg;
+}
+
+std::unique_ptr<geometry_msgs::msg::PolygonStamped> RegulatedPurePursuitController::createLookAheadCircleMsg(
+  const double & lookahead_dist, const builtin_interfaces::msg::Time & stamp)
+{
+  int num_points = 100;
+  auto polygon_msg = std::make_unique<geometry_msgs::msg::PolygonStamped>();
+  polygon_msg->header.frame_id = costmap_ros_->getBaseFrameID();
+  polygon_msg->header.stamp = stamp;
+  polygon_msg->polygon.points.resize(num_points);
+  for(int i = 0; i < num_points; i++)
+  {
+    polygon_msg->polygon.points[i].x = (float)lookahead_dist * (float)std::sin(2 * M_PI * (float)i / num_points);
+    polygon_msg->polygon.points[i].y = (float)lookahead_dist * (float)std::cos(2 * M_PI * (float)i / num_points);
+    polygon_msg->polygon.points[i].z = 0.01;  // publish above the map to stand out
+  }
+  return polygon_msg;
 }
 
 std::unique_ptr<std_msgs::msg::Float64> RegulatedPurePursuitController::createCurvatureMsg(double curvature)
@@ -233,23 +255,9 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   auto carrot_pose = getLookAheadPoint(lookahead_dist, transformed_plan);
   carrot_pub_->publish(createCarrotMsg(carrot_pose));
   carrot_pose_pub_->publish(carrot_pose);
+  lookahead_circle_pub_->publish(createLookAheadCircleMsg(lookahead_dist, pose.header.stamp));
 
-  double lookahead_curvature = 0.0;
-  if(params_->use_averaged_lookahead_curvature)
-  {
-    unsigned int num_weighted_lookahead_dist = 5;
-    for (unsigned int i = 1; i <= num_weighted_lookahead_dist; ++i) {
-      double lookahead_dist_i = lookahead_dist * i / num_weighted_lookahead_dist;
-      auto carrot_pose_i = getLookAheadPoint(lookahead_dist_i, transformed_plan);
-      double lookahead_curvature_i = calculateCurvature(carrot_pose_i.pose.position);
-      lookahead_curvature += lookahead_curvature_i;
-    }
-    lookahead_curvature /= num_weighted_lookahead_dist;
-  }
-  else
-  {
-    lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
-  }
+  double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
 
   double regulation_curvature = lookahead_curvature;
   if (params_->use_fixed_curvature_lookahead) {
