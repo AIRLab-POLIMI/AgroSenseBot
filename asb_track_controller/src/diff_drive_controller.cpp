@@ -291,13 +291,17 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   previous_commands_.pop();
   previous_commands_.emplace(command);
 
-  bool turning_radius_infinite = std::fabs(angular_vel_reference) < 0.01;
   double turning_radius = std::fabs(linear_vel_reference / angular_vel_reference);
+  double curvature_reference = angular_vel_reference / linear_vel_reference;
+  double curvature_max = 1 / params_.min_turning_radius, curvature_min = -1 / params_.min_turning_radius;
+  double linear_velocity_effective = odometry_.getLinear();
 
-  if(!turning_radius_infinite && (turning_radius < params_.min_turning_radius))
+  // check the curvature constraint is respected otherwise send a zero velocity command
+  if(curvature_reference < curvature_min || curvature_reference > curvature_max)
   {
     linear_vel_reference = 0.0;
     angular_vel_reference = 0.0;
+    curvature_reference = 0.0;
 
     RCLCPP_WARN(
       get_node()->get_logger(),
@@ -308,8 +312,11 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   double angular_command;
   if(params_.use_angular_velocity_pid)
   {
-    double angular_vel_error = angular_vel_reference - last_imu_angular_velocity;
-    if(angular_vel_reference == 0.0)
+    // compute the angular velocity setpoint based on the desired curvature and the effective linear velocity
+    double angular_vel_setpoint = curvature_reference * linear_velocity_effective;
+    double angular_vel_error = angular_vel_setpoint - last_imu_angular_velocity;
+
+    if(curvature_reference == 0.0)  // TODO or change in curvature reference sign
     {
       angular_command = 0.0;
       angular_command_pid_.reset();
@@ -368,9 +375,9 @@ void DiffDriveController::publishPIDState(double cmd, double error, rclcpp::Dura
       realtime_pid_state_publisher_->msg_.p_error = p_error_;
       realtime_pid_state_publisher_->msg_.i_error = i_error_;
       realtime_pid_state_publisher_->msg_.d_error = d_error_;
-      realtime_pid_state_publisher_->msg_.p_term = gains.p_gain_;
-      realtime_pid_state_publisher_->msg_.i_term = gains.i_gain_;
-      realtime_pid_state_publisher_->msg_.d_term = gains.d_gain_;
+      realtime_pid_state_publisher_->msg_.p_term = gains.p_gain_ * p_error_;
+      realtime_pid_state_publisher_->msg_.i_term = gains.i_gain_ * i_error_;
+      realtime_pid_state_publisher_->msg_.d_term = gains.d_gain_ * d_error_;
       realtime_pid_state_publisher_->msg_.i_max = gains.i_max_;
       realtime_pid_state_publisher_->msg_.i_min = gains.i_min_;
       realtime_pid_state_publisher_->msg_.output = cmd;
@@ -416,16 +423,16 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(const rcl
   use_stamped_vel_ = params_.use_stamped_vel;
 
   limiter_linear_ = SpeedLimiter(
-    params_.linear.x.has_velocity_limits, params_.linear.x.has_acceleration_limits,
-    params_.linear.x.has_jerk_limits, params_.linear.x.min_velocity, params_.linear.x.max_velocity,
-    params_.linear.x.min_acceleration, params_.linear.x.max_acceleration, params_.linear.x.min_jerk,
-    params_.linear.x.max_jerk);
+    params_.linear.x.has_velocity_limits, params_.linear.x.has_acceleration_limits, params_.linear.x.has_jerk_limits,
+    params_.linear.x.min_velocity, params_.linear.x.max_velocity,
+    params_.linear.x.min_acceleration, params_.linear.x.max_acceleration,
+    params_.linear.x.min_jerk, params_.linear.x.max_jerk);
 
   limiter_angular_ = SpeedLimiter(
-    params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits,
-    params_.angular.z.has_jerk_limits, params_.angular.z.min_velocity,
-    params_.angular.z.max_velocity, params_.angular.z.min_acceleration,
-    params_.angular.z.max_acceleration, params_.angular.z.min_jerk, params_.angular.z.max_jerk);
+    params_.angular.z.has_velocity_limits, params_.angular.z.has_acceleration_limits, params_.angular.z.has_jerk_limits,
+    params_.angular.z.min_velocity, params_.angular.z.max_velocity,
+    params_.angular.z.min_acceleration, params_.angular.z.max_acceleration,
+    params_.angular.z.min_jerk, params_.angular.z.max_jerk);
 
   if (!reset())
   {
