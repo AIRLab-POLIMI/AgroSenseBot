@@ -48,8 +48,11 @@ asb_base_controller:
       p: 1.0
       i: 6.0
       d: 0.0
-      i_min: -1.0
-      i_max: 1.0
+      i_bound: 1.0
+      use_adaptive_integral_anti_windup: true
+      adaptive_i_base_bound: 0.5
+      adaptive_i_max_bound: 4.0
+
     publish_pid_state: true
 
     min_turning_radius: 1.4

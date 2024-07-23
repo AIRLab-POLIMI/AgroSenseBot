@@ -316,7 +316,17 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
     double angular_vel_setpoint = curvature_reference * linear_velocity_effective;
     double angular_vel_error = angular_vel_setpoint - last_imu_angular_velocity;
 
-    if(curvature_reference == 0.0)  // TODO or change in curvature reference sign
+    auto & pp = params_.angular_velocity_pid_params;
+    if(pp.use_adaptive_integral_anti_windup)
+    {
+      double adaptive_i_min = std::max(-pp.i_bound, -pp.adaptive_i_base_bound - std::fabs(angular_vel_setpoint) * pp.adaptive_i_bound);
+      double adaptive_i_max = std::min(pp.i_bound, pp.adaptive_i_base_bound + std::fabs(angular_vel_setpoint) * pp.adaptive_i_bound);
+      angular_command_pid_.setGains(pp.p, pp.i, pp.d, adaptive_i_max, adaptive_i_min, true);
+    } else {
+      angular_command_pid_.setGains(pp.p, pp.i, pp.d, pp.i_bound, -pp.i_bound, true);
+    }
+
+    if(curvature_reference == 0.0)
     {
       angular_command = 0.0;
       angular_command_pid_.reset();
@@ -552,8 +562,8 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(const rcl
         received_imu_msg_ptr_.set(std::move(msg));
       });
 
-    auto & pid_params = params_.angular_velocity_pid_params;
-    angular_command_pid_.initPid(pid_params.p, pid_params.i, pid_params.d, pid_params.i_max, pid_params.i_min, true);
+    auto & pp = params_.angular_velocity_pid_params;
+    angular_command_pid_.initPid(pp.p, pp.i, pp.d, pp.i_bound, -pp.i_bound, true);
 
     if (params_.publish_pid_state)
     {

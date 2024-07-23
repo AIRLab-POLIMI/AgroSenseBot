@@ -117,28 +117,38 @@ diff_drive_controller:
   angular_velocity_pid_params:
     p: {
       type: double,
-      default_value: 1.0, # meters
+      default_value: 1.0,
       description: "P gain of the angular velocity PID controller.",
     }
     i: {
       type: double,
-      default_value: 1.0, # meters
+      default_value: 1.0,
       description: "I gain of the angular velocity PID controller.",
     }
     d: {
       type: double,
-      default_value: 1.0, # meters
+      default_value: 1.0,
       description: "D gain of the angular velocity PID controller.",
     }
-    i_min: {
+    i_bound: {
       type: double,
-      default_value: -1.0, # meters
-      description: "Min integral windup of the angular velocity PID controller.",
+      default_value: 1.0,
+      description: "Integral windup bound of the angular velocity PID controller.",
     }
-    i_max: {
+    use_adaptive_integral_anti_windup: {
+      type: bool,
+      default_value: false,
+      description: "Whether to use the imu angular velocity to compute the control of the angular command.",
+    }
+    adaptive_i_base_bound: {
       type: double,
-      default_value: 1.0, # meters
-      description: "Max integral windup of the angular velocity PID controller.",
+      default_value: 0.5,
+      description: "Adaptive integral windup bound of the angular velocity PID controller, defines the smallest value the adaptive bound can be.",
+    }
+    adaptive_i_bound: {
+      type: double,
+      default_value: 4.0,
+      description: "Adaptive integral windup bound of the angular velocity PID controller, the adaptive bound is obtained by multiplying this parameter value to the setpoint.",
     }
   publish_pid_state: {
     type: bool,
