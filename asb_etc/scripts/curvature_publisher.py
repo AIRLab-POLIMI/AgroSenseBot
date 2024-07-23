@@ -2,8 +2,8 @@
 
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 
+from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64
 
@@ -12,13 +12,24 @@ class CurvaturePublisher(Node):
 
     def __init__(self):
         super().__init__('curvature_publisher')
+
         self.cmd_vel_sub_ = self.create_subscription(Twist, '/cmd_vel', self.cmd_vel_callback, 10)
+        self.odom_sub_ = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+
         self.cmd_vel_curvature_pub_ = self.create_publisher(Float64, '/cmd_vel_curvature', 10)
+        self.odom_curvature_pub_ = self.create_publisher(Float64, '/odom_curvature', 10)
 
     def cmd_vel_callback(self, cmd_vel_msg: Twist):
         msg = Float64()
         msg.data = cmd_vel_msg.angular.z / cmd_vel_msg.linear.x if cmd_vel_msg.linear.x != 0 else 0.0
         self.cmd_vel_curvature_pub_.publish(msg)
+
+    def odom_callback(self, odom_msg: Odometry):
+        thr = 0.05
+        if not (-thr < odom_msg.twist.twist.linear.x < thr):
+            msg = Float64()
+            msg.data = odom_msg.twist.twist.angular.z / odom_msg.twist.twist.linear.x
+            self.odom_curvature_pub_.publish(msg)
 
 
 def main(args=None):

@@ -47,7 +47,7 @@ def generate_launch_description():
         name="ekf_filter_map_odom",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -62,7 +62,7 @@ def generate_launch_description():
         name="navsat_transform_1",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -78,7 +78,7 @@ def generate_launch_description():
         name="navsat_transform_2",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "nav_gnss", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -99,10 +99,10 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav2_navigation_launch.py")),
         launch_arguments={
             "use_sim_time": use_sim_time_launch_configuration,
-            "params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "nav2_params", "nav2_params.yaml"),
-            "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav_any", "nav2_params", "nav2_controller_params_asb_rpp.yaml"),
-            "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav_any", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
-            "map_server_params_file": os.path.join(pkg("asb_nav"), "config", "nav_gnss", "map_server_params", "map_server_params.yaml"),
+            "params_file": os.path.join(pkg("asb_nav"), "config", "nav2_params", "nav2_params.yaml"),
+            "controller_params_file": os.path.join(pkg("asb_nav"), "config", "nav2_params", "nav2_controller_params_asb_rpp.yaml"),
+            "planner_params_file": os.path.join(pkg("asb_nav"), "config", "nav2_params", "nav2_planner_params_smac_hybrid.yaml"),
+            "map_server_params_file": os.path.join(pkg("asb_nav"), "config", "map_server_params", "map_server_params.yaml"),
             "autostart": "true",
         }.items(),
     )

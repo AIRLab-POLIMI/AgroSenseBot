@@ -48,8 +48,8 @@ asb_base_controller:
       p: 1.0
       i: 6.0
       d: 0.0
-      i_min: -0.4
-      i_max: 0.4
+      i_min: -1.0
+      i_max: 1.0
     publish_pid_state: true
 
     min_turning_radius: 1.4

@@ -153,8 +153,8 @@ std::unique_ptr<geometry_msgs::msg::PolygonStamped> RegulatedPurePursuitControll
   polygon_msg->polygon.points.resize(num_points);
   for(int i = 0; i < num_points; i++)
   {
-    polygon_msg->polygon.points[i].x = (float)lookahead_dist * (float)std::sin(2 * M_PI * (float)i / num_points);
-    polygon_msg->polygon.points[i].y = (float)lookahead_dist * (float)std::cos(2 * M_PI * (float)i / num_points);
+    polygon_msg->polygon.points[i].x = (float)lookahead_dist * (float)std::cos(2 * M_PI * (float)i / num_points);
+    polygon_msg->polygon.points[i].y = (float)lookahead_dist * (float)std::sin(2 * M_PI * (float)i / num_points);
     polygon_msg->polygon.points[i].z = 0.01;  // publish above the map to stand out
   }
   return polygon_msg;
@@ -300,6 +300,15 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     {
       constrained_lookahead_curvature = lookahead_curvature;
     }
+
+    // When inverting the linear velocity direction (we want to start going backward while still going forward, and
+    // vice versa), send a zero linear velocity (hence zero angular velocity as well, since it's computed from the
+    // linear velocity and the curvature) until the robot has stopped
+    if ((speed.linear.x > 0 && linear_vel < 0) || (speed.linear.x < 0 && linear_vel > 0))
+    {
+      linear_vel = 0.0;
+    }
+
     angular_vel = linear_vel * constrained_lookahead_curvature;
 
     lookahead_curvature_pub_->publish(createCurvatureMsg(constrained_lookahead_curvature));
@@ -311,6 +320,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   {
     throw nav2_core::NoValidControl("RegulatedPurePursuitController detected collision ahead!");
   }
+
 
   // populate and return message
   geometry_msgs::msg::TwistStamped cmd_vel;

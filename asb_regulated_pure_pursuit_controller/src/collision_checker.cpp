@@ -37,8 +37,8 @@ CollisionChecker::CollisionChecker(
   params_ = params;
 
   // initialize collision checker and set costmap
-  footprint_collision_checker_ = std::make_unique<nav2_costmap_2d::
-      FootprintCollisionChecker<nav2_costmap_2d::Costmap2D *>>(costmap_);
+  footprint_collision_checker_ =
+    std::make_unique<nav2_costmap_2d::FootprintCollisionChecker<nav2_costmap_2d::Costmap2D *>>(costmap_);
   footprint_collision_checker_->setCostmap(costmap_);
 
   carrot_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("lookahead_collision_arc", 1);
@@ -54,9 +54,7 @@ bool CollisionChecker::isCollisionImminent(
   // odom frame and the carrot_pose is in robot base frame. Just how the data comes to us
 
   // check current point is OK
-  if (inCollision(
-      robot_pose.pose.position.x, robot_pose.pose.position.y,
-      tf2::getYaw(robot_pose.pose.orientation)))
+  if (inCollision(robot_pose.pose.position.x, robot_pose.pose.position.y, tf2::getYaw(robot_pose.pose.orientation)))
   {
     return true;
   }
@@ -78,8 +76,7 @@ bool CollisionChecker::isCollisionImminent(
     // via isosceles triangle r_max-r_max-resolution,
     // dividing by angular_velocity gives us a timestep.
     double max_radius = costmap_ros_->getLayeredCostmap()->getCircumscribedRadius();
-    projection_time =
-      2.0 * sin((costmap_->getResolution() / 2) / max_radius) / fabs(angular_vel);
+    projection_time = 2.0 * sin((costmap_->getResolution() / 2) / max_radius) / fabs(angular_vel);
   } else {
     // Normal path tracking
     projection_time = costmap_->getResolution() / fabs(linear_vel);
