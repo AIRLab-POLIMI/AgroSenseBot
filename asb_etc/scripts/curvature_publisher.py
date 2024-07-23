@@ -1,15 +1,17 @@
-#! /usr/bin/python3
+#!/usr/bin/python3
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
+
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64
 
 
-class CmdVelCurvaturePublisher(Node):
+class CurvaturePublisher(Node):
 
     def __init__(self):
-        super().__init__('cmd_vel_curvature_publisher')
+        super().__init__('curvature_publisher')
         self.cmd_vel_sub_ = self.create_subscription(Twist, '/cmd_vel', self.cmd_vel_callback, 10)
         self.cmd_vel_curvature_pub_ = self.create_publisher(Float64, '/cmd_vel_curvature', 10)
 
@@ -21,9 +23,11 @@ class CmdVelCurvaturePublisher(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-
-    node = CmdVelCurvaturePublisher()
-    rclpy.spin(node)
+    node = CurvaturePublisher()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':

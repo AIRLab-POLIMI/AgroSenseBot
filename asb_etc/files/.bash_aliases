@@ -177,7 +177,7 @@ complete -F _complete_alias rr
 alias rb='ros2 bag'
 complete -F _complete_alias rb
 
-alias rp='ros2 pkg'
+alias rp='ros2 param'
 complete -F _complete_alias rp
 
 alias ust='ros2 param set use_sim_time true'

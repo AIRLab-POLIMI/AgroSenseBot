@@ -18,7 +18,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration, PythonExpression
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from launch_ros.actions import Node
@@ -77,16 +77,6 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    effective_cmd_vel_publisher_node = Node(
-        package="asb_ros2_control",
-        executable="effective_cmd_vel_pub.py",
-    )
-
-    cmd_vel_curvature_publisher_node = Node(
-        package="asb_ros2_control",
-        executable="cmd_vel_curvature_publisher.py",
-    )
-
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -135,8 +125,6 @@ def generate_launch_description():
     ld.add_action(control_node)
 
     ld.add_action(robot_state_publisher_node)
-    ld.add_action(effective_cmd_vel_publisher_node)
-    ld.add_action(cmd_vel_curvature_publisher_node)
     ld.add_action(joint_state_broadcaster_spawner)
     ld.add_action(delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
