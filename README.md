@@ -13,7 +13,7 @@ sudo apt-get install -y liblely-coapp-dev liblely-co-tools python3-dcf-tools && 
 sudo apt-get install -y can-utils &&  # linux can utility
 sudo apt-get install -y openssh-server byobu &&  # ssh
 sudo apt-get install -y libqwt-qt5-dev &&  # Qwt widgets for the Qt UI
-sudo apt-get install -y python3-websocket &&  # websocket python package for asb_sim android_sensors.py
+sudo apt-get install -y python3-websocket &&  # websocket python package for asb_etc android_sensors.py
 sudo apt-get install -y xterm &&  # used in asb_logging play_bag.launch.py
 sudo apt-get install -y ros-iron-xacro ros-iron-ros2controlcli ros-iron-ros2-controllers-test-nodes ros-iron-diff-drive-controller ros-iron-joint-state-broadcaster ros-iron-webots-ros2 ros-iron-rqt-gui ros-iron-rqt-tf-tree ros-iron-nav2-* ros-iron-robot-localization ros-iron-tf-transformations &&  # ROS2 dependencies
 sudo apt-get install -y ros-iron-microstrain-inertial-driver ros-iron-microstrain-inertial-rqt ros-iron-ntrip-client &&  # MicroStrain 3DM-GQ7-GNSS/INS and RTK NTRIP client

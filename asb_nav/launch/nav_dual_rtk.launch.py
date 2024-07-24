@@ -89,7 +89,7 @@ def generate_launch_description():
     )
 
     fake_scan_node = Node(
-        package="asb_sim",
+        package="asb_etc",
         executable="fake_scan_pub.py",
         name="fake_scan_publisher",
         output="screen",
