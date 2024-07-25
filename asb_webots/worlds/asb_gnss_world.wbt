@@ -50,7 +50,7 @@ ModelVineyard {
 }
 
 AgroSenseBot {
-  translation 11.1 -3.2 0.6
-  rotation 0 0 1 0
+  translation 12.3 13.1 0.8
+  rotation 0 0 1 -2.8
   name "asb_webots_robot"
 }
