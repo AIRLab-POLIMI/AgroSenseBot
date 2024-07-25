@@ -12,7 +12,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>419</width>
+    <width>679</width>
     <height>1053</height>
    </rect>
   </property>
@@ -3275,7 +3275,7 @@
                 </font>
                </property>
                <property name="upperBound">
-                <double>100.000000000000000</double>
+                <double>150.000000000000000</double>
                </property>
                <property name="scalePosition">
                 <enum>QwtThermo::TrailingScale</enum>
@@ -4144,7 +4144,7 @@
                 </font>
                </property>
                <property name="upperBound">
-                <double>100.000000000000000</double>
+                <double>150.000000000000000</double>
                </property>
                <property name="scalePosition">
                 <enum>QwtThermo::TrailingScale</enum>

@@ -27,15 +27,15 @@ namespace asb_rviz_plugins {
 
     left_motor_current_ = new ASBThermo;
     substitute_widget(left_motor_current_, ui_->left_motor_current, ui_->left_motor_current_layout,
-                      80, 0);
+                      130, 0);
 
     left_motor_temperature_ = new ASBThermo;
     substitute_widget(left_motor_temperature_, ui_->left_motor_temperature, ui_->left_motor_temperature_layout,
-                      70, -10);
+                      60, -10);
 
     left_controller_temperature_ = new ASBThermo;
     substitute_widget(left_controller_temperature_, ui_->left_controller_temperature, ui_->left_controller_temperature_layout,
-                      70, -10);
+                      60, -10);
 
 //  Right Motor
     right_motor_velocity_ = new ASBThermo;
@@ -44,15 +44,15 @@ namespace asb_rviz_plugins {
 
     right_motor_current_ = new ASBThermo;
     substitute_widget(right_motor_current_, ui_->right_motor_current, ui_->right_motor_current_layout,
-                      80, 0);
+                      130, 0);
 
     right_motor_temperature_ = new ASBThermo;
     substitute_widget(right_motor_temperature_, ui_->right_motor_temperature, ui_->right_motor_temperature_layout,
-                      70, -10);
+                      60, -10);
 
     right_controller_temperature_ = new ASBThermo;
     substitute_widget(right_controller_temperature_, ui_->right_controller_temperature, ui_->right_controller_temperature_layout,
-                      70, -10);
+                      60, -10);
 
 //  Fan Motor
     fan_motor_velocity_ = new ASBThermo;
