@@ -46,7 +46,7 @@ asb_base_controller:
     use_angular_velocity_pid: true
     angular_velocity_pid_params:
       p: 1.0
-      i: 6.0
+      i: 4.0
       d: 0.0
       i_bound: 1.0
       use_adaptive_integral_anti_windup: true
@@ -64,8 +64,8 @@ asb_base_controller:
 
     # The maximum motor vel is 2400 RPM = 40 RPS. The maximum track velocity is 40 RPS * C_eq,
     # where C_eq is the equivalent circumference of the wheel when factoring the gearbox, C_eq = 2 π r_W / 40.61
-    linear.x.max_velocity: 0.5
-    linear.x.max_acceleration: 5.0
+    linear.x.max_velocity: 0.7
+#    linear.x.max_acceleration: 5.0
 
     angular.z.has_velocity_limits: true
     angular.z.has_acceleration_limits: false
@@ -73,4 +73,4 @@ asb_base_controller:
 
     # TODO compute with the real max track RPM
     angular.z.max_velocity: 1.0
-    angular.z.max_acceleration: 5.0
+#    angular.z.max_acceleration: 5.0
