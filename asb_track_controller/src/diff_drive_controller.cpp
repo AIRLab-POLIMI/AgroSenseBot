@@ -326,7 +326,11 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
       angular_command_pid_.setGains(pp.p, pp.i, pp.d, pp.i_bound, -pp.i_bound, true);
     }
 
-    if(curvature_reference == 0.0)
+    if(
+        (angular_vel_reference == 0.0) ||
+        (angular_vel_reference > 0 && last_imu_angular_velocity < 0) ||
+        (angular_vel_reference < 0 && last_imu_angular_velocity > 0)
+        )
     {
       angular_command = 0.0;
       angular_command_pid_.reset();
