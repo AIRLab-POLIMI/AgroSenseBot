@@ -45,12 +45,12 @@ asb_base_controller:
 
     use_angular_velocity_pid: true
     angular_velocity_pid_params:
-      p: 1.0
+      p: 0.0
       i: 4.0
       d: 0.0
       i_bound: 1.0
       use_adaptive_integral_anti_windup: true
-      adaptive_i_base_bound: 0.5
+      adaptive_i_base_bound: 0.1
       adaptive_i_max_bound: 4.0
 
     publish_pid_state: true
