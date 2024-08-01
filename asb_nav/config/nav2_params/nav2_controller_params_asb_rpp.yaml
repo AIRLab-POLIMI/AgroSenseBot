@@ -26,7 +26,7 @@ controller_server:
       lookahead_dist: 1.0
       use_adaptive_lookahead_dist: true
       adaptive_lookahead_path_distance_margin: 0.3
-      max_robot_path_dist: 0.5
+      max_robot_path_dist: 0.3
       max_robot_pose_search_dist: 10.0
       min_approach_linear_velocity: 0.4
       approach_velocity_scaling_dist: 0.5

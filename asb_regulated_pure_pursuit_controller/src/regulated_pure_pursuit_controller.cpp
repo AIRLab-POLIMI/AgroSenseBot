@@ -223,7 +223,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
 
   double robot_path_distance = std::hypot(transformed_plan.poses[0].pose.position.x, transformed_plan.poses[0].pose.position.y);
   if (robot_path_distance > params_->max_robot_path_dist) {
-    throw nav2_core::NoValidControl("RegulatedPurePursuitController robot too far from global plan!");
+    throw nav2_core::InvalidPath("RegulatedPurePursuitController robot too far from global plan!");
   }
 
   double lookahead_dist = params_->lookahead_dist;
