@@ -449,7 +449,7 @@ void RegulatedPurePursuitController::applyConstraints(
 
   // Use the lowest of the 2 constraints, but above the minimum translational speed
   linear_vel = std::min(cost_vel, curvature_vel);
-  linear_vel = std::max(linear_vel, params_->regulated_linear_scaling_min_speed);
+  linear_vel = std::max(linear_vel, params_->regulated_linear_scaling_min_speed);  // TODO only apply if some param is true?
 
   // Apply constraint to reduce speed on approach to the final goal pose
   linear_vel = heuristics::approachVelocityConstraint(

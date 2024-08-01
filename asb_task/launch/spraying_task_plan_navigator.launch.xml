@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="asb_task" exec="spraying_task_plan_navigator.py" name="spraying_task_plan_navigator">
+    <param name="task_plan_file_path" value="~/w/agrosensebot_ws/src/AgroSenseBot/asb_task/config/spraying_task_plans/cornaredo.yaml" />  <!-- kind of hardcoded, but there is no way to find the source directory of a package with ros2 launch and rclpy -->
+  </node>
+
+</launch>

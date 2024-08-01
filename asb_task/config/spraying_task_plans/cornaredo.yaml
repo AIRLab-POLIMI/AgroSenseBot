@@ -1,0 +1,119 @@
+!!python/object:spraying_task_plan.SprayingTaskPlan
+task_plan_items:
+- !!python/object:spraying_task_plan.TaskPlanItem
+  behavior_tree_name: spraying_task_navigate_through_poses_approach.xml
+  item_id: approach_1
+  nav_path:
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 131131205
+        sec: 1722324211
+    pose:
+      orientation:
+        w: 0.8307190513092184
+        x: 0.0
+        y: 0.0
+        z: -0.5566918876649024
+      position:
+        x: 7.785947799682617
+        y: 8.208106994628906
+        z: 0.0
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 91155230
+        sec: 1722324224
+    pose:
+      orientation:
+        w: 0.8260516229319611
+        x: 0.0
+        y: 0.0
+        z: -0.5635944608062372
+      position:
+        x: 11.856460571289062
+        y: -0.8370847702026367
+        z: 0.0
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 873337568
+        sec: 1722324235
+    pose:
+      orientation:
+        w: 0.5532827380311539
+        x: 0.0
+        y: 0.0
+        z: 0.8329935244626753
+      position:
+        x: 15.934442520141602
+        y: -6.168194770812988
+        z: 0.0
+  nav_timeout: null
+  result: null
+- !!python/object:spraying_task_plan.TaskPlanItem
+  behavior_tree_name: spraying_task_navigate_through_poses_row.xml
+  item_id: row_1
+  nav_path:
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 774308637
+        sec: 1722264373
+    pose:
+      orientation:
+        w: 0.5536783814605104
+        x: 0.0
+        y: 0.0
+        z: 0.8327305986351585
+      position:
+        x: 15.185564041137695
+        y: -1.633702039718628
+        z: 0.0
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 93300492
+        sec: 1722264384
+    pose:
+      orientation:
+        w: 0.5545923675440304
+        x: 0.0
+        y: 0.0
+        z: 0.832122170033888
+      position:
+        x: 13.462814331054688
+        y: 2.3701884746551514
+        z: 0.0
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 683333667
+        sec: 1722264389
+    pose:
+      orientation:
+        w: 0.553700163054088
+        x: 0.0
+        y: 0.0
+        z: 0.8327161157524671
+      position:
+        x: 11.523847579956055
+        y: 7.227606773376465
+        z: 0.0
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 510074062
+        sec: 1722264400
+    pose:
+      orientation:
+        w: 0.5626109243051459
+        x: 0.0
+        y: 0.0
+        z: 0.8267218080179749
+      position:
+        x: 10.014745712280273
+        y: 10.992372512817383
+        z: 0.0
+  nav_timeout: null
+  result: null

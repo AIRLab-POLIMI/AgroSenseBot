@@ -39,10 +39,10 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 
-#SimpleVineyard {
-#  translation 14 -2 0
-#  rotation 0 0 1 0.39
-#}
+SimpleVineyard {
+  translation 15. -4.5 0
+  rotation 0 0 1 0.39
+}
 
 ModelVineyard {
   translation 0 0 0

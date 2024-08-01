@@ -177,6 +177,9 @@ complete -F _complete_alias rr
 alias rb='ros2 bag'
 complete -F _complete_alias rb
 
+alias rbp='ros2 bag play --clock --read-ahead-queue-size 100000'
+complete -F _complete_alias rbp
+
 alias rp='ros2 param'
 complete -F _complete_alias rp
 
