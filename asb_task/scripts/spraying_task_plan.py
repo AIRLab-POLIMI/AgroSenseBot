@@ -1,4 +1,5 @@
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
 import yaml
 from rosidl_runtime_py import *
 
@@ -19,7 +20,9 @@ class TaskPlanItem:
     def __init__(self, item_id=''):
         self.item_id: str = item_id
         self.behavior_tree_name: str = ""
-        self.nav_path: list[dict] = list()
+        self.type: str | None = None
+        self.nav_path: list[dict] | None = list()
+        self.nav_pose: PoseStamped | None = None
         self.nav_timeout: float | None = None
         self.result: TaskPlanItemResult | None = None
 
@@ -42,6 +45,12 @@ class TaskPlanItem:
             pose_stamped_list.append(pose_stamped)
 
         return pose_stamped_list
+
+    def get_path(self) -> Path:
+        return Path(poses=self.get_pose_stamped_list())
+
+    def get_pose(self) -> PoseStamped:
+        return self.nav_pose
 
 
 class SprayingTaskPlan:

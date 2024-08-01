@@ -2,57 +2,73 @@
 task_plan_items:
 - !!python/object:spraying_task_plan.TaskPlanItem
   behavior_tree_name: spraying_task_navigate_through_poses_approach.xml
+  type: approach
+  item_id: initial_pose
+  nav_path:
+    - header:
+        frame_id: map
+        stamp:
+          nanosec: 873337568
+          sec: 1722324235
+      pose:
+        position:
+          x: 6.590261936187744
+          y: 9.331253051757812
+          z: 0.0
+        orientation:
+          x: 0.0
+          y: 0.0
+          z: -0.5586588394207326
+          w: 0.8293975531294266
+  nav_timeout: null
+  result: null
+- !!python/object:spraying_task_plan.TaskPlanItem
+  behavior_tree_name: spraying_task_navigate_through_poses_approach.xml
+  type: approach
   item_id: approach_1
   nav_path:
-  - header:
-      frame_id: map
-      stamp:
-        nanosec: 131131205
-        sec: 1722324211
-    pose:
-      orientation:
-        w: 0.8307190513092184
-        x: 0.0
-        y: 0.0
-        z: -0.5566918876649024
-      position:
-        x: 7.785947799682617
-        y: 8.208106994628906
-        z: 0.0
-  - header:
-      frame_id: map
-      stamp:
-        nanosec: 91155230
-        sec: 1722324224
-    pose:
-      orientation:
-        w: 0.8260516229319611
-        x: 0.0
-        y: 0.0
-        z: -0.5635944608062372
-      position:
-        x: 11.856460571289062
-        y: -0.8370847702026367
-        z: 0.0
-  - header:
-      frame_id: map
-      stamp:
-        nanosec: 873337568
-        sec: 1722324235
-    pose:
-      orientation:
-        w: 0.5532827380311539
-        x: 0.0
-        y: 0.0
-        z: 0.8329935244626753
-      position:
-        x: 15.934442520141602
-        y: -6.168194770812988
-        z: 0.0
+    - header:
+        frame_id: map
+        stamp:
+          nanosec: 873337568
+          sec: 1722324235
+      pose:
+        position:
+          x: 16.767303466796875
+          y: -5.33699893951416
+          z: 0.0
+        orientation:
+          x: 0.0
+          y: 0.0
+          z: 0.83865962018106
+          w: 0.5446558927228826
+  nav_timeout: null
+  result: null
+- !!python/object:spraying_task_plan.TaskPlanItem
+  behavior_tree_name: spraying_task_navigate_through_poses_approach.xml
+  type: approach
+  item_id: approach_2
+  nav_path:
+    - header:
+        frame_id: map
+        stamp:
+          nanosec: 873337568
+          sec: 1722324235
+      pose:
+        position:
+          x: 17.47249412536621
+          y: -6.916083812713623
+          z: 0.0
+        orientation:
+          x: 0.0
+          y: 0.0
+          z: 0.8360454922095139
+          w: 0.5486601269968066
   nav_timeout: null
   result: null
 - !!python/object:spraying_task_plan.TaskPlanItem
   behavior_tree_name: spraying_task_navigate_through_poses_row.xml
+  type: row
   item_id: row_1
   nav_path:
   - header:
