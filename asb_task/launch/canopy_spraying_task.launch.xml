@@ -4,6 +4,6 @@
 
   <include file="$(find-pkg-share asb_task)/launch/canopy_volume_estimation.launch.xml" />
 
-  <node pkg="asb_task" exec="canopy_spraying_task.py" name="canopy_spraying" />
+  <node pkg="asb_task" exec="spraying_regulator.py" name="spraying_regulator" />
 
 </launch>

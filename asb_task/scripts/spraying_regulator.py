@@ -13,10 +13,10 @@ from scipy.signal import savgol_filter
 np.set_printoptions(precision=2)
 
 
-class CanopySprayingTask(Node):
+class SprayingRegulator(Node):
 
     def __init__(self):
-        super().__init__('canopy_spraying_task')
+        super().__init__('spraying_regulator')
 
         plt.ion()
         self.fig = plt.figure()
@@ -89,7 +89,7 @@ class CanopySprayingTask(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = CanopySprayingTask()
+    node = SprayingRegulator()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
