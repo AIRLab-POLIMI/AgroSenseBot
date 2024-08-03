@@ -3,7 +3,7 @@
 	<arg name="dry_run" default="false" />
 
   <node pkg="asb_canopy_spraying_task" exec="spraying_task_plan_executor.py" name="spraying_task_plan_executor">
-    <param name="task_plan_file_path" value="~/w/agrosensebot_ws/src/AgroSenseBot/asb_canopy_spraying_task/config/spraying_task_plans/cornaredo.yaml" />  <!-- kind of hardcoded, but there is no way to find the source directory of a package with ros2 launch and rclpy -->
+    <param name="task_plan_file_path" value="$(var asb_canopy_spraying_task)/config/spraying_task_plans/cornaredo.yaml" />
     <param name="dry_run" value="$(var dry_run)" />
   </node>
 
