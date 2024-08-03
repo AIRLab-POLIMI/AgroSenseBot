@@ -1,4 +1,4 @@
-- child_frame_id: map_sat
+- child_frame_id: sat_map
   frame_id: map
   x: 8.762481207901146
   y: 6.026659302413464

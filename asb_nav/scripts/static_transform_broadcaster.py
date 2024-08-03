@@ -17,27 +17,30 @@ class ASBStaticTransformBroadcaster(Node):
 
         self.tf_static_broadcaster = StaticTransformBroadcaster(self)
 
-        self.declare_parameter('transform_list_file_path')
-        transform_list_file_path = os.path.expanduser(self.get_parameter('transform_list_file_path').get_parameter_value().string_value)
-        self.get_logger().info(f"transform_list_file_path set to {transform_list_file_path}")
+        self.declare_parameter('transform_list_file_path', "")
+        self.transform_list_file_path = os.path.expanduser(self.get_parameter('transform_list_file_path').get_parameter_value().string_value)
+        self.get_logger().info(f"transform_list_file_path set to {self.transform_list_file_path}")
 
         try:
-            with open(transform_list_file_path, 'r') as f:
-                transform_list = yaml.unsafe_load(f)
+            with open(self.transform_list_file_path, 'r') as f:
+                self.transform_list = yaml.unsafe_load(f)
         except FileNotFoundError:
-            self.get_logger().fatal(f"File does not exist: {transform_list_file_path}")
+            self.get_logger().fatal(f"File does not exist: {self.transform_list_file_path}")
             return
 
-        if transform_list is None:
+        if self.transform_list is None:
             self.get_logger().info(f"transform list is empty")
             return
 
-        if not isinstance(transform_list, list):
-            raise ValueError(f"the transform list is not a list in [{transform_list_file_path}]")
+        if not isinstance(self.transform_list, list):
+            raise ValueError(f"the transform list is not a list in [{self.transform_list_file_path}]")
 
-        for transform_dict in transform_list:
+        self.create_timer(1.0, self.broadcast_transform_timer_callback)
+
+    def broadcast_transform_timer_callback(self):
+        for transform_dict in self.transform_list:
             if not isinstance(transform_dict, dict):
-                raise ValueError(f"an element of the transform list is not a dict in [{transform_list_file_path}]")
+                raise ValueError(f"an element of the transform list is not a dict in [{self.transform_list_file_path}]")
 
             # rotation can be specified with a quaternion, euler angles, or not specified.
             # quaterion takes the precedence if both are specified.
