@@ -37,6 +37,7 @@ def generate_launch_description():
         'bt_navigator',
         'waypoint_follower',
         'map_server',
+        'sat_map_server',
     ]
 
     remappings = [('/tf', 'tf'),
@@ -193,6 +194,16 @@ def generate_launch_description():
                 parameters=[map_server_configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings+[('map', 'geofence_map')]),
+            Node(
+                package='nav2_map_server',
+                executable='map_server',
+                name='sat_map_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[map_server_configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings+[('map', 'sat_map')]),
             Node(
                 package='nav2_lifecycle_manager',
                 executable='lifecycle_manager',

@@ -1,3 +1,8 @@
 map_server:
   ros__parameters:
     yaml_filename: $(find-pkg-share asb_nav)/config/map_server_params/geofence_map_cornaredo_warehouse_v6.yaml
+
+sat_map_server:
+  ros__parameters:
+    yaml_filename: $(find-pkg-share asb_nav)/config/map_server_params/sat_map_cornaredo_warehouse_18_137637_93779_4x.yaml
+    frame_id: sat_map

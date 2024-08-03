@@ -92,6 +92,16 @@ def generate_launch_description():
         ],
     )
 
+    static_transform_broadcaster_node = Node(
+        package="asb_nav",
+        executable="static_transform_broadcaster.py",
+        name="asb_static_transform_broadcaster",
+        output="screen",
+        parameters=[
+            {"transform_list_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "cornaredo", "static_transforms.yaml")},
+        ],
+    )
+
     fake_scan_node = Node(
         package="asb_etc",
         executable="fake_scan_pub.py",
@@ -127,6 +137,7 @@ def generate_launch_description():
     ld.add_action(ekf_filter_node)
     ld.add_action(navsat_transform_1_node)
     ld.add_action(navsat_transform_2_node)
+    ld.add_action(static_transform_broadcaster_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)

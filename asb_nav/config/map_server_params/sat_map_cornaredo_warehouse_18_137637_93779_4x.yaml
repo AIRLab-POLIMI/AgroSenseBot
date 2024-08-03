@@ -1,0 +1,7 @@
+image: sat_map_cornaredo_warehouse_18_137637_93779_4x.jpeg
+mode: scale
+resolution: 0.10463406037701116
+origin: [-53.572638913029714, -53.572638913029714, 0]
+negate: 0
+occupied_thresh: 1.0
+free_thresh: 0.0

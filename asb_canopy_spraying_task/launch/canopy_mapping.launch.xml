@@ -13,9 +13,6 @@
 	<arg name="miss_probability" default="0.4" />
 	<arg name="max_range" default="5.0" />
 
-	<node pkg="tf2_ros" exec="static_transform_publisher" name="hedge_tf_publisher"
-				args="--x 1.75 --y 10.8 --z 0.0 --qx 0.0 --qy 0.0 --qz -0.573 --qw 0.819 --frame-id map --child-frame-id hedge" />
-
 	<node pkg="octomap_server" exec="octomap_server_node" name="octomap_server" namespace="canopy">
 		<remap from="cloud_in" to="$(var lidar_topic)" />
 		<param name="use_sim_time" value="$(var use_sim_time)" />
