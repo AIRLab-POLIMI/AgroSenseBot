@@ -67,8 +67,10 @@ def generate_launch_description():
         ],
         remappings=[
             ("odometry/filtered", "/ekf_filter_map_odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
-            ("gps/fix", "/gnss_1/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GPS coordinates as LLH.
+            ("gps/fix", "/gnss_1/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GNSS coordinates as LLH.
             ("odometry/gps", "/gnss_1/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GNSS coordinates, transformed into its world coordinate frame.
+            ("/toLL", "/gnss_1/toLL"),  # Service. Translate map frame coordinates into GNSS coordinates.
+            ("/fromLL", "/gnss_1/fromLL"),  # Service. Translate GNSS coordinates into map frame coordinates.
         ],
     )
 
@@ -83,8 +85,10 @@ def generate_launch_description():
         ],
         remappings=[
             ("odometry/filtered", "/ekf_filter_map_odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
-            ("gps/fix", "/gnss_2/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GPS coordinates as LLH.
+            ("gps/fix", "/gnss_2/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GNSS coordinates as LLH.
             ("odometry/gps", "/gnss_2/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GNSS coordinates, transformed into its world coordinate frame.
+            ("/toLL", "/gnss_2/toLL"),  # Service. Translate map frame coordinates into GNSS coordinates.
+            ("/fromLL", "/gnss_2/fromLL"),  # Service. Translate GNSS coordinates into map frame coordinates.
         ],
     )
 
