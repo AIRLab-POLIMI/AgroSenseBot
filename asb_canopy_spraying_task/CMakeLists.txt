@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(asb_task)
+project(asb_canopy_spraying_task)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)

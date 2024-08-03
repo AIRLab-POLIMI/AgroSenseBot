@@ -32,12 +32,12 @@ class AsbTaskPlanMaker(Node):
 
         self.navigator_node = navigator_node
 
-        default_source_task_plan_file_path = os.path.expanduser("~/asb_task_plan.yaml")
+        default_source_task_plan_file_path = os.path.expanduser("~/asb_canopy_spraying_task_plan.yaml")
         self.declare_parameter('source_task_plan_file_path', default_source_task_plan_file_path)
         self.source_task_plan_file_path = os.path.expanduser(self.get_parameter('source_task_plan_file_path').get_parameter_value().string_value)
         self.get_logger().info(f"source_task_plan_file_path set to {self.source_task_plan_file_path}")
 
-        default_destination_task_plan_file_path = os.path.expanduser("~/asb_task_plan.yaml")
+        default_destination_task_plan_file_path = os.path.expanduser("~/asb_canopy_spraying_task_plan.yaml")
         self.declare_parameter('destination_task_plan_file_path', default_destination_task_plan_file_path)
         self.destination_task_plan_file_path = os.path.expanduser(self.get_parameter('destination_task_plan_file_path').get_parameter_value().string_value)
         self.get_logger().info(f"destination_task_plan_file_path set to {self.destination_task_plan_file_path}")

@@ -69,7 +69,7 @@ class AsbTaskPlanNavigator(Node):
 
         Chronometer.node = self
 
-        default_task_plan_file_path = os.path.expanduser("~/asb_task_plan.yaml")
+        default_task_plan_file_path = os.path.expanduser("~/asb_canopy_spraying_task_plan.yaml")
         self.declare_parameter('task_plan_file_path', default_task_plan_file_path)
         self.task_plan_file_path = os.path.expanduser(self.get_parameter('task_plan_file_path').get_parameter_value().string_value)
         self.get_logger().info(f"task_plan_file_path set to {self.task_plan_file_path}")
