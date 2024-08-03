@@ -11,12 +11,6 @@ class TaskPlanItemResult:
         self.navigation_result = None
 
 
-class TaskPlanItemType:
-    def __init__(self):
-        self.started = False
-        self.nav_result = None
-
-
 class TaskPlanItem:
     def __init__(self, item_id=''):
         self.item_id: str = item_id
