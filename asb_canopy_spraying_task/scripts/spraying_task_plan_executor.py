@@ -63,9 +63,9 @@ class Chronometer:
         return total.nanoseconds / 1e9
 
 
-class AsbTaskPlanNavigator(Node):
+class SprayingTaskPlanExecutor(Node):
     def __init__(self):
-        super().__init__('spraying_task_plan_maker')
+        super().__init__('spraying_task_plan_executor')
 
         Chronometer.node = self
 
@@ -457,7 +457,7 @@ class AsbTaskPlanNavigator(Node):
                 self.get_logger().info(f'Navigation action failed with status code: {self.navigation_result_status}')
                 return True
             else:
-                self.get_logger().info('Task succeeded!')
+                self.get_logger().info('Navigation action succeeded!')
                 return True
         else:
             # Timed out, still processing, not complete yet
@@ -485,17 +485,17 @@ def thread_main(node):
 def main():
 
     rclpy.init()
-    task_plan_navigator_node = AsbTaskPlanNavigator()
-    thread = threading.Thread(target=thread_main, args=(task_plan_navigator_node,), daemon=True)
+    node = SprayingTaskPlanExecutor()
+    thread = threading.Thread(target=thread_main, args=(node,), daemon=True)
     thread.start()
 
     try:
-        task_plan_navigator_node.run()
-        task_plan_navigator_node.end()
+        node.run()
+        node.end()
     except KeyboardInterrupt:
         pass
     finally:
-        task_plan_navigator_node.terminate()
+        node.terminate()
 
     thread.join()
 
