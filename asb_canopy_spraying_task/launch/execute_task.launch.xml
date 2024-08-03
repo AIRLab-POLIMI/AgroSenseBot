@@ -3,7 +3,7 @@
 	<arg name="dry_run" default="false" />
 
   <node pkg="asb_canopy_spraying_task" exec="spraying_task_plan_executor.py" name="spraying_task_plan_executor">
-    <param name="task_plan_file_path" value="$(var asb_canopy_spraying_task)/config/spraying_task_plans/cornaredo.yaml" />
+    <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/spraying_task_plans/cornaredo.yaml" />
     <param name="dry_run" value="$(var dry_run)" />
   </node>
 

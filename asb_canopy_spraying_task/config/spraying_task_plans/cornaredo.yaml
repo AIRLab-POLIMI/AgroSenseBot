@@ -1,12 +1,10 @@
-!!python/object:spraying_task_plan.SprayingTaskPlan
 map_frame: map
 row_path_controller_id: FollowPath
 row_path_pose_distance: 0.1
 task_plan_items:
-- !!python/object:spraying_task_plan.TaskPlanItem
-  behavior_tree_name: spraying_task_navigate_through_poses_approach.xml
-  type: approach
-  item_id: initial_pose
+- item_id: initial_pose
+  type: APPROACH
+  timeout: 0.0
   approach_pose:
     header:
       frame_id: map
@@ -23,12 +21,9 @@ task_plan_items:
         y: 0.0
         z: -0.5586588394207326
         w: 0.8293975531294266
-  nav_timeout: null
-  result: null
-- !!python/object:spraying_task_plan.TaskPlanItem
-  behavior_tree_name: spraying_task_navigate_through_poses_approach.xml
-  type: approach
-  item_id: approach_1
+- item_id: approach_1
+  type: APPROACH
+  timeout: 0.0
   approach_pose:
     header:
       frame_id: map
@@ -45,12 +40,9 @@ task_plan_items:
         y: 0.0
         z: 0.83865962018106
         w: 0.5446558927228826
-  nav_timeout: null
-  result: null
-- !!python/object:spraying_task_plan.TaskPlanItem
-  behavior_tree_name: spraying_task_navigate_through_poses_approach.xml
-  type: approach
-  item_id: approach_2
+- item_id: approach_2
+  type: APPROACH
+  timeout: 0.0
   approach_pose:
     header:
       frame_id: map
@@ -67,12 +59,9 @@ task_plan_items:
         y: 0.0
         z: 0.8360454922095139
         w: 0.5486601269968066
-  nav_timeout: null
-  result: null
-- !!python/object:spraying_task_plan.TaskPlanItem
-  behavior_tree_name: spraying_task_navigate_through_poses_row.xml
-  type: row
-  item_id: row_1
+- item_id: row_1
+  type: ROW
+  timeout: 0.0
   row_waypoints:
   - header:
       frame_id: map
@@ -134,5 +123,3 @@ task_plan_items:
         x: 10.014745712280273
         y: 10.992372512817383
         z: 0.0
-  nav_timeout: null
-  result: null

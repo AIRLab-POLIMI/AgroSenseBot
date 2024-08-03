@@ -25,7 +25,7 @@ from action_msgs.msg import GoalStatus
 from nav2_msgs.action import FollowPath, NavigateToPose
 
 from enum import Enum
-from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemResult
+from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemResult, TaskPlanItemType
 
 
 class NavigationActionResult(Enum):
@@ -112,7 +112,7 @@ class SprayingTaskPlanExecutor(Node):
         self.min_loop_duration = 1 / self.max_loop_rate
 
         if not len(self.task_plan.get_item_ids()):
-            self.get_logger().error(f"Empty task plan")
+            self.get_logger().error(f"empty task plan")
             return
 
         self.tf_buffer = Buffer()
@@ -143,6 +143,8 @@ class SprayingTaskPlanExecutor(Node):
         self.get_robot_pose(timeout=10.0)
         self.get_logger().info(f"robot pose received (took {robot_pose_chrono.total():.4f} s), ready to start the task")
 
+        # TODO check nav action servers are available
+
         item_index = 0
 
         while rclpy.ok():
@@ -150,8 +152,9 @@ class SprayingTaskPlanExecutor(Node):
             start_nav_chrono = Chronometer()
 
             item = self.task_plan.task_plan_items[item_index]
-            item.result = TaskPlanItemResult()
-            item.result.item_started = True
+            item.set_result(TaskPlanItemResult())
+            item.get_result().item_started = True
+            self.log_task_results()
 
             self.do_loop_things()
             self.loop_rate.sleep()
@@ -160,7 +163,8 @@ class SprayingTaskPlanExecutor(Node):
 
             navigation_started = self.start_navigation(item)
             if navigation_started:
-                item.result.navigation_started = True
+                item.get_result().navigation_started = True
+                self.log_task_results()
                 self.get_logger().info(f"start_nav_duration: {start_nav_chrono.total():.3f} s")
 
                 self.get_logger().info(f"waiting for navigation to complete...")
@@ -182,18 +186,19 @@ class SprayingTaskPlanExecutor(Node):
 
                 # TODO send stop spray regulation command
 
-                item.result.navigation_result = self.get_navigation_action_result()
-                if item.result.navigation_result == NavigationActionResult.SUCCEEDED:
-                    self.get_logger().info(f"navigation result for item {item.item_id}: {result2str(item.result.navigation_result)}")
+                item.get_result().navigation_result = self.get_navigation_action_result()
+                self.log_task_results()
+                if item.get_result().navigation_result == NavigationActionResult.SUCCEEDED:
+                    self.get_logger().info(f"navigation result for item {item.get_item_id()}: {result2str(item.get_result().navigation_result)}")
                 else:
                     if self.dry_run:
-                        self.get_logger().info(f"(DRY RUN) navigation result for item {item.item_id}: {result2str(item.result.navigation_result)}")
+                        self.get_logger().info(f"navigation result for item {item.get_item_id()}: {result2str(item.get_result().navigation_result)} (DRY RUN)")
                     else:
-                        self.get_logger().error(f"navigation result for item {item.item_id}: {result2str(item.result.navigation_result)}")
+                        self.get_logger().error(f"navigation result for item {item.get_item_id()}: {result2str(item.get_result().navigation_result)}")
                         # TODO wait for operator mode switch to MANUAL, or activate SW E-STOP
             else:
-                self.get_logger().error(f"navigation could not be started for item {item.item_id}")
-                item.result.navigation_started = False
+                self.get_logger().error(f"navigation could not be started for item {item.get_item_id()}")
+                item.get_result().navigation_started = False
                 start_nav_duration = start_nav_chrono.delta()
                 self.get_logger().info(f"start_nav_duration: {start_nav_duration:.3f} s")
                 # TODO send stop spray regulation command
@@ -201,7 +206,7 @@ class SprayingTaskPlanExecutor(Node):
 
             item_index += 1
             if item_index >= len(self.task_plan.task_plan_items):
-                self.get_logger().info(f"Finished task plan in {run_chrono.delta():.1f} s")
+                self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
                 return
 
     """
@@ -218,6 +223,12 @@ class SprayingTaskPlanExecutor(Node):
     def terminate(self):
         self.get_logger().info(f"doing end work")
         self.cancel_navigation_action()
+        self.log_task_results()
+
+    def log_task_results(self):
+        if not os.path.isdir("~/asb_logs/"):
+            os.makedirs("~/asb_logs/")
+        self.task_plan.write(os.path.expanduser(f"~/asb_logs/spraying_task_plan_result.yaml"))
 
     def do_loop_things(self):
         # check we are running this function at an acceptable rate
@@ -232,8 +243,8 @@ class SprayingTaskPlanExecutor(Node):
 
     def start_navigation(self, item: TaskPlanItem) -> bool:
 
-        if item.type == "approach":
-            self.get_logger().info(f"STARTING approach navigation: {item.item_id}")
+        if item.get_type() == TaskPlanItemType.APPROACH:
+            self.get_logger().info(f"STARTING approach navigation: {item.get_item_id()}")
 
             if item.get_approach_pose().header.frame_id != self.task_plan.map_frame:
                 self.get_logger().error(f"the approach pose's frame_id does not match the task plan map_frame")
@@ -241,8 +252,8 @@ class SprayingTaskPlanExecutor(Node):
 
             return self.execute_navigate_to_pose_action(pose=item.get_approach_pose(), timeout=0.1) if not self.dry_run else True
 
-        elif item.type == "row":
-            self.get_logger().info(f"STARTING row navigation: {item.item_id}")
+        elif item.get_type() == TaskPlanItemType.ROW:
+            self.get_logger().info(f"STARTING row navigation: {item.get_item_id()}")
 
             row_path = self.get_row_path(item)
             if row_path is None:
@@ -252,7 +263,7 @@ class SprayingTaskPlanExecutor(Node):
             return self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id, timeout=0.1) if not self.dry_run else True
 
         else:
-            self.get_logger().error(f"unknown task plan item type [{item.type}] for item {item.item_id}")
+            self.get_logger().error(f"unknown task plan item type [{item.get_type().name}] for item {item.get_item_id()}")
             return False
 
     def get_robot_pose(self, timeout) -> PoseStamped | None:
@@ -281,23 +292,35 @@ class SprayingTaskPlanExecutor(Node):
 
     def get_row_path(self, item: TaskPlanItem) -> Path | None:
 
-        robot_pose = self.get_robot_pose(timeout=0.1)
-        if robot_pose is None:
-            self.get_logger().error(f"Could not get robot pose for row item {item.item_id}")
-            return None
-
         row_waypoints = item.get_row_waypoints()
         if len(row_waypoints) < 2:
-            self.get_logger().error(f"Less than 2 row poses for row item {item.item_id}")
+            self.get_logger().error(f"less than 2 row poses for row item {item.get_item_id()}")
             return None
 
-        # if not self.dry_run:
-        #     closest_row_waypoint_index = ...  # TODO
-        #     if closest_row_waypoint_index != 0:
-        #         self.get_logger().error(f"robot is not at start of row for item {item.item_id}")
-        #         return None
+        if self.dry_run:
+            prev_item = self.task_plan.get_preceding_item(item)
+            if prev_item.get_type() == TaskPlanItemType.APPROACH:
+                start_pose = prev_item.get_approach_pose()
+            elif prev_item.get_type() == TaskPlanItemType.ROW:
+                start_pose = prev_item.get_row_waypoints()[-1]
+            else:
+                self.get_logger().error(f"previous item [{prev_item.get_item_id()}] has unknown type: {prev_item.get_type().name}")
+                return None
+        else:
+            start_pose = self.get_robot_pose(timeout=0.1)
+            if start_pose is None:
+                self.get_logger().error(f"could not get robot pose for row item {item.get_item_id()}")
+                return None
 
-        row_poses = [robot_pose] + item.get_row_waypoints()
+        # closest_row_waypoint_index = ...  # TODO
+        # if closest_row_waypoint_index != 0:
+        #     self.get_logger().error(f"robot is not at start of row for item {item.get_item_id()}")
+        #     return None
+
+        if start_pose is not None:
+            row_poses = [start_pose] + item.get_row_waypoints()
+        else:
+            row_poses = item.get_row_waypoints()
 
         path_header = Header(stamp=self.get_clock().now().to_msg(), frame_id=self.task_plan.map_frame)
         path = Path(header=path_header)
@@ -447,6 +470,9 @@ class SprayingTaskPlanExecutor(Node):
         self.get_logger().info('current navigation action cancelled')
 
     def is_navigation_action_complete(self):
+        if self.dry_run:
+            return True
+
         if self.result_future is None:
             self.get_logger().error(f"checking action result future before sending a goal or receiving a goal response")
             return False
@@ -498,8 +524,6 @@ def main():
         node.terminate()
 
     thread.join()
-
-    # executor_thread.join()
 
 
 if __name__ == '__main__':
