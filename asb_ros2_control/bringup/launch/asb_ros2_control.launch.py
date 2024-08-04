@@ -41,6 +41,13 @@ def generate_launch_description():
         description="Whether to record the system data.",
     )
 
+    fake_heartbeat_launch_configuration = LaunchConfiguration("fake_heartbeat")
+    fake_heartbeat_launch_argument = DeclareLaunchArgument(
+        "fake_heartbeat",
+        default_value="false",
+        description="Whether to fake the heartbeat sent to the platform controller, ONLY SET TRUE IF TESTING!",
+    )
+
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -116,11 +123,20 @@ def generate_launch_description():
         condition=IfCondition(record_launch_configuration),
     )
 
+    fake_heartbeat_publisher_node = Node(
+        package="asb_sim",
+        executable="test_heartbeat.py",
+        name="test_heartbeat_publisher",
+        output="screen",
+        condition=IfCondition(fake_heartbeat_launch_configuration),
+    )
+
     # Create the launch description and populate
     ld = LaunchDescription()
 
     ld.add_action(use_vcan0_launch_argument)
     ld.add_action(record_launch_argument)
+    ld.add_action(fake_heartbeat_launch_argument)
 
     ld.add_action(control_node)
 
@@ -129,5 +145,6 @@ def generate_launch_description():
     ld.add_action(delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(include_logging_launch)
+    ld.add_action(fake_heartbeat_publisher_node)
 
     return ld

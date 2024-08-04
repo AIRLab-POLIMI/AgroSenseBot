@@ -5,14 +5,17 @@ import numpy as np
 import threading
 
 import rclpy
+from asb_msgs.msg import Heartbeat
 from rclpy import Future
+from rclpy.qos import QoSProfile
 from rclpy.action import ActionClient
 from rclpy.time import Time
 from rclpy.node import Node
 from rclpy.duration import Duration
+from lifecycle_msgs.srv import GetState
 from geometry_msgs.msg import Point, Pose, PoseStamped
 from nav_msgs.msg import Path
-from std_msgs.msg import Header
+from std_msgs.msg import Header, String
 
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
@@ -74,6 +77,11 @@ class SprayingTaskPlanExecutor(Node):
         self.task_plan_file_path = os.path.expanduser(self.get_parameter('task_plan_file_path').get_parameter_value().string_value)
         self.get_logger().info(f"task_plan_file_path set to {self.task_plan_file_path}")
 
+        default_log_dir_path = os.path.expanduser("~/asb_logs/asb_canopy_spraying_task_plan.yaml")
+        self.declare_parameter('log_dir_path', default_log_dir_path)
+        self.task_log_dir_path = os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value)
+        self.get_logger().info(f"log_dir_path set to {self.task_log_dir_path}")
+
         self.task_plan: SprayingTaskPlan = SprayingTaskPlan.load(self.task_plan_file_path)
         self.get_logger().info(f"loaded task plan with path ids: {self.task_plan.get_item_ids()}")
 
@@ -96,17 +104,17 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('robot_pose_time_tolerance', float(default_robot_pose_time_tolerance))
         self.robot_pose_time_tolerance = Duration(seconds=self.get_parameter('robot_pose_time_tolerance').get_parameter_value().double_value)
 
-        default_target_loop_rate = 100  # Hz
-        self.declare_parameter('target_loop_rate', float(default_target_loop_rate))
-        self.target_loop_rate = self.get_parameter('target_loop_rate').get_parameter_value().double_value
-        self.target_loop_duration = 1 / self.target_loop_rate
-
-        default_min_loop_rate = 5  # Hz # TODO should be 50 Hz to have high frequency heartbeat, check if true
+        default_min_loop_rate = 25  # Hz
         self.declare_parameter('min_loop_rate', float(default_min_loop_rate))
         self.min_loop_rate = self.get_parameter('min_loop_rate').get_parameter_value().double_value
         self.max_loop_duration = 1 / self.min_loop_rate
 
-        default_max_loop_rate = 150  # Hz
+        default_target_loop_rate = 50  # Hz
+        self.declare_parameter('target_loop_rate', float(default_target_loop_rate))
+        self.target_loop_rate = self.get_parameter('target_loop_rate').get_parameter_value().double_value
+        self.target_loop_duration = 1 / self.target_loop_rate
+
+        default_max_loop_rate = 55  # Hz
         self.declare_parameter('max_loop_rate', float(default_max_loop_rate))
         self.max_loop_rate = self.get_parameter('max_loop_rate').get_parameter_value().double_value
         self.min_loop_duration = 1 / self.max_loop_rate
@@ -118,10 +126,13 @@ class SprayingTaskPlanExecutor(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        self.robot_pose_timer_callback_chrono: Chronometer | None = None
-        self.loop_things_chrono: Chronometer | None = None
+        self.heartbeat_alive_bit: bool = False
+
+        self.loop_operations_chrono: Chronometer | None = None
 
         self.path_pub = self.create_publisher(Path, '/plan', 10)
+        self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_control_system_status_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
+        self.current_item_pub = self.create_publisher(String, '~/current_item', 10)
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         # navigation action variables
@@ -138,56 +149,68 @@ class SprayingTaskPlanExecutor(Node):
     def run(self):
         run_chrono = Chronometer()
 
+        # wait for localization
         self.get_logger().info(f"waiting for robot pose...")
         robot_pose_chrono = Chronometer()
-        self.get_robot_pose(timeout=10.0)
-        self.get_logger().info(f"robot pose received (took {robot_pose_chrono.total():.4f} s), ready to start the task")
+        robot_pose = self.get_robot_pose(timeout=10.0)
+        if robot_pose is not None:
+            self.get_logger().info(f"robot pose received (took {robot_pose_chrono.total():.4f} s)")
+        else:
+            self.get_logger().fatal(f"robot pose not received (took {robot_pose_chrono.total():.4f} s), aborting task")
+            return
 
-        # TODO check nav action servers are available
+        # wait for navigation stack
+        self.get_logger().info(f"waiting for navigation stack...")
+        nav_stack_chrono = Chronometer()
+        nav_stack_ready = self.wait_navigation_stack_is_ready(timeout=10.0)
+        if nav_stack_ready:
+            self.get_logger().info(f"navigation stack is ready (took {robot_pose_chrono.total():.4f} s), ready to start the task")
+        else:
+            self.get_logger().fatal(f"navigation stack timeout (took {nav_stack_chrono.total():.4f} s), aborting task")
+            return
+
+        self.prepare_task_log()
 
         item_index = 0
 
+        # [!]
+        # Beyond this point, no functions should block or take too long to execute.
+        # If self.do_loop_operations_and_sleep is not called with the correct frequency, for example due to an exception
+        # interrupting this function, the platform will stop receiving the heartbeat and go to STOP mode
+
         while rclpy.ok():
-            self.loop_rate.sleep()
-            start_nav_chrono = Chronometer()
+            self.do_loop_operations_and_sleep()
 
             item = self.task_plan.task_plan_items[item_index]
             item.set_result(TaskPlanItemResult())
             item.get_result().item_started = True
-            self.log_task_results()
 
-            self.do_loop_things()
-            self.loop_rate.sleep()
+            self.do_loop_operations_and_sleep(current_item=item)
 
             # TODO send spray regulation command, wait for start completion if necessary
 
+            start_nav_chrono = Chronometer()
             navigation_started = self.start_navigation(item)
+            self.get_logger().debug(f"start_nav_duration: {start_nav_chrono.total():.3f} s")
             if navigation_started:
                 item.get_result().navigation_started = True
-                self.log_task_results()
-                self.get_logger().info(f"start_nav_duration: {start_nav_chrono.total():.3f} s")
 
                 self.get_logger().info(f"waiting for navigation to complete...")
                 nav_chrono = Chronometer()
                 while rclpy.ok() and not self.is_navigation_action_complete():
-                    self.loop_rate.sleep()
-                    self.do_loop_things()
+                    self.do_loop_operations_and_sleep(current_item=item)
 
-                    # TODO update heartbeat
-                    # TODO check loop rate
-                    # TODO check navigation timeout
+                    # TODO check item timeout
                     # TODO check navigation mode
                     # TODO check navigation feedback
                     # TODO check spray regulation feedback
 
                 self.get_logger().info(f"navigation completed in {nav_chrono.total():.3f} s")
-                self.loop_rate.sleep()
-                self.do_loop_things()
+                self.do_loop_operations_and_sleep(current_item=item)
 
                 # TODO send stop spray regulation command
 
                 item.get_result().navigation_result = self.get_navigation_action_result()
-                self.log_task_results()
                 if item.get_result().navigation_result == NavigationActionResult.SUCCEEDED:
                     self.get_logger().info(f"navigation result for item {item.get_item_id()}: {result2str(item.get_result().navigation_result)}")
                 else:
@@ -222,24 +245,42 @@ class SprayingTaskPlanExecutor(Node):
     """
     def terminate(self):
         self.get_logger().info(f"doing end work")
+        self.get_logger().info(f"requesting to cancel navigation action")
         self.cancel_navigation_action()
+        self.get_logger().info(f"writing task results")
         self.log_task_results()
 
-    def log_task_results(self):
-        if not os.path.isdir("~/asb_logs/"):
-            os.makedirs("~/asb_logs/")
-        self.task_plan.write(os.path.expanduser(f"~/asb_logs/spraying_task_plan_result.yaml"))
+    def prepare_task_log(self) -> None:
+        if not os.path.isdir(self.task_log_dir_path):
+            os.makedirs(self.task_log_dir_path)
 
-    def do_loop_things(self):
-        # check we are running this function at an acceptable rate
-        if self.loop_things_chrono is None:
-            self.loop_things_chrono = Chronometer()
+    def log_task_results(self) -> None:
+        chrono = Chronometer()
+        self.task_plan.write(os.path.expanduser(f"~/asb_logs/spraying_task_plan_result.yaml"))
+        self.get_logger().info(f"wrote task results, it took {chrono.total():.3f} s")
+
+    def do_loop_operations_and_sleep(self, current_item: TaskPlanItem = None) -> None:
+        if current_item is not None:
+            self.current_item_pub.publish(String(data=current_item.get_item_id()))
         else:
-            loop_things_delta = self.loop_things_chrono.delta()
-            if loop_things_delta > self.max_loop_duration:
-                self.get_logger().error(f"LOW LOOP RATE loop_things_delta > self.max_loop_duration: {loop_things_delta:.3f} s, {1/loop_things_delta:.3f} Hz")
-            if loop_things_delta < self.min_loop_duration:
-                self.get_logger().error(f"HIGH LOOP RATE loop_things_delta < self.target_loop_duration: {loop_things_delta:.3f} s, {1/loop_things_delta:.3f} Hz")
+            self.current_item_pub.publish(String())
+
+        # publish heartbeat message
+        self.heartbeat_alive_bit = not self.heartbeat_alive_bit
+        self.heartbeat_pub.publish(Heartbeat(stamp=self.get_clock().now().to_msg(), alive_bit=self.heartbeat_alive_bit))
+
+        # [!] always sleep at the end to limit the loop rate, don't skip this by returning
+        self.loop_rate.sleep()
+
+        # check we are running this function at an acceptable rate
+        if self.loop_operations_chrono is None:
+            self.loop_operations_chrono = Chronometer()
+        else:
+            loop_operations_delta = self.loop_operations_chrono.delta()
+            if loop_operations_delta > self.max_loop_duration:
+                self.get_logger().warn(f"LOW LOOP RATE loop_operations_delta [{loop_operations_delta:.3f} s] > max_loop_duration [{self.max_loop_duration:.3f} s]")
+            if loop_operations_delta < self.min_loop_duration:
+                self.get_logger().warn(f"HIGH LOOP RATE loop_operations_delta [{loop_operations_delta:.3f} s] < min_loop_duration [{self.min_loop_duration:.3f} s], {1/loop_operations_delta:.3f} Hz")
 
     def start_navigation(self, item: TaskPlanItem) -> bool:
 
@@ -250,7 +291,7 @@ class SprayingTaskPlanExecutor(Node):
                 self.get_logger().error(f"the approach pose's frame_id does not match the task plan map_frame")
                 return False
 
-            return self.execute_navigate_to_pose_action(pose=item.get_approach_pose(), timeout=0.1) if not self.dry_run else True
+            return self.execute_navigate_to_pose_action(pose=item.get_approach_pose()) if not self.dry_run else True
 
         elif item.get_type() == TaskPlanItemType.ROW:
             self.get_logger().info(f"STARTING row navigation: {item.get_item_id()}")
@@ -260,7 +301,7 @@ class SprayingTaskPlanExecutor(Node):
                 return False
 
             self.path_pub.publish(row_path)
-            return self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id, timeout=0.1) if not self.dry_run else True
+            return self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id) if not self.dry_run else True
 
         else:
             self.get_logger().error(f"unknown task plan item type [{item.get_type().name}] for item {item.get_item_id()}")
@@ -354,21 +395,66 @@ class SprayingTaskPlanExecutor(Node):
 
         return path
 
+    def wait_navigation_stack_is_ready(self, timeout: float) -> bool:
+        if not self.wait_node_is_active("bt_navigator", timeout=timeout):
+            return False
+        if not self.wait_node_is_active("controller_server", timeout=timeout):
+            return False
+        if not self.wait_action_server(self.navigate_to_pose_client, "navigate_to_pose", timeout=timeout):
+            return False
+        if not self.wait_action_server(self.follow_path_client, "follow_path", timeout=timeout):
+            return False
+        return True
+
+    def wait_node_is_active(self, node_name, timeout: float) -> bool:
+        self.get_logger().info(f"waiting for {node_name}...")
+        state_client = self.create_client(GetState, f"{node_name}/get_state")
+        timeout_chrono = Chronometer()
+        while rclpy.ok() and not state_client.wait_for_service(timeout_sec=0.05):
+            self.get_logger().info(f'still waiting {node_name} lifecycle service...')
+            if timeout_chrono.total() > timeout:
+                self.get_logger().error(f'{node_name} lifecycle state service was not available before timeout [{timeout} s]')
+                return False
+
+        request = GetState.Request()
+        prev_state = None
+        while rclpy.ok():
+            response_future = state_client.call_async(request)
+            while rclpy.ok() and response_future.result() is None:
+                if timeout_chrono.total() > timeout:
+                    self.get_logger().error(f"{node_name} lifecycle state service did not respond or did not transition to active before timeout [{timeout} s]")
+                    return False
+                else:
+                    self.loop_rate.sleep()
+
+            state = response_future.result().current_state.label
+            if state != prev_state:
+                prev_state = state
+                self.get_logger().info(f'{node_name} lifecycle state: {state}')
+
+            if state == "active":
+                return True
+            else:
+                self.loop_rate.sleep()
+        return False
+
+    def wait_action_server(self, action_client: ActionClient, action_client_name: str, timeout: float) -> bool:
+        self.get_logger().info(f"waiting for {action_client_name} action server...")
+        timeout_chrono = Chronometer()
+        while rclpy.ok() and not action_client.wait_for_server(timeout_sec=0.05):
+            self.get_logger().info(f"{action_client_name} action server not available, waiting...")
+            if timeout_chrono.total() > timeout:
+                return False
+        return True
+
     """
      Send the NavigateToPose action request.
     """
-    def execute_navigate_to_pose_action(self, pose: PoseStamped, timeout: float) -> bool:
-        self.get_logger().info("Waiting for NavigateToPose action server")
-        timeout_chrono = Chronometer()
-        while rclpy.ok() and not self.navigate_to_pose_client.wait_for_server(timeout_sec=0.05):
-            self.get_logger().info("NavigateToPose action server not available, waiting...")
-            if timeout_chrono.total() > timeout:
-                return False
-
+    def execute_navigate_to_pose_action(self, pose: PoseStamped) -> bool:
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = pose
 
-        self.get_logger().info(f"execute_navigate_to_pose_action: sending goal")
+        self.get_logger().debug(f"execute_navigate_to_pose_action: sending goal")
         response_future: Future = self.navigate_to_pose_client.send_goal_async(goal_msg, self.navigate_to_pose_feedback_callback)
         response_future.add_done_callback(self.navigate_to_pose_response_callback)
         return True
@@ -379,7 +465,7 @@ class SprayingTaskPlanExecutor(Node):
     def navigate_to_pose_response_callback(self, future: Future):
         self.goal_handle = future.result()
         if self.goal_handle.accepted:
-            self.get_logger().info(f"navigate_to_pose_response_callback: goal accepted")
+            self.get_logger().debug(f"navigate_to_pose_response_callback: goal accepted")
         else:
             self.get_logger().error(f"navigate_to_pose_response_callback: goal rejected")
 
@@ -395,8 +481,7 @@ class SprayingTaskPlanExecutor(Node):
             f"navigate_to_pose_feedback:\n"
             f"    distance_remaining:       {msg.feedback.distance_remaining:.1f} m\n"
             f"    estimated_time_remaining: {Duration.from_msg(msg.feedback.estimated_time_remaining).nanoseconds/1e9:.1f} s\n"
-            f"    navigation_time:          {Duration.from_msg(msg.feedback.navigation_time).nanoseconds/1e9:.1f} s\n"
-            f"    number_of_recoveries:     {msg.feedback.number_of_recoveries}\n",
+            f"    navigation_time:          {Duration.from_msg(msg.feedback.navigation_time).nanoseconds/1e9:.1f} s\n",
             throttle_duration_sec=5.0
         )
 
@@ -404,25 +489,18 @@ class SprayingTaskPlanExecutor(Node):
      Receive the NavigateToPose action result.
     """
     def navigate_to_pose_result_callback(self, _: Future):
-        self.get_logger().info(f"navigate_to_pose_result_callback, action completed")
+        self.get_logger().debug(f"navigate_to_pose_result_callback: action completed")
 
     """
      Send the FollowPath action request.
     """
-    def execute_follow_path_action(self, path: Path, timeout: float, controller_id, goal_checker_id='') -> bool:
-        self.get_logger().info("Waiting for FollowPath action server")
-        timeout_chrono = Chronometer()
-        while rclpy.ok() and not self.follow_path_client.wait_for_server(timeout_sec=0.01):
-            self.get_logger().info("FollowPath action server not available, waiting...")
-            if timeout_chrono.total() > timeout:
-                return False
-
+    def execute_follow_path_action(self, path: Path, controller_id, goal_checker_id='') -> bool:
         goal_msg = FollowPath.Goal()
         goal_msg.path = path
         goal_msg.controller_id = controller_id
         goal_msg.goal_checker_id = goal_checker_id
 
-        self.get_logger().info(f"execute_follow_path_action: sending goal")
+        self.get_logger().debug(f"execute_follow_path_action: sending goal")
         response_future: Future = self.follow_path_client.send_goal_async(goal_msg, self.follow_path_feedback_callback)
         response_future.add_done_callback(self.follow_path_response_callback)
         return True
@@ -433,7 +511,7 @@ class SprayingTaskPlanExecutor(Node):
     def follow_path_response_callback(self, future: Future):
         self.goal_handle: rclpy.action.client.ClientGoalHandle = future.result()
         if self.goal_handle.accepted:
-            self.get_logger().info(f"follow_path_response_callback: goal accepted")
+            self.get_logger().debug(f"follow_path_response_callback: goal accepted")
         else:
             self.get_logger().error(f"follow_path_response_callback: goal rejected")
 
@@ -456,7 +534,7 @@ class SprayingTaskPlanExecutor(Node):
      Receive the FollowPath action result.
     """
     def follow_path_result_callback(self, _: Future):
-        self.get_logger().info(f"follow_path_result_callback, action completed")
+        self.get_logger().debug(f"follow_path_result_callback: action completed")
 
     def cancel_navigation_action(self):
         if self.goal_handle is not None:
@@ -464,30 +542,29 @@ class SprayingTaskPlanExecutor(Node):
             self.cancel_navigation_action_future: Future = self.goal_handle.cancel_goal_async()
             self.cancel_navigation_action_future.add_done_callback(self.cancel_navigation_action_response_callback)
         else:
-            self.get_logger().info('cancel_navigation_action: no action to cancel')
+            self.get_logger().info('no navigation actions in progress')
 
     def cancel_navigation_action_response_callback(self, _):
-        self.get_logger().info('current navigation action cancelled')
+        self.get_logger().info('current navigation action was cancelled')
 
     def is_navigation_action_complete(self):
         if self.dry_run:
             return True
 
         if self.result_future is None:
-            self.get_logger().error(f"checking action result future before sending a goal or receiving a goal response")
+            self.get_logger().warn(f"checking action result future before sending a goal or receiving a goal response")
             return False
 
         if self.result_future.result() is not None:
             self.navigation_result_status = self.result_future.result().status
             if self.navigation_result_status != GoalStatus.STATUS_SUCCEEDED:
-                self.get_logger().info(f'Navigation action failed with status code: {self.navigation_result_status}')
+                self.get_logger().error(f'navigation action failed with status code: {self.navigation_result_status}')
                 return True
             else:
-                self.get_logger().info('Navigation action succeeded!')
+                self.get_logger().debug('navigation action succeeded')
                 return True
         else:
-            # Timed out, still processing, not complete yet
-            return False  # TODO timed out???
+            return False
 
     def get_navigation_action_result(self):
         if self.navigation_result_status == GoalStatus.STATUS_SUCCEEDED:
@@ -501,7 +578,6 @@ class SprayingTaskPlanExecutor(Node):
 
 
 def thread_main(node):
-
     try:
         rclpy.spin(node)
     except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):

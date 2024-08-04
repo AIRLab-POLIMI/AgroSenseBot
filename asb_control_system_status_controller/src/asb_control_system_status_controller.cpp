@@ -271,7 +271,13 @@ void ASBControlSystemStatusController::heartbeat_callback(const std::shared_ptr<
     return;
   }
   if ((msg->stamp.sec == 0) && (msg->stamp.nanosec == 0)) {
-    RCLCPP_ERROR(get_node()->get_logger(), "Received heartbeat header with zero timestamp. Ignoring message.");
+    RCLCPP_ERROR(get_node()->get_logger(), "Received heartbeat header with zero timestamp. Ignoring heartbeat message.");
+    return;
+  }
+  if(heartbeat_subscriber_->get_publisher_count() > 1) {
+    RCLCPP_ERROR(
+      get_node()->get_logger(), "More than one heartbeat publisher is active [%li]. Rejecting all heartbeat messages.",
+      heartbeat_subscriber_->get_publisher_count());
     return;
   }
   last_heartbeat_msg_ = *msg;

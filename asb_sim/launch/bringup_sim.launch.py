@@ -99,13 +99,6 @@ def generate_launch_description():
         launch_arguments={'use_vcan0': 'true'}.items(),
     )
 
-    test_heartbeat_publisher_node = Node(
-        package="asb_sim",
-        executable="test_heartbeat.py",
-        name="test_heartbeat_publisher",
-        output="screen",
-    )
-
     ld = launch.LaunchDescription()
 
     ld.add_action(print_debug_launch_argument)
@@ -117,6 +110,5 @@ def generate_launch_description():
     ld.add_action(lifecycle_inactive_state_handler)
     ld.add_action(lifecycle_configure)
     ld.add_action(include_control_launch)
-    ld.add_action(test_heartbeat_publisher_node)
 
     return ld
