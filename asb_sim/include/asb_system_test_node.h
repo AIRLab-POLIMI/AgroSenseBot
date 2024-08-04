@@ -7,6 +7,7 @@
 
 #include "asb_msgs/msg/sim_state_cmd.hpp"
 #include "asb_msgs/msg/sim_state.hpp"
+#include "std_msgs/msg/int16.hpp"
 
 #include <chrono>
 
@@ -73,6 +74,7 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   rclcpp::TimerBase::SharedPtr gcu_is_alive_timer_;
   rclcpp::TimerBase::SharedPtr test_loop_timer_;
 
+  rclcpp::Subscription<std_msgs::msg::Int16>::SharedPtr control_mode_subscriber_;
   rclcpp::Subscription<asb_msgs::msg::SimState>::SharedPtr sim_state_subscriber_;
   rclcpp::Publisher<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_publisher_;
 
@@ -89,7 +91,10 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   MotorDriveTestState left_motor_drive_test_state_;
   MotorDriveTestState right_motor_drive_test_state_;
   MotorDriveTestState fan_motor_drive_test_state_;
+  ControlMode control_mode_test_state_ = ControlMode::GCU;
   bool pump_test_state_ = false;
+
+  void control_mode_ros2_callback(const std_msgs::msg::Int16::SharedPtr msg);
 
   void sim_ros2_callback(const asb_msgs::msg::SimState::SharedPtr msg);
 

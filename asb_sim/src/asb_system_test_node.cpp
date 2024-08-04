@@ -27,6 +27,8 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
   }
 
+  control_mode_subscriber_ = this->create_subscription<std_msgs::msg::Int16>(
+      "control_mode", rclcpp::SensorDataQoS().reliable(), std::bind(&ASBSystemTestNode::control_mode_ros2_callback, this, _1));
   sim_state_subscriber_ = this->create_subscription<asb_msgs::msg::SimState>(
       "state", rclcpp::SensorDataQoS().reliable(), std::bind(&ASBSystemTestNode::sim_ros2_callback, this, _1));
   sim_state_cmd_publisher_ = this->create_publisher<asb_msgs::msg::SimStateCmd>(
@@ -135,6 +137,26 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
   rclcpp::Duration time_delta = now - last_test_loop_time_;
   last_test_loop_time_ = now;
 
+  if(print_debug_ && control_mode_test_state_ == ControlMode::STOP) {
+    RCLCPP_INFO(this->get_logger(), "\ncontrol mode                : STOP\n");
+  }
+  if(print_debug_ && control_mode_test_state_ == ControlMode::RCU) {
+    RCLCPP_INFO(this->get_logger(), "\ncontrol mode                : RCU\n");
+  }
+  if(print_debug_ && control_mode_test_state_ == ControlMode::GCU) {
+    RCLCPP_INFO(this->get_logger(), "\ncontrol mode                : GCU\n");
+  }
+  if(print_debug_ && control_mode_test_state_ == ControlMode::WAIT) {
+    RCLCPP_INFO(this->get_logger(), "\ncontrol mode                : WAIT\n");
+  }
+
+  if(control_mode_test_state_ != ControlMode::GCU) {
+    pump_test_state_ = false;
+    right_motor_drive_test_state_.speed_ref = 0;
+    left_motor_drive_test_state_.speed_ref = 0;
+    fan_motor_drive_test_state_.speed_ref = 0;
+  }
+
   if(use_simulator_) {
     left_motor_drive_test_state_.apply_motor_speed(time_delta);
   } else {
@@ -186,7 +208,7 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
       );
 
   vcu_alive_test_callback(pump_test_state_, true,
-                          ControlMode::GCU,
+                          control_mode_test_state_,
                           0, 0);
 
   motor_drive_left_test_callback(
@@ -215,6 +237,11 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
 
 }
 
+void ASBSystemTestNode::control_mode_ros2_callback(const std_msgs::msg::Int16::SharedPtr msg) {
+  if(print_debug_) RCLCPP_INFO(this->get_logger(), "control_mode: %i\n", msg->data);
+  control_mode_test_state_ = (ControlMode) msg->data;
+}
+
 void ASBSystemTestNode::sim_ros2_callback(const asb_msgs::msg::SimState::SharedPtr msg) {
   if(print_debug_) RCLCPP_INFO(
       this->get_logger(),
@@ -224,7 +251,7 @@ void ASBSystemTestNode::sim_ros2_callback(const asb_msgs::msg::SimState::SharedP
       msg->left_motor_speed,
       msg->right_motor_speed,
       msg->fan_motor_speed
-      );
+    );
   if(use_simulator_) {
     left_motor_drive_test_state_.motor_rpm = (int) (60 * msg->left_motor_speed / (2 * M_PI));
     right_motor_drive_test_state_.motor_rpm = (int) (60 * msg->right_motor_speed / (2 * M_PI));
@@ -242,8 +269,12 @@ void ASBSystemTestNode::gcu_is_alive_timer_ros2_callback() {
     }
 
     if (now - last_GCU_alive_bit_change_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
-      RCLCPP_ERROR(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
+      if(control_mode_test_state_ != ControlMode::STOP) {
+        RCLCPP_INFO(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
+      }
+      control_mode_test_state_ = ControlMode::STOP;
     }
+
   } else {
     auto& throttle_clock = *this->get_clock();
     RCLCPP_INFO_THROTTLE(this->get_logger(), throttle_clock, 1000, "WAITING FOR GCU COMM (first GCU alive bit change)");
@@ -343,7 +374,9 @@ void ASBSystemTestNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool p
 }
 
 void ASBSystemTestNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
-  right_motor_drive_test_state_.speed_ref = right_speed_ref;
-  left_motor_drive_test_state_.speed_ref = left_speed_ref;
-  fan_motor_drive_test_state_.speed_ref = fan_speed_ref;
+  if(control_mode_test_state_ == ControlMode::GCU) {
+    right_motor_drive_test_state_.speed_ref = right_speed_ref;
+    left_motor_drive_test_state_.speed_ref = left_speed_ref;
+    fan_motor_drive_test_state_.speed_ref = fan_speed_ref;
+  }
 }

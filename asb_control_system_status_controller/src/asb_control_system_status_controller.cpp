@@ -35,6 +35,13 @@ using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
 using lifecycle_msgs::msg::State;
 
+enum ControlMode {
+  STOP = 0,
+  RCU = 1,
+  GCU = 2,
+  WAIT = 3,
+};
+
 ASBControlSystemStatusController::ASBControlSystemStatusController() : controller_interface::ControllerInterface() {}
 
 controller_interface::CallbackReturn ASBControlSystemStatusController::on_init() {
@@ -181,13 +188,15 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
     return controller_interface::return_type::OK;
   }
 
+  ControlMode control_mode = (ControlMode)(uint8_t)std::round(get_value("control_system_state/control_mode"));
+
   // check the heartbeat
   const auto heartbeat_age = time - last_heartbeat_msg_.stamp;
   if((last_heartbeat_msg_.stamp.sec == 0) && (last_heartbeat_msg_.stamp.nanosec == 0)) {
     auto throttle_clock = rclcpp::Clock();
     RCLCPP_INFO_THROTTLE(logger, throttle_clock, 1000, "WAITING FIRST HEARTBEAT");
-  } else if (heartbeat_age > heartbeat_timeout_) {
-    RCLCPP_WARN(logger, "Heartbeat period too low [%fs]. Control system will reject commands.", heartbeat_age.seconds());
+  } else if (heartbeat_age > heartbeat_timeout_ && control_mode == ControlMode::GCU) {
+    RCLCPP_INFO(logger, "Heartbeat period too low [%fs]. Control system will transition to STOP.", heartbeat_age.seconds());
   }
 
   // set the command interfaces from the controller state variables

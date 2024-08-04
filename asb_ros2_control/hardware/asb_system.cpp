@@ -27,6 +27,13 @@
 namespace asb_ros2_control
 {
 
+enum ControlMode {
+  STOP = 0,
+  RCU = 1,
+  GCU = 2,
+  WAIT = 3,
+};
+
 hardware_interface::CallbackReturn ASBSystemHardware::on_init(const hardware_interface::HardwareInfo & info)
 {
 
@@ -264,16 +271,24 @@ void ASBSystemHardware::timer() {
 
   if(first_heartbeat_received_.load())
   {
-    if (now - gcu_alive_bit_last_value_change_.load() >= 200ms)
+    if ((ControlMode) (uint8_t) control_mode_int_state_ == ControlMode::GCU)
     {
-      gcu_alive_bit_rate_critical_.store(true);
-      gcu_alive_bit_rate_low_.store(true);
-      RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD TOO LOW, VCU WILL REJECT COMMANDS");
-    } else if (now - gcu_alive_bit_last_value_change_.load() >= 100ms) {
-      gcu_alive_bit_rate_critical_.store(false);
-      gcu_alive_bit_rate_low_.store(true);
-      RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD LOWER THAN EXPECTED");
+      // if we are in control mode GCU, the alive bit should always change within the appropriate timing
+      if (now - gcu_alive_bit_last_value_change_.load() >= 200ms)
+      {
+        gcu_alive_bit_rate_critical_.store(true);
+        gcu_alive_bit_rate_low_.store(true);
+        RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD TOO LOW, VCU WILL REJECT COMMANDS");
+      } else if (now - gcu_alive_bit_last_value_change_.load() >= 100ms) {
+        gcu_alive_bit_rate_critical_.store(false);
+        gcu_alive_bit_rate_low_.store(true);
+        RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD LOWER THAN EXPECTED");
+      } else {
+        gcu_alive_bit_rate_critical_.store(false);
+        gcu_alive_bit_rate_low_.store(false);
+      }
     } else {
+      // if we are not in control mode GCU, the alive bit does not need to change, it may or not
       gcu_alive_bit_rate_critical_.store(false);
       gcu_alive_bit_rate_low_.store(false);
     }
