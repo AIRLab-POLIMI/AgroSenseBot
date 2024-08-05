@@ -28,6 +28,13 @@ def generate_launch_description():
         description="Whether to print (lots of) additional data.",
     )
 
+    start_in_control_mode_gcu_launch_configuration = LaunchConfiguration("start_in_control_mode_GCU")
+    start_in_control_mode_gcu_launch_argument = DeclareLaunchArgument(
+        'start_in_control_mode_GCU',
+        default_value='false',
+        description="Whether to set the initial control mode value to GCU.",
+    )
+
     use_simulator_launch_configuration = LaunchConfiguration("use_simulator")
     use_simulator_launch_argument = DeclareLaunchArgument(
         'use_simulator',
@@ -65,6 +72,7 @@ def generate_launch_description():
         executable="test_node",
         parameters=[{
             "print_debug": print_debug_launch_configuration,
+            "start_in_control_mode_GCU": start_in_control_mode_gcu_launch_configuration,
             "use_simulator": use_simulator_launch_configuration,
             "dummy_VCU_canopen_node_config": os.path.join(pkg("asb_sim"), "config", "dummy_VCU.dcf"),
             "dummy_MDL_canopen_node_config": os.path.join(pkg("asb_sim"), "config", "dummy_MDL.dcf"),
@@ -102,6 +110,7 @@ def generate_launch_description():
     ld = launch.LaunchDescription()
 
     ld.add_action(print_debug_launch_argument)
+    ld.add_action(start_in_control_mode_gcu_launch_argument)
     ld.add_action(use_simulator_launch_argument)
 
     ld.add_action(webots_launch)

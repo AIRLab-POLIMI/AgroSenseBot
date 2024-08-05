@@ -278,11 +278,10 @@ void ASBSystemHardware::timer() {
       {
         gcu_alive_bit_rate_critical_.store(true);
         gcu_alive_bit_rate_low_.store(true);
-        RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD TOO LOW, VCU WILL REJECT COMMANDS");
+        RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD TOO LOW, VCU GO TO CONTROL MODE STOP");
       } else if (now - gcu_alive_bit_last_value_change_.load() >= 100ms) {
         gcu_alive_bit_rate_critical_.store(false);
         gcu_alive_bit_rate_low_.store(true);
-        RCLCPP_WARN(rclcpp::get_logger("ASBSystemHardware"), "ALIVE BIT CHANGE PERIOD LOWER THAN EXPECTED");
       } else {
         gcu_alive_bit_rate_critical_.store(false);
         gcu_alive_bit_rate_low_.store(false);
@@ -294,7 +293,7 @@ void ASBSystemHardware::timer() {
     }
   } else {
     auto throttle_clock = rclcpp::Clock();
-    RCLCPP_INFO_THROTTLE(rclcpp::get_logger("ASBSystemHardware"), throttle_clock, 1000, "WAITING FIRST HEARTBEAT");
+    RCLCPP_INFO_THROTTLE(rclcpp::get_logger("ASBSystemHardware"), throttle_clock, 10000, "WAITING FIRST HEARTBEAT");
   }
 
   // The VCU CANOpen node considers the received data correct only if the bIsAlive bit in the TPDO1 of the GCU is

@@ -194,7 +194,7 @@ controller_interface::return_type ASBControlSystemStatusController::update(const
   const auto heartbeat_age = time - last_heartbeat_msg_.stamp;
   if((last_heartbeat_msg_.stamp.sec == 0) && (last_heartbeat_msg_.stamp.nanosec == 0)) {
     auto throttle_clock = rclcpp::Clock();
-    RCLCPP_INFO_THROTTLE(logger, throttle_clock, 1000, "WAITING FIRST HEARTBEAT");
+    RCLCPP_INFO_THROTTLE(logger, throttle_clock, 10000, "WAITING FIRST HEARTBEAT");
   } else if (heartbeat_age > heartbeat_timeout_ && control_mode == ControlMode::GCU) {
     RCLCPP_INFO(logger, "Heartbeat period too low [%fs]. Control system will transition to STOP.", heartbeat_age.seconds());
   }

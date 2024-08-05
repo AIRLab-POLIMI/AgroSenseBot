@@ -11,6 +11,7 @@ ASBSystemTestNode::on_configure(const rclcpp_lifecycle::State &) {
 rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   get_parameter("print_debug", print_debug_);
+  get_parameter("start_in_control_mode_GCU", start_in_control_mode_GCU_);
   get_parameter("use_simulator", use_simulator_);
   get_parameter("dummy_VCU_canopen_node_config", VCU_canopen_node_config_);
   get_parameter("dummy_MDL_canopen_node_config", MDL_canopen_node_config_);
@@ -18,6 +19,8 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   get_parameter("dummy_FAN_canopen_node_config", FAN_canopen_node_config_);
   get_parameter("can_interface_name", can_interface_name_);
 
+  RCLCPP_INFO(this->get_logger(), "print_debug: %s", print_debug_ ? "True" : "False");
+  RCLCPP_INFO(this->get_logger(), "start_in_control_mode_GCU: %s", start_in_control_mode_GCU_ ? "True" : "False");
   RCLCPP_INFO(this->get_logger(), "use_simulator: %s", use_simulator_ ? "True" : "False");
   RCLCPP_INFO(this->get_logger(), "dummy_canopen_node_config: %s", VCU_canopen_node_config_.c_str());
   RCLCPP_INFO(this->get_logger(), "can_interface_name: %s", can_interface_name_.c_str());
@@ -25,6 +28,12 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   if (can_interface_name_ != "vcan0") {
     RCLCPP_FATAL(this->get_logger(), "Using a CAN interface different than vcan0 for testing!");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::FAILURE;
+  }
+
+  if (start_in_control_mode_GCU_) {
+    control_mode_test_state_ = ControlMode::GCU;
+  } else {
+    control_mode_test_state_ = ControlMode::RCU;
   }
 
   control_mode_subscriber_ = this->create_subscription<std_msgs::msg::Int16>(
@@ -263,21 +272,24 @@ void ASBSystemTestNode::gcu_is_alive_timer_ros2_callback() {
   rclcpp::Time now = this->get_clock()->now();
 
   if(comm_started_) {
-    if (now - last_GCU_message_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
-      RCLCPP_ERROR(this->get_logger(), "GCU COMM TIMEOUT (%f s)", (now - last_GCU_message_time_).seconds());
-      return;
-    }
 
-    if (now - last_GCU_alive_bit_change_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
-      if(control_mode_test_state_ != ControlMode::STOP) {
-        RCLCPP_INFO(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
+    // if the control mode is GCU, we check that the GCU is sending the heartbeat. if the heartbeat is not received, we go to control mode stop
+    if(control_mode_test_state_ == ControlMode::GCU) {
+      if (now - last_GCU_message_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
+        RCLCPP_ERROR(this->get_logger(), "GCU COMM TIMEOUT (%f s)", (now - last_GCU_message_time_).seconds());
+        control_mode_test_state_ = ControlMode::STOP;
+        return;
       }
-      control_mode_test_state_ = ControlMode::STOP;
+
+      if (now - last_GCU_alive_bit_change_time_ > rclcpp::Duration(gcu_is_alive_timeout_)) {
+        RCLCPP_INFO(this->get_logger(), "GCU ALIVE BIT CHANGE TIMEOUT (%f s)", (now - last_GCU_alive_bit_change_time_).seconds());
+        control_mode_test_state_ = ControlMode::STOP;
+      }
     }
 
   } else {
     auto& throttle_clock = *this->get_clock();
-    RCLCPP_INFO_THROTTLE(this->get_logger(), throttle_clock, 1000, "WAITING FOR GCU COMM (first GCU alive bit change)");
+    RCLCPP_INFO_THROTTLE(this->get_logger(), throttle_clock, 10000, "WAITING FOR GCU COMM (first GCU alive bit change)");
   }
 
 }

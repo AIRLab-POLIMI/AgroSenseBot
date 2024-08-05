@@ -57,13 +57,14 @@ enum ControlMode {
 class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
 
   bool print_debug_ = false;
+  bool start_in_control_mode_GCU_ = false;
   bool use_simulator_ = false;
   std::string VCU_canopen_node_config_;
   std::string MDL_canopen_node_config_;
   std::string MDR_canopen_node_config_;
   std::string FAN_canopen_node_config_;
   std::string can_interface_name_;
-  std::chrono::milliseconds gcu_is_alive_timeout_ = 100ms;
+  std::chrono::milliseconds gcu_is_alive_timeout_ = 200ms;
 
   std::thread canopen_nodes_thread_;
   std::shared_ptr<VCUCANOpenSlaveNode> VCU_canopen_slave_node_ = nullptr;
@@ -114,6 +115,7 @@ public:
           : rclcpp_lifecycle::LifecycleNode(node_name, rclcpp::NodeOptions().use_intra_process_comms(
           intra_process_comms)) {
     this->declare_parameter<bool>("print_debug", false);
+    this->declare_parameter<bool>("start_in_control_mode_GCU", false);
     this->declare_parameter<bool>("use_simulator", false);
     this->declare_parameter<std::string>("dummy_VCU_canopen_node_config", "test_slave.eds");
     this->declare_parameter<std::string>("dummy_MDL_canopen_node_config", "test_slave.eds");
