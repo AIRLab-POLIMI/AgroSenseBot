@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
 import os.path
+
 import numpy as np
 import threading
 
 import rclpy
-from asb_msgs.msg import Heartbeat
 from rclpy import Future
 from rclpy.qos import QoSProfile
 from rclpy.action import ActionClient
@@ -14,6 +14,7 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState
 from geometry_msgs.msg import Point, Pose, PoseStamped
+from asb_msgs.msg import Heartbeat, ControlSystemState
 from nav_msgs.msg import Path
 from std_msgs.msg import Header, String
 
@@ -24,29 +25,44 @@ from tf2_ros.transform_listener import TransformListener
 # noinspection PyUnresolvedReferences
 import tf2_geometry_msgs  # imports PoseStamped into tf2
 
-from action_msgs.msg import GoalStatus
+from action_msgs.msg import GoalStatus, GoalInfo
 from nav2_msgs.action import FollowPath, NavigateToPose
 
 from enum import Enum
+
+from typing_extensions import Self
+
 from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemResult, TaskPlanItemType
 
 
-class NavigationActionResult(Enum):
-    UNKNOWN = 0
-    SUCCEEDED = 1
-    CANCELED = 2
-    FAILED = 3
+class NavigationActionStatus(Enum):
+    NOT_STARTED = 0
+    REQUESTED = 1
+    FAILED_TO_START = 2
+    IN_PROGRESS = 3
+    SUCCEEDED = 4
+    FAILED = 5
 
 
-def result2str(r):
-    if r == NavigationActionResult.SUCCEEDED:
-        return 'succeeded'
-    elif r == NavigationActionResult.CANCELED:
-        return 'canceled'
-    elif r == NavigationActionResult.FAILED:
-        return 'failed'
-    else:
-        return 'unknown'
+class ControlMode(Enum):  # TODO move enum to message definition?
+    STOP = 0
+    MANUAL = 1
+    AUTO = 2
+    OVERRIDE = 3
+    UNKNOWN = 4
+
+    @classmethod
+    def from_msg(cls, control_mode_code: int) -> Self:
+        if control_mode_code == 0:
+            return ControlMode.STOP
+        elif control_mode_code == 1:
+            return ControlMode.MANUAL
+        elif control_mode_code == 2:
+            return ControlMode.AUTO
+        elif control_mode_code == 3:
+            return ControlMode.OVERRIDE
+        else:
+            return ControlMode.UNKNOWN
 
 
 class Chronometer:
@@ -100,9 +116,13 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('base_frame', default_base_frame)
         self.base_frame = self.get_parameter('base_frame').get_parameter_value().string_value
 
-        default_robot_pose_time_tolerance = 0.2
+        default_robot_pose_time_tolerance = 0.2  # s
         self.declare_parameter('robot_pose_time_tolerance', float(default_robot_pose_time_tolerance))
         self.robot_pose_time_tolerance = Duration(seconds=self.get_parameter('robot_pose_time_tolerance').get_parameter_value().double_value)
+
+        default_platform_status_timeout = 0.2  # s
+        self.declare_parameter('platform_status_timeout', float(default_platform_status_timeout))
+        self.platform_status_timeout = Duration(seconds=self.get_parameter('platform_status_timeout').get_parameter_value().double_value)
 
         default_min_loop_rate = 25  # Hz
         self.declare_parameter('min_loop_rate', float(default_min_loop_rate))
@@ -126,25 +146,26 @@ class SprayingTaskPlanExecutor(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        self.heartbeat_alive_bit: bool = False
-
+        # variables for task execution
         self.loop_operations_chrono: Chronometer | None = None
+        self.navigation_action_status: NavigationActionStatus = NavigationActionStatus.NOT_STARTED
+        self.heartbeat_alive_bit: bool = False
+        self.last_platform_status_msg: ControlSystemState | None = None
+        self.stop_platform: bool = True
 
+        # publishers, subscribers, timers and loop rate
         self.path_pub = self.create_publisher(Path, '/plan', 10)
         self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_control_system_status_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', 10)
+        self.platform_status_sub = self.create_subscription(ControlSystemState, '/asb_control_system_status_controller/control_system_state', self.platform_status_callback, 10)
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         # navigation action variables
         self.follow_path_client = ActionClient(self, FollowPath, 'follow_path')
         self.navigate_to_pose_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
-        self.goal_handle: rclpy.action.client.ClientGoalHandle | None = None
-        self.send_goal_future: Future | None = None
-        self.result_future: Future | None = None
-        self.cancel_navigation_action_future: Future | None = None
+        self.navigation_goal_handle: rclpy.action.client.ClientGoalHandle | None = None
         self.navigate_to_pose_feedback: NavigateToPose.Feedback | None = None
         self.follow_path_feedback: FollowPath.Feedback | None = None
-        self.navigation_result_status: NavigationActionResult | None = None
 
     def run(self):
         run_chrono = Chronometer()
@@ -164,19 +185,23 @@ class SprayingTaskPlanExecutor(Node):
         nav_stack_chrono = Chronometer()
         nav_stack_ready = self.wait_navigation_stack_is_ready(timeout=10.0)
         if nav_stack_ready:
-            self.get_logger().info(f"navigation stack is ready (took {robot_pose_chrono.total():.4f} s), ready to start the task")
+            self.get_logger().info(f"navigation stack is ready (took {robot_pose_chrono.total():.4f} s), ready to start the task\n\n")
         else:
             self.get_logger().fatal(f"navigation stack timeout (took {nav_stack_chrono.total():.4f} s), aborting task")
             return
 
         self.prepare_task_log()
 
-        item_index = 0
+        self.stop_platform_and_wait_control_mode_manual_to_auto()
 
         # [!]
         # Beyond this point, no functions should block or take too long to execute.
         # If self.do_loop_operations_and_sleep is not called with the correct frequency, for example due to an exception
-        # interrupting this function, the platform will stop receiving the heartbeat and go to STOP mode
+        # interrupting this function, the platform will stop receiving the heartbeat and go to STOP mode.
+        # self.stop_platform_and_wait_control_mode_manual_to_auto will stop sending the heartbeat on purpose to send the
+        # platform to control mode stop
+
+        item_index = 0
 
         while rclpy.ok():
             self.do_loop_operations_and_sleep()
@@ -189,48 +214,77 @@ class SprayingTaskPlanExecutor(Node):
 
             # TODO send spray regulation command, wait for start completion if necessary
 
-            start_nav_chrono = Chronometer()
-            navigation_started = self.start_navigation(item)
-            self.get_logger().debug(f"start_nav_duration: {start_nav_chrono.total():.3f} s")
-            if navigation_started:
-                item.get_result().navigation_started = True
+            # NOTE: self.start_navigation immediately sets self.navigation_action_status to REQUESTED, and eventually to
+            # - NavigationActionStatus.FAILED_TO_START
+            # - NavigationActionStatus.IN_PROGRESS
+            # - NavigationActionStatus.SUCCEEDED
+            # - NavigationActionStatus.FAILED
+            self.navigation_action_status = NavigationActionStatus.NOT_STARTED
+            navigation_action_requested = self.start_navigation(item)
 
-                self.get_logger().info(f"waiting for navigation to complete...")
-                nav_chrono = Chronometer()
-                while rclpy.ok() and not self.is_navigation_action_complete():
-                    self.do_loop_operations_and_sleep(current_item=item)
-
-                    # TODO check item timeout
-                    # TODO check navigation mode
-                    # TODO check navigation feedback
-                    # TODO check spray regulation feedback
-
-                self.get_logger().info(f"navigation completed in {nav_chrono.total():.3f} s")
-                self.do_loop_operations_and_sleep(current_item=item)
-
-                # TODO send stop spray regulation command
-
-                item.get_result().navigation_result = self.get_navigation_action_result()
-                if item.get_result().navigation_result == NavigationActionResult.SUCCEEDED:
-                    self.get_logger().info(f"navigation result for item {item.get_item_id()}: {result2str(item.get_result().navigation_result)}")
-                else:
-                    if self.dry_run:
-                        self.get_logger().info(f"navigation result for item {item.get_item_id()}: {result2str(item.get_result().navigation_result)} (DRY RUN)")
-                    else:
-                        self.get_logger().error(f"navigation result for item {item.get_item_id()}: {result2str(item.get_result().navigation_result)}")
-                        # TODO wait for operator mode switch to MANUAL, or activate SW E-STOP
-            else:
+            if not navigation_action_requested:
                 self.get_logger().error(f"navigation could not be started for item {item.get_item_id()}")
                 item.get_result().navigation_started = False
-                start_nav_duration = start_nav_chrono.delta()
-                self.get_logger().info(f"start_nav_duration: {start_nav_duration:.3f} s")
                 # TODO send stop spray regulation command
-                # TODO wait for operator mode switch to MANUAL, or activate SW E-STOP
+                self.stop_platform_and_wait_control_mode_manual_to_auto()
+                break  # (back to start navigation)
 
-            item_index += 1
-            if item_index >= len(self.task_plan.task_plan_items):
-                self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
-                return
+            # wait for navigation action to start or to fail to start, assume it could also immediately become succeeded or failed
+            while rclpy.ok() and self.navigation_action_status in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.REQUESTED]:
+                self.do_loop_operations_and_sleep(current_item=item)
+
+            if self.navigation_action_status == NavigationActionStatus.FAILED_TO_START:
+                self.get_logger().error(f"navigation could not be started for item {item.get_item_id()}")
+                item.get_result().navigation_started = False
+                # TODO send stop spray regulation command
+                self.stop_platform_and_wait_control_mode_manual_to_auto()
+                break  # (back to start navigation)
+
+            item.get_result().navigation_started = True
+            self.get_logger().info(f"waiting for navigation to complete...")
+            nav_chrono = Chronometer()
+            while rclpy.ok():
+                self.do_loop_operations_and_sleep(current_item=item)
+
+                if self.dry_run:
+                    item.get_result().navigation_result = self.navigation_action_status.name
+                    self.get_logger().info(f"navigation completed in {nav_chrono.total():.3f} s for item {item.get_item_id()} (DRY RUN)")
+                    self.do_loop_operations_and_sleep(current_item=item)
+                    # TODO manage spray regulation
+                    item_index += 1
+                    if item_index < len(self.task_plan.task_plan_items):
+                        break  # (back to start navigation)
+                    else:
+                        self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
+                        return
+
+                if self.navigation_action_status == NavigationActionStatus.SUCCEEDED:
+                    item.get_result().navigation_result = self.navigation_action_status.name
+                    self.do_loop_operations_and_sleep(current_item=item)
+                    self.get_logger().info(f"navigation succeeded in {nav_chrono.total():.3f} s for item {item.get_item_id()}")
+                    # TODO manage spray regulation
+                    item_index += 1
+                    if item_index < len(self.task_plan.task_plan_items):
+                        break  # (back to start navigation)
+                    else:
+                        self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
+                        return
+
+                if self.navigation_action_status == NavigationActionStatus.FAILED and not self.dry_run:
+                    item.get_result().navigation_result = self.navigation_action_status.name
+                    self.get_logger().error(f"navigation failed after {nav_chrono.total():.3f} s for item {item.get_item_id()}")
+                    self.do_loop_operations_and_sleep(current_item=item)
+                    self.stop_platform_and_wait_control_mode_manual_to_auto()
+                    break  # (back to start navigation)
+
+                if not self.get_control_mode() == ControlMode.AUTO:
+                    self.cancel_navigation_action()
+                    self.stop_platform_and_wait_control_mode_manual_to_auto()
+                    break  # (back to start navigation)
+
+                # TODO check item timeout
+                # TODO check navigation feedback
+                # TODO check spray regulation feedback
 
     """
      Called at the end of the task. Not called in case of KeyboardInterrupt or other exceptions.
@@ -265,9 +319,10 @@ class SprayingTaskPlanExecutor(Node):
         else:
             self.current_item_pub.publish(String())
 
-        # publish heartbeat message
-        self.heartbeat_alive_bit = not self.heartbeat_alive_bit
-        self.heartbeat_pub.publish(Heartbeat(stamp=self.get_clock().now().to_msg(), alive_bit=self.heartbeat_alive_bit))
+        if not self.stop_platform:
+            # publish heartbeat message
+            self.heartbeat_alive_bit = not self.heartbeat_alive_bit
+            self.heartbeat_pub.publish(Heartbeat(stamp=self.get_clock().now().to_msg(), alive_bit=self.heartbeat_alive_bit))
 
         # [!] always sleep at the end to limit the loop rate, don't skip this by returning
         self.loop_rate.sleep()
@@ -282,6 +337,33 @@ class SprayingTaskPlanExecutor(Node):
             if loop_operations_delta < self.min_loop_duration:
                 self.get_logger().warn(f"HIGH LOOP RATE loop_operations_delta [{loop_operations_delta:.3f} s] < min_loop_duration [{self.min_loop_duration:.3f} s], {1/loop_operations_delta:.3f} Hz")
 
+    def platform_status_callback(self, platform_status: ControlSystemState):
+        self.last_platform_status_msg = platform_status
+
+    def get_control_mode(self):
+        platform_status_age = self.get_clock().now() - Time.from_msg(self.last_platform_status_msg.stamp)
+        if platform_status_age > self.platform_status_timeout:
+            self.get_logger().error(f"platform_status_age: {platform_status_age.nanoseconds/1e9}")
+            return ControlMode.UNKNOWN
+        else:
+            return ControlMode.from_msg(self.last_platform_status_msg.control_mode)
+
+    def stop_platform_and_wait_control_mode_manual_to_auto(self) -> None:
+        if self.dry_run:
+            return
+
+        self.stop_platform = True
+
+        while rclpy.ok() and self.get_control_mode() != ControlMode.MANUAL:
+            self.do_loop_operations_and_sleep()
+            self.get_logger().info(f"WAITING control mode switch to MANUAL", throttle_duration_sec=1.0)
+
+        self.stop_platform = False
+
+        while rclpy.ok() and self.get_control_mode() != ControlMode.AUTO:
+            self.do_loop_operations_and_sleep()
+            self.get_logger().info(f"WAITING control mode switch to AUTO", throttle_duration_sec=1.0)
+
     def start_navigation(self, item: TaskPlanItem) -> bool:
 
         if item.get_type() == TaskPlanItemType.APPROACH:
@@ -291,7 +373,12 @@ class SprayingTaskPlanExecutor(Node):
                 self.get_logger().error(f"the approach pose's frame_id does not match the task plan map_frame")
                 return False
 
-            return self.execute_navigate_to_pose_action(pose=item.get_approach_pose()) if not self.dry_run else True
+            if self.dry_run:
+                self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+            else:
+                self.execute_navigate_to_pose_action(pose=item.get_approach_pose())
+
+            return True
 
         elif item.get_type() == TaskPlanItemType.ROW:
             self.get_logger().info(f"STARTING row navigation: {item.get_item_id()}")
@@ -301,7 +388,13 @@ class SprayingTaskPlanExecutor(Node):
                 return False
 
             self.path_pub.publish(row_path)
-            return self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id) if not self.dry_run else True
+
+            if self.dry_run:
+                self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+            else:
+                self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id)
+
+            return True
 
         else:
             self.get_logger().error(f"unknown task plan item type [{item.get_type().name}] for item {item.get_item_id()}")
@@ -450,32 +543,46 @@ class SprayingTaskPlanExecutor(Node):
     """
      Send the NavigateToPose action request.
     """
-    def execute_navigate_to_pose_action(self, pose: PoseStamped) -> bool:
+    def execute_navigate_to_pose_action(self, pose: PoseStamped) -> None:
+        if self.navigation_action_status not in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.SUCCEEDED]:
+            self.get_logger().error(f"trying to start a navigation action while another action is executing")
+            return
+
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = pose
 
         self.get_logger().debug(f"execute_navigate_to_pose_action: sending goal")
         response_future: Future = self.navigate_to_pose_client.send_goal_async(goal_msg, self.navigate_to_pose_feedback_callback)
         response_future.add_done_callback(self.navigate_to_pose_response_callback)
-        return True
+        # TODO add timer for timeout
+
+        self.navigation_action_status = NavigationActionStatus.REQUESTED
 
     """
      Receive the NavigateToPose action response.
     """
-    def navigate_to_pose_response_callback(self, future: Future):
-        self.goal_handle = future.result()
-        if self.goal_handle.accepted:
-            self.get_logger().debug(f"navigate_to_pose_response_callback: goal accepted")
-        else:
-            self.get_logger().error(f"navigate_to_pose_response_callback: goal rejected")
+    def navigate_to_pose_response_callback(self, future: Future) -> None:
+        if self.navigation_action_status != NavigationActionStatus.REQUESTED:
+            self.get_logger().error(
+                f"received a navigation action response but navigation_action_status is "
+                f"{self.navigation_action_status.name}, it should be REQUESTED")
+            return
 
-        self.result_future: Future = self.goal_handle.get_result_async()
-        self.result_future.add_done_callback(self.navigate_to_pose_result_callback)
+        self.navigation_goal_handle = future.result()
+        if self.navigation_goal_handle.accepted:
+            self.get_logger().debug(f"navigate_to_pose action response: accepted")
+            result_future: Future = self.navigation_goal_handle.get_result_async()
+            result_future.add_done_callback(self.navigate_to_pose_result_callback)
+            self.navigation_action_status = NavigationActionStatus.IN_PROGRESS
+
+        else:
+            self.get_logger().warn(f"navigate_to_pose action response: rejected")
+            self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
 
     """
      Receive the NavigateToPose action feedback.
     """
-    def navigate_to_pose_feedback_callback(self, msg):
+    def navigate_to_pose_feedback_callback(self, msg) -> None:
         self.navigate_to_pose_feedback = msg.feedback
         self.get_logger().info(
             f"navigate_to_pose_feedback:\n"
@@ -488,13 +595,23 @@ class SprayingTaskPlanExecutor(Node):
     """
      Receive the NavigateToPose action result.
     """
-    def navigate_to_pose_result_callback(self, _: Future):
-        self.get_logger().debug(f"navigate_to_pose_result_callback: action completed")
+    def navigate_to_pose_result_callback(self, goal_result_future) -> None:
+        navigation_result_status = goal_result_future.result().status
+        if navigation_result_status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().debug('navigate_to_pose action succeeded')
+            self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+        else:
+            self.get_logger().debug(f'navigate_to_pose action failed with status code: {navigation_result_status}')
+            self.navigation_action_status = NavigationActionStatus.FAILED
 
     """
      Send the FollowPath action request.
     """
-    def execute_follow_path_action(self, path: Path, controller_id, goal_checker_id='') -> bool:
+    def execute_follow_path_action(self, path: Path, controller_id, goal_checker_id='') -> None:
+        if self.navigation_action_status not in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.SUCCEEDED]:
+            self.get_logger().error(f"trying to start a navigation action while another action is executing")
+            return
+
         goal_msg = FollowPath.Goal()
         goal_msg.path = path
         goal_msg.controller_id = controller_id
@@ -503,28 +620,38 @@ class SprayingTaskPlanExecutor(Node):
         self.get_logger().debug(f"execute_follow_path_action: sending goal")
         response_future: Future = self.follow_path_client.send_goal_async(goal_msg, self.follow_path_feedback_callback)
         response_future.add_done_callback(self.follow_path_response_callback)
-        return True
+        # TODO add timer for timeout
+
+        self.navigation_action_status = NavigationActionStatus.REQUESTED
 
     """
      Receive the FollowPath action response.
     """
-    def follow_path_response_callback(self, future: Future):
-        self.goal_handle: rclpy.action.client.ClientGoalHandle = future.result()
-        if self.goal_handle.accepted:
-            self.get_logger().debug(f"follow_path_response_callback: goal accepted")
-        else:
-            self.get_logger().error(f"follow_path_response_callback: goal rejected")
+    def follow_path_response_callback(self, future: Future) -> None:
+        if self.navigation_action_status != NavigationActionStatus.REQUESTED:
+            self.get_logger().error(
+                f"received a navigation action response but navigation_action_status is "
+                f"{self.navigation_action_status.name}, it should be REQUESTED")
+            return
 
-        self.result_future: Future = self.goal_handle.get_result_async()
-        self.result_future.add_done_callback(self.follow_path_result_callback)
+        self.navigation_goal_handle = future.result()
+        if self.navigation_goal_handle.accepted:
+            self.get_logger().debug(f"follow_path action response: accepted")
+            result_future: Future = self.navigation_goal_handle.get_result_async()
+            result_future.add_done_callback(self.follow_path_result_callback)
+            self.navigation_action_status = NavigationActionStatus.IN_PROGRESS
+
+        else:
+            self.get_logger().warn(f"follow_path action response: rejected")
+            self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
 
     """
      Receive the FollowPath action feedback.
     """
-    def follow_path_feedback_callback(self, msg):
+    def follow_path_feedback_callback(self, msg) -> None:
         self.follow_path_feedback = msg.feedback
         self.get_logger().info(
-            f"navigate_to_pose_feedback:\n"
+            f"follow_path_feedback:\n"
             f"    distance_to_goal:         {msg.feedback.distance_to_goal:.1f} m\n"
             f"    speed:                    {msg.feedback.speed:.3f} m/s\n",
             throttle_duration_sec=5.0
@@ -533,48 +660,33 @@ class SprayingTaskPlanExecutor(Node):
     """
      Receive the FollowPath action result.
     """
-    def follow_path_result_callback(self, _: Future):
-        self.get_logger().debug(f"follow_path_result_callback: action completed")
+    def follow_path_result_callback(self, future: Future) -> None:
+        navigation_result_status = future.result().status
+        if navigation_result_status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().debug('follow_path action succeeded')
+            self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+        else:
+            self.get_logger().debug(f'follow_path action failed with status code: {navigation_result_status}')
+            self.navigation_action_status = NavigationActionStatus.FAILED
 
+    """
+     Request to cancel the current navigation action, if there is one in progress.
+    """
     def cancel_navigation_action(self):
-        if self.goal_handle is not None:
+        if self.navigation_goal_handle is not None:
             self.get_logger().info('canceling current navigation action')
-            self.cancel_navigation_action_future: Future = self.goal_handle.cancel_goal_async()
-            self.cancel_navigation_action_future.add_done_callback(self.cancel_navigation_action_response_callback)
+            cancel_navigation_action_future: Future = self.navigation_goal_handle.cancel_goal_async()
+            cancel_navigation_action_future.add_done_callback(self.cancel_navigation_action_response_callback)
         else:
             self.get_logger().info('no navigation actions in progress')
 
-    def cancel_navigation_action_response_callback(self, _):
-        self.get_logger().info('current navigation action was cancelled')
-
-    def is_navigation_action_complete(self):
-        if self.dry_run:
-            return True
-
-        if self.result_future is None:
-            self.get_logger().warn(f"checking action result future before sending a goal or receiving a goal response")
-            return False
-
-        if self.result_future.result() is not None:
-            self.navigation_result_status = self.result_future.result().status
-            if self.navigation_result_status != GoalStatus.STATUS_SUCCEEDED:
-                self.get_logger().error(f'navigation action failed with status code: {self.navigation_result_status}')
-                return True
-            else:
-                self.get_logger().debug('navigation action succeeded')
-                return True
-        else:
-            return False
-
-    def get_navigation_action_result(self):
-        if self.navigation_result_status == GoalStatus.STATUS_SUCCEEDED:
-            return NavigationActionResult.SUCCEEDED
-        elif self.navigation_result_status == GoalStatus.STATUS_ABORTED:
-            return NavigationActionResult.FAILED
-        elif self.navigation_result_status == GoalStatus.STATUS_CANCELED:
-            return NavigationActionResult.CANCELED
-        else:
-            return NavigationActionResult.UNKNOWN
+    """
+     Receive the action cancel result.
+    """
+    def cancel_navigation_action_response_callback(self, _: GoalInfo) -> None:
+        self.get_logger().info(f"current navigation action was cancelled")
+        self.navigation_goal_handle = None
+        self.navigation_action_status = NavigationActionStatus.NOT_STARTED
 
 
 def thread_main(node):
