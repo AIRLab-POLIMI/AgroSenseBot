@@ -1,5 +1,5 @@
 map_frame: map
-row_path_controller_id: FollowPath
+row_path_controller_id: FollowStraightPath
 row_path_pose_distance: 0.1
 task_plan_items:
 - item_id: initial_pose
@@ -123,3 +123,18 @@ task_plan_items:
         x: 10.014745712280273
         y: 10.992372512817383
         z: 0.0
+  - header:
+      frame_id: map
+      stamp:
+        nanosec: 510074062
+        sec: 1722264400
+    pose:
+      position:
+        x: 9.46700668334961
+        y: 12.45920181274414
+        z: 0.0
+      orientation:
+        x: 0.0
+        y: 0.0
+        z: 0.8254573995534266
+        w: 0.564464420067815
