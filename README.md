@@ -20,6 +20,7 @@ sudo apt-get install -y ros-iron-microstrain-inertial-driver ros-iron-microstrai
 sudo apt-get install -y ros-iron-octomap-ros ros-iron-octomap-server &&  # Octomap packages for canopy estimation
 sudo pip3 install transforms3d &&  # used in navigation scripts to convert Euler angles to quaternions
 pip3 install rosbags &&  # used in asb_logging bags_utils.py
+pip install typing_extensions &&  # used in asb_canopy_spraying_task
 mkdir -p ~/asb_logs/ &&
 mkdir -p ~/w/agrosensebot_ws/src/ &&
 cd ~/w/agrosensebot_ws/src/ &&
