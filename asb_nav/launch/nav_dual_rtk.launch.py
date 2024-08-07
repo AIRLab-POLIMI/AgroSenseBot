@@ -102,6 +102,20 @@ def generate_launch_description():
         ],
     )
 
+    curvature_publisher_node = Node(
+        package="asb_etc",
+        executable="curvature_publisher.py",
+        name="curvature_publisher",
+        output="screen",
+    )
+
+    zero_publisher_node = Node(
+        package="asb_etc",
+        executable="zero_publisher.py",
+        name="zero_publisher",
+        output="screen",
+    )
+
     fake_scan_node = Node(
         package="asb_etc",
         executable="fake_scan_pub.py",
@@ -138,6 +152,8 @@ def generate_launch_description():
     ld.add_action(navsat_transform_1_node)
     ld.add_action(navsat_transform_2_node)
     ld.add_action(static_transform_broadcaster_node)
+    ld.add_action(curvature_publisher_node)
+    ld.add_action(zero_publisher_node)
 
     # navigation
     ld.add_action(nav2_bringup_include)

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+import numpy as np
 import rclpy
 from rclpy.node import Node
 
@@ -25,11 +25,12 @@ class CurvaturePublisher(Node):
         self.cmd_vel_curvature_pub_.publish(msg)
 
     def odom_callback(self, odom_msg: Odometry):
-        thr = 0.05
-        if not (-thr < odom_msg.twist.twist.linear.x < thr):
-            msg = Float64()
-            msg.data = odom_msg.twist.twist.angular.z / odom_msg.twist.twist.linear.x
-            self.odom_curvature_pub_.publish(msg)
+        thr = 0.001
+        if np.abs(odom_msg.twist.twist.linear.x) > thr:
+            self.odom_curvature_pub_.publish(Float64(data=odom_msg.twist.twist.angular.z / odom_msg.twist.twist.linear.x))
+        else:
+            if np.abs(odom_msg.twist.twist.angular.z) < thr:
+                self.odom_curvature_pub_.publish(Float64(data=0.0))
 
 
 def main(args=None):
