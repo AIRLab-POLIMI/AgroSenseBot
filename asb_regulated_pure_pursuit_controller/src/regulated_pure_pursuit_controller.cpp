@@ -77,6 +77,7 @@ void RegulatedPurePursuitController::configure(
   carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("~/lookahead_point", 1);
   carrot_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/lookahead_pose", 1);
   goal_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/goal_pose", 1);
+  angle_goal_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/angle_goal_pose", 1);
   lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/lookahead_circle", 1);
   lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/lookahead_arc", 1);
   lookahead_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("lookahead_curvature", 1);
@@ -97,6 +98,7 @@ void RegulatedPurePursuitController::cleanup()
   carrot_pub_.reset();
   carrot_pose_pub_.reset();
   goal_pose_pub_.reset();
+  angle_goal_pose_pub_.reset();
   lookahead_circle_pub_.reset();
   lookahead_arc_pub_.reset();
   lookahead_curvature_pub_.reset();
@@ -115,6 +117,7 @@ void RegulatedPurePursuitController::activate()
   carrot_pub_->on_activate();
   carrot_pose_pub_->on_activate();
   goal_pose_pub_->on_activate();
+  angle_goal_pose_pub_->on_activate();
   lookahead_circle_pub_->on_activate();
   lookahead_arc_pub_->on_activate();
   lookahead_curvature_pub_->on_activate();
@@ -133,6 +136,7 @@ void RegulatedPurePursuitController::deactivate()
   carrot_pub_->on_deactivate();
   carrot_pose_pub_->on_deactivate();
   goal_pose_pub_->on_deactivate();
+  angle_goal_pose_pub_->on_deactivate();
   lookahead_circle_pub_->on_deactivate();
   lookahead_arc_pub_->on_deactivate();
   lookahead_curvature_pub_->on_deactivate();
@@ -321,7 +325,6 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   }
 
   auto goal_pose = transformed_plan.poses.back();
-//  RCLCPP_INFO(logger_, "goal: x = %.3f y = %.3f", goal_pose.pose.position.x, goal_pose.pose.position.y);
 
   // Get the particular point on the path at the lookahead distance
   auto carrot_pose = getLookAheadPoint(lookahead_dist, transformed_plan);
@@ -331,6 +334,26 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   lookahead_circle_pub_->publish(createLookAheadCircleMsg(lookahead_dist, pose.header.stamp));
 
   double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
+
+  if (params_->use_goal_angle_approach) {
+    const double remaining_distance = nav2_util::geometry_utils::calculate_path_length(transformed_plan);
+    double dist_to_cusp = findVelocitySignChange(transformed_plan);
+    if (remaining_distance < params_->goal_angle_approach_dist && remaining_distance < dist_to_cusp) {
+      double x_g = goal_pose.pose.position.x, y_g = goal_pose.pose.position.y, t = tf2::getYaw(goal_pose.pose.orientation);
+      lookahead_curvature = tan(t) / (x_g + y_g * tan(t));
+
+      auto angle_goal_pose = goal_pose;
+      angle_goal_pose.pose.position.x = y_g * sin(t) + x_g * cos(t);
+      angle_goal_pose.pose.position.y = x_g * cos(t) * tan(t/2) + y_g * (1 - cos(t));
+      angle_goal_pose_pub_->publish(angle_goal_pose);
+
+      double angle_goal_dist = std::hypot(angle_goal_pose.pose.position.x - x_g, angle_goal_pose.pose.position.y - y_g);
+      if (angle_goal_dist > pose_tolerance.position.y) {
+        RCLCPP_WARN(logger_, "angle_pose_goal > tolerance: dist = %.3f tolerance = %.3f", angle_goal_dist, pose_tolerance.position.y);
+        throw nav2_core::InvalidPath("RegulatedPurePursuitController can not execute angle goal approach within tolerance");
+      }
+    }
+  }
 
   double regulation_curvature = lookahead_curvature;
   if (params_->use_fixed_curvature_lookahead) {

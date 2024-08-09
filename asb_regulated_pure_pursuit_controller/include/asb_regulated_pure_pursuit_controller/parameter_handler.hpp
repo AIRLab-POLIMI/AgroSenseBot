@@ -45,6 +45,7 @@ struct Parameters
   double adaptive_lookahead_path_distance_margin;
   double min_approach_linear_velocity;
   double approach_velocity_scaling_dist;
+  double goal_angle_approach_dist;
   double max_allowed_time_to_collision_up_to_carrot;
   bool use_regulated_linear_velocity_scaling;
   bool use_cost_regulated_linear_velocity_scaling;
@@ -54,7 +55,7 @@ struct Parameters
   double regulated_linear_scaling_min_radius;
   double regulated_linear_scaling_min_speed;
   bool use_fixed_curvature_lookahead;
-  bool use_averaged_lookahead_curvature;
+  bool use_goal_angle_approach;
   double curvature_lookahead_dist;
   bool use_rotate_to_heading;
   double max_angular_accel;
