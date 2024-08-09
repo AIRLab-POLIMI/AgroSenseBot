@@ -101,7 +101,7 @@ inline double approachVelocityScalingFactor(
   const double remaining_distance = calculate_path_length(transformed_path);
   if (remaining_distance < approach_velocity_scaling_dist) {
     auto & last = transformed_path.poses.back();
-    // Here we will use a regular euclidean distance from the robot frame (origin)
+    // Here we will use a regular Euclidean distance from the robot frame (origin)
     // to get smooth scaling, regardless of path density.
     return std::hypot(last.pose.position.x, last.pose.position.y) / approach_velocity_scaling_dist;
   } else {

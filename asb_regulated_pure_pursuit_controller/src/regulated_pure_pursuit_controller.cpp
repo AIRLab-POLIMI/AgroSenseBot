@@ -73,10 +73,12 @@ void RegulatedPurePursuitController::configure(
   node->get_parameter("controller_frequency", control_frequency);
   control_duration_ = 1.0 / control_frequency;
 
-  global_path_pub_ = node->create_publisher<nav_msgs::msg::Path>("received_global_plan", 1);
-  carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("lookahead_point", 1);
-  carrot_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("lookahead_pose", 1);
-  lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("lookahead_circle", 1);
+  global_path_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/received_global_plan", 1);
+  carrot_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("~/lookahead_point", 1);
+  carrot_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/lookahead_pose", 1);
+  goal_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/goal_pose", 1);
+  lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/lookahead_circle", 1);
+  lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/lookahead_arc", 1);
   lookahead_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("lookahead_curvature", 1);
   min_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("min_curvature", 1);
   max_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("max_curvature", 1);
@@ -94,7 +96,9 @@ void RegulatedPurePursuitController::cleanup()
   global_path_pub_.reset();
   carrot_pub_.reset();
   carrot_pose_pub_.reset();
+  goal_pose_pub_.reset();
   lookahead_circle_pub_.reset();
+  lookahead_arc_pub_.reset();
   lookahead_curvature_pub_.reset();
   min_curvature_pub_.reset();
   max_curvature_pub_.reset();
@@ -110,7 +114,9 @@ void RegulatedPurePursuitController::activate()
   global_path_pub_->on_activate();
   carrot_pub_->on_activate();
   carrot_pose_pub_->on_activate();
+  goal_pose_pub_->on_activate();
   lookahead_circle_pub_->on_activate();
+  lookahead_arc_pub_->on_activate();
   lookahead_curvature_pub_->on_activate();
   min_curvature_pub_->on_activate();
   max_curvature_pub_->on_activate();
@@ -126,7 +132,9 @@ void RegulatedPurePursuitController::deactivate()
   global_path_pub_->on_deactivate();
   carrot_pub_->on_deactivate();
   carrot_pose_pub_->on_deactivate();
+  goal_pose_pub_->on_deactivate();
   lookahead_circle_pub_->on_deactivate();
+  lookahead_arc_pub_->on_deactivate();
   lookahead_curvature_pub_->on_deactivate();
   min_curvature_pub_->on_deactivate();
   max_curvature_pub_->on_deactivate();
@@ -141,6 +149,67 @@ std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController
   carrot_msg->point.y = carrot_pose.pose.position.y;
   carrot_msg->point.z = 0.01;  // publish above the map to stand out
   return carrot_msg;
+}
+
+std::unique_ptr<nav_msgs::msg::Path> RegulatedPurePursuitController::createLookAheadArcMsg(
+  const geometry_msgs::msg::PoseStamped & robot_pose, const double & linear_vel,
+  const double & angular_vel, const double & carrot_dist)
+{
+  // Note: robot_pose is in odom frame
+
+  auto arc_pts_msg = std::make_unique<nav_msgs::msg::Path>();
+  arc_pts_msg->header.frame_id = costmap_ros_->getGlobalFrameID();
+  arc_pts_msg->header.stamp = robot_pose.header.stamp;
+  geometry_msgs::msg::PoseStamped pose_msg;
+  pose_msg.header.frame_id = arc_pts_msg->header.frame_id;
+  pose_msg.header.stamp = arc_pts_msg->header.stamp;
+  pose_msg.pose.position.z = 0.005;
+
+  double projection_time;
+  if (fabs(linear_vel) < 0.01 && fabs(angular_vel) > 0.01) {
+    // rotating to heading at goal or toward path
+    // Equation finds the angular distance required for the largest
+    // part of the robot radius to move to another costmap cell:
+    // theta_min = 2.0 * sin ((res/2) / r_max)
+    // via isosceles triangle r_max-r_max-resolution,
+    // dividing by angular_velocity gives us a timestep.
+    double max_radius = costmap_ros_->getLayeredCostmap()->getCircumscribedRadius();
+    projection_time = 2.0 * sin((costmap_->getResolution() / 2) / max_radius) / fabs(angular_vel);
+  } else {
+    // Normal path tracking
+    projection_time = costmap_->getResolution() / fabs(linear_vel);
+  }
+
+  const geometry_msgs::msg::Point & robot_xy = robot_pose.pose.position;
+  geometry_msgs::msg::Pose2D curr_pose;
+  curr_pose.x = robot_pose.pose.position.x;
+  curr_pose.y = robot_pose.pose.position.y;
+  curr_pose.theta = tf2::getYaw(robot_pose.pose.orientation);
+  pose_msg.pose.position.x = curr_pose.x;
+  pose_msg.pose.position.y = curr_pose.y;
+  arc_pts_msg->poses.push_back(pose_msg);
+
+  // only forward simulate arc poses within max arc duration for visualization
+  int i = 1;
+  while (i * projection_time < 10.0) {
+    i++;
+
+    // apply velocity at curr_pose over distance
+    curr_pose.x += projection_time * (linear_vel * cos(curr_pose.theta));
+    curr_pose.y += projection_time * (linear_vel * sin(curr_pose.theta));
+    curr_pose.theta += projection_time * angular_vel;
+
+    if (hypot(curr_pose.x - robot_xy.x, curr_pose.y - robot_xy.y) > carrot_dist) {
+      break;
+    }
+
+    pose_msg.pose.position.x = curr_pose.x;
+    pose_msg.pose.position.y = curr_pose.y;
+    arc_pts_msg->poses.push_back(pose_msg);
+
+  }
+
+  return arc_pts_msg;
 }
 
 std::unique_ptr<geometry_msgs::msg::PolygonStamped> RegulatedPurePursuitController::createLookAheadCircleMsg(
@@ -251,10 +320,14 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     }
   }
 
+  auto goal_pose = transformed_plan.poses.back();
+//  RCLCPP_INFO(logger_, "goal: x = %.3f y = %.3f", goal_pose.pose.position.x, goal_pose.pose.position.y);
+
   // Get the particular point on the path at the lookahead distance
   auto carrot_pose = getLookAheadPoint(lookahead_dist, transformed_plan);
   carrot_pub_->publish(createCarrotMsg(carrot_pose));
   carrot_pose_pub_->publish(carrot_pose);
+  goal_pose_pub_->publish(goal_pose);
   lookahead_circle_pub_->publish(createLookAheadCircleMsg(lookahead_dist, pose.header.stamp));
 
   double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
@@ -314,8 +387,10 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     lookahead_curvature_pub_->publish(createCurvatureMsg(constrained_lookahead_curvature));
   }
 
-  // Collision checking on this velocity heading
   const double & carrot_dist = hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
+  lookahead_arc_pub_->publish(createLookAheadArcMsg(pose, linear_vel, angular_vel, carrot_dist));
+
+  // Collision checking on this velocity heading
   if (params_->use_collision_detection && collision_checker_->isCollisionImminent(pose, linear_vel, angular_vel, carrot_dist))
   {
     throw nav2_core::NoValidControl("RegulatedPurePursuitController detected collision ahead!");
@@ -406,7 +481,7 @@ geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getLookAheadPoin
       return hypot(ps.pose.position.x, ps.pose.position.y) >= lookahead_dist;
     });
 
-  // If the pose is not far enough, take the last pose
+  // If all poses are inside the lookahead circle, take the last pose (the plan goal)
   if (goal_pose_it == transformed_plan.poses.end()) {
     goal_pose_it = std::prev(transformed_plan.poses.end());
   } else if (params_->use_interpolation && goal_pose_it != transformed_plan.poses.begin()) {

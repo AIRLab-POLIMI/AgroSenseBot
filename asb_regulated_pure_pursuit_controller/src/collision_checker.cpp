@@ -41,7 +41,7 @@ CollisionChecker::CollisionChecker(
     std::make_unique<nav2_costmap_2d::FootprintCollisionChecker<nav2_costmap_2d::Costmap2D *>>(costmap_);
   footprint_collision_checker_->setCostmap(costmap_);
 
-  carrot_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("lookahead_collision_arc", 1);
+  carrot_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/lookahead_collision_arc", 1);
   carrot_arc_pub_->on_activate();
 }
 
@@ -87,6 +87,12 @@ bool CollisionChecker::isCollisionImminent(
   curr_pose.x = robot_pose.pose.position.x;
   curr_pose.y = robot_pose.pose.position.y;
   curr_pose.theta = tf2::getYaw(robot_pose.pose.orientation);
+
+  // store it for visualization
+  pose_msg.pose.position.x = curr_pose.x;
+  pose_msg.pose.position.y = curr_pose.y;
+  pose_msg.pose.position.z = 0.01;
+  arc_pts_msg.poses.push_back(pose_msg);
 
   // only forward simulate within time requested
   int i = 1;

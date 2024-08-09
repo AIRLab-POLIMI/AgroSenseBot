@@ -122,6 +122,16 @@ protected:
   std::unique_ptr<geometry_msgs::msg::PointStamped> createCarrotMsg(const geometry_msgs::msg::PoseStamped & carrot_pose);
 
   /**
+   * @brief Creates a Path message for visualization of the lookahead arc (not just up to the max collision checking
+   * time, but the complete arc)
+   * @param carrot_pose Input carrot point as a PoseStamped
+   * @return LookaheadArcMsg nav_msgs::msg::Path
+   */
+  std::unique_ptr<nav_msgs::msg::Path> createLookAheadArcMsg(
+    const geometry_msgs::msg::PoseStamped & robot_pose,
+    const double & linear_vel, const double & angular_vel, const double & carrot_dist);
+
+  /**
    * @brief Creates a PolygonStamped message for visualization of the lookahead circle
    * @param lookahead_dist Input lookahead_dist
    * @return LookAheadCircleMsg a PolygonStamped visualizing the lookahead circle
@@ -219,7 +229,9 @@ protected:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>> carrot_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> carrot_pose_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> goal_pose_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>> lookahead_circle_pub_;
+  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> lookahead_arc_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> lookahead_curvature_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> min_curvature_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> max_curvature_pub_;
