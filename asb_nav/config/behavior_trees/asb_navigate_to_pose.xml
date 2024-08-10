@@ -21,7 +21,7 @@
             <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
           </RecoveryNode>
         </RateController>
-        <FollowPath path="{path}" controller_id="FollowPath"/>
+        <FollowPath path="{path}" controller_id="FollowPath" goal_checker_id="asb_goal_checker"  progress_checker_id="simple_progress_checker" />
       </PipelineSequence>
       <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
     </RecoveryNode>

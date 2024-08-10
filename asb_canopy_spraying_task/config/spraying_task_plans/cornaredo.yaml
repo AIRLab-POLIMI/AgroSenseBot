@@ -1,5 +1,7 @@
 map_frame: map
 row_path_controller_id: FollowStraightPath
+row_path_goal_checker_id: asb_goal_checker
+row_path_progress_checker_id: simple_progress_checker
 row_path_pose_distance: 0.1
 task_plan_items:
 - item_id: initial_pose

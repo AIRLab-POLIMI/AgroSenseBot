@@ -133,6 +133,8 @@ class SprayingTaskPlan:
         self.task_plan_items: list[TaskPlanItem] = list()
         self.map_frame: str = "map"
         self.row_path_controller_id: str = "FollowPath"
+        self.row_path_goal_checker_id: str = "asb_goal_checker"
+        self.row_path_progress_checker_id: str = "simple_progress_checker"
         self.row_path_pose_distance: float = 0.1
 
     @classmethod
@@ -141,6 +143,8 @@ class SprayingTaskPlan:
         t.task_plan_items = list(map(TaskPlanItem.from_dict, d['task_plan_items']))
         t.map_frame = d['map_frame']
         t.row_path_controller_id = d['row_path_controller_id']
+        t.row_path_goal_checker_id = d['row_path_goal_checker_id']
+        t.row_path_progress_checker_id = d['row_path_progress_checker_id']
         t.row_path_pose_distance = d['row_path_pose_distance']
         return t
 
@@ -148,6 +152,8 @@ class SprayingTaskPlan:
         return {
             'map_frame': self.map_frame,
             'row_path_controller_id': self.row_path_controller_id,
+            'row_path_goal_checker_id': self.row_path_goal_checker_id,
+            'row_path_progress_checker_id': self.row_path_progress_checker_id,
             'row_path_pose_distance': self.row_path_pose_distance,
             'task_plan_items': list(map(lambda i: i.to_dict(), self.task_plan_items)),
         }

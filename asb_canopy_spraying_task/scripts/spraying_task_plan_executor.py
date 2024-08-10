@@ -392,7 +392,7 @@ class SprayingTaskPlanExecutor(Node):
             if self.dry_run:
                 self.navigation_action_status = NavigationActionStatus.SUCCEEDED
             else:
-                self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id)
+                self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id, goal_checker_id=self.task_plan.row_path_goal_checker_id, progress_checker_id=self.task_plan.row_path_progress_checker_id)
 
             return True
 
@@ -607,7 +607,7 @@ class SprayingTaskPlanExecutor(Node):
     """
      Send the FollowPath action request.
     """
-    def execute_follow_path_action(self, path: Path, controller_id, goal_checker_id='') -> None:
+    def execute_follow_path_action(self, path: Path, controller_id, goal_checker_id='', progress_checker_id='') -> None:
         if self.navigation_action_status not in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.SUCCEEDED]:
             self.get_logger().error(f"trying to start a navigation action while another action is executing")
             return
@@ -616,6 +616,7 @@ class SprayingTaskPlanExecutor(Node):
         goal_msg.path = path
         goal_msg.controller_id = controller_id
         goal_msg.goal_checker_id = goal_checker_id
+        goal_msg.progress_checker_id = progress_checker_id
 
         self.get_logger().debug(f"execute_follow_path_action: sending goal")
         response_future: Future = self.follow_path_client.send_goal_async(goal_msg, self.follow_path_feedback_callback)
