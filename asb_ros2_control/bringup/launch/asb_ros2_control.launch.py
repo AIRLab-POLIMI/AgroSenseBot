@@ -67,9 +67,11 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description, robot_controllers],
+        parameters=[robot_controllers],
+        # parameters=[robot_description, robot_controllers],
         output="both",
         remappings=[
+            ("/controller_manager/robot_description", "/robot_description"),
             ("/asb_base_controller/cmd_vel_unstamped", "/cmd_vel"),
             ("/asb_base_controller/odom", "/odom"),
             ("/asb_base_controller/imu", "/imu"),
