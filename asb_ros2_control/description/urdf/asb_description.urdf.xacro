@@ -620,44 +620,6 @@
       <child link="base_scan_front_multilayer"/>
       <origin xyz="0.805 0 1.5359" rpy="-3.141593 0 0"/>
     </joint>
-    <link name="base_scan_rear_left">
-      <visual>
-        <origin xyz="0 0 -0.011" rpy="1.570741 0.000118 -1.570741"/>
-        <geometry>
-          <box size="0.06 0.087 0.06"/>
-        </geometry>
-      </visual>
-      <collision>
-        <origin xyz="0 0 -0.011" rpy="1.570741 0.000118 -1.570741"/>
-        <geometry>
-          <box size="0.06 0.087 0.06"/>
-        </geometry>
-      </collision>
-    </link>
-    <joint name="base_link_base_scan_rear_left_joint" type="fixed">
-      <parent link="base_link"/>
-      <child link="base_scan_rear_left"/>
-      <origin xyz="-1 0.81 0.4" rpy="0 0 2.356194"/>
-    </joint>
-    <link name="base_scan_front_right">
-      <visual>
-        <origin xyz="0 0 -0.011" rpy="1.570741 0.000118 -1.570741"/>
-        <geometry>
-          <box size="0.06 0.087 0.06"/>
-        </geometry>
-      </visual>
-      <collision>
-        <origin xyz="0 0 -0.011" rpy="1.570741 0.000118 -1.570741"/>
-        <geometry>
-          <box size="0.06 0.087 0.06"/>
-        </geometry>
-      </collision>
-    </link>
-    <joint name="base_link_base_scan_front_right_joint" type="fixed">
-      <parent link="base_link"/>
-      <child link="base_scan_front_right"/>
-      <origin xyz="1 -0.81 0.4" rpy="0 0 -0.785398"/>
-    </joint>
     <link name="imu_link">
     </link>
     <joint name="base_link_imu_link_joint" type="fixed">

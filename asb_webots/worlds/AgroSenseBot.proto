@@ -127,20 +127,6 @@ PROTO AgroSenseBot [
           }
         ]
       }
-      HokuyoUtm30lx {
-        translation 1 -0.81 0.4
-        rotation 0 0 1 5.497787143782138
-        name "base_scan_front_right"
-        noise 0.01
-        resolution 1080
-      }
-      HokuyoUtm30lx {
-        translation -1 0.81 0.4
-        rotation 0 0 1 2.356194490192345
-        name "base_scan_rear_left"
-        noise 0.01
-        resolution 1080
-      }
       Solid {
         translation 0.805 0 1.5359
         rotation 1 0 0 3.141592654
