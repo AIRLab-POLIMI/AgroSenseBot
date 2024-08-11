@@ -5,6 +5,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 
 from asb_msgs.msg import CanopyRegionOfInterest, CanopyData
+from asb_msgs.srv import InitializeCanopyRegion
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,26 +31,38 @@ class SprayingRegulator(Node):
 
         self.all_canopy_volume_ = dict()
 
-        self.canopy_data_sub_ = self.create_subscription(CanopyData, '/canopy_data', self.canopy_data_callback, 10)
+        self.canopy_data_sub_ = self.create_subscription(CanopyData, 'canopy_data', self.canopy_data_callback, 10)
 
-        canopy_region_of_interest_qos = QoSProfile(
+        self.init_canopy_region_client = self.create_client(InitializeCanopyRegion, 'initialize_canopy_region')
+
+        qos_reliable_transient_local = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
             history=HistoryPolicy.KEEP_LAST,
             depth=1
         )
-        self.canopy_region_of_interest_pub_ = self.create_publisher(CanopyRegionOfInterest, '/canopy_region_of_interest', qos_profile=canopy_region_of_interest_qos)
+        self.canopy_region_of_interest_pub_ = self.create_publisher(CanopyRegionOfInterest, '/canopy_region_of_interest', qos_profile=qos_reliable_transient_local)
 
-        timer_period = 0.1  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        while not self.init_canopy_region_client.wait_for_service(timeout_sec=0.1):
+            self.get_logger().info('service not available, waiting...')
 
-    def timer_callback(self):
-        roi = CanopyRegionOfInterest()
-        roi.header.frame_id = "base_link"
-        roi.header.stamp = self.get_clock().now().to_msg()
-        roi.x_1 = -1.0
-        roi.x_2 = 1.0
-        self.canopy_region_of_interest_pub_.publish(roi)
+        result_future = self.init_canopy_region_client.call_async(InitializeCanopyRegion.Request(
+            canopy_id='row_1',
+            canopy_frame_id='hedge',
+            min_x=0.5,
+            max_x=22.0,
+            min_y=-2.0,
+            max_y=1.5,
+            min_z=0.3,
+            max_z=2.5,
+            roi=CanopyRegionOfInterest(
+                frame_id='base_link',
+                x_1=-1.0,
+                x_2=1.0,
+            ),
+        ))
+        rclpy.spin_until_future_complete(self, result_future)
+        self.get_logger().info(f"initialize_canopy_region result: {result_future.result()}")
 
     def canopy_data_callback(self, canopy_data_msg: CanopyData):
 

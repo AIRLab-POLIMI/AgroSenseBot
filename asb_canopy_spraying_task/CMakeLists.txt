@@ -26,6 +26,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(octomap_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(octomap REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(pcl_ros REQUIRED)
 
 add_executable(canopy_volume_estimation_node
     src/canopy_volume_estimation_node.cpp
@@ -49,6 +51,8 @@ ament_target_dependencies(canopy_volume_estimation_node
     octomap_msgs
     visualization_msgs
     octomap
+    pcl_conversions
+    pcl_ros
 )
 
 install(

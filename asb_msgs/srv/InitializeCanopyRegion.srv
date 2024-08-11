@@ -1,0 +1,13 @@
+string canopy_id  # identifier of the canopy map
+string canopy_frame_id  # frame in which the canopy map is built
+float64 min_x  # [m], minimum x coordinate (in canopy_frame_id) of the canopy map
+float64 max_x  # [m], maximum x coordinate (in canopy_frame_id) of the canopy map
+float64 min_y  # [m], minimum y coordinate (in canopy_frame_id) of the canopy map
+float64 max_y  # [m], maximum y coordinate (in canopy_frame_id) of the canopy map
+float64 min_z  # [m], minimum z coordinate (in canopy_frame_id) of the canopy map
+float64 max_z  # [m], maximum z coordinate (in canopy_frame_id) of the canopy map
+
+asb_msgs/CanopyRegionOfInterest roi
+
+---
+bool result

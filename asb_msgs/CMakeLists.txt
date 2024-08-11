@@ -22,16 +22,19 @@ find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-        msg/ControlSystemState.msg
-        msg/PumpCmd.msg
-        msg/SimState.msg
-        msg/SimStateCmd.msg
-        msg/EmergencyStopCmd.msg
-        msg/FanCmd.msg
-        msg/Heartbeat.msg
-        msg/CanopyData.msg
-        msg/CanopyRegionOfInterest.msg
-    DEPENDENCIES std_msgs builtin_interfaces
+    msg/ControlSystemState.msg
+    msg/PumpCmd.msg
+    msg/SimState.msg
+    msg/SimStateCmd.msg
+    msg/EmergencyStopCmd.msg
+    msg/FanCmd.msg
+    msg/Heartbeat.msg
+    msg/CanopyRegionOfInterest.msg
+    msg/CanopyData.msg
+    srv/InitializeCanopyRegion.srv
+    DEPENDENCIES
+    std_msgs
+    builtin_interfaces
     )
 
 if(BUILD_TESTING)

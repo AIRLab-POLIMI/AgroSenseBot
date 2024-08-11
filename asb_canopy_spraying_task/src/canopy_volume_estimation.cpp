@@ -13,28 +13,33 @@
 // limitations under the License.
 
 #include "canopy_volume_estimation/canopy_volume_estimation.h"
+#include "pcl_conversions/pcl_conversions.h"
 #include "octomap_msgs/conversions.h"
+#include "octomap_ros/conversions.hpp"
 
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimation") {
 
+  res_ = declare_parameter("resolution", 0.05);
+  max_range_ = declare_parameter("max_range", 10.0);
+
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
+  points_in_subscriber_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+    "points_in", rclcpp::SensorDataQoS().durability_volatile().best_effort(),
+    std::bind(&CanopyVolumeEstimation::points_in_callback, this, _1));
+
+  initialize_canopy_region_service_ = this->create_service<InitializeCanopyRegion>(
+    "initialize_canopy_region", std::bind(&CanopyVolumeEstimation::initialize_canopy_region, this, _1, _2));
 
   canopy_data_publisher_ = this->create_publisher<CanopyData>(
     "canopy_data", rclcpp::SensorDataQoS().reliable().transient_local());
 
   viz_publisher_ = this->create_publisher<MarkerArray>(
     "canopy_visualization_markers", rclcpp::SensorDataQoS().reliable().transient_local());
-
-  octomap_subscriber_ = this->create_subscription<Octomap>(
-    "octomap_full", rclcpp::SensorDataQoS().reliable().transient_local(),
-    std::bind(&CanopyVolumeEstimation::octomap_callback, this, _1));
-
-  roi_subscriber_ = this->create_subscription<CanopyRegionOfInterest>(
-    "canopy_region_of_interest", rclcpp::SensorDataQoS().reliable().transient_local(),
-    std::bind(&CanopyVolumeEstimation::canopy_region_of_interest_callback, this, _1));
 
 }
 
@@ -59,17 +64,19 @@ void CanopyVolumeEstimation::add_viz_marker(size_t marker_id, Header header, dou
 
 bool CanopyVolumeEstimation::transform_region_of_interest(Header target_header) {
 
-  if(roi_.header.frame_id.empty()) {
+  if(roi_.frame_id.empty()) {
     RCLCPP_WARN(this->get_logger(), "No region of interest was received yet");
     return false;
   }
 
   PointStamped p_1;
-  p_1.header = roi_.header;
+  p_1.header.frame_id = roi_.frame_id;
+  p_1.header.stamp = target_header.stamp;
   p_1.point.x = roi_.x_1;
 
   PointStamped p_2;
-  p_2.header = roi_.header;
+  p_2.header.frame_id = roi_.frame_id;
+  p_2.header.stamp = target_header.stamp;
   p_2.point.x = roi_.x_2;
 
   PointStamped p_1_transformed, p_2_transformed;
@@ -77,8 +84,10 @@ bool CanopyVolumeEstimation::transform_region_of_interest(Header target_header) 
   p_2_transformed.header = target_header;
 
   try {
-    tf2::doTransform(p_1, p_1_transformed, tf_buffer_->lookupTransform(p_1_transformed.header.frame_id, p_1.header.frame_id, tf2::TimePointZero));
-    tf2::doTransform(p_2, p_2_transformed, tf_buffer_->lookupTransform(p_2_transformed.header.frame_id, p_2.header.frame_id, tf2::TimePointZero));
+    tf2::doTransform(p_1, p_1_transformed, tf_buffer_->lookupTransform(
+      p_1_transformed.header.frame_id, p_1.header.frame_id, tf2::TimePointZero));
+    tf2::doTransform(p_2, p_2_transformed, tf_buffer_->lookupTransform(
+      p_2_transformed.header.frame_id, p_2.header.frame_id, tf2::TimePointZero));
   } catch (tf2::TransformException &ex) {
     RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
     return false;
@@ -87,46 +96,108 @@ bool CanopyVolumeEstimation::transform_region_of_interest(Header target_header) 
     return false;
   }
 
-  roi_transformed_.header.frame_id = target_header.frame_id;
-  roi_transformed_.header.stamp = roi_.header.stamp;
+  roi_transformed_.frame_id = target_header.frame_id;
   roi_transformed_.x_1 = p_1_transformed.point.x;
   roi_transformed_.x_2 = p_2_transformed.point.x;
 
   return true;
 }
 
-void CanopyVolumeEstimation::canopy_region_of_interest_callback(const CanopyRegionOfInterest::SharedPtr roi_msg) {
-  roi_ = *roi_msg;
+void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response) {
+  canopy_id_ = request->canopy_id;
+  canopy_frame_id_ = request->canopy_frame_id;
+  point_cloud_min_x_ = request->min_x;
+  point_cloud_max_x_ = request->max_x;
+  point_cloud_min_y_ = request->min_y;
+  point_cloud_max_y_ = request->max_y;
+  point_cloud_min_z_ = request->min_z;
+  point_cloud_max_z_ = request->max_z;
+  roi_ = request->roi;
+  octree_ = std::make_unique<OcTree>(res_);
+
+  response->result = true;
 }
 
-void CanopyVolumeEstimation::octomap_callback(const Octomap::SharedPtr octomap_msg) {
+void CanopyVolumeEstimation::points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr cloud) {
+//  const auto start_time = rclcpp::Clock{}.now();
+
+  if(canopy_id_.empty()) {
+    return;
+  }
+
+  PCLPointCloud pc;
+  pcl::fromROSMsg(*cloud, pc);
+
+  geometry_msgs::msg::TransformStamped sensor_to_canopy_transform_stamped;
+  try {
+    sensor_to_canopy_transform_stamped = tf_buffer_->lookupTransform(
+      canopy_frame_id_, cloud->header.frame_id, cloud->header.stamp,
+      rclcpp::Duration::from_seconds(0.1));
+  } catch (const tf2::TransformException & ex) {
+    RCLCPP_WARN(this->get_logger(), "%s", ex.what());
+    return;
+  }
+
+  // set up filter for height range, also removes NANs:
+  pcl::PassThrough<PCLPoint> pass_x;
+  pass_x.setFilterFieldName("x");
+  pass_x.setFilterLimits((float)point_cloud_min_x_, (float)point_cloud_max_x_);
+  pcl::PassThrough<PCLPoint> pass_y;
+  pass_y.setFilterFieldName("y");
+  pass_y.setFilterLimits((float)point_cloud_min_y_, (float)point_cloud_max_y_);
+  pcl::PassThrough<PCLPoint> pass_z;
+  pass_z.setFilterFieldName("z");
+  pass_z.setFilterLimits((float)point_cloud_min_z_, (float)point_cloud_max_z_);
+
+  // directly transform to canopy frame:
+  pcl_ros::transformPointCloud(pc, pc, sensor_to_canopy_transform_stamped);
+
+  // just filter height range:
+  pass_x.setInputCloud(pc.makeShared());
+  pass_x.filter(pc);
+  pass_y.setInputCloud(pc.makeShared());
+  pass_y.filter(pc);
+  pass_z.setInputCloud(pc.makeShared());
+  pass_z.filter(pc);
+
+  const auto & t = sensor_to_canopy_transform_stamped.transform.translation;
+  tf2::Vector3 sensor_origin_tf{t.x, t.y, t.z};
+  const auto sensor_origin = octomap::pointTfToOctomap(sensor_origin_tf);
+  for (auto& it : pc) {
+    octomap::point3d point(it.x, it.y, it.z);
+    if ((point - sensor_origin).norm() <= max_range_) {
+      octomap::OcTreeKey key;
+      if (octree_->coordToKeyChecked(point, key)) octree_->updateNode(key, true);
+    }
+  }
+
+//  double total_elapsed = (rclcpp::Clock{}.now() - start_time).seconds();
+//  RCLCPP_INFO(get_logger(), "inserted %zu points in %.3f s", pc.size(), total_elapsed);
+
+  update_canopy_volume(cloud->header.stamp);
+
+}
+
+void CanopyVolumeEstimation::update_canopy_volume(const rclcpp::Time & ros_time) {
 
   bool publish_viz_marker_array = viz_publisher_->get_subscription_count() > 0;
 
-  auto* abstract_octree = octomap_msgs::msgToMap(*octomap_msg);
-  if(!abstract_octree) {
-    RCLCPP_ERROR(this->get_logger(), "Error creating octree from received message.");
-    return;
-  }
-
-  auto* octree = dynamic_cast<OcTree*>(abstract_octree);
-  if (!octree){
-    RCLCPP_ERROR(this->get_logger(), "Error creating octree from received message.");
-    return;
-  }
-
   // expand the tree to make sure all leaf nodes are the same size (resolution)
-  octree->expand();
+  octree_->expand();
 
   CanopyData canopy_data_msg;
-  canopy_data_msg.header = octomap_msg->header;
-  canopy_data_msg.resolution = (float)octree->getResolution();
+  canopy_data_msg.header.frame_id = canopy_frame_id_;
+  canopy_data_msg.header.stamp = ros_time;
+  canopy_data_msg.resolution = (float)octree_->getResolution();
 
   double bb_x_min, bb_y_min, bb_z_min, bb_x_max, bb_y_max, bb_z_max;
-  octree->getMetricMin(bb_x_min, bb_y_min, bb_z_min);
-  octree->getMetricMax(bb_x_max, bb_y_max, bb_z_max);
+  octree_->getMetricMin(bb_x_min, bb_y_min, bb_z_min);
+  octree_->getMetricMax(bb_x_max, bb_y_max, bb_z_max);
 
-  bool roi_result = transform_region_of_interest(octomap_msg->header);
+  Header roi_header = Header();
+  roi_header.frame_id = canopy_frame_id_;
+  roi_header.stamp = ros_time;
+  bool roi_result = transform_region_of_interest(roi_header);
   if(!roi_result) return;
 
   canopy_data_msg.roi = roi_transformed_;
@@ -139,21 +210,23 @@ void CanopyVolumeEstimation::octomap_callback(const Octomap::SharedPtr octomap_m
   auto bbx_min = octomap::point3d((float)bb_x_min, (float)bb_y_min, (float)bb_z_min);
   auto bbx_max = octomap::point3d((float)bb_x_max, (float)bb_y_max, (float)bb_z_max);
   std::map<std::pair<double, double>, std::vector<double>> y_vector_map;
-  for (auto v = octree->begin_leafs_bbx(bbx_min, bbx_max), end = octree->end_leafs_bbx(); v != end; ++v) {
-    if(octree->isNodeOccupied(*v)) {
+  for (auto v = octree_->begin_leafs_bbx(bbx_min, bbx_max), end = octree_->end_leafs_bbx(); v != end; ++v) {
+    if(octree_->isNodeOccupied(*v)) {
       auto x_z = std::pair(v.getX(), v.getZ());
       y_vector_map[x_z].emplace_back(v.getY());
     }
   }
 
-  if(y_vector_map.size() > viz_marker_array_.markers.size()) {
-    viz_marker_array_.markers.resize(y_vector_map.size());
+  if(publish_viz_marker_array) {
+    if (y_vector_map.size() > viz_marker_array_.markers.size()) {
+      viz_marker_array_.markers.resize(y_vector_map.size());
+    }
   }
 
   // compute y_depth for each x, z coordinate
   // Note: adding voxel_length to y_depth because y_depth is computed from the centroids of the voxels (otherwise the
   // volume of a 1-voxel deep region would be 0 m^3)
-  double voxel_length = octree->getResolution();
+  double voxel_length = octree_->getResolution();
   std::map<std::pair<double, double>, double> y_depth_map;
   int marker_id = 0;
   for(auto [x_z, y_vector]: y_vector_map) {
@@ -166,7 +239,7 @@ void CanopyVolumeEstimation::octomap_callback(const Octomap::SharedPtr octomap_m
     canopy_data_msg.depth_z_array.emplace_back(z);
 
     if(publish_viz_marker_array) {
-      add_viz_marker(marker_id, octomap_msg->header, voxel_length, x, *y_vector_min, *y_vector_max, z);
+      add_viz_marker(marker_id, roi_header, voxel_length, x, *y_vector_min, *y_vector_max, z);
       marker_id++;
     }
   }
@@ -191,7 +264,6 @@ void CanopyVolumeEstimation::octomap_callback(const Octomap::SharedPtr octomap_m
     canopy_data_msg.volume_y_array.emplace_back(volume);
   }
 
-  delete octree;
   canopy_data_publisher_->publish(canopy_data_msg);
 
 }
