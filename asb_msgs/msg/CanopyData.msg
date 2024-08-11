@@ -1,3 +1,4 @@
+string canopy_id
 std_msgs/Header header
 asb_msgs/CanopyRegionOfInterest roi  # the canopy region of interest for which the canopy data is computed
 

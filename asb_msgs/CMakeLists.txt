@@ -31,6 +31,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     msg/Heartbeat.msg
     msg/CanopyRegionOfInterest.msg
     msg/CanopyData.msg
+    msg/CanopyDataArray.msg
     srv/InitializeCanopyRegion.srv
     DEPENDENCIES
     std_msgs

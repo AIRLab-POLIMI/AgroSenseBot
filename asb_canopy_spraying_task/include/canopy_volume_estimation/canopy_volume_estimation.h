@@ -17,6 +17,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "asb_msgs/msg/canopy_data.hpp"
+#include "asb_msgs/msg/canopy_data_array.hpp"
 #include "asb_msgs/msg/canopy_region_of_interest.hpp"
 #include "asb_msgs/srv/initialize_canopy_region.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
@@ -47,12 +48,25 @@ using PCLPointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using octomap::OcTree;
 using std_msgs::msg::Header;
 using asb_msgs::msg::CanopyData;
+using asb_msgs::msg::CanopyDataArray;
 using asb_msgs::msg::CanopyRegionOfInterest;
 using asb_msgs::srv::InitializeCanopyRegion;
 using geometry_msgs::msg::PointStamped;
 using sensor_msgs::msg::PointCloud2;
 using visualization_msgs::msg::MarkerArray;
 using visualization_msgs::msg::Marker;
+
+class CanopyMap {
+public:
+  std::string canopy_id;
+  std::string canopy_frame_id;
+  double point_cloud_min_x, point_cloud_max_x;
+  double point_cloud_min_y, point_cloud_max_y;
+  double point_cloud_min_z, point_cloud_max_z;
+  CanopyRegionOfInterest roi, roi_transformed;
+  std::unique_ptr<OcTree> octree;
+  MarkerArray viz_marker_array;
+};
 
 class CanopyVolumeEstimation : public rclcpp::Node
 {
@@ -64,31 +78,23 @@ private:
   void initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response);
   void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
 
-  bool transform_region_of_interest(Header target_header);
-  void update_canopy_volume(const rclcpp::Time & ros_time);
-  void add_viz_marker(size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z);
+  bool transform_region_of_interest(const CanopyRegionOfInterest& roi, const Header& target_header, CanopyRegionOfInterest& roi_transformed);
+  void update_canopy_volume(CanopyMap& canopy_map, CanopyData& canopy_data_msg, const rclcpp::Time & ros_time);
+  static void add_viz_marker(CanopyMap& canopy_map, size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z);
 
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   rclcpp::Subscription<PointCloud2>::SharedPtr points_in_subscriber_;
   rclcpp::Service<InitializeCanopyRegion>::SharedPtr initialize_canopy_region_service_;
 
-  rclcpp::Publisher<CanopyData>::SharedPtr canopy_data_publisher_;
+  rclcpp::Publisher<CanopyDataArray>::SharedPtr canopy_data_array_publisher_;
   rclcpp::Publisher<MarkerArray>::SharedPtr viz_publisher_;
-
-  MarkerArray viz_marker_array_ = MarkerArray();
 
   double res_;
   double max_range_;
+  bool print_timing_;
 
-  // canopy data
-  std::string canopy_id_;
-  std::string canopy_frame_id_;
-  double point_cloud_min_x_, point_cloud_max_x_;
-  double point_cloud_min_y_, point_cloud_max_y_;
-  double point_cloud_min_z_, point_cloud_max_z_;
-  CanopyRegionOfInterest roi_, roi_transformed_;
-  std::unique_ptr<OcTree> octree_;
+  std::vector<CanopyMap> canopy_maps;
 
 };
 
