@@ -24,6 +24,7 @@ CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimatio
 
   res_ = declare_parameter("resolution", 0.05);
   max_range_ = declare_parameter("max_range", 10.0);
+  hit_count_threshold_ = declare_parameter("hit_count_threshold", 100);
   print_timing_ = declare_parameter("print_timing", false);
 
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -110,8 +111,17 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
   canopy_maps.back().point_cloud_min_z = request->min_z;
   canopy_maps.back().point_cloud_max_z = request->max_z;
   canopy_maps.back().roi = request->roi;
-  canopy_maps.back().octree = std::make_unique<OcTree>(res_);
   canopy_maps.back().viz_marker_array = MarkerArray();
+  canopy_maps.back().octree = std::make_unique<OcTree>(res_);
+
+  // compute the occupancy probability threshold such that nodes are considered occupied after the n-th hit
+  double p = 0.51;
+  long n = hit_count_threshold_;
+  double th = pow(p / (1 - p), n) / (1 + pow(p / (1 - p), n));
+  double th_clamp = pow(p / (1 - p), n+1) / (1 + pow(p / (1 - p), n+1));
+  canopy_maps.back().octree->setProbHit(p);
+  canopy_maps.back().octree->setOccupancyThres(th);
+  canopy_maps.back().octree->setClampingThresMax(th_clamp);
 
   response->result = true;
 }

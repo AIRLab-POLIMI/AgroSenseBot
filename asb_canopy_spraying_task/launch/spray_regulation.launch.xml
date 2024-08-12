@@ -6,6 +6,7 @@
     <remap from="points_in" to="/scan_front_multilayer/points_filtered"/>
     <param name="use_sim_time" value="$(var use_sim_time)" />
     <param name="resolution" value="0.2" />
+    <param name="hit_count_threshold" value="5" />
     <param name="max_range" value="5.0" />
   </node>
 

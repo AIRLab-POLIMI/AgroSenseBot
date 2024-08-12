@@ -84,14 +84,18 @@ private:
 
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+
   rclcpp::Subscription<PointCloud2>::SharedPtr points_in_subscriber_;
+
   rclcpp::Service<InitializeCanopyRegion>::SharedPtr initialize_canopy_region_service_;
 
   rclcpp::Publisher<CanopyDataArray>::SharedPtr canopy_data_array_publisher_;
   rclcpp::Publisher<MarkerArray>::SharedPtr viz_publisher_;
 
+  // node parameters
   double res_;
   double max_range_;
+  int hit_count_threshold_;
   bool print_timing_;
 
   std::vector<CanopyMap> canopy_maps;
