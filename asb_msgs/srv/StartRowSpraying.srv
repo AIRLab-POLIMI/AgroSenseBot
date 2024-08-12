@@ -1,0 +1,5 @@
+string row_id  # identifier of the row
+geometry_msgs/PointStamped start # [m], start point of the canopy map
+geometry_msgs/PointStamped end # [m], start point of the canopy map
+---
+bool result

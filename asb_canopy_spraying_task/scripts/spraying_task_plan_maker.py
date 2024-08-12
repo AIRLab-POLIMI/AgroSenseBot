@@ -75,7 +75,7 @@ class AsbTaskPlanMaker(Node):
         if self.task_plan_item is None:
             self.get_logger().info(f"creating new task plan item")
             self.task_plan_item = TaskPlanItem(item_id=self.task_plan_item_id)
-            self.task_plan.task_plan_items.append(self.task_plan_item)
+            self.task_plan.items.append(self.task_plan_item)
 
         if self.behavior_tree_name == "":
             self.get_logger().info(f"not setting plan item's behavior_tree_name")

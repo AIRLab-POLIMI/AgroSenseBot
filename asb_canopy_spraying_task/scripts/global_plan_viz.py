@@ -49,7 +49,7 @@ class AsbGlobalPlanViz(Node):
         if self.task_plan_item is None:
             self.get_logger().info(f"creating new task plan item")
             self.task_plan_item = TaskPlanItem(item_id=self.task_plan_item_id)
-            self.task_plan.task_plan_items.append(self.task_plan_item)
+            self.task_plan.items.append(self.task_plan_item)
 
         if len(self.task_plan_item.get_pose_stamped_list()):
             path_result = self.navigator_node.getPathThroughPoses(start=PoseStamped(), goals=self.task_plan_item.get_pose_stamped_list(), planner_id=self.planner_id, use_start=False)

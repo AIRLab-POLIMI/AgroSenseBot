@@ -7,14 +7,15 @@ import threading
 
 import rclpy
 from rclpy import Future
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from rclpy.action import ActionClient
 from rclpy.time import Time
 from rclpy.node import Node
 from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState
+from asb_msgs.msg import Heartbeat, ControlSystemState, SprayRegulatorStatus
+from asb_msgs.srv import StartRowSpraying, StopRowSpraying
 from geometry_msgs.msg import Point, Pose, PoseStamped
-from asb_msgs.msg import Heartbeat, ControlSystemState
 from nav_msgs.msg import Path
 from std_msgs.msg import Header, String
 
@@ -32,7 +33,7 @@ from enum import Enum
 
 from typing_extensions import Self
 
-from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemResult, TaskPlanItemType
+from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemResult, TaskPlanItemType, TaskPlanRow
 
 
 class NavigationActionStatus(Enum):
@@ -42,6 +43,14 @@ class NavigationActionStatus(Enum):
     IN_PROGRESS = 3
     SUCCEEDED = 4
     FAILED = 5
+
+
+class SprayState(Enum):
+    NOT_SPRAYING = 0
+    REQUESTED = 1
+    STARTING = 2
+    STARTED = 3
+    FAILED = 4
 
 
 class ControlMode(Enum):  # TODO move enum to message definition?
@@ -149,15 +158,28 @@ class SprayingTaskPlanExecutor(Node):
         # variables for task execution
         self.loop_operations_chrono: Chronometer | None = None
         self.navigation_action_status: NavigationActionStatus = NavigationActionStatus.NOT_STARTED
+        self.left_spraying_state: SprayState = SprayState.NOT_SPRAYING
+        self.left_row: TaskPlanRow | None = None
+        self.right_spraying_state: SprayState = SprayState.NOT_SPRAYING
+        self.right_row: TaskPlanRow | None = None
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: ControlSystemState | None = None
         self.stop_platform: bool = True
 
         # publishers, subscribers, timers and loop rate
+        qos_reliable_transient_local_depth_10 = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
         self.path_pub = self.create_publisher(Path, '/plan', 10)
         self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_control_system_status_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', 10)
         self.platform_status_sub = self.create_subscription(ControlSystemState, '/asb_control_system_status_controller/control_system_state', self.platform_status_callback, 10)
+        self.start_row_spraying_service = self.create_client(StartRowSpraying, 'start_row_spraying')
+        self.stop_row_spraying_service = self.create_client(StopRowSpraying, 'stop_row_spraying')
+        self.spray_regulator_status_sub = self.create_subscription(SprayRegulatorStatus, 'spray_regulator_status', self.spray_regulator_status_callback, qos_reliable_transient_local_depth_10)
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         # navigation action variables
@@ -170,25 +192,36 @@ class SprayingTaskPlanExecutor(Node):
     def run(self):
         run_chrono = Chronometer()
 
-        # wait for localization
-        self.get_logger().info(f"waiting for robot pose...")
-        robot_pose_chrono = Chronometer()
-        robot_pose = self.get_robot_pose(timeout=10.0)
-        if robot_pose is not None:
-            self.get_logger().info(f"robot pose received (took {robot_pose_chrono.total():.4f} s)")
-        else:
-            self.get_logger().fatal(f"robot pose not received (took {robot_pose_chrono.total():.4f} s), aborting task")
-            return
+        if not self.dry_run:
+            # wait for localization
+            self.get_logger().info(f"waiting for robot pose...")
+            robot_pose_chrono = Chronometer()
+            robot_pose = self.get_robot_pose(timeout=10.0)
+            if robot_pose is not None:
+                self.get_logger().info(f"robot pose received (took {robot_pose_chrono.total():.4f} s)")
+            else:
+                self.get_logger().fatal(f"robot pose not received (took {robot_pose_chrono.total():.4f} s), aborting task")
+                return
 
-        # wait for navigation stack
-        self.get_logger().info(f"waiting for navigation stack...")
-        nav_stack_chrono = Chronometer()
-        nav_stack_ready = self.wait_navigation_stack_is_ready(timeout=10.0)
-        if nav_stack_ready:
-            self.get_logger().info(f"navigation stack is ready (took {robot_pose_chrono.total():.4f} s), ready to start the task\n\n")
-        else:
-            self.get_logger().fatal(f"navigation stack timeout (took {nav_stack_chrono.total():.4f} s), aborting task")
-            return
+            # wait for navigation stack
+            self.get_logger().info(f"waiting for navigation stack...")
+            nav_stack_chrono = Chronometer()
+            nav_stack_ready = self.wait_navigation_stack_is_ready(timeout=10.0)
+            if nav_stack_ready:
+                self.get_logger().info(f"navigation stack is ready (took {nav_stack_chrono.total():.4f} s)")
+            else:
+                self.get_logger().fatal(f"navigation stack timeout (took {nav_stack_chrono.total():.4f} s), aborting task")
+                return
+
+            # wait for spray regulator
+            self.get_logger().info(f"waiting for spray regulator...")
+            spray_regulator_chrono = Chronometer()
+            spray_regulator_ready = self.wait_spray_regulator_is_ready(timeout=10.0)
+            if spray_regulator_ready:
+                self.get_logger().info(f"spray regulator is ready (took {spray_regulator_chrono.total():.4f} s), ready to start the task\n\n")
+            else:
+                self.get_logger().fatal(f"spray regulator timeout (took {spray_regulator_chrono.total():.4f} s), aborting task")
+                return
 
         self.prepare_task_log()
 
@@ -197,16 +230,16 @@ class SprayingTaskPlanExecutor(Node):
         # [!]
         # Beyond this point, no functions should block or take too long to execute.
         # If self.do_loop_operations_and_sleep is not called with the correct frequency, for example due to an exception
-        # interrupting this function, the platform will stop receiving the heartbeat and go to STOP mode.
+        # interrupting this function, the platform will stop receiving the heartbeat and go to STOP or MANUAL mode.
         # self.stop_platform_and_wait_control_mode_manual_to_auto will stop sending the heartbeat on purpose to send the
-        # platform to control mode stop
+        # platform to control mode STOP or MANUAL
 
         item_index = 0
 
         while rclpy.ok():
             self.do_loop_operations_and_sleep()
 
-            item = self.task_plan.task_plan_items[item_index]
+            item = self.task_plan.items[item_index]
             item.set_result(TaskPlanItemResult())
             item.get_result().item_started = True
 
@@ -214,12 +247,27 @@ class SprayingTaskPlanExecutor(Node):
 
             # TODO send spray regulation command, wait for start completion if necessary
 
+            if item.get_type() == TaskPlanItemType.ROW:
+                self.start_spray_regulator(item)
+
+                # wait for spray regulator to start or to fail to start
+                while rclpy.ok():
+                    self.do_loop_operations_and_sleep(current_item=item)
+                    if self.is_spray_regulator_started():
+                        self.get_logger().info(f"spray regulator started")
+                        break
+                    if self.is_spray_regulator_failed():
+                        self.get_logger().error(f"spray regulator failed")
+                        self.stop_platform_and_wait_control_mode_manual_to_auto()
+                        break
+                    # TODO timeout
+
             # NOTE: self.start_navigation immediately sets self.navigation_action_status to REQUESTED, and eventually to
             # - NavigationActionStatus.FAILED_TO_START
             # - NavigationActionStatus.IN_PROGRESS
             # - NavigationActionStatus.SUCCEEDED
             # - NavigationActionStatus.FAILED
-            self.navigation_action_status = NavigationActionStatus.NOT_STARTED
+            self.navigation_action_status = NavigationActionStatus.NOT_STARTED  # TODO move into start_navigation
             navigation_action_requested = self.start_navigation(item)
 
             if not navigation_action_requested:
@@ -232,6 +280,7 @@ class SprayingTaskPlanExecutor(Node):
             # wait for navigation action to start or to fail to start, assume it could also immediately become succeeded or failed
             while rclpy.ok() and self.navigation_action_status in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.REQUESTED]:
                 self.do_loop_operations_and_sleep(current_item=item)
+                # TODO timeout
 
             if self.navigation_action_status == NavigationActionStatus.FAILED_TO_START:
                 self.get_logger().error(f"navigation could not be started for item {item.get_item_id()}")
@@ -252,7 +301,7 @@ class SprayingTaskPlanExecutor(Node):
                     self.do_loop_operations_and_sleep(current_item=item)
                     # TODO manage spray regulation
                     item_index += 1
-                    if item_index < len(self.task_plan.task_plan_items):
+                    if item_index < len(self.task_plan.items):
                         break  # (back to start navigation)
                     else:
                         self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
@@ -264,7 +313,7 @@ class SprayingTaskPlanExecutor(Node):
                     self.get_logger().info(f"navigation succeeded in {nav_chrono.total():.3f} s for item {item.get_item_id()}")
                     # TODO manage spray regulation
                     item_index += 1
-                    if item_index < len(self.task_plan.task_plan_items):
+                    if item_index < len(self.task_plan.items):
                         break  # (back to start navigation)
                     else:
                         self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
@@ -310,7 +359,7 @@ class SprayingTaskPlanExecutor(Node):
 
     def log_task_results(self) -> None:
         chrono = Chronometer()
-        self.task_plan.write(os.path.expanduser(f"~/asb_logs/spraying_task_plan_result.yaml"))
+        self.task_plan.write(os.path.expanduser(os.path.join(self.task_log_dir_path, "spraying_task_plan_result.yaml")))
         self.get_logger().info(f"wrote task results, it took {chrono.total():.3f} s")
 
     def do_loop_operations_and_sleep(self, current_item: TaskPlanItem = None) -> None:
@@ -363,6 +412,80 @@ class SprayingTaskPlanExecutor(Node):
         while rclpy.ok() and self.get_control_mode() != ControlMode.AUTO:
             self.do_loop_operations_and_sleep()
             self.get_logger().info(f"WAITING control mode switch to AUTO", throttle_duration_sec=1.0)
+
+    def start_spray_regulator(self, item: TaskPlanItem) -> None:
+        if self.left_spraying_state != SprayState.NOT_SPRAYING or self.right_spraying_state != SprayState.NOT_SPRAYING:
+            self.get_logger().error(f"trying to start row spraying while already executing")
+            return
+
+        self.left_row = self.task_plan.get_row(item.get_left_row_id())
+        self.get_logger().info(f"starting spray regulator for left row [{self.left_row.get_row_id()}]")
+        start_row_spraying_request = StartRowSpraying.Request(row_id=self.left_row.get_row_id(), start=self.left_row.get_start_point(), end=self.left_row.get_end_point())
+        start_left_row_spraying_response_future: Future = self.start_row_spraying_service.call_async(start_row_spraying_request)
+        start_left_row_spraying_response_future.add_done_callback(self.start_left_row_spraying_response_callback)
+        self.left_spraying_state = SprayState.REQUESTED
+
+        self.right_row = self.task_plan.get_row(item.get_right_row_id())
+        self.get_logger().info(f"starting spray regulator for right row [{self.right_row.get_row_id()}]")
+        start_row_spraying_request = StartRowSpraying.Request(row_id=self.right_row.get_row_id(), start=self.right_row.get_start_point(), end=self.right_row.get_end_point())
+        start_right_row_spraying_response_future: Future = self.start_row_spraying_service.call_async(start_row_spraying_request)
+        start_right_row_spraying_response_future.add_done_callback(self.start_right_row_spraying_response_callback)
+        self.right_spraying_state = SprayState.REQUESTED
+
+    def start_left_row_spraying_response_callback(self, response_future) -> None:
+        if response_future.result().result:
+            self.left_spraying_state = SprayState.STARTING
+            self.get_logger().info(f"left_spraying_state: STARTING")
+        else:
+            self.left_spraying_state = SprayState.FAILED
+            self.get_logger().error(f"left_spraying_state: FAILED")
+
+    def start_right_row_spraying_response_callback(self, response_future) -> None:
+        if response_future.result().result:
+            self.right_spraying_state = SprayState.STARTING
+            self.get_logger().info(f"right_spraying_state: STARTING")
+        else:
+            self.right_spraying_state = SprayState.FAILED
+            self.get_logger().error(f"right_spraying_state: FAILED")
+
+    def spray_regulator_status_callback(self, status_msg: SprayRegulatorStatus) -> None:
+        if status_msg.status == SprayRegulatorStatus.STATUS_FAILED:
+            if self.left_spraying_state in [SprayState.STARTED, SprayState.STARTING]:
+                self.left_spraying_state = SprayState.FAILED
+                self.get_logger().error(f"left_spraying_state: FAILED")
+            if self.right_spraying_state in [SprayState.STARTED, SprayState.STARTING]:
+                self.right_spraying_state = SprayState.FAILED
+                self.get_logger().error(f"right_spraying_state: FAILED")
+
+        elif status_msg.status == SprayRegulatorStatus.STATUS_OK:
+            if self.left_spraying_state == SprayState.STARTING and status_msg.row_id == self.left_row.get_row_id():
+                self.get_logger().info(f"left_spraying_state: STARTED")
+                self.left_spraying_state = SprayState.STARTED
+            if self.right_spraying_state == SprayState.STARTING and status_msg.row_id == self.right_row.get_row_id():
+                self.right_spraying_state = SprayState.STARTED
+                self.get_logger().info(f"right_spraying_state: STARTED")
+
+    def is_spray_regulator_started(self) -> bool:
+        if self.left_spraying_state != SprayState.NOT_SPRAYING and self.right_spraying_state != SprayState.NOT_SPRAYING:
+            return self.left_spraying_state == SprayState.STARTED and self.right_spraying_state == SprayState.STARTED
+        elif self.left_spraying_state != SprayState.NOT_SPRAYING:
+            return self.left_spraying_state == SprayState.STARTED
+        elif self.right_spraying_state != SprayState.NOT_SPRAYING:
+            return self.right_spraying_state == SprayState.STARTED
+        else:
+            self.get_logger().error(f"waiting for spray regulator, but no start request was made")
+            return False
+
+    def is_spray_regulator_failed(self) -> bool:
+        if self.left_spraying_state != SprayState.NOT_SPRAYING and self.right_spraying_state != SprayState.NOT_SPRAYING:
+            return self.left_spraying_state == SprayState.FAILED or self.right_spraying_state == SprayState.FAILED
+        elif self.left_spraying_state != SprayState.NOT_SPRAYING:
+            return self.left_spraying_state == SprayState.FAILED
+        elif self.right_spraying_state != SprayState.NOT_SPRAYING:
+            return self.right_spraying_state == SprayState.FAILED
+        else:
+            self.get_logger().error(f"checking for spray regulator failure, but no start request was made")
+            return True
 
     def start_navigation(self, item: TaskPlanItem) -> bool:
 
@@ -487,6 +610,15 @@ class SprayingTaskPlanExecutor(Node):
             path.poses += interpolated_poses
 
         return path
+
+    def wait_spray_regulator_is_ready(self, timeout: float) -> bool:
+        self.get_logger().info(f"waiting for start_row_spraying service...")
+        timeout_chrono = Chronometer()
+        while rclpy.ok() and not self.start_row_spraying_service.wait_for_service(timeout_sec=0.05):
+            self.get_logger().info(f"start_row_spraying service not available, waiting...")
+            if timeout_chrono.total() > timeout:
+                return False
+        return True
 
     def wait_navigation_stack_is_ready(self, timeout: float) -> bool:
         if not self.wait_node_is_active("bt_navigator", timeout=timeout):

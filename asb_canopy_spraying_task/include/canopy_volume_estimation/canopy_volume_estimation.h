@@ -95,7 +95,7 @@ private:
   // node parameters
   double res_;
   double max_range_;
-  int hit_count_threshold_;
+  long hit_count_threshold_;
   bool print_timing_;
 
   std::vector<CanopyMap> canopy_maps;

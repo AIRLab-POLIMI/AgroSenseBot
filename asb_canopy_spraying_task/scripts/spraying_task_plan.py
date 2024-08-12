@@ -4,7 +4,7 @@ from typing_extensions import Self
 from enum import Enum
 import yaml
 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PointStamped, Point
 from rosidl_runtime_py import set_message_fields, message_to_yaml
 from std_msgs.msg import Header
 
@@ -33,6 +33,8 @@ class TaskPlanItem:
         self._type: TaskPlanItemType | None = None
         self._approach_pose: PoseStamped | None = None
         self._row_waypoints: list[PoseStamped] | None = list()
+        self._left_row_id: str | None = None
+        self._right_row_id: str | None = None
         self._timeout: float | None = None
         self._result: TaskPlanItemResult | None = None
 
@@ -47,6 +49,10 @@ class TaskPlanItem:
             item.set_approach_pose(dict_to_pose_stamped(d['approach_pose']))
         elif item.get_type() == TaskPlanItemType.ROW:
             item.set_row_waypoints(list(map(dict_to_pose_stamped, d['row_waypoints'])))
+            if 'left_row_id' in d:
+                item.set_left_row_id(d['left_row_id'])
+            if 'right_row_id' in d:
+                item.set_right_row_id(d['right_row_id'])
         else:
             raise ValueError(f"unknown item type [{item.get_type()}]")
         return item
@@ -61,6 +67,10 @@ class TaskPlanItem:
             d['approach_pose'] = yaml.safe_load(message_to_yaml(self._approach_pose))
         elif self._type == TaskPlanItemType.ROW:
             d['row_waypoints'] = list(map(lambda w: yaml.safe_load(message_to_yaml(w)), self._row_waypoints))
+            if self._left_row_id is not None:
+                d['left_row_id'] = self._left_row_id
+            if self._right_row_id is not None:
+                d['right_row_id'] = self._right_row_id
 
         if self._result is not None:
             d['result'] = self._result
@@ -84,6 +94,18 @@ class TaskPlanItem:
         else:
             raise ValueError(f"trying to set unknown type [{type_}] from string in item {self._item_id}")
 
+    def get_approach_pose(self) -> PoseStamped | None:
+        if self._type != TaskPlanItemType.APPROACH:
+            raise ValueError(f"trying to get approach pose from an item [{self._item_id}] with type different than APPROACH")
+        return self._approach_pose
+
+    def set_approach_pose(self, pose_stamped: PoseStamped) -> None:
+        if self._type != TaskPlanItemType.APPROACH:
+            raise ValueError(f"trying to set approach pose to an item [{self._item_id}] with type different than APPROACH")
+        if not isinstance(pose_stamped, PoseStamped):
+            raise TypeError(f"trying to set approach pose of type different than PoseStamped in item {self._item_id}")
+        self._approach_pose = pose_stamped
+
     def get_row_waypoints(self) -> list[PoseStamped]:
         if self._type != TaskPlanItemType.ROW:
             raise ValueError(f"trying to get row waypoints from an item [{self._item_id}] with type different than ROW")
@@ -99,17 +121,25 @@ class TaskPlanItem:
                 raise TypeError(f"trying to set a row waypoint of type different than PoseStamped in item {self._item_id}")
         self._row_waypoints = row_waypoints
 
-    def get_approach_pose(self) -> PoseStamped | None:
-        if self._type != TaskPlanItemType.APPROACH:
-            raise ValueError(f"trying to get approach pose from an item [{self._item_id}] with type different than APPROACH")
-        return self._approach_pose
+    def set_left_row_id(self, row_id):
+        if not isinstance(row_id, str):
+            raise TypeError(f"trying to set left row id of type different than str in item {self._item_id}")
+        self._left_row_id = row_id
 
-    def set_approach_pose(self, pose_stamped: PoseStamped) -> None:
-        if self._type != TaskPlanItemType.APPROACH:
-            raise ValueError(f"trying to set approach pose to an item [{self._item_id}] with type different than APPROACH")
-        if not isinstance(pose_stamped, PoseStamped):
-            raise TypeError(f"trying to set approach pose of type different than PoseStamped in item {self._item_id}")
-        self._approach_pose = pose_stamped
+    def get_left_row_id(self):
+        if self._type != TaskPlanItemType.ROW:
+            raise ValueError(f"trying to get left row id from an item [{self._item_id}] with type different than ROW")
+        return self._left_row_id
+
+    def set_right_row_id(self, row_id):
+        if not isinstance(row_id, str):
+            raise TypeError(f"trying to set right row id of type different than str in item {self._item_id}")
+        self._right_row_id = row_id
+
+    def get_right_row_id(self):
+        if self._type != TaskPlanItemType.ROW:
+            raise ValueError(f"trying to get right row id from an item [{self._item_id}] with type different than ROW")
+        return self._right_row_id
 
     def get_timeout(self) -> float:
         return self._timeout
@@ -128,9 +158,59 @@ class TaskPlanItem:
         self._result = result
 
 
+class TaskPlanRow:
+    def __init__(self, row_id: str, start_point: PointStamped, end_point: PointStamped):
+        self._row_id: str = row_id
+        self._start_point: PointStamped = start_point
+        self._end_point: PointStamped = end_point
+
+    @classmethod
+    def from_dict(cls, d) -> Self:
+        start_point: PointStamped = PointStamped(header=Header(frame_id=d['frame_id']), point=Point(x=d['start_point']['x'], y=d['start_point']['y']))
+        end_point: PointStamped = PointStamped(header=Header(frame_id=d['frame_id']), point=Point(x=d['end_point']['x'], y=d['end_point']['y']))
+        row = TaskPlanRow(d['row_id'], start_point, end_point)
+        return row
+
+    def to_dict(self):
+        d = {
+            'row_id': self._row_id,
+            'frame_id': self._start_point.header.frame_id,
+            'start_point': {
+                'x': self._start_point.point.x,
+                'y': self._start_point.point.y,
+            },
+            'end_point': {
+                'x': self._start_point.point.x,
+                'y': self._start_point.point.y,
+            },
+        }
+        return d
+
+    def get_row_id(self):
+        return self._row_id
+
+    def set_start_end_points(self, start_point: PointStamped,  end_point: PointStamped):
+        if not isinstance(start_point, PointStamped):
+            raise TypeError("trying to set a start point of type different than PointStamped")
+        if not isinstance(end_point, PointStamped):
+            raise TypeError("trying to set an end point of type different than PointStamped")
+        if start_point.header.frame_id != end_point.header.frame_id:
+            raise ValueError("trying to set a start point and an end point with different frame_id")
+
+        self._start_point = start_point
+        self._end_point = end_point
+
+    def get_start_point(self):
+        return self._start_point
+
+    def get_end_point(self):
+        return self._end_point
+
+
 class SprayingTaskPlan:
     def __init__(self):
-        self.task_plan_items: list[TaskPlanItem] = list()
+        self.items: list[TaskPlanItem] = list()
+        self.rows: list[TaskPlanRow] = list()
         self.map_frame: str = "map"
         self.row_path_controller_id: str = "FollowPath"
         self.row_path_goal_checker_id: str = "asb_goal_checker"
@@ -140,7 +220,8 @@ class SprayingTaskPlan:
     @classmethod
     def from_dict(cls, d) -> Self:
         t = SprayingTaskPlan()
-        t.task_plan_items = list(map(TaskPlanItem.from_dict, d['task_plan_items']))
+        t.items = list(map(TaskPlanItem.from_dict, d['items']))
+        t.rows = list(map(TaskPlanRow.from_dict, d['rows']))
         t.map_frame = d['map_frame']
         t.row_path_controller_id = d['row_path_controller_id']
         t.row_path_goal_checker_id = d['row_path_goal_checker_id']
@@ -155,13 +236,14 @@ class SprayingTaskPlan:
             'row_path_goal_checker_id': self.row_path_goal_checker_id,
             'row_path_progress_checker_id': self.row_path_progress_checker_id,
             'row_path_pose_distance': self.row_path_pose_distance,
-            'task_plan_items': list(map(lambda i: i.to_dict(), self.task_plan_items)),
+            'items': list(map(lambda i: i.to_dict(), self.items)),
+            'rows': list(map(lambda i: i.to_dict(), self.rows)),
         }
 
     @classmethod
     def load(cls, file_path: str) -> Self:
         with open(file_path, 'r') as f:
-            return cls.from_dict(yaml.unsafe_load(f))
+            return cls.from_dict(yaml.safe_load(f))
 
     def write(self, file_path: str) -> None:
         with open(file_path, 'w') as f:
@@ -172,28 +254,49 @@ class SprayingTaskPlan:
         t = SprayingTaskPlan()
         i_0 = TaskPlanItem(item_id='approach_1')
         i_0.set_type(TaskPlanItemType.APPROACH)
-        i_0.set_approach_pose(PoseStamped(header=Header(frame_id="map")))
-        i_0._timeout = 0.0
-        t.task_plan_items.append(i_0)
-        i_0 = TaskPlanItem(item_id='row_1')
-        i_0.set_type(TaskPlanItemType.ROW)
-        i_0.set_row_waypoints([PoseStamped(header=Header(frame_id="map")), PoseStamped(header=Header(frame_id="map"))])
-        i_0._timeout = 0.0
-        t.task_plan_items.append(i_0)
+        i_0.set_approach_pose(PoseStamped(header=Header(frame_id='map')))
+        i_0.set_timeout(10.0)
+        t.items.append(i_0)
+
+        i_1 = TaskPlanItem(item_id='row_1')
+        i_1.set_type(TaskPlanItemType.ROW)
+        i_1.set_row_waypoints([PoseStamped(header=Header(frame_id='map')), PoseStamped(header=Header(frame_id='map'))])
+        i_1.set_left_row_id('row_1')
+        i_1.set_right_row_id('row_2')
+        i_1.set_timeout(10.0)
+        t.items.append(i_1)
+
+        r_1 = TaskPlanRow(row_id='row_1', start_point=PointStamped(header=Header(frame_id='map')), end_point=PointStamped(header=Header(frame_id='map')))
+        t.rows.append(r_1)
+
+        r_2 = TaskPlanRow(row_id='row_2', start_point=PointStamped(header=Header(frame_id='map')), end_point=PointStamped(header=Header(frame_id='map')))
+        t.rows.append(r_2)
+
         return t
 
     def get_preceding_item(self, item: TaskPlanItem) -> TaskPlanItem | None:
         try:
-            i = self.task_plan_items.index(item) - 1
+            i = self.items.index(item) - 1
             if i >= 0:
-                return self.task_plan_items[i]
+                return self.items[i]
             else:
                 return None
         except ValueError:
             return None
 
     def get_item_ids(self) -> list[str]:
-        return list(map(lambda x: x.get_item_id(), self.task_plan_items))
+        return list(map(lambda x: x.get_item_id(), self.items))
+
+    def get_row(self, row_id: str):
+        if not isinstance(row_id, str):
+            raise TypeError(f"trying to get a row with row_id [{row_id}] type different than string")
+        found_rows = [x for x in self.rows if x.get_row_id() == row_id]
+        if len(found_rows) == 0:
+            raise IndexError(f"row {row_id} not in rows list")
+        elif len(found_rows) > 1:
+            raise IndexError(f"multiple rows with row_id [{row_id}] in rows list")
+        else:
+            return found_rows[0]
 
 
 if __name__ == '__main__':

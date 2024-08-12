@@ -101,6 +101,8 @@ bool CanopyVolumeEstimation::transform_region_of_interest(const CanopyRegionOfIn
 }
 
 void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response) {
+  RCLCPP_INFO(this->get_logger(), "initialize_canopy_region %s", request->canopy_id.c_str());
+
   canopy_maps.emplace_back();
   canopy_maps.back().canopy_id = request->canopy_id;
   canopy_maps.back().canopy_frame_id = request->canopy_frame_id;

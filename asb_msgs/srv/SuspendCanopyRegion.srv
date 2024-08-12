@@ -1,0 +1,3 @@
+string canopy_id  # identifier of the canopy map
+---
+bool result
