@@ -37,6 +37,9 @@ CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimatio
   initialize_canopy_region_service_ = this->create_service<InitializeCanopyRegion>(
     "initialize_canopy_region", std::bind(&CanopyVolumeEstimation::initialize_canopy_region, this, _1, _2));
 
+  suspend_canopy_region_service_ = this->create_service<SuspendCanopyRegion>(
+    "suspend_canopy_region", std::bind(&CanopyVolumeEstimation::suspend_canopy_region, this, _1, _2));
+
   canopy_data_array_publisher_ = this->create_publisher<CanopyDataArray>(
     "canopy_data", rclcpp::SensorDataQoS().reliable().transient_local());
 
@@ -101,38 +104,55 @@ bool CanopyVolumeEstimation::transform_region_of_interest(const CanopyRegionOfIn
 }
 
 void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response) {
-  RCLCPP_INFO(this->get_logger(), "initialize_canopy_region %s", request->canopy_id.c_str());
+  RCLCPP_DEBUG(this->get_logger(), "initialize_canopy_region %s", request->canopy_id.c_str());
 
-  canopy_maps.emplace_back();
-  canopy_maps.back().canopy_id = request->canopy_id;
-  canopy_maps.back().canopy_frame_id = request->canopy_frame_id;
-  canopy_maps.back().point_cloud_min_x = request->min_x;
-  canopy_maps.back().point_cloud_max_x = request->max_x;
-  canopy_maps.back().point_cloud_min_y = request->min_y;
-  canopy_maps.back().point_cloud_max_y = request->max_y;
-  canopy_maps.back().point_cloud_min_z = request->min_z;
-  canopy_maps.back().point_cloud_max_z = request->max_z;
-  canopy_maps.back().roi = request->roi;
-  canopy_maps.back().viz_marker_array = MarkerArray();
-  canopy_maps.back().octree = std::make_unique<OcTree>(res_);
+  if (canopy_maps.contains(request->canopy_id)) {
+    canopy_maps[request->canopy_id].suspended = false;
+  } else {
+    canopy_maps[request->canopy_id] = CanopyMap();
+    canopy_maps[request->canopy_id].canopy_id = request->canopy_id;
+    canopy_maps[request->canopy_id].suspended = false;
+    canopy_maps[request->canopy_id].canopy_frame_id = request->canopy_frame_id;
+    canopy_maps[request->canopy_id].point_cloud_min_x = request->min_x;
+    canopy_maps[request->canopy_id].point_cloud_max_x = request->max_x;
+    canopy_maps[request->canopy_id].point_cloud_min_y = request->min_y;
+    canopy_maps[request->canopy_id].point_cloud_max_y = request->max_y;
+    canopy_maps[request->canopy_id].point_cloud_min_z = request->min_z;
+    canopy_maps[request->canopy_id].point_cloud_max_z = request->max_z;
+    canopy_maps[request->canopy_id].roi = request->roi;
+    canopy_maps[request->canopy_id].viz_marker_array = MarkerArray();
+    canopy_maps[request->canopy_id].octree = std::make_unique<OcTree>(res_);
 
-  // compute the occupancy probability threshold such that nodes are considered occupied after the n-th hit
-  double p = 0.51;
-  long n = hit_count_threshold_;
-  double th = pow(p / (1 - p), n) / (1 + pow(p / (1 - p), n));
-  double th_clamp = pow(p / (1 - p), n+1) / (1 + pow(p / (1 - p), n+1));
-  canopy_maps.back().octree->setProbHit(p);
-  canopy_maps.back().octree->setOccupancyThres(th);
-  canopy_maps.back().octree->setClampingThresMax(th_clamp);
+    // compute the occupancy probability threshold such that nodes are considered occupied after the n-th hit
+    double p = 0.51;
+    long n = hit_count_threshold_;
+    double th = pow(p / (1 - p), n) / (1 + pow(p / (1 - p), n));
+    double th_clamp = pow(p / (1 - p), n+1) / (1 + pow(p / (1 - p), n+1));
+    canopy_maps[request->canopy_id].octree->setProbHit(p);
+    canopy_maps[request->canopy_id].octree->setOccupancyThres(th);
+    canopy_maps[request->canopy_id].octree->setClampingThresMax(th_clamp);
+  }
 
   response->result = true;
+}
+
+void CanopyVolumeEstimation::suspend_canopy_region(const std::shared_ptr<SuspendCanopyRegion::Request> request, std::shared_ptr<SuspendCanopyRegion::Response> response) {
+  if (canopy_maps.contains(request->canopy_id)) {
+    canopy_maps[request->canopy_id].suspended = true;
+    response->result = true;
+    return;
+  } else {
+    response->result = false;
+    return;
+  }
 }
 
 void CanopyVolumeEstimation::points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr cloud) {
 
   CanopyDataArray canopy_data_array_msg = CanopyDataArray();
 
-  for (auto& canopy_map : canopy_maps) {
+  for (auto& [canopy_id, canopy_map] : canopy_maps) {
+    if (canopy_map.suspended) continue;
     const auto start_time = rclcpp::Clock{}.now();
 
     PCLPointCloud pc;

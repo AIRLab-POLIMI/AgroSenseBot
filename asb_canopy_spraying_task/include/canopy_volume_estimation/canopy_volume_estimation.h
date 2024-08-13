@@ -20,6 +20,7 @@
 #include "asb_msgs/msg/canopy_data_array.hpp"
 #include "asb_msgs/msg/canopy_region_of_interest.hpp"
 #include "asb_msgs/srv/initialize_canopy_region.hpp"
+#include "asb_msgs/srv/suspend_canopy_region.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -41,6 +42,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <map>
 
 using namespace std::chrono_literals;
 using PCLPoint = pcl::PointXYZ;
@@ -51,6 +53,7 @@ using asb_msgs::msg::CanopyData;
 using asb_msgs::msg::CanopyDataArray;
 using asb_msgs::msg::CanopyRegionOfInterest;
 using asb_msgs::srv::InitializeCanopyRegion;
+using asb_msgs::srv::SuspendCanopyRegion;
 using geometry_msgs::msg::PointStamped;
 using sensor_msgs::msg::PointCloud2;
 using visualization_msgs::msg::MarkerArray;
@@ -59,6 +62,7 @@ using visualization_msgs::msg::Marker;
 class CanopyMap {
 public:
   std::string canopy_id;
+  bool suspended;
   std::string canopy_frame_id;
   double point_cloud_min_x, point_cloud_max_x;
   double point_cloud_min_y, point_cloud_max_y;
@@ -76,6 +80,7 @@ public:
 private:
 
   void initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response);
+  void suspend_canopy_region(const std::shared_ptr<SuspendCanopyRegion::Request> request, std::shared_ptr<SuspendCanopyRegion::Response> response);
   void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
 
   bool transform_region_of_interest(const CanopyRegionOfInterest& roi, const Header& target_header, CanopyRegionOfInterest& roi_transformed);
@@ -88,17 +93,18 @@ private:
   rclcpp::Subscription<PointCloud2>::SharedPtr points_in_subscriber_;
 
   rclcpp::Service<InitializeCanopyRegion>::SharedPtr initialize_canopy_region_service_;
+  rclcpp::Service<SuspendCanopyRegion>::SharedPtr suspend_canopy_region_service_;
 
   rclcpp::Publisher<CanopyDataArray>::SharedPtr canopy_data_array_publisher_;
   rclcpp::Publisher<MarkerArray>::SharedPtr viz_publisher_;
+
+  std::map<std::string, CanopyMap> canopy_maps;
 
   // node parameters
   double res_;
   double max_range_;
   long hit_count_threshold_;
   bool print_timing_;
-
-  std::vector<CanopyMap> canopy_maps;
 
 };
 

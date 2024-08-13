@@ -9,9 +9,10 @@ from std_msgs.msg import Header
 from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 from tf_transformations import quaternion_from_euler
 from geometry_msgs.msg import TransformStamped, PointStamped
-from asb_msgs.msg import CanopyRegionOfInterest, CanopyDataArray, SprayRegulatorStatus, CanopyData
-from asb_msgs.srv import InitializeCanopyRegion, StartRowSpraying, StopRowSpraying, StopRowSpraying_Response, \
-    StartRowSpraying_Request, StartRowSpraying_Response, StopRowSpraying_Request
+from asb_msgs.msg import CanopyRegionOfInterest, CanopyDataArray, SprayRegulatorStatus, CanopyData, ControlSystemState, \
+    FanCmd
+from asb_msgs.srv import InitializeCanopyRegion, SuspendCanopyRegion, StartRowSpraying, StopRowSpraying, \
+    StartRowSpraying_Request, StartRowSpraying_Response, StopRowSpraying_Request, StopRowSpraying_Response
 
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -30,6 +31,12 @@ class SprayingRegulator(Node):
 
         self.declare_parameter('canopy_layers', [0.2, 0.6, 1.0, 1.4, 1.8, 2.2])
         self.canopy_layers = self.get_parameter('canopy_layers').get_parameter_value().double_array_value
+
+        self.declare_parameter('fan_velocity_target_rpm', 2000)
+        self.fan_velocity_target_rpm = self.get_parameter('fan_velocity_target_rpm').get_parameter_value().integer_value
+
+        self.declare_parameter('fan_velocity_threshold_rpm', 1500)
+        self.fan_velocity_threshold_rpm = self.get_parameter('fan_velocity_threshold_rpm').get_parameter_value().integer_value
 
         # plotting stuff
         plt.ion()
@@ -53,6 +60,10 @@ class SprayingRegulator(Node):
         # volume estimate for each canopy
         self.all_canopy_volume = defaultdict(dict)
 
+        # spraying variables
+        self.active_spraying_requests: set = set()
+        self.fan_rpm: int = 0
+
         # publishers, subscribers and services
         qos_reliable_transient_local = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
@@ -63,22 +74,34 @@ class SprayingRegulator(Node):
         self.tf_static_broadcaster = StaticTransformBroadcaster(self)
         self.canopy_data_sub = self.create_subscription(CanopyDataArray, 'canopy_data', self.canopy_data_callback, 10)
         self.init_canopy_region_client = self.create_client(InitializeCanopyRegion, 'initialize_canopy_region')
+        self.suspend_canopy_region_client = self.create_client(SuspendCanopyRegion, 'suspend_canopy_region')
         self.canopy_region_of_interest_pub = self.create_publisher(CanopyRegionOfInterest, 'canopy_region_of_interest', qos_profile=qos_reliable_transient_local)
         self.spray_regulator_status_pub = self.create_publisher(SprayRegulatorStatus, 'spray_regulator_status', qos_profile=qos_reliable_transient_local)
+        self.fan_command_pub = self.create_publisher(FanCmd, '/asb_control_system_status_controller/fan_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
+        self.control_system_state_sub = self.create_subscription(ControlSystemState, '/asb_control_system_status_controller/control_system_state', self.control_system_state_callback, qos_profile=rclpy.qos.qos_profile_sensor_data)
 
         # services that depend on other services
         while not self.init_canopy_region_client.wait_for_service(timeout_sec=0.1):
-            self.get_logger().info('service not available, waiting...')
-
+            self.get_logger().info('initialize_canopy_region service not available, waiting...', throttle_duration_sec=5.0)
         self.start_row_spraying_service = self.create_service(StartRowSpraying, 'start_row_spraying', self.start_row_spraying_callback)
         self.stop_row_spraying_service = self.create_service(StopRowSpraying, 'stop_row_spraying', self.stop_row_spraying_callback)
 
-    def start_row_spraying_callback(self, request: StartRowSpraying_Request, response: StartRowSpraying_Response):
-        self.get_logger().info(f"start_row_spraying_callback: {request.row_id}")
+        self.create_timer(0.05, self.timer_callback)
 
+    def timer_callback(self):
+        if len(self.active_spraying_requests) > 0:
+            self.fan_command_pub.publish(FanCmd(stamp=self.get_clock().now().to_msg(), velocity_rpm=self.fan_velocity_target_rpm))
+        else:
+            self.fan_command_pub.publish(FanCmd(stamp=self.get_clock().now().to_msg(), velocity_rpm=0))
+
+        # TODO check canopy data timeout
+
+    def control_system_state_callback(self, platform_state_msg: ControlSystemState):
+        self.fan_rpm = platform_state_msg.fan_motor_velocity_rpm
+
+    def start_row_spraying_callback(self, request: StartRowSpraying_Request, response: StartRowSpraying_Response):
         p_1: PointStamped = request.start
         p_2: PointStamped = request.end
-
         canopy_radius = self.max_canopy_width/2
         canopy_length = np.linalg.norm(np.array([p_2.point.x, p_2.point.y]) - np.array([p_1.point.x, p_1.point.y]))
         canopy_yaw = np.arctan2(p_2.point.y - p_1.point.y, p_2.point.x - p_1.point.x)
@@ -86,7 +109,7 @@ class SprayingRegulator(Node):
 
         self.broadcast_static_transform(child_frame_id=request.row_id, p=p_1, q=canopy_q)
 
-        init_canopy_region_result_future = self.init_canopy_region_client.call_async(InitializeCanopyRegion.Request(
+        init_canopy_region_response_future = self.init_canopy_region_client.call_async(InitializeCanopyRegion.Request(
             canopy_id=request.row_id,
             canopy_frame_id=request.row_id,
             min_x=-canopy_radius,
@@ -101,30 +124,47 @@ class SprayingRegulator(Node):
                 x_2=1.0,
             ),
         ))
-
-        init_canopy_region_result_future.add_done_callback(lambda f: self.start_row_spraying_response_callback(f, request.row_id))
+        init_canopy_region_response_future.add_done_callback(lambda f: self.init_canopy_region_response_callback(f, request.row_id))
         response.result = True
         return response
 
-    def start_row_spraying_response_callback(self, future: Future, row_id: str):
+    def init_canopy_region_response_callback(self, future: Future, row_id: str):
         result = future.result().result
         if not result:
-            self.get_logger().error(f"initialize_canopy_region row_id: {row_id} result: {result}")
-            self.spray_regulator_status_pub.publish(SprayRegulatorStatus(header=Header(stamp=self.get_clock().now().to_msg()), status=SprayRegulatorStatus.STATUS_FAILED))
-            # TODO stop all regulation in progress
+            self.get_logger().error(f"start_row_spraying_response_callback: row_id: {row_id} result: {result}")
+            self.spray_regulator_status_pub.publish(SprayRegulatorStatus(
+                header=Header(stamp=self.get_clock().now().to_msg()),
+                row_id=row_id,
+                status=SprayRegulatorStatus.STATUS_FAILED,
+            ))
         else:
-            self.get_logger().info(f"initialize_canopy_region row_id: {row_id} result: {result}")
+            self.active_spraying_requests.add(row_id)
 
-    @staticmethod
-    def stop_row_spraying_callback(request: StopRowSpraying_Request, response: StopRowSpraying_Response):
-        # TODO
-        response.result = True  # TODO
+    def stop_row_spraying_callback(self, request: StopRowSpraying_Request, response: StopRowSpraying_Response):
+        self.spray_regulator_status_pub.publish(SprayRegulatorStatus(
+            header=Header(stamp=self.get_clock().now().to_msg()),
+            row_id=request.row_id,
+            status=SprayRegulatorStatus.STATUS_STOPPED,
+        ))
+
+        self.active_spraying_requests.remove(request.row_id)
+
+        self.suspend_canopy_region_client.call_async(SuspendCanopyRegion.Request(
+            canopy_id=request.row_id,
+        ))
+        response.result = True
         return response
 
     def canopy_data_callback(self, canopy_data_array_msg: CanopyDataArray):
         canopy_data_msg: CanopyData
         for canopy_data_msg in canopy_data_array_msg.canopy_data_array:
-            self.spray_regulator_status_pub.publish(SprayRegulatorStatus(header=canopy_data_msg.header, row_id=canopy_data_msg.canopy_id, status=SprayRegulatorStatus.STATUS_OK))
+            if canopy_data_msg.canopy_id in self.active_spraying_requests:
+                if self.fan_rpm >= self.fan_velocity_threshold_rpm:
+                    self.spray_regulator_status_pub.publish(SprayRegulatorStatus(
+                        header=canopy_data_msg.header,
+                        row_id=canopy_data_msg.canopy_id,
+                        status=SprayRegulatorStatus.STATUS_OK
+                    ))
 
             roi_canopy_volume_ = dict()
             for x, y in zip(canopy_data_msg.volume_x_array, canopy_data_msg.volume_y_array):
