@@ -8,6 +8,7 @@ import threading
 import rclpy
 from rclpy import Future
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
+from rclpy.client import Client
 from rclpy.action import ActionClient
 from rclpy.time import Time
 from rclpy.node import Node
@@ -19,6 +20,7 @@ from geometry_msgs.msg import Point, Pose, PoseStamped
 from nav_msgs.msg import Path
 from std_msgs.msg import Header, String
 from action_msgs.msg import GoalStatus, GoalInfo
+from nav2_msgs.srv import ClearEntireCostmap
 from nav2_msgs.action import FollowPath, NavigateToPose
 
 from tf2_ros import TransformException
@@ -189,6 +191,8 @@ class SprayingTaskPlanExecutor(Node):
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         # navigation action variables
+        self.clear_local_costmap_service = self.create_client(ClearEntireCostmap, '/local_costmap/clear_entirely_local_costmap')
+        self.clear_global_costmap_service = self.create_client(ClearEntireCostmap, '/global_costmap/clear_entirely_global_costmap')
         self.follow_path_client = ActionClient(self, FollowPath, 'follow_path')
         self.navigate_to_pose_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self.navigation_goal_handle: rclpy.action.client.ClientGoalHandle | None = None
@@ -232,6 +236,9 @@ class SprayingTaskPlanExecutor(Node):
         self.prepare_task_log()
 
         self.stop_platform_and_wait_control_mode_manual_to_auto()
+
+        # clear costmaps
+        self.prepare_navigation()
 
         # [!]
         # Beyond this point, no functions should block or take too long to execute.
@@ -303,7 +310,7 @@ class SprayingTaskPlanExecutor(Node):
                 continue  # (back to start of main loop)
 
             item.get_result().navigation_started = True
-            self.get_logger().info(f"waiting for navigation to complete...")
+            self.get_logger().info(f"waiting for navigation to complete")
             nav_chrono = Chronometer()
             while rclpy.ok():
                 self.do_loop_operations_and_sleep(current_item=item)
@@ -577,6 +584,10 @@ class SprayingTaskPlanExecutor(Node):
     def is_spray_regulator_failed(self) -> bool:
         return self.left_spraying_state == SprayState.FAILED or self.right_spraying_state == SprayState.FAILED
 
+    def prepare_navigation(self):
+        self.clear_local_costmap_service.call_async(ClearEntireCostmap.Request())
+        self.clear_global_costmap_service.call_async(ClearEntireCostmap.Request())
+
     def start_navigation(self, item: TaskPlanItem) -> bool:
 
         # NOTE: the navigation action functions set self.navigation_action_status to REQUESTED, and eventually to
@@ -709,18 +720,16 @@ class SprayingTaskPlanExecutor(Node):
         return path
 
     def wait_spray_regulator_is_ready(self, timeout: float) -> bool:
-        self.get_logger().info(f"waiting for start_row_spraying service...")
-        timeout_chrono = Chronometer()
-        while rclpy.ok() and not self.start_row_spraying_service.wait_for_service(timeout_sec=0.05):
-            self.get_logger().info(f"start_row_spraying service not available, waiting...", throttle_duration_sec=1.0)
-            if timeout_chrono.total() > timeout:
-                return False
-        return True
+        return self.wait_for_service(self.start_row_spraying_service, timeout=timeout)
 
     def wait_navigation_stack_is_ready(self, timeout: float) -> bool:
         if not self.wait_node_is_active("bt_navigator", timeout=timeout):
             return False
         if not self.wait_node_is_active("controller_server", timeout=timeout):
+            return False
+        if not self.wait_for_service(self.clear_local_costmap_service, timeout=timeout):
+            return False
+        if not self.wait_for_service(self.clear_global_costmap_service, timeout=timeout):
             return False
         if not self.wait_action_server(self.navigate_to_pose_client, "navigate_to_pose", timeout=timeout):
             return False
@@ -728,12 +737,21 @@ class SprayingTaskPlanExecutor(Node):
             return False
         return True
 
+    def wait_for_service(self, service: Client, timeout: float) -> bool:
+        self.get_logger().info(f"waiting for {service.srv_name} service")
+        timeout_chrono = Chronometer()
+        while rclpy.ok() and not service.wait_for_service(timeout_sec=0.05):
+            self.get_logger().info(f"{service.srv_name} service not available, waiting", throttle_duration_sec=1.0)
+            if timeout_chrono.total() > timeout:
+                return False
+        return True
+
     def wait_node_is_active(self, node_name, timeout: float) -> bool:
-        self.get_logger().info(f"waiting for {node_name}...")
+        self.get_logger().info(f"waiting for {node_name}")
         state_client = self.create_client(GetState, f"{node_name}/get_state")
         timeout_chrono = Chronometer()
         while rclpy.ok() and not state_client.wait_for_service(timeout_sec=0.05):
-            self.get_logger().info(f'still waiting {node_name} lifecycle service...', throttle_duration_sec=1.0)
+            self.get_logger().info(f'still waiting {node_name} lifecycle service', throttle_duration_sec=1.0)
             if timeout_chrono.total() > timeout:
                 self.get_logger().error(f'{node_name} lifecycle state service was not available before timeout [{timeout} s]')
                 return False
@@ -761,10 +779,10 @@ class SprayingTaskPlanExecutor(Node):
         return False
 
     def wait_action_server(self, action_client: ActionClient, action_client_name: str, timeout: float) -> bool:
-        self.get_logger().info(f"waiting for {action_client_name} action server...")
+        self.get_logger().info(f"waiting for {action_client_name} action server")
         timeout_chrono = Chronometer()
         while rclpy.ok() and not action_client.wait_for_server(timeout_sec=0.05):
-            self.get_logger().info(f"{action_client_name} action server not available, waiting...", throttle_duration_sec=1.0)
+            self.get_logger().info(f"{action_client_name} action server not available, waiting", throttle_duration_sec=1.0)
             if timeout_chrono.total() > timeout:
                 return False
         return True
