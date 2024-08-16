@@ -28,11 +28,11 @@ local_costmap:
       update_frequency: 5.0
       always_send_full_costmap: True
       publish_frequency: 2.0
-      global_frame: odom
+      global_frame: map
       robot_base_frame: base_link
       rolling_window: true
-      width: 6
-      height: 6
+      width: 9
+      height: 9
       resolution: 0.05
 
       footprint: "[[1.0, 0.75], [1.0, -0.75], [-1.0, -0.75], [-1.0, 0.75]]"

@@ -23,7 +23,7 @@ namespace asb_rviz_plugins {
 //  Left Motor
     left_motor_velocity_ = new ASBThermo;
     substitute_widget(left_motor_velocity_, ui_->left_motor_velocity, ui_->left_motor_velocity_layout,
-                      2400, -2400, true);
+                      3000, -3000, true);
 
     left_motor_current_ = new ASBThermo;
     substitute_widget(left_motor_current_, ui_->left_motor_current, ui_->left_motor_current_layout,
@@ -40,7 +40,7 @@ namespace asb_rviz_plugins {
 //  Right Motor
     right_motor_velocity_ = new ASBThermo;
     substitute_widget(right_motor_velocity_, ui_->right_motor_velocity, ui_->right_motor_velocity_layout,
-                      2400, -2400, true);
+                      3000, -3000, true);
 
     right_motor_current_ = new ASBThermo;
     substitute_widget(right_motor_current_, ui_->right_motor_current, ui_->right_motor_current_layout,

@@ -16,8 +16,8 @@
         <xacro:unless value="${test}">
           <param name="can_interface_name">can0</param>
         </xacro:unless>
-        <param name="tracks_maximum_velocity_rpm">2400</param>  <!-- 251.327412287 rad/s -->
-        <param name="fan_maximum_velocity_rpm">2400</param>  <!-- 251.327412287 rad/s -->
+        <param name="tracks_maximum_velocity_rpm">3000</param>  <!-- 314.159265359 rad/s -->
+        <param name="fan_maximum_velocity_rpm">3000</param>  <!-- 314.159265359 rad/s -->
       </hardware>
       <joint name="left_track_joint">
         <state_interface name="position"/>
