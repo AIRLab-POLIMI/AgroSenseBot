@@ -241,11 +241,15 @@ namespace asb_webots_driver {
         wb_motor_set_velocity(left_motor_, sim_state_cmd_msg_.left_motor_speed_ref * TRACK_WHEEL_RADIUS / GEARBOX_REDUCTION_RATIO);
         wb_motor_set_velocity(right_motor_, sim_state_cmd_msg_.right_motor_speed_ref * TRACK_WHEEL_RADIUS / GEARBOX_REDUCTION_RATIO);
 
+        double fan_motor_speed_ref = sim_state_cmd_msg_.fan_motor_speed_ref;
+        fan_motor_ref_ring_[fan_motor_ring_index_ % fan_motor_ring_size_] = fan_motor_speed_ref;
+        fan_motor_ring_index_++;
+
         auto sim_state_msg = asb_msgs::msg::SimState();
         sim_state_msg.stamp = rclcpp::Clock().now();
         sim_state_msg.left_motor_speed = wb_motor_get_velocity(left_motor_) * GEARBOX_REDUCTION_RATIO / TRACK_WHEEL_RADIUS;
         sim_state_msg.right_motor_speed = wb_motor_get_velocity(right_motor_) * GEARBOX_REDUCTION_RATIO / TRACK_WHEEL_RADIUS;
-        sim_state_msg.fan_motor_speed = sim_state_cmd_msg_.fan_motor_speed_ref;
+        sim_state_msg.fan_motor_speed = std::accumulate(fan_motor_ref_ring_.begin(), fan_motor_ref_ring_.end(), 0.0)/fan_motor_ring_size_;
         sim_state_publisher_->publish(sim_state_msg);
 
         auto now = rclcpp::Clock().now();

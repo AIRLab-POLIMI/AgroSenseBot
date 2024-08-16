@@ -56,6 +56,11 @@ namespace asb_webots_driver {
 
         WbDeviceTag right_motor_;
         WbDeviceTag left_motor_;
+
+        size_t fan_motor_ring_index_ = 0;
+        int fan_motor_ring_size_ = 40 * 4;  // at a sim state message frequency of 40 Hz, it takes 4 s to fill the ring buffer.
+        std::vector<double> fan_motor_ref_ring_ = std::vector<double>(fan_motor_ring_size_, 0.0);
+
     };
 } // namespace asb_webots_driver
 #endif
