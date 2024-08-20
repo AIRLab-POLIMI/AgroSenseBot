@@ -464,6 +464,7 @@ class SprayingTaskPlanExecutor(Node):
             else:
                 left_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying.Request(
                     row_id=self.left_row.get_row_id(),
+                    side=StartRowSpraying.Request.SIDE_LEFT,
                     start=self.left_row.get_start_point(),
                     end=self.left_row.get_end_point()
                 ))
@@ -478,6 +479,7 @@ class SprayingTaskPlanExecutor(Node):
             else:
                 right_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying.Request(
                     row_id=self.right_row.get_row_id(),
+                    side=StartRowSpraying.Request.SIDE_RIGHT,
                     start=self.right_row.get_start_point(),
                     end=self.right_row.get_end_point()
                 ))

@@ -1,4 +1,9 @@
+uint8 SIDE_LEFT = 0
+uint8 SIDE_RIGHT = 1
+
 string row_id  # identifier of the row
+uint8 side  # side on which to actuate the spraying request, left/right
+
 geometry_msgs/PointStamped start # [m], start point of the canopy map
 geometry_msgs/PointStamped end # [m], start point of the canopy map
 ---

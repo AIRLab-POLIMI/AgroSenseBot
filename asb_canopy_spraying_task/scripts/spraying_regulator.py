@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from enum import Enum
 
 import rclpy
 from rclpy import Future
@@ -11,12 +12,36 @@ from tf_transformations import quaternion_from_euler
 from geometry_msgs.msg import TransformStamped, PointStamped
 from asb_msgs.msg import (CanopyRegionOfInterest, CanopyDataArray, CanopyLayerDepth, CanopyLayerDepthArray,
                           SprayRegulatorStatus, CanopyData, ControlSystemState, FanCmd)
-from asb_msgs.srv import InitializeCanopyRegion, SuspendCanopyRegion, StartRowSpraying, StopRowSpraying, \
-    StartRowSpraying_Request, StartRowSpraying_Response, StopRowSpraying_Request, StopRowSpraying_Response
+from asb_msgs.srv import (InitializeCanopyRegion, InitializeCanopyRegion_Request,
+                          SuspendCanopyRegion, SuspendCanopyRegion_Request,
+                          StartRowSpraying, StartRowSpraying_Request, StartRowSpraying_Response,
+                          StopRowSpraying, StopRowSpraying_Request, StopRowSpraying_Response)
 
 from collections import defaultdict
 import numpy as np
+from typing_extensions import Self
+
 np.set_printoptions(precision=2)
+
+
+class SprayingSide(Enum):
+    LEFT = 0
+    RIGHT = 1
+    UNKNOWN = 2
+
+    @classmethod
+    def from_msg(cls, req: StartRowSpraying_Request) -> Self:
+        if req.side == StartRowSpraying_Request.SIDE_LEFT:
+            return SprayingSide.LEFT
+        elif req.side == StartRowSpraying_Request.SIDE_RIGHT:
+            return SprayingSide.RIGHT
+        else:
+            return SprayingSide.UNKNOWN
+
+
+class SprayingRequest:
+    def __init__(self, side: SprayingSide):
+        self.side: SprayingSide = side
 
 
 class SprayingRegulator(Node):
@@ -39,11 +64,8 @@ class SprayingRegulator(Node):
         self.declare_parameter('fan_velocity_threshold_rpm', 1500)
         self.fan_velocity_threshold_rpm = self.get_parameter('fan_velocity_threshold_rpm').get_parameter_value().integer_value
 
-        # depth estimate for each canopy
-        self.canopy_mean_depth = defaultdict(dict)
-
         # spraying variables
-        self.active_spraying_requests: set = set()
+        self.active_spraying_requests: dict[str, SprayingRequest] = dict()
         self.fan_rpm: int = 0
 
         # publishers, subscribers and services
@@ -92,7 +114,7 @@ class SprayingRegulator(Node):
 
         self.broadcast_static_transform(child_frame_id=request.row_id, p=p_1, q=canopy_q)
 
-        init_canopy_region_response_future = self.init_canopy_region_client.call_async(InitializeCanopyRegion.Request(
+        init_canopy_region_request: InitializeCanopyRegion_Request = InitializeCanopyRegion.Request(
             canopy_id=request.row_id,
             canopy_frame_id=request.row_id,
             min_x=-canopy_radius,
@@ -106,12 +128,13 @@ class SprayingRegulator(Node):
                 x_1=-1.0,
                 x_2=1.0,
             ),
-        ))
-        init_canopy_region_response_future.add_done_callback(lambda f: self.init_canopy_region_response_callback(f, request.row_id))
+        )
+        init_canopy_region_response_future = self.init_canopy_region_client.call_async(init_canopy_region_request)
+        init_canopy_region_response_future.add_done_callback(lambda f: self.init_canopy_region_response_callback(f, request.row_id, SprayingSide.from_msg(request)))
         response.result = True
         return response
 
-    def init_canopy_region_response_callback(self, future: Future, row_id: str):
+    def init_canopy_region_response_callback(self, future: Future, row_id: str, spraying_side: SprayingSide):
         result = future.result().result
         if not result:
             self.get_logger().error(f"start_row_spraying_response_callback: row_id: {row_id} result: {result}")
@@ -121,7 +144,7 @@ class SprayingRegulator(Node):
                 status=SprayRegulatorStatus.STATUS_FAILED,
             ))
         else:
-            self.active_spraying_requests.add(row_id)
+            self.active_spraying_requests[row_id] = SprayingRequest(side=spraying_side)
 
     def stop_row_spraying_callback(self, request: StopRowSpraying_Request, response: StopRowSpraying_Response):
         self.spray_regulator_status_pub.publish(SprayRegulatorStatus(
@@ -130,11 +153,12 @@ class SprayingRegulator(Node):
             status=SprayRegulatorStatus.STATUS_STOPPED,
         ))
 
-        self.active_spraying_requests.remove(request.row_id)
+        self.active_spraying_requests.pop(request.row_id)
 
-        self.suspend_canopy_region_client.call_async(SuspendCanopyRegion.Request(
+        suspend_canopy_region_request: SuspendCanopyRegion_Request = SuspendCanopyRegion.Request(
             canopy_id=request.row_id,
-        ))
+        )
+        self.suspend_canopy_region_client.call_async(suspend_canopy_region_request)
         response.result = True
         return response
 
@@ -175,12 +199,6 @@ class SprayingRegulator(Node):
                 mean_depth=layer_depth_mean.values(),
                 canopy_layer_bounds=self.canopy_layer_bounds,
             ))
-
-            self.canopy_mean_depth[canopy_data_msg.canopy_id][x_round] = layer_depth_mean
-            for canopy_id in self.canopy_mean_depth:
-                self.get_logger().info(f"canopy_id: {canopy_id}")
-                for x_round, layer_mean_depth in self.canopy_mean_depth[canopy_id].items():
-                    self.get_logger().info(f"\t x: {x_round}\t depth: " + ", ".join(map(lambda d: f"{d:.3f}", self.canopy_mean_depth[canopy_id][x_round].values())))
 
         self.canopy_depth_pub.publish(canopy_layer_depth_array_msg)
 
