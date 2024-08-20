@@ -7,14 +7,14 @@
   <node pkg="asb_canopy_spraying_task" exec="canopy_volume_estimation_node" name="canopy_volume_estimation">
     <remap from="points_in" to="/scan_front_multilayer/points_filtered"/>
     <param name="use_sim_time" value="$(var use_sim_time)" />
-    <param name="resolution" value="0.2" />
+    <param name="resolution" value="0.05" />
     <param name="hit_count_threshold" value="5" />
     <param name="max_range" value="5.0" />
   </node>
 
   <node pkg="asb_canopy_spraying_task" exec="spraying_regulator.py" name="spraying_regulator">
     <param name="max_canopy_width" value="2.0" />
-    <param name="canopy_layers" value="[0.2, 0.6, 1.0, 1.4, 1.8, 2.2]" />
+    <param name="canopy_layer_bounds" value="[0.2, 0.6, 1.0, 1.4, 1.8, 2.2]" />
   </node>
 
   <node pkg="asb_canopy_spraying_task" exec="spraying_task_plan_executor.py" name="spraying_task_plan_executor">

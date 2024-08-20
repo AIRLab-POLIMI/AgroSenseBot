@@ -9,15 +9,13 @@ from std_msgs.msg import Header
 from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 from tf_transformations import quaternion_from_euler
 from geometry_msgs.msg import TransformStamped, PointStamped
-from asb_msgs.msg import CanopyRegionOfInterest, CanopyDataArray, SprayRegulatorStatus, CanopyData, ControlSystemState, \
-    FanCmd
+from asb_msgs.msg import (CanopyRegionOfInterest, CanopyDataArray, CanopyLayerDepth, CanopyLayerDepthArray,
+                          SprayRegulatorStatus, CanopyData, ControlSystemState, FanCmd)
 from asb_msgs.srv import InitializeCanopyRegion, SuspendCanopyRegion, StartRowSpraying, StopRowSpraying, \
     StartRowSpraying_Request, StartRowSpraying_Response, StopRowSpraying_Request, StopRowSpraying_Response
 
-import matplotlib.pyplot as plt
 from collections import defaultdict
 import numpy as np
-from scipy.signal import savgol_filter
 np.set_printoptions(precision=2)
 
 
@@ -29,8 +27,11 @@ class SprayingRegulator(Node):
         self.declare_parameter('max_canopy_width', float(2.0))
         self.max_canopy_width = self.get_parameter('max_canopy_width').get_parameter_value().double_value
 
-        self.declare_parameter('canopy_layers', [0.2, 0.6, 1.0, 1.4, 1.8, 2.2])
-        self.canopy_layers = self.get_parameter('canopy_layers').get_parameter_value().double_array_value
+        self.declare_parameter('canopy_layer_bounds', [0.2, 2.2])
+        self.canopy_layer_bounds = self.get_parameter('canopy_layer_bounds').get_parameter_value().double_array_value
+        if len(self.canopy_layer_bounds) < 2:
+            self.get_logger().fatal(f"canopy_layers should have at least two values, but it has {len(self.canopy_layer_bounds)}")
+            return
 
         self.declare_parameter('fan_velocity_target_rpm', 2000)
         self.fan_velocity_target_rpm = self.get_parameter('fan_velocity_target_rpm').get_parameter_value().integer_value
@@ -38,27 +39,8 @@ class SprayingRegulator(Node):
         self.declare_parameter('fan_velocity_threshold_rpm', 1500)
         self.fan_velocity_threshold_rpm = self.get_parameter('fan_velocity_threshold_rpm').get_parameter_value().integer_value
 
-        # plotting stuff
-        plt.ion()
-        self.fig = dict()
-        self.ax = dict()
-        self.all_plot = dict()
-        self.all_scatter = dict()
-        self.roi_plot = dict()
-        self.roi_scatter = dict()
-        for canopy_id in ['row_1', 'row_2']:
-            self.fig[canopy_id] = plt.figure()
-            self.ax[canopy_id] = self.fig[canopy_id].add_subplot(111)
-            self.all_plot[canopy_id], = self.ax[canopy_id].plot([], [], '-', linewidth=1, color='green')
-            self.all_scatter[canopy_id], = self.ax[canopy_id].plot([], [], 's', markersize=3, color='green')
-            self.roi_plot[canopy_id], = self.ax[canopy_id].plot([], [], '-', linewidth=3, color='blue')
-            self.roi_scatter[canopy_id], = self.ax[canopy_id].plot([], [], 's', markersize=5, color='blue')
-            self.ax[canopy_id].set_xlim(-2, 22)
-            self.ax[canopy_id].set_ylim(0, 5)
-            self.ax[canopy_id].set_title(canopy_id)
-
-        # volume estimate for each canopy
-        self.all_canopy_volume = defaultdict(dict)
+        # depth estimate for each canopy
+        self.canopy_mean_depth = defaultdict(dict)
 
         # spraying variables
         self.active_spraying_requests: set = set()
@@ -78,6 +60,7 @@ class SprayingRegulator(Node):
         self.canopy_region_of_interest_pub = self.create_publisher(CanopyRegionOfInterest, 'canopy_region_of_interest', qos_profile=qos_reliable_transient_local)
         self.spray_regulator_status_pub = self.create_publisher(SprayRegulatorStatus, 'spray_regulator_status', qos_profile=qos_reliable_transient_local)
         self.fan_command_pub = self.create_publisher(FanCmd, '/asb_control_system_status_controller/fan_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
+        self.canopy_depth_pub = self.create_publisher(CanopyLayerDepthArray, '/canopy_layer_depth', qos_profile=rclpy.qos.qos_profile_sensor_data)
         self.control_system_state_sub = self.create_subscription(ControlSystemState, '/asb_control_system_status_controller/control_system_state', self.control_system_state_callback, qos_profile=rclpy.qos.qos_profile_sensor_data)
 
         # services that depend on other services
@@ -116,8 +99,8 @@ class SprayingRegulator(Node):
             max_x=canopy_length + canopy_radius,
             min_y=-canopy_radius,
             max_y=canopy_radius,
-            min_z=self.canopy_layers[0],
-            max_z=self.canopy_layers[-1],
+            min_z=self.canopy_layer_bounds[0],
+            max_z=self.canopy_layer_bounds[-1],
             roi=CanopyRegionOfInterest(
                 frame_id='base_link',
                 x_1=-1.0,
@@ -156,6 +139,9 @@ class SprayingRegulator(Node):
         return response
 
     def canopy_data_callback(self, canopy_data_array_msg: CanopyDataArray):
+
+        canopy_layer_depth_array_msg = CanopyLayerDepthArray()
+
         canopy_data_msg: CanopyData
         for canopy_data_msg in canopy_data_array_msg.canopy_data_array:
             if canopy_data_msg.canopy_id in self.active_spraying_requests:
@@ -166,36 +152,37 @@ class SprayingRegulator(Node):
                         status=SprayRegulatorStatus.STATUS_OK
                     ))
 
-            roi_canopy_volume_ = dict()
-            for x, y in zip(canopy_data_msg.volume_x_array, canopy_data_msg.volume_y_array):
-                self.all_canopy_volume[canopy_data_msg.canopy_id][x] = y
-                roi_canopy_volume_[x] = y
+            layer_depth_sum_count = defaultdict(lambda: [0.0, 0])
+            for _, y_depth, z in zip(canopy_data_msg.depth_x_array, canopy_data_msg.depth_y_array, canopy_data_msg.depth_z_array):
+                for layer_z_1, layer_z_2 in zip(self.canopy_layer_bounds[: -1], self.canopy_layer_bounds[1:]):
+                    if layer_z_1 < z < layer_z_2:
+                        layer_depth_sum_count[layer_z_1][0] += y_depth
+                        layer_depth_sum_count[layer_z_1][1] += 1
 
-            if len(self.all_canopy_volume[canopy_data_msg.canopy_id]):
-                all_canopy_volume_x, all_canopy_volume_y = list(zip(*sorted(self.all_canopy_volume[canopy_data_msg.canopy_id].items())))
-                all_canopy_volume_y_filtered = savgol_filter(all_canopy_volume_y, 10, 2, mode='nearest')
+            x = (canopy_data_msg.roi.x_1 + canopy_data_msg.roi.x_2) / 2
+            x_round = np.round(x / canopy_data_msg.resolution) * canopy_data_msg.resolution
+            layer_depth_mean = defaultdict(float)
+            for layer_z_1 in self.canopy_layer_bounds[: -1]:
+                depth_sum, count = layer_depth_sum_count[layer_z_1]
+                layer_depth_mean[layer_z_1] = (depth_sum / count) if count > 0 else 0.0
 
-                roi_canopy_volume_x = list()
-                roi_canopy_volume_y = list()
-                roi_canopy_volume_y_filtered = list()
-                for x, y, y_f in zip(all_canopy_volume_x, all_canopy_volume_y, all_canopy_volume_y_filtered):
-                    if x in canopy_data_msg.volume_x_array:
-                        roi_canopy_volume_x.append(x)
-                        roi_canopy_volume_y.append(y)
-                        roi_canopy_volume_y_filtered.append(y_f)
+            canopy_layer_depth_array_msg.canopy_layer_depth_array.append(CanopyLayerDepth(
+                canopy_id=canopy_data_msg.canopy_id,
+                header=canopy_data_msg.header,
+                roi=canopy_data_msg.roi,
+                resolution=canopy_data_msg.resolution,
+                x=x_round,
+                mean_depth=layer_depth_mean.values(),
+                canopy_layer_bounds=self.canopy_layer_bounds,
+            ))
 
-                self.all_plot[canopy_data_msg.canopy_id].set_xdata(all_canopy_volume_x)
-                self.all_plot[canopy_data_msg.canopy_id].set_ydata(np.array(all_canopy_volume_y_filtered) / canopy_data_msg.resolution)
-                self.all_scatter[canopy_data_msg.canopy_id].set_xdata(all_canopy_volume_x)
-                self.all_scatter[canopy_data_msg.canopy_id].set_ydata(np.array(all_canopy_volume_y) / canopy_data_msg.resolution)
+            self.canopy_mean_depth[canopy_data_msg.canopy_id][x_round] = layer_depth_mean
+            for canopy_id in self.canopy_mean_depth:
+                self.get_logger().info(f"canopy_id: {canopy_id}")
+                for x_round, layer_mean_depth in self.canopy_mean_depth[canopy_id].items():
+                    self.get_logger().info(f"\t x: {x_round}\t depth: " + ", ".join(map(lambda d: f"{d:.3f}", self.canopy_mean_depth[canopy_id][x_round].values())))
 
-                self.roi_plot[canopy_data_msg.canopy_id].set_xdata(roi_canopy_volume_x)
-                self.roi_plot[canopy_data_msg.canopy_id].set_ydata(np.array(roi_canopy_volume_y_filtered) / canopy_data_msg.resolution)
-                self.roi_scatter[canopy_data_msg.canopy_id].set_xdata(roi_canopy_volume_x)
-                self.roi_scatter[canopy_data_msg.canopy_id].set_ydata(np.array(roi_canopy_volume_y) / canopy_data_msg.resolution)
-
-                self.fig[canopy_data_msg.canopy_id].canvas.draw()
-                self.fig[canopy_data_msg.canopy_id].canvas.flush_events()
+        self.canopy_depth_pub.publish(canopy_layer_depth_array_msg)
 
     def broadcast_static_transform(self, child_frame_id: str, p: PointStamped, q: list[float]):
         t = TransformStamped()

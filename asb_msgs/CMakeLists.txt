@@ -33,6 +33,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     msg/CanopyRegionOfInterest.msg
     msg/CanopyData.msg
     msg/CanopyDataArray.msg
+    msg/CanopyLayerDepth.msg
+    msg/CanopyLayerDepthArray.msg
     msg/SprayRegulatorStatus.msg
 
     srv/InitializeCanopyRegion.srv
