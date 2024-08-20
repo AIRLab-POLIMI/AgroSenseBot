@@ -7,7 +7,7 @@
 
 #include "asb_msgs/msg/sim_state_cmd.hpp"
 #include "asb_msgs/msg/sim_state.hpp"
-#include "std_msgs/msg/int16.hpp"
+#include "asb_msgs/srv/set_control_mode.hpp"
 
 #include <chrono>
 
@@ -19,6 +19,7 @@
 #define RAW_DATA_STEP_VALUE_rotor_position (1/4096.) // 2^12 revolutions
 
 using std::placeholders::_1;
+using std::placeholders::_2;
 using namespace std::chrono_literals;
 
 class VCUCANOpenSlaveNode;
@@ -41,7 +42,7 @@ public:
     rotor_position_raw += (int32_t)((motor_rpm / 60.) * time_delta.seconds() / RAW_DATA_STEP_VALUE_rotor_position);
   }
 
-  double rotor_position() const {
+  [[nodiscard]] double rotor_position() const {
     return (double)rotor_position_raw * RAW_DATA_STEP_VALUE_rotor_position;
   }
 
@@ -75,7 +76,7 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   rclcpp::TimerBase::SharedPtr gcu_is_alive_timer_;
   rclcpp::TimerBase::SharedPtr test_loop_timer_;
 
-  rclcpp::Subscription<std_msgs::msg::Int16>::SharedPtr control_mode_subscriber_;
+  rclcpp::Service<asb_msgs::srv::SetControlMode>::SharedPtr set_control_mode_service_;
   rclcpp::Subscription<asb_msgs::msg::SimState>::SharedPtr sim_state_subscriber_;
   rclcpp::Publisher<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_publisher_;
 
@@ -95,7 +96,8 @@ class ASBSystemTestNode : public rclcpp_lifecycle::LifecycleNode {
   ControlMode control_mode_test_state_ = ControlMode::GCU;
   bool pump_test_state_ = false;
 
-  void control_mode_ros2_callback(const std_msgs::msg::Int16::SharedPtr msg);
+  void set_control_mode_ros2_callback(const std::shared_ptr<asb_msgs::srv::SetControlMode::Request> request,
+                                      std::shared_ptr<asb_msgs::srv::SetControlMode::Response> response);
 
   void sim_ros2_callback(const asb_msgs::msg::SimState::SharedPtr msg);
 

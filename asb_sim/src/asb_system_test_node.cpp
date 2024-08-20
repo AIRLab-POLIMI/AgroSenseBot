@@ -36,8 +36,8 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
     control_mode_test_state_ = ControlMode::RCU;
   }
 
-  control_mode_subscriber_ = this->create_subscription<std_msgs::msg::Int16>(
-      "control_mode", rclcpp::SensorDataQoS().reliable(), std::bind(&ASBSystemTestNode::control_mode_ros2_callback, this, _1));
+  set_control_mode_service_ = this->create_service<asb_msgs::srv::SetControlMode>(
+    "set_control_mode", std::bind(&ASBSystemTestNode::set_control_mode_ros2_callback, this, _1, _2));
   sim_state_subscriber_ = this->create_subscription<asb_msgs::msg::SimState>(
       "state", rclcpp::SensorDataQoS().reliable(), std::bind(&ASBSystemTestNode::sim_ros2_callback, this, _1));
   sim_state_cmd_publisher_ = this->create_publisher<asb_msgs::msg::SimStateCmd>(
@@ -246,9 +246,11 @@ void ASBSystemTestNode::test_loop_timer_ros2_callback() {
 
 }
 
-void ASBSystemTestNode::control_mode_ros2_callback(const std_msgs::msg::Int16::SharedPtr msg) {
-  if(print_debug_) RCLCPP_INFO(this->get_logger(), "control_mode: %i\n", msg->data);
-  control_mode_test_state_ = (ControlMode) msg->data;
+void ASBSystemTestNode::set_control_mode_ros2_callback(const std::shared_ptr<asb_msgs::srv::SetControlMode::Request> request,
+                                                       std::shared_ptr<asb_msgs::srv::SetControlMode::Response> response) {
+  RCLCPP_INFO(this->get_logger(), "setting control mode: %i", request->control_mode);
+  control_mode_test_state_ = (ControlMode) request->control_mode;
+  response->result = true;
 }
 
 void ASBSystemTestNode::sim_ros2_callback(const asb_msgs::msg::SimState::SharedPtr msg) {

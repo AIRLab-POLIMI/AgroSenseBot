@@ -1,0 +1,7 @@
+uint8 CONTROL_MODE_STOP = 0  # aka STOP
+uint8 CONTROL_MODE_RCU = 1  # aka MANUAL
+uint8 CONTROL_MODE_GCU = 2  # aka AUTO
+uint8 CONTROL_MODE_WAIT = 3  # aka OVERRIDE
+uint8 control_mode
+---
+bool result

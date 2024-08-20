@@ -41,6 +41,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     srv/SuspendCanopyRegion.srv
     srv/StartRowSpraying.srv
     srv/StopRowSpraying.srv
+    srv/SetControlMode.srv
 
     DEPENDENCIES
     std_msgs
