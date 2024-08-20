@@ -15,12 +15,12 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState, GetState_Request
 from asb_msgs.msg import Heartbeat, ControlSystemState, SprayRegulatorStatus
-from asb_msgs.srv import StartRowSpraying, StopRowSpraying
+from asb_msgs.srv import StartRowSpraying, StartRowSpraying_Request, StopRowSpraying, StopRowSpraying_Request
 from geometry_msgs.msg import Point, Pose, PoseStamped
 from nav_msgs.msg import Path
 from std_msgs.msg import Header, String
 from action_msgs.msg import GoalStatus, GoalInfo
-from nav2_msgs.srv import ClearEntireCostmap
+from nav2_msgs.srv import ClearEntireCostmap, ClearEntireCostmap_Request
 from nav2_msgs.action import FollowPath, NavigateToPose
 
 from tf2_ros import TransformException
@@ -462,9 +462,9 @@ class SprayingTaskPlanExecutor(Node):
             if self.dry_run:
                 self.left_spraying_state = SprayState.STARTED
             else:
-                left_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying.Request(
+                left_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying_Request(
                     row_id=self.left_row.get_row_id(),
-                    side=StartRowSpraying.Request.SIDE_LEFT,
+                    side=StartRowSpraying_Request.SIDE_LEFT,
                     start=self.left_row.get_start_point(),
                     end=self.left_row.get_end_point()
                 ))
@@ -477,9 +477,9 @@ class SprayingTaskPlanExecutor(Node):
             if self.dry_run:
                 self.right_spraying_state = SprayState.STARTED
             else:
-                right_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying.Request(
+                right_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying_Request(
                     row_id=self.right_row.get_row_id(),
-                    side=StartRowSpraying.Request.SIDE_RIGHT,
+                    side=StartRowSpraying_Request.SIDE_RIGHT,
                     start=self.right_row.get_start_point(),
                     end=self.right_row.get_end_point()
                 ))
@@ -540,7 +540,7 @@ class SprayingTaskPlanExecutor(Node):
                 self.left_spraying_state = SprayState.NOT_SPRAYING
                 self.left_row = None
             else:
-                left_response_future: Future = self.stop_row_spraying_service.call_async(StopRowSpraying.Request(
+                left_response_future: Future = self.stop_row_spraying_service.call_async(StopRowSpraying_Request(
                     row_id=self.left_row.get_row_id()
                 ))
                 left_response_future.add_done_callback(self.stop_left_row_spraying_response_callback)
@@ -551,7 +551,7 @@ class SprayingTaskPlanExecutor(Node):
                 self.right_spraying_state = SprayState.NOT_SPRAYING
                 self.right_row = None
             else:
-                right_response_future: Future = self.stop_row_spraying_service.call_async(StopRowSpraying.Request(
+                right_response_future: Future = self.stop_row_spraying_service.call_async(StopRowSpraying_Request(
                     row_id=self.right_row.get_row_id()
                 ))
                 right_response_future.add_done_callback(self.stop_right_row_spraying_response_callback)
@@ -587,8 +587,8 @@ class SprayingTaskPlanExecutor(Node):
         return self.left_spraying_state == SprayState.FAILED or self.right_spraying_state == SprayState.FAILED
 
     def prepare_navigation(self):
-        self.clear_local_costmap_service.call_async(ClearEntireCostmap.Request())
-        self.clear_global_costmap_service.call_async(ClearEntireCostmap.Request())
+        self.clear_local_costmap_service.call_async(ClearEntireCostmap_Request())
+        self.clear_global_costmap_service.call_async(ClearEntireCostmap_Request())
 
     def start_navigation(self, item: TaskPlanItem) -> bool:
 
@@ -758,10 +758,9 @@ class SprayingTaskPlanExecutor(Node):
                 self.get_logger().error(f'{node_name} lifecycle state service was not available before timeout [{timeout} s]')
                 return False
 
-        request: GetState_Request = GetState.Request()
         prev_state = None
         while rclpy.ok():
-            response_future = state_client.call_async(request)
+            response_future = state_client.call_async(GetState_Request())
             while rclpy.ok() and response_future.result() is None:
                 if timeout_chrono.total() > timeout:
                     self.get_logger().error(f"{node_name} lifecycle state service did not respond or did not transition to active before timeout [{timeout} s]")

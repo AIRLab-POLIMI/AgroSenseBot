@@ -114,7 +114,7 @@ class SprayingRegulator(Node):
 
         self.broadcast_static_transform(child_frame_id=request.row_id, p=p_1, q=canopy_q)
 
-        init_canopy_region_request: InitializeCanopyRegion_Request = InitializeCanopyRegion.Request(
+        init_canopy_region_response_future = self.init_canopy_region_client.call_async(InitializeCanopyRegion_Request(
             canopy_id=request.row_id,
             canopy_frame_id=request.row_id,
             min_x=-canopy_radius,
@@ -128,8 +128,7 @@ class SprayingRegulator(Node):
                 x_1=-1.0,
                 x_2=1.0,
             ),
-        )
-        init_canopy_region_response_future = self.init_canopy_region_client.call_async(init_canopy_region_request)
+        ))
         init_canopy_region_response_future.add_done_callback(lambda f: self.init_canopy_region_response_callback(f, request.row_id, SprayingSide.from_msg(request)))
         response.result = True
         return response
@@ -155,10 +154,9 @@ class SprayingRegulator(Node):
 
         self.active_spraying_requests.pop(request.row_id)
 
-        suspend_canopy_region_request: SuspendCanopyRegion_Request = SuspendCanopyRegion.Request(
+        self.suspend_canopy_region_client.call_async(SuspendCanopyRegion_Request(
             canopy_id=request.row_id,
-        )
-        self.suspend_canopy_region_client.call_async(suspend_canopy_region_request)
+        ))
         response.result = True
         return response
 
