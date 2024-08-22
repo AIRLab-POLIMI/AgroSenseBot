@@ -2,41 +2,43 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from launch.substitutions import EnvironmentVariable
 from launch.actions import SetEnvironmentVariable
 
+
 def generate_launch_description():
-      return LaunchDescription([
-          # Declare arguments with default values
-          DeclareLaunchArgument('namespace',             default_value='/'),
-          DeclareLaunchArgument('ntrip_client_node_name',             default_value='ntrip_client'),
-          DeclareLaunchArgument('debug',                 default_value='false'),
-          DeclareLaunchArgument('host',                  default_value='20.185.11.35'),
-          DeclareLaunchArgument('port',                  default_value='2101'),
-          DeclareLaunchArgument('mountpoint',            default_value='VTRI_RTCM3'),
-          DeclareLaunchArgument('ntrip_version',         default_value='None'),
-          DeclareLaunchArgument('authenticate',          default_value='True'),
-          DeclareLaunchArgument('username',              default_value='user'),
-          DeclareLaunchArgument('password',              default_value='pass'),
-          DeclareLaunchArgument('ssl',                   default_value='False'),
-          DeclareLaunchArgument('cert',                  default_value='None'),
-          DeclareLaunchArgument('key',                   default_value='None'),
-          DeclareLaunchArgument('ca_cert',               default_value='None'),
-          DeclareLaunchArgument('rtcm_message_package',  default_value='rtcm_msgs'),
+    return LaunchDescription([
+        # Declare arguments with default values
+        DeclareLaunchArgument('namespace', default_value='/'),
+        DeclareLaunchArgument('ntrip_client_node_name', default_value='ntrip_client'),
+        DeclareLaunchArgument('debug', default_value='false'),
+        DeclareLaunchArgument('host', default_value='20.185.11.35'),
+        DeclareLaunchArgument('port', default_value='2101'),
+        DeclareLaunchArgument('mountpoint', default_value='VTRI_RTCM3'),
+        DeclareLaunchArgument('ntrip_version', default_value='None'),
+        DeclareLaunchArgument('authenticate', default_value='True'),
+        DeclareLaunchArgument('username', default_value='user'),
+        DeclareLaunchArgument('password', default_value='pass'),
+        DeclareLaunchArgument('ssl', default_value='False'),
+        DeclareLaunchArgument('cert', default_value='None'),
+        DeclareLaunchArgument('key', default_value='None'),
+        DeclareLaunchArgument('ca_cert', default_value='None'),
+        DeclareLaunchArgument('rtcm_message_package', default_value='rtcm_msgs'),
 
-          # Pass an environment variable to the node
-          SetEnvironmentVariable(name='NTRIP_CLIENT_DEBUG', value=LaunchConfiguration('debug')),
+        # Pass an environment variable to the node
+        SetEnvironmentVariable(name='NTRIP_CLIENT_DEBUG', value=LaunchConfiguration('debug')),
 
-          # ******************************************************************
-          # NTRIP Client Node
-          # ******************************************************************
-          Node(
-                name=LaunchConfiguration('ntrip_client_node_name'),
-                namespace=LaunchConfiguration('namespace'),
-                package='ntrip_client',
-                executable='ntrip_ros.py',
-                parameters=[
-                  {
+        # ******************************************************************
+        # NTRIP Client Node
+        # ******************************************************************
+        Node(
+            name=LaunchConfiguration('ntrip_client_node_name'),
+            namespace=LaunchConfiguration('namespace'),
+            package='ntrip_client',
+            executable='ntrip_ros.py',
+            respawn=True,
+            respawn_delay=3,
+            parameters=[
+                {
                     # Required parameters used to connect to the NTRIP server
                     'host': LaunchConfiguration('host'),
                     'port': LaunchConfiguration('port'),
@@ -57,12 +59,12 @@ def generate_launch_description():
 
                     # If the NTRIP caster uses cert based authentication, you can specify the cert and keys to use with these options
                     'cert': LaunchConfiguration('cert'),
-                    'key':  LaunchConfiguration('key'),
+                    'key': LaunchConfiguration('key'),
 
-                    # If the NTRIP caster uses self signed certs, or you need to use a different CA chain, specify the path to the file here
+                    # If the NTRIP caster uses self-signed certs, or you need to use a different CA chain, specify the path to the file here
                     'ca_cert': LaunchConfiguration('ca_cert'),
 
-                    # Not sure if this will be looked at by other ndoes, but this frame ID will be added to the RTCM messages published by this node
+                    # Not sure if this will be looked at by other nodes, but this frame ID will be added to the RTCM messages published by this node
                     'rtcm_frame_id': 'odom',
 
                     # Optional parameters that will allow for longer or shorter NMEA messages. Standard max length for NMEA is 82
@@ -78,11 +80,7 @@ def generate_launch_description():
 
                     # How many seconds is acceptable in between receiving RTCM. If RTCM is not received for this duration, the node will attempt to reconnect
                     'rtcm_timeout_seconds': 4
-                  }
-                ],
-                # Uncomment the following section and replace "/gx5/nmea/sentence" with the topic you are sending NMEA on if it is not the one we requested
-                #remappings=[
-                #  ("nmea", "/gx5/nmea/sentence")
-                #],
-          )
-      ])
+                }
+            ],
+        )
+    ])
