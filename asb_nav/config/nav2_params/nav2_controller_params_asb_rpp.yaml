@@ -23,7 +23,7 @@ controller_server:
       transform_tolerance: 0.1
       allow_reversing: true
       min_turning_radius: 1.7
-      desired_linear_vel: 0.8
+      desired_linear_vel: 0.6
       lookahead_dist: 1.0
       use_adaptive_lookahead_dist: true
       adaptive_lookahead_path_distance_margin: 0.3
