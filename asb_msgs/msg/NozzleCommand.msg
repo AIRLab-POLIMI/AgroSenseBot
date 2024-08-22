@@ -1,0 +1,2 @@
+string nozzle_id
+float64 rate

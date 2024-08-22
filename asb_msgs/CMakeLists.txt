@@ -36,6 +36,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     msg/CanopyLayerDepth.msg
     msg/CanopyLayerDepthArray.msg
     msg/SprayRegulatorStatus.msg
+    msg/NozzleCommand.msg
+    msg/NozzleCommandArray.msg
 
     srv/InitializeCanopyRegion.srv
     srv/SuspendCanopyRegion.srv
