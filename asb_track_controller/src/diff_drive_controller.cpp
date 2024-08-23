@@ -291,7 +291,6 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   previous_commands_.pop();
   previous_commands_.emplace(command);
 
-  double turning_radius = std::fabs(linear_vel_reference / angular_vel_reference);
   double curvature_reference = angular_vel_reference / linear_vel_reference;
   double curvature_max = 1 / params_.min_turning_radius, curvature_min = -1 / params_.min_turning_radius;
   double linear_velocity_effective = odometry_.getLinear();
@@ -302,11 +301,6 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
     linear_vel_reference = 0.0;
     angular_vel_reference = 0.0;
     curvature_reference = 0.0;
-
-    RCLCPP_WARN(
-      get_node()->get_logger(),
-      "Turning radius too low, ignoring. Requested: %f m. Minimum turning radius: %f m.",
-      turning_radius, params_.min_turning_radius);
   }
 
   double angular_command;
@@ -551,7 +545,6 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(const rcl
       {
         if (!subscriber_is_active_)
         {
-          RCLCPP_WARN(get_node()->get_logger(), "Can't accept imu message. Subscriber is inactive");
           return;
         }
         if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
