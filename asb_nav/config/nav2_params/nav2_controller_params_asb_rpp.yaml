@@ -78,7 +78,7 @@ controller_server:
       cost_scaling_dist: 0.3
       cost_scaling_gain: 1.0
       inflation_cost_scaling_factor: 3.0
-      use_collision_detection: true
+      use_collision_detection: false  # [!]
       use_interpolation: true
       use_goal_angle_approach: true
       goal_angle_approach_dist: 0.4

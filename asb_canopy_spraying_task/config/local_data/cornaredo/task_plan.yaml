@@ -4,7 +4,7 @@ row_path_goal_checker_id: asb_goal_checker
 row_path_progress_checker_id: simple_progress_checker
 row_path_pose_distance: 0.1
 items:
-  - item_id: row_1_app_1
+  - item_id: row_0-1_app_1
     type: APPROACH
     timeout: 0.0
     approach_pose:
@@ -23,7 +23,7 @@ items:
           y: 0.0
           z: -0.555698852302262
           w: 0.8313836572545487
-  - item_id: row_1_app_2
+  - item_id: row_0-1_app_2
     type: APPROACH
     timeout: 0.0
     approach_pose:
@@ -42,10 +42,11 @@ items:
           y: 0.0
           z: -0.5702629724256033
           w: 0.8214621977183829
-  - item_id: row_1
+  - item_id: row_0-1
     type: ROW
     timeout: 0.0
     left_row_id: row_1
+    right_row_id: row_0
     row_waypoints:
       - header:
           stamp:
@@ -54,14 +55,14 @@ items:
           frame_id: map
         pose:
           position:
-            x: 7.511696815490723
-            y: 10.016894340515137
+            x: 7.073399066925049
+            y: 11.479225158691406
             z: 0.0
           orientation:
             x: 0.0
             y: 0.0
-            z: -0.5557613441228855
-            w: 0.8313418841720437
+            z: -0.5602366881048805
+            w: 0.8283325740916355
       - header:
           stamp:
             sec: 1723522708
@@ -69,15 +70,16 @@ items:
           frame_id: map
         pose:
           position:
-            x: 14.057933807373047
-            y: -6.226329803466797
+            x: 14.29688835144043
+            y: -6.306835651397705
             z: 0.0
           orientation:
             x: 0.0
             y: 0.0
-            z: -0.5714841735613034
-            w: 0.8206130874955346
-  - item_id: row_1_2_app_1
+            z: -0.5567712996835251
+            w: 0.8306658292290097
+
+  - item_id: row_1-2_app_1
     type: APPROACH
     timeout: 0.0
     approach_pose:
@@ -96,7 +98,7 @@ items:
           y: 0.0
           z: 0.83865962018106
           w: 0.5446558927228826
-  - item_id: row_1_2_app_2
+  - item_id: row_1-2_app_2
     type: APPROACH
     timeout: 0.0
     approach_pose:
@@ -115,7 +117,7 @@ items:
           y: 0.0
           z: 0.8360454922095139
           w: 0.5486601269968066
-  - item_id: row_1_2
+  - item_id: row_1-2
     type: ROW
     timeout: 0.0
     left_row_id: row_1
@@ -139,64 +141,103 @@ items:
       - header:
           frame_id: map
           stamp:
-            nanosec: 93300492
-            sec: 1722264384
+            nanosec: 510074062
+            sec: 1722264400
         pose:
+          position:
+            x: 9.751628875732422
+            y: 11.702057838439941
+            z: 0.0
           orientation:
-            w: 0.5545923675440304
             x: 0.0
             y: 0.0
-            z: 0.832122170033888
-          position:
-            x: 13.462814331054688
-            y: 2.3701884746551514
-            z: 0.0
+            z: 0.8298642179378964
+            w: 0.5579653930006085
+
+  - item_id: row_2-3_app_1
+    type: APPROACH
+    timeout: 0.0
+    approach_pose:
+      header:
+        frame_id: map
+        stamp:
+          nanosec: 873337568
+          sec: 1722324235
+      pose:
+        position:
+          x: 12.293923377990723
+          y: 12.902853965759277
+          z: 0.0
+        orientation:
+          x: 0.0
+          y: 0.0
+          z: -0.39399840221926713
+          w: 0.919111124428741
+  - item_id: row_2-3_app_2
+    type: APPROACH
+    timeout: 0.0
+    approach_pose:
+      header:
+        frame_id: map
+        stamp:
+          nanosec: 873337568
+          sec: 1722324235
+      pose:
+        position:
+          x: 11.412046432495117
+          y: 14.375680923461914
+          z: 0.0
+        orientation:
+          x: 0.0
+          y: 0.0
+          z: -0.5614316995790001
+          w: 0.8275230792599294
+  - item_id: row_2-3
+    type: ROW
+    timeout: 0.0
+    left_row_id: row_3
+    right_row_id: row_2
+    row_waypoints:
       - header:
           frame_id: map
           stamp:
-            nanosec: 683333667
-            sec: 1722264389
+            nanosec: 774308637
+            sec: 1722264373
         pose:
+          position:
+            x: 12.366098403930664
+            y: 11.836181640625
+            z: 0.0
           orientation:
-            w: 0.553700163054088
             x: 0.0
             y: 0.0
-            z: 0.8327161157524671
-          position:
-            x: 11.523847579956055
-            y: 7.227606773376465
-            z: 0.0
+            z: -0.5588154670130102
+            w: 0.8292920316915093
       - header:
           frame_id: map
           stamp:
             nanosec: 510074062
             sec: 1722264400
         pose:
-          orientation:
-            w: 0.5626109243051459
-            x: 0.0
-            y: 0.0
-            z: 0.8267218080179749
           position:
-            x: 10.014745712280273
-            y: 10.992372512817383
-            z: 0.0
-      - header:
-          frame_id: map
-          stamp:
-            nanosec: 510074062
-            sec: 1722264400
-        pose:
-          position:
-            x: 9.46700668334961
-            y: 12.45920181274414
+            x: 19.134403228759766
+            y: -4.715410232543945
             z: 0.0
           orientation:
             x: 0.0
             y: 0.0
-            z: 0.8254573995534266
-            w: 0.564464420067815
+            z: -0.5455375482574931
+            w: 0.8380863818492718
+
 rows:
+  - row_id: row_0
+    frame_id: map
+    start_point:
+      x: 12.767657279968262
+      y: -5.576958179473877
+    end_point:
+      x: 6.961518287658691
+      y: 8.587996482849121
   - row_id: row_1
     frame_id: map
     start_point:
