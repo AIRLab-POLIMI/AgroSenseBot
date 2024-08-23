@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Environment1
         - /Environment1/tf1/Frames1
         - /Sensors1/front1/Autocompute Value Bounds1
         - /Sensors1/filtered front1/Autocompute Value Bounds1
@@ -22,7 +23,7 @@ Panels:
         - /Canopy1/canopy_depth1
         - /Canopy1/canopy_depth1/Namespaces1
       Splitter Ratio: 0.5414258241653442
-    Tree Height: 895
+    Tree Height: 912
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -73,93 +74,19 @@ Visualization Manager:
           Use Timestamp: false
           Value: false
         - Class: rviz_default_plugins/TF
-          Enabled: true
+          Enabled: false
           Frame Timeout: 15
           Frames:
             All Enabled: false
-            accelerometer_link:
-              Value: false
-            base_footprint:
-              Value: false
-            base_link:
-              Value: true
-            base_scan_front_multilayer:
-              Value: false
-            base_scan_front_multilayer_sim:
-              Value: true
-            base_scan_rear_left_multilayer:
-              Value: false
-            base_scan_rear_left_multilayer_sim:
-              Value: false
-            gnss_1_link:
-              Value: false
-            gnss_2_link:
-              Value: false
-            gyro_link:
-              Value: false
-            hedge:
-              Value: false
-            imu_link:
-              Value: false
-            inertial_link:
-              Value: false
-            left_track:
-              Value: false
-            map:
-              Value: false
-            odom:
-              Value: false
-            right_track:
-              Value: false
-            row_1:
-              Value: true
-            row_2:
-              Value: true
-            sat_map:
-              Value: false
           Marker Scale: 1
           Name: tf
           Show Arrows: false
           Show Axes: true
           Show Names: false
           Tree:
-            map:
-              hedge:
-                {}
-              odom:
-                base_footprint:
-                  base_link:
-                    base_scan_front_multilayer:
-                      {}
-                    base_scan_front_multilayer_sim:
-                      {}
-                    base_scan_rear_left_multilayer:
-                      {}
-                    base_scan_rear_left_multilayer_sim:
-                      {}
-                    gnss_1_link:
-                      {}
-                    gnss_2_link:
-                      {}
-                    imu_link:
-                      accelerometer_link:
-                        {}
-                      gyro_link:
-                        {}
-                    inertial_link:
-                      {}
-                    left_track:
-                      {}
-                    right_track:
-                      {}
-              row_1:
-                {}
-              row_2:
-                {}
-              sat_map:
-                {}
+            {}
           Update Interval: 0
-          Value: true
+          Value: false
         - Alpha: 0.5
           Class: rviz_default_plugins/RobotModel
           Collision Enabled: false
@@ -239,6 +166,10 @@ Visualization Manager:
               Show Axes: false
               Show Trail: false
               Value: true
+            sprayer_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
           Mass Properties:
             Inertia: false
             Mass: false
@@ -1412,11 +1343,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 69.85163116455078
+      Scale: 117.8606185913086
       Target Frame: base_link
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.7570363283157349
-      Y: -1.782857060432434
+      X: -0.1277216523885727
+      Y: 0.4160870313644409
     Saved: ~
 Window Geometry:
   AgroSenseBot:
@@ -1430,7 +1361,7 @@ Window Geometry:
     collapsed: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000156000004bdfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d000000b5000000a400fffffffb000000100044006900730070006c00610079007300000000f800000402000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c1000000000000000000000001000001c1000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d000004bd0000042500fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000500000001d7fc0100000003fb0000000a0049006d0061006700650000000000000005000000005e00fffffffb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000339000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000156000004bdfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e700000413000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c1000000000000000000000001000001c1000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d000004bd0000042500fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000500000001d7fc0100000003fb0000000a0049006d0061006700650000000000000005000000005e00fffffffb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000339000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

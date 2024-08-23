@@ -20,6 +20,9 @@
     <param name="fan_velocity_threshold_rpm" value="1500" />
     <param name="velocity_threshold" value="0.1" />
     <param name="max_canopy_width" value="2.0" />
+    <param name="canopy_roi_frame_id" value="sprayer_link" />
+    <param name="canopy_roi_x_1" value="-0.25" />
+    <param name="canopy_roi_x_2" value="0.25" />
     <param name="normalizing_velocity" value="1.0" />
     <param name="canopy_layer_bounds" value="[0.2, 0.6, 1.0, 1.4, 1.8, 2.2]" />
     <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />

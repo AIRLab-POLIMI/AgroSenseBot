@@ -75,6 +75,15 @@ class SprayingRegulator(Node):
         self.declare_parameter('velocity_timeout', rclpy.Parameter.Type.DOUBLE)
         self.velocity_timeout = Duration(seconds=self.get_parameter('velocity_timeout').get_parameter_value().double_value)
 
+        self.declare_parameter('canopy_roi_frame_id', rclpy.Parameter.Type.STRING)
+        self.canopy_roi_frame_id = self.get_parameter('canopy_roi_frame_id').get_parameter_value().string_value
+
+        self.declare_parameter('canopy_roi_x_1', rclpy.Parameter.Type.DOUBLE)
+        self.canopy_roi_x_1 = self.get_parameter('canopy_roi_x_1').get_parameter_value().double_value
+
+        self.declare_parameter('canopy_roi_x_2', rclpy.Parameter.Type.DOUBLE)
+        self.canopy_roi_x_2 = self.get_parameter('canopy_roi_x_2').get_parameter_value().double_value
+
         self.declare_parameter('max_canopy_width', rclpy.Parameter.Type.DOUBLE)
         self.max_canopy_width = self.get_parameter('max_canopy_width').get_parameter_value().double_value
 
@@ -329,9 +338,9 @@ class SprayingRegulator(Node):
             min_z=self.canopy_layer_bounds[0],
             max_z=self.canopy_layer_bounds[-1],
             roi=CanopyRegionOfInterest(
-                frame_id='base_link',
-                x_1=-1.0,
-                x_2=1.0,
+                frame_id=self.canopy_roi_frame_id,
+                x_1=self.canopy_roi_x_1,
+                x_2=self.canopy_roi_x_2,
             ),
         ))
         init_canopy_region_response_future.add_done_callback(lambda f: self.init_canopy_region_response_callback(f, request.row_id, SprayingSide.from_msg(request)))
