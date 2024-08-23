@@ -8,8 +8,8 @@ controller_manager:
     asb_base_controller:
       type: asb_track_controller/DiffDriveController
 
-    asb_control_system_status_controller:
-      type: asb_control_system_status_controller/ASBControlSystemStatusController
+    asb_platform_controller:
+      type: asb_platform_controller/ASBPlatformController
 
 asb_base_controller:
   ros__parameters:

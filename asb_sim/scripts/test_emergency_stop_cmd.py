@@ -6,7 +6,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 
-from asb_msgs.msg import ControlSystemState, EmergencyStopCmd
+from asb_msgs.msg import PlatformState, EmergencyStopCmd
 
 
 class MinimalPublisher(Node):
@@ -19,14 +19,14 @@ class MinimalPublisher(Node):
         # publishers to GCU
         self.pub = self.create_publisher(
             EmergencyStopCmd,
-            '/asb_control_system_status_controller/emergency_stop_cmd',
+            '/asb_platform_controller/emergency_stop_cmd',
             qos_profile=qos)
 
         # subscribers from dummy
-        self.control_system_state_sub = self.create_subscription(
-            ControlSystemState,
-            '/asb_control_system_status_controller/control_system_state',
-            self.control_system_state_callback, qos_profile=qos)
+        self.platform_state_sub = self.create_subscription(
+            PlatformState,
+            '/asb_platform_controller/platform_state',
+            self.platform_state_callback, qos_profile=qos)
 
         timer_period = 0.05  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -49,9 +49,9 @@ class MinimalPublisher(Node):
 
         print(f"elapsed_time:                                          {elapsed_time_s} \n"
               f"published set_software_emergency_stop:                 {msg.set_software_emergency_stop} \n"
-              f"received control_system_state.software_emergency_stop: {self.software_emergency_stop} \n")
+              f"received platform_state.software_emergency_stop: {self.software_emergency_stop} \n")
 
-    def control_system_state_callback(self, msg):
+    def platform_state_callback(self, msg):
         self.software_emergency_stop = msg.software_emergency_stop
 
 

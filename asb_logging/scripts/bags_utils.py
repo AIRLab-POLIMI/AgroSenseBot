@@ -55,7 +55,7 @@ def test():
             'ranges',
             'angle_min',
         ],
-        '/asb_control_system_status_controller/control_system_state': [
+        '/asb_platform_controller/platform_state': [
             'left_motor_battery_current',
             'right_motor_battery_current',
         ],

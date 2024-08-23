@@ -159,10 +159,10 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(const hardware_int
     }
   }
 
-  if (info_.gpios[0].name != "control_system_state")
+  if (info_.gpios[0].name != "platform_state")
   {
     RCLCPP_ERROR(rclcpp::get_logger("ASBSystemHardware"),
-                 "control_system_state gpio param in ros2_control.xacro config file");
+                 "platform_state gpio param in ros2_control.xacro config file");
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -186,54 +186,54 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   state_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_VELOCITY, &fan_speed_rpm_state_);
 
   // control system state
-  state_interfaces.emplace_back("control_system_state", "vcu_comm_ok", &vcu_comm_ok_bool_state_);
-  state_interfaces.emplace_back("control_system_state", "vcu_comm_started", &vcu_comm_started_bool_state_);
-  state_interfaces.emplace_back("control_system_state", "gcu_comm_started", &gcu_comm_started_bool_state_);
-  state_interfaces.emplace_back("control_system_state", "gcu_alive_bit_rate_low", &gcu_alive_bit_rate_low_bool_state_);
-  state_interfaces.emplace_back("control_system_state", "gcu_alive_bit_rate_critical", &gcu_alive_bit_rate_critical_bool_state_);
-  state_interfaces.emplace_back("control_system_state", "vcu_safety_status", &vcu_safety_status_bool_state_);
-  state_interfaces.emplace_back("control_system_state", "control_mode", &control_mode_int_state_);
-  state_interfaces.emplace_back("control_system_state", "more_recent_alarm_id_to_confirm", &more_recent_alarm_id_to_confirm_int_state_);
-  state_interfaces.emplace_back("control_system_state", "more_recent_active_alarm_id", &more_recent_active_alarm_id_int_state_);
+  state_interfaces.emplace_back("platform_state", "vcu_comm_ok", &vcu_comm_ok_bool_state_);
+  state_interfaces.emplace_back("platform_state", "vcu_comm_started", &vcu_comm_started_bool_state_);
+  state_interfaces.emplace_back("platform_state", "gcu_comm_started", &gcu_comm_started_bool_state_);
+  state_interfaces.emplace_back("platform_state", "gcu_alive_bit_rate_low", &gcu_alive_bit_rate_low_bool_state_);
+  state_interfaces.emplace_back("platform_state", "gcu_alive_bit_rate_critical", &gcu_alive_bit_rate_critical_bool_state_);
+  state_interfaces.emplace_back("platform_state", "vcu_safety_status", &vcu_safety_status_bool_state_);
+  state_interfaces.emplace_back("platform_state", "control_mode", &control_mode_int_state_);
+  state_interfaces.emplace_back("platform_state", "more_recent_alarm_id_to_confirm", &more_recent_alarm_id_to_confirm_int_state_);
+  state_interfaces.emplace_back("platform_state", "more_recent_active_alarm_id", &more_recent_active_alarm_id_int_state_);
 
   // software emergency stop
-  state_interfaces.emplace_back("control_system_state", "software_emergency_stop", &software_emergency_stop_bool_state_);
+  state_interfaces.emplace_back("platform_state", "software_emergency_stop", &software_emergency_stop_bool_state_);
 
   // pump
-  state_interfaces.emplace_back("control_system_state", "pump_state", &pump_bool_state_);
+  state_interfaces.emplace_back("platform_state", "pump_state", &pump_bool_state_);
 
   // left motor additional information
-  state_interfaces.emplace_back("control_system_state", "left_motor_velocity_setpoint", &track_left_velocity_setpoint_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_controller_temperature", &track_left_controller_temperature_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_temperature", &track_left_motor_temperature_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_battery_current", &track_left_battery_current_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_torque", &track_left_motor_torque_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_BDI_percentage", &track_left_BDI_percentage_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_keyswitch_voltage", &track_left_keyswitch_voltage_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_zero_speed_threshold", &track_left_zero_speed_threshold_state_);
-  state_interfaces.emplace_back("control_system_state", "left_motor_interlock", &track_left_interlock_bool_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_velocity_setpoint", &track_left_velocity_setpoint_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_controller_temperature", &track_left_controller_temperature_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_temperature", &track_left_motor_temperature_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_battery_current", &track_left_battery_current_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_torque", &track_left_motor_torque_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_BDI_percentage", &track_left_BDI_percentage_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_keyswitch_voltage", &track_left_keyswitch_voltage_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_zero_speed_threshold", &track_left_zero_speed_threshold_state_);
+  state_interfaces.emplace_back("platform_state", "left_motor_interlock", &track_left_interlock_bool_state_);
 
   // right motor additional information
-  state_interfaces.emplace_back("control_system_state", "right_motor_velocity_setpoint", &track_right_velocity_setpoint_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_controller_temperature", &track_right_controller_temperature_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_temperature", &track_right_motor_temperature_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_battery_current", &track_right_battery_current_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_torque", &track_right_motor_torque_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_BDI_percentage", &track_right_BDI_percentage_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_keyswitch_voltage", &track_right_keyswitch_voltage_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_zero_speed_threshold", &track_right_zero_speed_threshold_state_);
-  state_interfaces.emplace_back("control_system_state", "right_motor_interlock", &track_right_interlock_bool_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_velocity_setpoint", &track_right_velocity_setpoint_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_controller_temperature", &track_right_controller_temperature_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_temperature", &track_right_motor_temperature_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_battery_current", &track_right_battery_current_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_torque", &track_right_motor_torque_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_BDI_percentage", &track_right_BDI_percentage_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_keyswitch_voltage", &track_right_keyswitch_voltage_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_zero_speed_threshold", &track_right_zero_speed_threshold_state_);
+  state_interfaces.emplace_back("platform_state", "right_motor_interlock", &track_right_interlock_bool_state_);
 
   // fan motor additional information
-  state_interfaces.emplace_back("control_system_state", "fan_motor_velocity_setpoint_rpm", &fan_speed_setpoint_rpm_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_controller_temperature", &fan_controller_temperature_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_temperature", &fan_motor_temperature_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_battery_current", &fan_battery_current_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_torque", &fan_motor_torque_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_BDI_percentage", &fan_BDI_percentage_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_keyswitch_voltage", &fan_keyswitch_voltage_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_zero_speed_threshold", &fan_zero_speed_threshold_state_);
-  state_interfaces.emplace_back("control_system_state", "fan_motor_interlock", &fan_interlock_bool_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_velocity_setpoint_rpm", &fan_speed_setpoint_rpm_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_controller_temperature", &fan_controller_temperature_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_temperature", &fan_motor_temperature_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_battery_current", &fan_battery_current_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_torque", &fan_motor_torque_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_BDI_percentage", &fan_BDI_percentage_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_keyswitch_voltage", &fan_keyswitch_voltage_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_zero_speed_threshold", &fan_zero_speed_threshold_state_);
+  state_interfaces.emplace_back("platform_state", "fan_motor_interlock", &fan_interlock_bool_state_);
 
   return state_interfaces;
 }
@@ -250,13 +250,13 @@ std::vector<hardware_interface::CommandInterface> ASBSystemHardware::export_comm
   command_interfaces.emplace_back("fan_motor_joint", hardware_interface::HW_IF_VELOCITY, &fan_speed_ref_rpm_command_);
 
   // heartbeat alive bit command interface
-  command_interfaces.emplace_back("control_system_state", "heartbeat_alive_bit", &heartbeat_alive_bit_bool_command_);
+  command_interfaces.emplace_back("platform_state", "heartbeat_alive_bit", &heartbeat_alive_bit_bool_command_);
 
   // software emergency stop command interface
-  command_interfaces.emplace_back("control_system_state", "set_software_emergency_stop", &set_software_emergency_stop_bool_command_);
+  command_interfaces.emplace_back("platform_state", "set_software_emergency_stop", &set_software_emergency_stop_bool_command_);
 
   // pump command interface
-  command_interfaces.emplace_back("control_system_state", "pump_command", &pump_bool_command_);
+  command_interfaces.emplace_back("platform_state", "pump_command", &pump_bool_command_);
 
   return command_interfaces;
 }

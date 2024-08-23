@@ -6,7 +6,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 
-from asb_msgs.msg import ControlSystemState, FanCmd
+from asb_msgs.msg import PlatformState, FanCmd
 
 
 class MinimalPublisher(Node):
@@ -19,14 +19,14 @@ class MinimalPublisher(Node):
         # publishers to GCU
         self.pub = self.create_publisher(
             FanCmd,
-            '/asb_control_system_status_controller/fan_cmd',
+            '/asb_platform_controller/fan_cmd',
             qos_profile=qos)
 
         # subscribers from dummy
-        self.control_system_state_sub = self.create_subscription(
-            ControlSystemState,
-            '/asb_control_system_status_controller/control_system_state',
-            self.control_system_state_callback, qos_profile=qos)
+        self.platform_state_sub = self.create_subscription(
+            PlatformState,
+            '/asb_platform_controller/platform_state',
+            self.platform_state_callback, qos_profile=qos)
 
         timer_period = 0.05  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -54,10 +54,10 @@ class MinimalPublisher(Node):
         else:
             print(f"published velocity_rpm:                               ")
 
-        print(f"received control_system_state.fan_motor_position:     {self.fan_motor_position} \n"
-              f"received control_system_state.fan_motor_velocity_rpm: {self.fan_motor_velocity_rpm} \n")
+        print(f"received platform_state.fan_motor_position:     {self.fan_motor_position} \n"
+              f"received platform_state.fan_motor_velocity_rpm: {self.fan_motor_velocity_rpm} \n")
 
-    def control_system_state_callback(self, msg):
+    def platform_state_callback(self, msg):
         self.fan_motor_position = msg.fan_motor_position
         self.fan_motor_velocity_rpm = msg.fan_motor_velocity_rpm
 

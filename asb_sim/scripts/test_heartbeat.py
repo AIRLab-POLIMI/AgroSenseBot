@@ -19,7 +19,7 @@ class HeartbeatPublisher(Node):
         # publishers to GCU
         self.pub = self.create_publisher(
             Heartbeat,
-            '/asb_control_system_status_controller/heartbeat',
+            '/asb_platform_controller/heartbeat',
             qos_profile=qos)
 
         timer_period = 0.025  # seconds

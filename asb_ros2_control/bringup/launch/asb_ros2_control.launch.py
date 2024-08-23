@@ -98,24 +98,24 @@ def generate_launch_description():
         arguments=["asb_base_controller", "--controller-manager", "/controller_manager"],
     )
 
-    control_system_status_controller_spawner = Node(
+    platform_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["asb_control_system_status_controller", "--controller-manager", "/controller_manager"],
+        arguments=["asb_platform_controller", "--controller-manager", "/controller_manager"],
     )
 
-    # Delay start of control_system_status_controller_spawner after `joint_state_broadcaster`
-    delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+    # Delay start of platform_controller_spawner after `joint_state_broadcaster`
+    delay_platform_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[control_system_status_controller_spawner],
+            on_exit=[platform_controller_spawner],
         )
     )
 
-    # Delay start of robot_controller after `control_system_status_controller_spawner`
+    # Delay start of robot_controller after `platform_controller_spawner`
     delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=control_system_status_controller_spawner,
+            target_action=platform_controller_spawner,
             on_exit=[robot_controller_spawner],
         )
     )
@@ -144,7 +144,7 @@ def generate_launch_description():
 
     ld.add_action(robot_state_publisher_node)
     ld.add_action(joint_state_broadcaster_spawner)
-    ld.add_action(delay_control_system_status_controller_spawner_after_joint_state_broadcaster_spawner)
+    ld.add_action(delay_platform_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(include_logging_launch)
     ld.add_action(fake_heartbeat_publisher_node)

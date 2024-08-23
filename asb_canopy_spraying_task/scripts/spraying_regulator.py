@@ -18,7 +18,7 @@ from geometry_msgs.msg import TransformStamped, PointStamped
 from asb_msgs.msg import (CanopyRegionOfInterest,
                           CanopyDataArray, CanopyData,
                           CanopyLayerDepthArray, CanopyLayerDepth,
-                          SprayRegulatorStatus, ControlSystemState,
+                          SprayRegulatorStatus, PlatformState,
                           FanCmd, NozzleCommandArray, NozzleCommand)
 from asb_msgs.srv import (InitializeCanopyRegion, InitializeCanopyRegion_Request,
                           SuspendCanopyRegion, SuspendCanopyRegion_Request,
@@ -191,14 +191,14 @@ class SprayingRegulator(Node):
             depth=1
         )
         self.tf_static_broadcaster = StaticTransformBroadcaster(self)
-        self.control_system_state_sub = self.create_subscription(ControlSystemState, '/asb_control_system_status_controller/control_system_state', self.control_system_state_callback, qos_profile=rclpy.qos.qos_profile_sensor_data)
+        self.platform_state_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_state_callback, qos_profile=rclpy.qos.qos_profile_sensor_data)
         self.velocity_odom_sub = self.create_subscription(Odometry, 'velocity_odom', self.velocity_odom_callback, 1)
         self.canopy_data_sub = self.create_subscription(CanopyDataArray, 'canopy_data', self.canopy_data_callback, 10)
         self.init_canopy_region_client = self.create_client(InitializeCanopyRegion, 'initialize_canopy_region')
         self.suspend_canopy_region_client = self.create_client(SuspendCanopyRegion, 'suspend_canopy_region')
         self.canopy_region_of_interest_pub = self.create_publisher(CanopyRegionOfInterest, 'canopy_region_of_interest', qos_profile=qos_reliable_transient_local)
         self.spray_regulator_status_pub = self.create_publisher(SprayRegulatorStatus, 'spray_regulator_status', qos_profile=qos_reliable_transient_local)
-        self.fan_command_pub = self.create_publisher(FanCmd, '/asb_control_system_status_controller/fan_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
+        self.fan_command_pub = self.create_publisher(FanCmd, '/asb_platform_controller/fan_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
         self.canopy_depth_pub = self.create_publisher(CanopyLayerDepthArray, '/canopy_layer_depth', qos_profile=rclpy.qos.qos_profile_sensor_data)
         self.nozzles_command_pub = self.create_publisher(NozzleCommandArray, '/nozzles_command', qos_profile=rclpy.qos.qos_profile_sensor_data)
 
@@ -306,7 +306,7 @@ class SprayingRegulator(Node):
 
         self.canopy_depth_pub.publish(canopy_layer_depth_array_msg)
 
-    def control_system_state_callback(self, platform_state_msg: ControlSystemState) -> None:
+    def platform_state_callback(self, platform_state_msg: PlatformState) -> None:
         self.fan_rpm = platform_state_msg.fan_motor_velocity_rpm
 
     def start_row_spraying_callback(self, request: StartRowSpraying_Request, response: StartRowSpraying_Response) -> StartRowSpraying_Response:

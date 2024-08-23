@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <rclcpp/qos.hpp>
-#include "asb_msgs/msg/control_system_state.hpp"
+#include "asb_msgs/msg/platform_state.hpp"
 #include "microstrain_inertial_msgs/msg/human_readable_status.hpp"
 
 #include <asb_rviz_plugins/asb_linear_dial.h>
@@ -43,15 +43,15 @@ namespace asb_rviz_plugins
 
     static bool is_alarm_on(ASBThermo* widget);
 
-    void control_system_state_callback(asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const;
+    void platform_state_callback(asb_msgs::msg::PlatformState::SharedPtr platform_state) const;
 
     void rtk_status_callback(microstrain_inertial_msgs::msg::HumanReadableStatus::SharedPtr rtk_status) const;
 
-    void control_system_state_timeout_callback();
+    void platform_state_timeout_callback();
 
     void rtk_status_timeout_callback();
 
-    rclcpp::TimerBase::SharedPtr control_system_state_timeout_timer_;
+    rclcpp::TimerBase::SharedPtr platform_state_timeout_timer_;
 
     rclcpp::TimerBase::SharedPtr rtk_status_timeout_timer_;
 

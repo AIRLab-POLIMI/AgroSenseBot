@@ -97,19 +97,19 @@ namespace asb_rviz_plugins {
     return (widget->value() > widget->upperAlarmLevel()) || (widget->value() < widget->lowerAlarmLevel());
   }
 
-  void ASBWidget::control_system_state_callback(const asb_msgs::msg::ControlSystemState::SharedPtr control_system_state) const {
+  void ASBWidget::platform_state_callback(const asb_msgs::msg::PlatformState::SharedPtr platform_state) const {
 
-    control_system_state_timeout_timer_->reset();
+    platform_state_timeout_timer_->reset();
 
 //    System status
-    ui_->sw_emergency_stop_disp->setText(QString(control_system_state->software_emergency_stop ? "ENABLED":"OK"));
-    ui_->sw_emergency_stop_disp->setStyleSheet(control_system_state->software_emergency_stop ? yel_bg:no_bg);
+    ui_->sw_emergency_stop_disp->setText(QString(platform_state->software_emergency_stop ? "ENABLED":"OK"));
+    ui_->sw_emergency_stop_disp->setStyleSheet(platform_state->software_emergency_stop ? yel_bg:no_bg);
 
-    if(control_system_state->gcu_comm_started) {
-      if (control_system_state->gcu_alive_bit_rate_critical) {
+    if(platform_state->gcu_comm_started) {
+      if (platform_state->gcu_alive_bit_rate_critical) {
         ui_->gcu_comm_disp->setText(QString("DOWN"));
         ui_->gcu_comm_disp->setStyleSheet(yel_bg);
-      } else if (control_system_state->gcu_alive_bit_rate_low) {
+      } else if (platform_state->gcu_alive_bit_rate_low) {
         ui_->gcu_comm_disp->setText(QString("RATE LOW"));
         ui_->gcu_comm_disp->setStyleSheet(yel_bg);
       } else {
@@ -121,25 +121,25 @@ namespace asb_rviz_plugins {
       ui_->gcu_comm_disp->setStyleSheet(yel_bg);
     }
 
-    if(control_system_state->vcu_comm_started) {
-      if(control_system_state->vcu_comm_ok) {
+    if(platform_state->vcu_comm_started) {
+      if(platform_state->vcu_comm_ok) {
         ui_->vcu_comm_disp->setText(QString("OK"));
         ui_->vcu_comm_disp->setStyleSheet(no_bg);
 
-        ui_->vcu_safety_disp->setText(QString(control_system_state->vcu_safety_status ? "OK":"LOCK"));
-        ui_->vcu_safety_disp->setStyleSheet(control_system_state->vcu_safety_status ? no_bg:yel_bg);
+        ui_->vcu_safety_disp->setText(QString(platform_state->vcu_safety_status ? "OK":"LOCK"));
+        ui_->vcu_safety_disp->setStyleSheet(platform_state->vcu_safety_status ? no_bg:yel_bg);
 
-        ui_->control_mode_disp->setText(control_mode_string[control_system_state->control_mode]);
+        ui_->control_mode_disp->setText(control_mode_string[platform_state->control_mode]);
         ui_->control_mode_disp->setStyleSheet(no_bg);
 
-        ui_->pump_disp->setText(QString(control_system_state->pump_state ? "ON":"OFF"));
+        ui_->pump_disp->setText(QString(platform_state->pump_state ? "ON":"OFF"));
         ui_->pump_disp->setStyleSheet(no_bg);
 
-        if((control_system_state->more_recent_active_alarm_id == 92) || (control_system_state->more_recent_active_alarm_id == 0)) {
-          ui_->vcu_error_disp->setText(QString("OK (%1)").arg(control_system_state->more_recent_active_alarm_id));
+        if((platform_state->more_recent_active_alarm_id == 92) || (platform_state->more_recent_active_alarm_id == 0)) {
+          ui_->vcu_error_disp->setText(QString("OK (%1)").arg(platform_state->more_recent_active_alarm_id));
           ui_->vcu_error_disp->setStyleSheet(no_bg);
         } else {
-          ui_->vcu_error_disp->setText(QString("CODE %1").arg(control_system_state->more_recent_active_alarm_id));
+          ui_->vcu_error_disp->setText(QString("CODE %1").arg(platform_state->more_recent_active_alarm_id));
           ui_->vcu_error_disp->setStyleSheet(yel_bg);
         }
       } else {
@@ -176,89 +176,89 @@ namespace asb_rviz_plugins {
     }
 
 //    Battery
-    battery_soc_->setValue((double)control_system_state->left_motor_bdi_percentage);
+    battery_soc_->setValue((double)platform_state->left_motor_bdi_percentage);
     ui_->battery_soc_disp->setText(QString("%1 %").arg(
-            control_system_state->left_motor_bdi_percentage));
+            platform_state->left_motor_bdi_percentage));
     ui_->battery_soc_disp->setStyleSheet(is_alarm_on(battery_soc_) ? red_bg:no_bg);
 
-    battery_voltage_->setValue(control_system_state->left_motor_keyswitch_voltage);
+    battery_voltage_->setValue(platform_state->left_motor_keyswitch_voltage);
     ui_->battery_voltage_disp->setText(QString("%1 V").arg(
-            control_system_state->left_motor_keyswitch_voltage, 0, 'f', 2));
+            platform_state->left_motor_keyswitch_voltage, 0, 'f', 2));
     ui_->battery_voltage_disp->setStyleSheet(is_alarm_on(battery_voltage_) ? red_bg:no_bg);
 
 //    Left Motor
-    double left_motor_velocity_RPM = control_system_state->left_motor_velocity * 60 / (2 * M_PI);
+    double left_motor_velocity_RPM = platform_state->left_motor_velocity * 60 / (2 * M_PI);
     left_motor_velocity_->setValue(left_motor_velocity_RPM);
-    double left_motor_velocity_setpoint_RPM = control_system_state->left_motor_velocity_setpoint * 60 / (2 * M_PI);
+    double left_motor_velocity_setpoint_RPM = platform_state->left_motor_velocity_setpoint * 60 / (2 * M_PI);
     left_motor_velocity_->setSetpointValue(left_motor_velocity_setpoint_RPM);
     ui_->left_motor_velocity_disp->setText(QString("%1").arg(
             left_motor_velocity_RPM, 0, 'f', 0));
     ui_->left_motor_velocity_disp->setStyleSheet(is_alarm_on(left_motor_velocity_) ? red_bg:no_bg);
 
-    left_motor_current_->setValue(std::abs(control_system_state->left_motor_battery_current));
+    left_motor_current_->setValue(std::abs(platform_state->left_motor_battery_current));
     ui_->left_motor_current_disp->setText(QString("%1 A").arg(
-            control_system_state->left_motor_battery_current, 0, 'f', 1));
+            platform_state->left_motor_battery_current, 0, 'f', 1));
     ui_->left_motor_current_disp->setStyleSheet(is_alarm_on(left_motor_current_) ? red_bg:no_bg);
 
-    left_motor_temperature_->setValue(control_system_state->left_motor_temperature);
+    left_motor_temperature_->setValue(platform_state->left_motor_temperature);
     ui_->left_motor_temperature_disp->setText(QString("%1 °C").arg(
-            control_system_state->left_motor_temperature, 0, 'f', 1));
+            platform_state->left_motor_temperature, 0, 'f', 1));
     ui_->left_motor_temperature_disp->setStyleSheet(is_alarm_on(left_motor_temperature_) ? red_bg:no_bg);
 
-    left_controller_temperature_->setValue(control_system_state->left_motor_controller_temperature);
+    left_controller_temperature_->setValue(platform_state->left_motor_controller_temperature);
     ui_->left_controller_temperature_disp->setText(QString("%1 °C").arg(
-            control_system_state->left_motor_controller_temperature, 0, 'f', 1));
+            platform_state->left_motor_controller_temperature, 0, 'f', 1));
     ui_->left_controller_temperature_disp->setStyleSheet(is_alarm_on(left_controller_temperature_) ? red_bg:no_bg);
 
 //    Right Motor
-    double right_motor_velocity_RPM = control_system_state->right_motor_velocity * 60 / (2 * M_PI);
+    double right_motor_velocity_RPM = platform_state->right_motor_velocity * 60 / (2 * M_PI);
     right_motor_velocity_->setValue(right_motor_velocity_RPM);
-    double right_motor_velocity_setpoint_RPM = control_system_state->right_motor_velocity_setpoint * 60 / (2 * M_PI);
+    double right_motor_velocity_setpoint_RPM = platform_state->right_motor_velocity_setpoint * 60 / (2 * M_PI);
     right_motor_velocity_->setSetpointValue(right_motor_velocity_setpoint_RPM);
     ui_->right_motor_velocity_disp->setText(QString("%1").arg(
             right_motor_velocity_RPM, 0, 'f', 0));
     ui_->right_motor_velocity_disp->setStyleSheet(is_alarm_on(right_motor_velocity_) ? red_bg:no_bg);
 
-    right_motor_current_->setValue(std::abs(control_system_state->right_motor_battery_current));
+    right_motor_current_->setValue(std::abs(platform_state->right_motor_battery_current));
     ui_->right_motor_current_disp->setText(QString("%1 A").arg(
-            control_system_state->right_motor_battery_current, 0, 'f', 1));
+            platform_state->right_motor_battery_current, 0, 'f', 1));
     ui_->right_motor_current_disp->setStyleSheet(is_alarm_on(right_motor_current_) ? red_bg:no_bg);
 
-    right_motor_temperature_->setValue(control_system_state->right_motor_temperature);
+    right_motor_temperature_->setValue(platform_state->right_motor_temperature);
     ui_->right_motor_temperature_disp->setText(QString("%1 °C").arg(
-            control_system_state->right_motor_temperature, 0, 'f', 1));
+            platform_state->right_motor_temperature, 0, 'f', 1));
     ui_->right_motor_temperature_disp->setStyleSheet(is_alarm_on(right_motor_temperature_) ? red_bg:no_bg);
 
-    right_controller_temperature_->setValue(control_system_state->right_motor_controller_temperature);
+    right_controller_temperature_->setValue(platform_state->right_motor_controller_temperature);
     ui_->right_controller_temperature_disp->setText(QString("%1 °C").arg(
-            control_system_state->right_motor_controller_temperature, 0, 'f', 1));
+            platform_state->right_motor_controller_temperature, 0, 'f', 1));
     ui_->right_controller_temperature_disp->setStyleSheet(is_alarm_on(right_controller_temperature_) ? red_bg:no_bg);
 
 //    Fan Motor
-    fan_motor_velocity_->setValue(control_system_state->fan_motor_velocity_rpm);
-    fan_motor_velocity_->setSetpointValue(control_system_state->fan_motor_velocity_setpoint_rpm);
+    fan_motor_velocity_->setValue(platform_state->fan_motor_velocity_rpm);
+    fan_motor_velocity_->setSetpointValue(platform_state->fan_motor_velocity_setpoint_rpm);
     ui_->fan_motor_velocity_disp->setText(QString("%1").arg(
-            control_system_state->fan_motor_velocity_rpm, 0, 'f', 0));
+            platform_state->fan_motor_velocity_rpm, 0, 'f', 0));
     ui_->fan_motor_velocity_disp->setStyleSheet(is_alarm_on(fan_motor_velocity_) ? red_bg:no_bg);
 
-    fan_motor_current_->setValue(std::abs(control_system_state->fan_motor_battery_current));
+    fan_motor_current_->setValue(std::abs(platform_state->fan_motor_battery_current));
     ui_->fan_motor_current_disp->setText(QString("%1 A").arg(
-            control_system_state->fan_motor_battery_current, 0, 'f', 1));
+            platform_state->fan_motor_battery_current, 0, 'f', 1));
     ui_->fan_motor_current_disp->setStyleSheet(is_alarm_on(fan_motor_current_) ? red_bg:no_bg);
 
-    fan_motor_temperature_->setValue(control_system_state->fan_motor_temperature);
+    fan_motor_temperature_->setValue(platform_state->fan_motor_temperature);
     ui_->fan_motor_temperature_disp->setText(QString("%1 °C").arg(
-            control_system_state->fan_motor_temperature, 0, 'f', 1));
+            platform_state->fan_motor_temperature, 0, 'f', 1));
     ui_->fan_motor_temperature_disp->setStyleSheet(is_alarm_on(fan_motor_temperature_) ? red_bg:no_bg);
 
-    fan_controller_temperature_->setValue(control_system_state->fan_motor_controller_temperature);
+    fan_controller_temperature_->setValue(platform_state->fan_motor_controller_temperature);
     ui_->fan_controller_temperature_disp->setText(QString("%1 °C").arg(
-            control_system_state->fan_motor_controller_temperature, 0, 'f', 1));
+            platform_state->fan_motor_controller_temperature, 0, 'f', 1));
     ui_->fan_controller_temperature_disp->setStyleSheet(is_alarm_on(fan_controller_temperature_) ? red_bg:no_bg);
 
   }
 
-  void ASBWidget::control_system_state_timeout_callback() {
+  void ASBWidget::platform_state_timeout_callback() {
 
     ui_->sw_emergency_stop_disp->setText(QString("UNKNOWN"));
     ui_->sw_emergency_stop_disp->setStyleSheet(no_bg);

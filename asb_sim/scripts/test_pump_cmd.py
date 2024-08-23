@@ -6,7 +6,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 
-from asb_msgs.msg import ControlSystemState, PumpCmd
+from asb_msgs.msg import PlatformState, PumpCmd
 
 
 class MinimalPublisher(Node):
@@ -19,14 +19,14 @@ class MinimalPublisher(Node):
         # publishers to GCU
         self.pub = self.create_publisher(
             PumpCmd,
-            '/asb_control_system_status_controller/pump_cmd',
+            '/asb_platform_controller/pump_cmd',
             qos_profile=qos)
 
         # subscribers from dummy
-        self.control_system_state_sub = self.create_subscription(
-            ControlSystemState,
-            '/asb_control_system_status_controller/control_system_state',
-            self.control_system_state_callback, qos_profile=qos)
+        self.platform_state_sub = self.create_subscription(
+            PlatformState,
+            '/asb_platform_controller/platform_state',
+            self.platform_state_callback, qos_profile=qos)
 
         timer_period = 0.05  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -53,9 +53,9 @@ class MinimalPublisher(Node):
         else:
             print(f"published pump_cmd:                       ")
 
-        print(f"received control_system_state.pump_state: {self.pump_state} \n")
+        print(f"received platform_state.pump_state: {self.pump_state} \n")
 
-    def control_system_state_callback(self, msg):
+    def platform_state_callback(self, msg):
         self.pump_state = msg.pump_state
 
 

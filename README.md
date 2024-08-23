@@ -115,15 +115,15 @@ In the Rviz window, the robot model should move according to the keyboard or joy
 Provides the ros2_control hardware interface which communicates with the CANOpen control system.
 The hardware interface is meant to be used with ros2_control controllers, such as the ros2_control diff_drive_controller.
 
-### asb_control_system_status_controller
-Implements a ros2 controller that publishes the ROS2 topic `/asb_control_system_status_controller/control_system_state`
+### asb_platform_controller
+Implements a ros2 controller that publishes the ROS2 topic `/asb_platform_controller/platform_state`
 containing the control system state from the ros2_control hardware interface and subscribes to the following topics
 containing commands sent to the ros2_control hardware interface:
 ```
-/asb_control_system_status_controller/emergency_stop_cmd
-/asb_control_system_status_controller/fan_cmd
-/asb_control_system_status_controller/heartbeat
-/asb_control_system_status_controller/pump_cmd
+/asb_platform_controller/emergency_stop_cmd
+/asb_platform_controller/fan_cmd
+/asb_platform_controller/heartbeat
+/asb_platform_controller/pump_cmd
 ```
 
 TODO finish packages documentation, add ros2 control and ROS2 nodes diagrams

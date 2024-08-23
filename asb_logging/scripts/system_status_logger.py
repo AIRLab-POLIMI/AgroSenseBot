@@ -2,7 +2,7 @@
 
 import rclpy
 from rclpy.node import Node
-from asb_msgs.msg import ControlSystemState
+from asb_msgs.msg import PlatformState
 
 import os
 from datetime import datetime
@@ -14,15 +14,15 @@ class SystemStateLogger(Node):
     def __init__(self):
         super().__init__('minimal_subscriber')
         self.subscription = self.create_subscription(
-            ControlSystemState,
-            '/asb_control_system_status_controller/control_system_state',
+            PlatformState,
+            '/asb_platform_controller/platform_state',
             self.listener_callback,
             10)
 
         self.df = None
         self.start_time = None
 
-    def listener_callback(self, msg: ControlSystemState):
+    def listener_callback(self, msg: PlatformState):
         t = msg.stamp.sec + msg.stamp.nanosec*1E-9
 
         if self.df is None:

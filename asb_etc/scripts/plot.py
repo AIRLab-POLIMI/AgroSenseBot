@@ -7,7 +7,7 @@ plt.rcParams['figure.figsize'] = [10, 10]
 bag_path = path.expanduser('~/tmp/rosbag2_2024_02_06-14_36_14')
 
 topics_fields_options = {
-    '/asb_control_system_status_controller/control_system_state': {
+    '/asb_platform_controller/platform_state': {
         'left_motor_battery_current':
             (['-'], {'color': 'blue', 'linewidth': 1.5}),
         'right_motor_battery_current':

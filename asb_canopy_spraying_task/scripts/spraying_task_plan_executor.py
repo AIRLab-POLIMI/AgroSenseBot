@@ -14,7 +14,7 @@ from rclpy.time import Time
 from rclpy.node import Node
 from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState, GetState_Request
-from asb_msgs.msg import Heartbeat, ControlSystemState, SprayRegulatorStatus
+from asb_msgs.msg import Heartbeat, PlatformState, SprayRegulatorStatus
 from asb_msgs.srv import StartRowSpraying, StartRowSpraying_Request, StopRowSpraying, StopRowSpraying_Request
 from geometry_msgs.msg import Point, Pose, PoseStamped
 from nav_msgs.msg import Path
@@ -171,7 +171,7 @@ class SprayingTaskPlanExecutor(Node):
         self.right_spraying_state: SprayState = SprayState.NOT_SPRAYING
         self.right_row: TaskPlanRow | None = None
         self.heartbeat_alive_bit: bool = False
-        self.last_platform_status_msg: ControlSystemState | None = None
+        self.last_platform_status_msg: PlatformState | None = None
         self.stop_platform: bool = True
 
         # publishers, subscribers, timers and loop rate
@@ -182,9 +182,9 @@ class SprayingTaskPlanExecutor(Node):
             depth=10
         )
         self.path_pub = self.create_publisher(Path, '/plan', 10)
-        self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_control_system_status_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
+        self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', 10)
-        self.platform_status_sub = self.create_subscription(ControlSystemState, '/asb_control_system_status_controller/control_system_state', self.platform_status_callback, 10)
+        self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
         self.start_row_spraying_service = self.create_client(StartRowSpraying, 'start_row_spraying')
         self.stop_row_spraying_service = self.create_client(StopRowSpraying, 'stop_row_spraying')
         self.spray_regulator_status_sub = self.create_subscription(SprayRegulatorStatus, 'spray_regulator_status', self.spray_regulator_status_callback, qos_reliable_transient_local_depth_10)
@@ -417,7 +417,7 @@ class SprayingTaskPlanExecutor(Node):
             if loop_operations_delta < self.min_loop_duration:
                 self.get_logger().warn(f"HIGH LOOP RATE loop_operations_delta [{loop_operations_delta:.3f} s] < min_loop_duration [{self.min_loop_duration:.3f} s], {1/loop_operations_delta:.3f} Hz")
 
-    def platform_status_callback(self, platform_status: ControlSystemState):
+    def platform_status_callback(self, platform_status: PlatformState):
         self.last_platform_status_msg = platform_status
 
     def get_control_mode(self):

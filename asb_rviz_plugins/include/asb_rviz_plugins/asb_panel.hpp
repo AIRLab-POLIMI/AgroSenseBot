@@ -25,7 +25,7 @@ namespace asb_rviz_plugins
 
   private:
     ASBWidget *widget_;
-    rclcpp::Subscription<asb_msgs::msg::ControlSystemState>::SharedPtr control_system_state_subscriber_;
+    rclcpp::Subscription<asb_msgs::msg::PlatformState>::SharedPtr platform_state_subscriber_;
     rclcpp::Subscription<microstrain_inertial_msgs::msg::HumanReadableStatus>::SharedPtr rtk_status_subscriber_;
 
   };

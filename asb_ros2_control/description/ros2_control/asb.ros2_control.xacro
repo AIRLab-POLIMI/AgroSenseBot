@@ -34,7 +34,7 @@
         <state_interface name="velocity"/>
         <command_interface name="velocity"/>
       </joint>
-      <gpio name="control_system_state">
+      <gpio name="platform_state">
         <command_interface name="heartbeat_alive_bit"/>
 
         <state_interface name="vcu_comm_ok"/>

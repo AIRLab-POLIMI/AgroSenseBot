@@ -16,8 +16,8 @@
  * Author: Enrico Piazza
  */
 
-#ifndef ASB_CONTROL_SYSTEM_STATUS_CONTROLLER__ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_HPP_
-#define ASB_CONTROL_SYSTEM_STATUS_CONTROLLER__ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_HPP_
+#ifndef ASB_PLATFORM_CONTROLLER__ASB_PLATFORM_CONTROLLER_HPP_
+#define ASB_PLATFORM_CONTROLLER__ASB_PLATFORM_CONTROLLER_HPP_
 
 #include <chrono>
 #include <cmath>
@@ -27,14 +27,14 @@
 #include <vector>
 
 #include "std_msgs/msg/header.hpp"
-#include "asb_msgs/msg/control_system_state.hpp"
+#include "asb_msgs/msg/platform_state.hpp"
 #include "asb_msgs/msg/emergency_stop_cmd.hpp"
 #include "asb_msgs/msg/pump_cmd.hpp"
 #include "asb_msgs/msg/fan_cmd.hpp"
 #include "asb_msgs/msg/heartbeat.hpp"
 
 #include "controller_interface/controller_interface.hpp"
-#include "asb_control_system_status_controller/visibility_control.h"
+#include "asb_platform_controller/visibility_control.h"
 #include "hardware_interface/handle.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -43,45 +43,45 @@
 using std::placeholders::_1;
 using namespace std::chrono_literals;
 
-namespace asb_control_system_status_controller
+namespace asb_platform_controller
 {
 
-class ASBControlSystemStatusController : public controller_interface::ControllerInterface {
+class ASBPlatformController : public controller_interface::ControllerInterface {
 
 public:
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
-  ASBControlSystemStatusController();
+  ASB_PLATFORM_CONTROLLER_PUBLIC
+  ASBPlatformController();
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::return_type update(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_init() override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_configure(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_cleanup(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_PUBLIC
+  ASB_PLATFORM_CONTROLLER_PUBLIC
   controller_interface::CallbackReturn on_error(
     const rclcpp_lifecycle::State & previous_state) override;
 
@@ -112,7 +112,7 @@ protected:
   std::chrono::milliseconds pump_cmd_timeout_ = 100ms;
   std::chrono::milliseconds fan_cmd_timeout_ = 100ms;
 
-  std::shared_ptr<rclcpp::Publisher<asb_msgs::msg::ControlSystemState>> control_system_state_publisher_ = nullptr;
+  std::shared_ptr<rclcpp::Publisher<asb_msgs::msg::PlatformState>> platform_state_publisher_ = nullptr;
 
   bool subscriber_is_active_ = false;
   rclcpp::Subscription<asb_msgs::msg::Heartbeat>::SharedPtr heartbeat_subscriber_ = nullptr;
@@ -133,5 +133,5 @@ protected:
   bool is_halted = false;
 
 };
-}  // namespace asb_control_system_status_controller
-#endif  // ASB_CONTROL_SYSTEM_STATUS_CONTROLLER__ASB_CONTROL_SYSTEM_STATUS_CONTROLLER_HPP_
+}  // namespace asb_platform_controller
+#endif  // ASB_PLATFORM_CONTROLLER__ASB_PLATFORM_CONTROLLER_HPP_

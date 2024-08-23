@@ -1,7 +1,0 @@
-<library path="asb_control_system_status_controller">
-  <class name="asb_control_system_status_controller/ASBControlSystemStatusController" type="asb_control_system_status_controller::ASBControlSystemStatusController" base_class_type="controller_interface::ControllerInterface">
-  <description>
-    The differential drive controller transforms linear and angular velocity messages into signals for each wheel(s) for a differential drive robot.
-  </description>
-  </class>
-</library>
