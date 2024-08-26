@@ -16,14 +16,14 @@ from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState, GetState_Request
 from asb_msgs.msg import Heartbeat, PlatformState, SprayRegulatorStatus
 from asb_msgs.srv import StartRowSpraying, StartRowSpraying_Request, StopRowSpraying, StopRowSpraying_Request
-from geometry_msgs.msg import Point, Pose, PoseStamped
+from geometry_msgs.msg import Point, Pose, PoseStamped, PoseArray
 from nav_msgs.msg import Path
 from std_msgs.msg import Header, String
 from action_msgs.msg import GoalStatus, GoalInfo
 from nav2_msgs.srv import ClearEntireCostmap, ClearEntireCostmap_Request
 from nav2_msgs.action import FollowPath, NavigateToPose
 
-from tf2_ros import TransformException
+from tf2_ros import TransformException, StaticTransformBroadcaster
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -107,9 +107,6 @@ class SprayingTaskPlanExecutor(Node):
         self.task_log_dir_path = os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value)
         self.get_logger().info(f"log_dir_path set to {self.task_log_dir_path}")
 
-        self.task_plan: SprayingTaskPlan = SprayingTaskPlan.load(self.task_plan_file_path)
-        self.get_logger().info(f"loaded task plan with path ids: {self.task_plan.get_item_ids()}")
-
         default_dry_run = False
         self.declare_parameter('dry_run', default_dry_run)
         self.dry_run = self.get_parameter('dry_run').get_parameter_value().bool_value
@@ -156,12 +153,20 @@ class SprayingTaskPlanExecutor(Node):
         self.max_loop_rate = self.get_parameter('max_loop_rate').get_parameter_value().double_value
         self.min_loop_duration = 1 / self.max_loop_rate
 
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        # load task plan
+        self.task_plan: SprayingTaskPlan = SprayingTaskPlan.load(self.task_plan_file_path)
+        if len(self.task_plan.items):
+            self.get_logger().info(f"loaded task plan with item: {self.task_plan.get_item_ids()}")
+        else:
+            self.task_plan.generate_items()
+            self.get_logger().info(f"loaded task plan with no items, auto generated items: {self.task_plan.get_item_ids()}")
+
         if not len(self.task_plan.get_item_ids()):
             self.get_logger().error(f"empty task plan")
             return
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         # variables for task execution
         self.loop_operations_chrono: Chronometer | None = None
@@ -173,6 +178,7 @@ class SprayingTaskPlanExecutor(Node):
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: PlatformState | None = None
         self.stop_platform: bool = True
+        self.approach_poses = PoseArray(header=Header(frame_id=self.task_plan.map_frame))
 
         # publishers, subscribers, timers and loop rate
         qos_reliable_transient_local_depth_10 = QoSProfile(
@@ -181,7 +187,8 @@ class SprayingTaskPlanExecutor(Node):
             history=HistoryPolicy.KEEP_LAST,
             depth=10
         )
-        self.path_pub = self.create_publisher(Path, '/plan', 10)
+        self.approach_poses_pub = self.create_publisher(PoseArray, '/approach_poses', 10)
+        self.row_path_pub = self.create_publisher(Path, '/plan', 10)
         self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', 10)
         self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
@@ -606,6 +613,10 @@ class SprayingTaskPlanExecutor(Node):
                 self.get_logger().error(f"the approach pose's frame_id does not match the task plan map_frame")
                 return False
 
+            self.approach_poses.poses.append(item.get_approach_pose().pose)
+            self.approach_poses.header.stamp = self.get_clock().now().to_msg()
+            self.approach_poses_pub.publish(self.approach_poses)
+
             if self.dry_run:
                 self.navigation_action_status = NavigationActionStatus.SUCCEEDED
             else:
@@ -620,7 +631,7 @@ class SprayingTaskPlanExecutor(Node):
             if row_path is None:
                 return False
 
-            self.path_pub.publish(row_path)
+            self.row_path_pub.publish(row_path)
 
             if self.dry_run:
                 self.navigation_action_status = NavigationActionStatus.SUCCEEDED

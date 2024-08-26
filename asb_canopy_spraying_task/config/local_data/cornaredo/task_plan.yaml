@@ -3,231 +3,109 @@ row_path_controller_id: FollowStraightPath
 row_path_goal_checker_id: asb_goal_checker
 row_path_progress_checker_id: simple_progress_checker
 row_path_pose_distance: 0.1
+
+alternate_rows: True
+switch_direction: True
+row_path_external_dist: 1.25
+row_path_margin: 1.5
+row_approach_margin: 1.0
+
 items:
   - item_id: row_0-1_app_1
     type: APPROACH
-    timeout: 0.0
     approach_pose:
-      header:
-        stamp:
-          sec: 1723523083
-          nanosec: 898928359
-        frame_id: map
-      pose:
-        position:
-          x: 7.371254920959473
-          y: 10.351704597473145
-          z: 0.0
-        orientation:
-          x: 0.0
-          y: 0.0
-          z: -0.555698852302262
-          w: 0.8313836572545487
+      frame_id: map
+      x: 7.371254920959473
+      y: 10.351704597473145
+      qz: -0.555698852302262
+      qw: 0.8313836572545487
   - item_id: row_0-1_app_2
     type: APPROACH
-    timeout: 0.0
     approach_pose:
-      header:
-        stamp:
-          sec: 1723523114
-          nanosec: 521248133
-        frame_id: map
-      pose:
-        position:
-          x: 6.72430944442749
-          y: 12.158448219299316
-          z: 0.0
-        orientation:
-          x: 0.0
-          y: 0.0
-          z: -0.5702629724256033
-          w: 0.8214621977183829
+      frame_id: map
+      x: 6.72430944442749
+      y: 12.158448219299316
+      qz: -0.5702629724256033
+      qw: 0.8214621977183829
   - item_id: row_0-1
     type: ROW
-    timeout: 0.0
     left_row_id: row_1
     right_row_id: row_0
     row_waypoints:
-      - header:
-          stamp:
-            sec: 1723522694
-            nanosec: 154493883
-          frame_id: map
-        pose:
-          position:
-            x: 7.073399066925049
-            y: 11.479225158691406
-            z: 0.0
-          orientation:
-            x: 0.0
-            y: 0.0
-            z: -0.5602366881048805
-            w: 0.8283325740916355
-      - header:
-          stamp:
-            sec: 1723522708
-            nanosec: 218472845
-          frame_id: map
-        pose:
-          position:
-            x: 14.29688835144043
-            y: -6.306835651397705
-            z: 0.0
-          orientation:
-            x: 0.0
-            y: 0.0
-            z: -0.5567712996835251
-            w: 0.8306658292290097
+      - frame_id: map
+        x: 7.073399066925049
+        y: 11.479225158691406
+        qz: -0.5602366881048805
+        qw: 0.8283325740916355
+      - frame_id: map
+        x: 14.29688835144043
+        y: -6.306835651397705
+        qz: -0.5567712996835251
+        qw: 0.8306658292290097
 
   - item_id: row_1-2_app_1
     type: APPROACH
-    timeout: 0.0
     approach_pose:
-      header:
-        frame_id: map
-        stamp:
-          nanosec: 873337568
-          sec: 1722324235
-      pose:
-        position:
-          x: 16.767303466796875
-          y: -5.33699893951416
-          z: 0.0
-        orientation:
-          x: 0.0
-          y: 0.0
-          z: 0.83865962018106
-          w: 0.5446558927228826
+      frame_id: map
+      x: 16.767303466796875
+      y: -5.33699893951416
+      qz: 0.83865962018106
+      qw: 0.5446558927228826
   - item_id: row_1-2_app_2
     type: APPROACH
-    timeout: 0.0
     approach_pose:
-      header:
-        frame_id: map
-        stamp:
-          nanosec: 873337568
-          sec: 1722324235
-      pose:
-        position:
-          x: 17.47249412536621
-          y: -6.916083812713623
-          z: 0.0
-        orientation:
-          x: 0.0
-          y: 0.0
-          z: 0.8360454922095139
-          w: 0.5486601269968066
+      frame_id: map
+      x: 17.47249412536621
+      y: -6.916083812713623
+      qz: 0.8360454922095139
+      qw: 0.5486601269968066
   - item_id: row_1-2
     type: ROW
-    timeout: 0.0
     left_row_id: row_1
     right_row_id: row_2
     row_waypoints:
-      - header:
-          frame_id: map
-          stamp:
-            nanosec: 774308637
-            sec: 1722264373
-        pose:
-          orientation:
-            w: 0.5536783814605104
-            x: 0.0
-            y: 0.0
-            z: 0.8327305986351585
-          position:
-            x: 15.185564041137695
-            y: -1.633702039718628
-            z: 0.0
-      - header:
-          frame_id: map
-          stamp:
-            nanosec: 510074062
-            sec: 1722264400
-        pose:
-          position:
-            x: 9.751628875732422
-            y: 11.702057838439941
-            z: 0.0
-          orientation:
-            x: 0.0
-            y: 0.0
-            z: 0.8298642179378964
-            w: 0.5579653930006085
+      - frame_id: map
+        qw: 0.5536783814605104
+        qz: 0.8327305986351585
+        x: 15.185564041137695
+        y: -1.633702039718628
+      - frame_id: map
+        x: 9.751628875732422
+        y: 11.702057838439941
+        qz: 0.8298642179378964
+        qw: 0.5579653930006085
 
   - item_id: row_2-3_app_1
     type: APPROACH
-    timeout: 0.0
     approach_pose:
-      header:
-        frame_id: map
-        stamp:
-          nanosec: 873337568
-          sec: 1722324235
-      pose:
-        position:
-          x: 12.293923377990723
-          y: 12.902853965759277
-          z: 0.0
-        orientation:
-          x: 0.0
-          y: 0.0
-          z: -0.39399840221926713
-          w: 0.919111124428741
+      frame_id: map
+      x: 12.293923377990723
+      y: 12.902853965759277
+      qz: -0.39399840221926713
+      qw: 0.919111124428741
   - item_id: row_2-3_app_2
     type: APPROACH
-    timeout: 0.0
     approach_pose:
-      header:
-        frame_id: map
-        stamp:
-          nanosec: 873337568
-          sec: 1722324235
-      pose:
-        position:
-          x: 11.412046432495117
-          y: 14.375680923461914
-          z: 0.0
-        orientation:
-          x: 0.0
-          y: 0.0
-          z: -0.5614316995790001
-          w: 0.8275230792599294
+      frame_id: map
+      x: 11.412046432495117
+      y: 14.375680923461914
+      qz: -0.5614316995790001
+      qw: 0.8275230792599294
   - item_id: row_2-3
     type: ROW
-    timeout: 0.0
     left_row_id: row_3
     right_row_id: row_2
     row_waypoints:
-      - header:
-          frame_id: map
-          stamp:
-            nanosec: 774308637
-            sec: 1722264373
-        pose:
-          position:
-            x: 12.366098403930664
-            y: 11.836181640625
-            z: 0.0
-          orientation:
-            x: 0.0
-            y: 0.0
-            z: -0.5588154670130102
-            w: 0.8292920316915093
-      - header:
-          frame_id: map
-          stamp:
-            nanosec: 510074062
-            sec: 1722264400
-        pose:
-          position:
-            x: 19.134403228759766
-            y: -4.715410232543945
-            z: 0.0
-          orientation:
-            x: 0.0
-            y: 0.0
-            z: -0.5455375482574931
-            w: 0.8380863818492718
+      - frame_id: map
+        x: 12.366098403930664
+        y: 11.836181640625
+        qz: -0.5588154670130102
+        qw: 0.8292920316915093
+      - frame_id: map
+        x: 19.134403228759766
+        y: -4.715410232543945
+        qz: -0.5455375482574931
+        qw: 0.8380863818492718
 
 rows:
   - row_id: row_0
