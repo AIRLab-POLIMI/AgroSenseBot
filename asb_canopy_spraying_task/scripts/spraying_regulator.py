@@ -259,7 +259,7 @@ class SprayingRegulator(Node):
 
                 else:
                     if canopy_data_age > self.canopy_data_timeout:
-                        self.get_logger().warn(f"canopy data age [{canopy_data_age}] older than timeout [{self.canopy_data_timeout}]. Can not compute spray regulation for row {row_id}.")
+                        self.get_logger().warn(f"canopy data age [{canopy_data_age.nanoseconds/1e9}] older than timeout [{self.canopy_data_timeout.nanoseconds/1e9}]. Can not compute spray regulation for row {row_id}.")
                     if velocity_age > self.velocity_timeout:
                         self.get_logger().warn(f"last velocity message age [{velocity_age}] older than timeout [{self.velocity_timeout}]. Can not compute spray regulation for row {row_id}.")
 
