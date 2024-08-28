@@ -1,4 +1,4 @@
-map_frame: map
+map_frame: vineyard
 row_path_controller_id: FollowStraightPath
 row_path_goal_checker_id: asb_goal_checker
 row_path_progress_checker_id: simple_progress_checker
@@ -7,39 +7,39 @@ row_path_pose_distance: 0.1
 alternate_rows: True
 switch_direction: True
 row_path_external_dist: 1.25
-row_path_margin: 2.0
+row_path_margin: 1.5
 row_approach_margin: 1.0
 
 rows:
   - row_id: row_0
-    frame_id: map
+    frame_id: vineyard
     start_point:
-      x: 10.036650657653809
-      y: 0.8339788317680359
+      x: 7.5
+      y: 0.0
     end_point:
-      x: 6.961518287658691
-      y: 8.587996482849121
+      x: 15.0
+      y: 0.0
   - row_id: row_1
-    frame_id: map
+    frame_id: vineyard
     start_point:
-      x: 15.046934127807617
-      y: -4.531398296356201
+      x: 0.0
+      y: -2.5
     end_point:
-      x: 9.322588920593262
-      y: 9.352736473083496
+      x: 15.0
+      y: -2.5
   - row_id: row_2
-    frame_id: map
+    frame_id: vineyard
     start_point:
-      x: 17.30855941772461
-      y: -3.5318031311035156
+      x: 0.0
+      y: -5.0
     end_point:
-      x: 11.601832389831543
-      y: 10.361418724060059
-  - row_id: row_3
-    frame_id: map
-    start_point:
-      x: 19.694143295288086
-      y: -2.5927748680114746
-    end_point:
-      x: 13.857658386230469
-      y: 11.316278457641602
+      x: 15.0
+      y: -5.0
+#  - row_id: row_3
+#    frame_id: vineyard
+#    start_point:
+#      x: 0.0
+#      y: -7.5
+#    end_point:
+#      x: 15.0
+#      y: -7.5
