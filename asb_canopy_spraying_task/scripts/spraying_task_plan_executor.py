@@ -511,27 +511,27 @@ class SprayingTaskPlanExecutor(Node):
 
     def spray_regulator_status_callback(self, status_msg: SprayRegulatorStatus) -> None:
         if status_msg.status == SprayRegulatorStatus.STATUS_FAILED:
-            if self.left_spraying_state != SprayState.FAILED and status_msg.row_id == self.left_row.get_row_id():
+            if self.left_spraying_state != SprayState.FAILED and self.left_row is not None and status_msg.row_id == self.left_row.get_row_id():
                 self.left_spraying_state = SprayState.FAILED
                 self.get_logger().error(f"left_spraying_state: FAILED")
-            if self.right_spraying_state != SprayState.FAILED and status_msg.row_id == self.right_row.get_row_id():
+            if self.right_spraying_state != SprayState.FAILED and self.right_row is not None and status_msg.row_id == self.right_row.get_row_id():
                 self.right_spraying_state = SprayState.FAILED
                 self.get_logger().error(f"right_spraying_state: FAILED")
 
         elif status_msg.status == SprayRegulatorStatus.STATUS_OK:
-            if self.left_spraying_state == SprayState.STARTING and status_msg.row_id == self.left_row.get_row_id():
+            if self.left_spraying_state == SprayState.STARTING and self.left_row is not None and status_msg.row_id == self.left_row.get_row_id():
                 self.left_spraying_state = SprayState.STARTED
                 self.get_logger().info(f"left_spraying_state: STARTED")
-            if self.right_spraying_state == SprayState.STARTING and status_msg.row_id == self.right_row.get_row_id():
+            if self.right_spraying_state == SprayState.STARTING and self.right_row is not None and status_msg.row_id == self.right_row.get_row_id():
                 self.right_spraying_state = SprayState.STARTED
                 self.get_logger().info(f"right_spraying_state: STARTED")
 
         elif status_msg.status == SprayRegulatorStatus.STATUS_STOPPED:
-            if self.left_spraying_state != SprayState.NOT_SPRAYING and status_msg.row_id == self.left_row.get_row_id():
+            if self.left_spraying_state != SprayState.NOT_SPRAYING and self.left_row is not None and status_msg.row_id == self.left_row.get_row_id():
                 self.left_spraying_state = SprayState.NOT_SPRAYING
                 self.left_row = None
                 self.get_logger().info(f"left_spraying_state: NOT_SPRAYING")
-            if self.right_spraying_state != SprayState.NOT_SPRAYING and status_msg.row_id == self.right_row.get_row_id():
+            if self.right_spraying_state != SprayState.NOT_SPRAYING and self.right_row is not None and status_msg.row_id == self.right_row.get_row_id():
                 self.right_spraying_state = SprayState.NOT_SPRAYING
                 self.right_row = None
                 self.get_logger().info(f"right_spraying_state: NOT_SPRAYING")
