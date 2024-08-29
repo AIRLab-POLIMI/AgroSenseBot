@@ -350,8 +350,23 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   }
 
   // Compute wheels velocities:
-  const double velocity_left = (linear_vel_reference - angular_command * wheel_separation / 2.0) / left_wheel_radius;
-  const double velocity_right = (linear_vel_reference + angular_command * wheel_separation / 2.0) / right_wheel_radius;
+  // Compute wheels velocities:
+  double velocity_left;
+  double velocity_right;
+
+  if ((angular_command > 0) == (linear_vel_reference > 0)) {
+    velocity_left = linear_vel_reference / left_wheel_radius;
+    velocity_right = (linear_vel_reference + 2 * angular_command * wheel_separation / 2.0) / right_wheel_radius;
+  } else {
+    velocity_left = (linear_vel_reference - 2 * angular_command * wheel_separation / 2.0) / left_wheel_radius;
+    velocity_right = linear_vel_reference / right_wheel_radius;
+  }
+
+  double over_rev_factor = std::max(std::fabs(velocity_left)/314.159265359, std::fabs(velocity_right)/314.159265359);
+  if (over_rev_factor > 1.0) {
+    velocity_left = velocity_left / over_rev_factor;
+    velocity_right = velocity_right / over_rev_factor;
+  }
 
   // Set wheels velocities:
   for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
