@@ -551,16 +551,16 @@ hardware_interface::return_type asb_ros2_control ::ASBSystemHardware::write(cons
   if (!software_emergency_stop_.load())
   {
     // send the velocity data through TPDO2 of the GCU CANOpen node
-    double left_speed_ref_rpm = track_left_velocity_command_ * 60 / (2*M_PI);
-    double right_speed_ref_rpm = track_right_velocity_command_ * 60 / (2*M_PI);
+    double left_speed_ref_rpm = track_left_velocity_command_ * 60 / (2*M_PI) * 0.8;  // *0.8 because the velocity reference received through the can bus is rescaled by 2400 rpm / 3000 rpm
+    double right_speed_ref_rpm = track_right_velocity_command_ * 60 / (2*M_PI) * 0.8;  // *0.8 because the velocity reference received through the can bus is rescaled by 2400 rpm / 3000 rpm
     auto left_speed_ref_rpm_clipped = clip<int16_t>(
             (int16_t)std::round(left_speed_ref_rpm),
-            (int16_t)-cfg_.tracks_maximum_velocity_rpm,
-            (int16_t)cfg_.tracks_maximum_velocity_rpm);
+            (int16_t)-cfg_.tracks_maximum_velocity_rpm * 0.8,  // *0.8 because the velocity reference received through the can bus is rescaled by 2400 rpm / 3000 rpm
+            (int16_t)cfg_.tracks_maximum_velocity_rpm * 0.8);  // *0.8 because the velocity reference received through the can bus is rescaled by 2400 rpm / 3000 rpm
     auto right_speed_ref_rpm_clipped = clip<int16_t>(
             (int16_t)std::round(right_speed_ref_rpm),
-            (int16_t)-cfg_.tracks_maximum_velocity_rpm,
-            (int16_t)cfg_.tracks_maximum_velocity_rpm);
+            (int16_t)-cfg_.tracks_maximum_velocity_rpm * 0.8,  // *0.8 because the velocity reference received through the can bus is rescaled by 2400 rpm / 3000 rpm
+            (int16_t)cfg_.tracks_maximum_velocity_rpm * 0.8);  // *0.8 because the velocity reference received through the can bus is rescaled by 2400 rpm / 3000 rpm
     auto fan_speed_ref_rpm_clipped = clip<int16_t>(
             (int16_t)std::round(fan_speed_ref_rpm_command_),
             0,

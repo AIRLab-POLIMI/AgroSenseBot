@@ -389,8 +389,8 @@ void ASBSystemTestNode::gcu_alive_canopen_callback(bool GCU_is_alive_bit, bool p
 
 void ASBSystemTestNode::speed_ref_canopen_callback(int16_t right_speed_ref, int16_t left_speed_ref, int16_t fan_speed_ref) {
   if(control_mode_test_state_ == ControlMode::GCU) {
-    right_motor_drive_test_state_.speed_ref = right_speed_ref;
-    left_motor_drive_test_state_.speed_ref = left_speed_ref;
+    right_motor_drive_test_state_.speed_ref = right_speed_ref*1.25;  // replicating the platform logic: the velocity reference received through can bus is rescaled from 2400 to 3000
+    left_motor_drive_test_state_.speed_ref = left_speed_ref*1.25;  // replicating the platform logic: the velocity reference received through can bus is rescaled from 2400 to 3000
     fan_motor_drive_test_state_.speed_ref = fan_speed_ref;
   }
 }
