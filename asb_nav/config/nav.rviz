@@ -26,7 +26,7 @@ Panels:
         - /Canopy1/canopy_depth1
         - /Canopy1/canopy_depth1/Namespaces1
       Splitter Ratio: 0.6666666865348816
-    Tree Height: 1069
+    Tree Height: 371
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -99,12 +99,6 @@ Visualization Manager:
               Value: false
             gnss_2_link:
               Value: false
-            gq7_gnss_1_antenna_link:
-              Value: false
-            gq7_gnss_2_antenna_link:
-              Value: false
-            gq7_odometer_link:
-              Value: false
             gyro_link:
               Value: false
             hedge:
@@ -153,12 +147,6 @@ Visualization Manager:
                       {}
                     imu_link:
                       accelerometer_link:
-                        {}
-                      gq7_gnss_1_antenna_link:
-                        {}
-                      gq7_gnss_2_antenna_link:
-                        {}
-                      gq7_odometer_link:
                         {}
                       gyro_link:
                         {}
@@ -1452,11 +1440,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 150.41905212402344
+      Scale: 62.886436462402344
       Target Frame: vineyard
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 14.819329261779785
-      Y: 1.6693742275238037
+      X: 8.950854301452637
+      Y: -1.2301256656646729
     Saved: ~
 Window Geometry:
   AgroSenseBot:
