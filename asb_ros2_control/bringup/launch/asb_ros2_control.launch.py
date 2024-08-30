@@ -34,13 +34,6 @@ def generate_launch_description():
         description="Use the virtual CAN network vcan0 instead of the physical CAN network (can0).",
     )
 
-    record_launch_configuration = LaunchConfiguration("record")
-    record_launch_argument = DeclareLaunchArgument(
-        "record",
-        default_value="true",
-        description="Whether to record the system data.",
-    )
-
     fake_heartbeat_launch_configuration = LaunchConfiguration("fake_heartbeat")
     fake_heartbeat_launch_argument = DeclareLaunchArgument(
         "fake_heartbeat",
@@ -121,8 +114,7 @@ def generate_launch_description():
     )
 
     include_logging_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg("asb_logging"), "launch", "record_bag.launch.py")),
-        condition=IfCondition(record_launch_configuration),
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_logging"), "launch", "record_bag.launch.py"))
     )
 
     fake_heartbeat_publisher_node = Node(
@@ -137,7 +129,6 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     ld.add_action(use_vcan0_launch_argument)
-    ld.add_action(record_launch_argument)
     ld.add_action(fake_heartbeat_launch_argument)
 
     ld.add_action(control_node)
