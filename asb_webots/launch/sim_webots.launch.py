@@ -24,7 +24,7 @@ def generate_launch_description():
         ],
         remappings={
             '/scan_front_multilayer/point_cloud': '/scan_front_multilayer/points',
-            '/scan_rear_left_multilayer/point_cloud': '/scan_rear_left_multilayer/points',
+            '/scan_rear_multilayer/point_cloud': '/scan_rear_multilayer/points',
         }.items()
     )
 

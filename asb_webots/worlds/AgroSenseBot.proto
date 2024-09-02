@@ -141,12 +141,12 @@ PROTO AgroSenseBot [
       Solid {
         translation -1 0.81 0.1859
         rotation 0 0 1 3.141592654
-        name "base_scan_rear_left_multilayer"
+        name "base_scan_rear_multilayer"
       }
       OusterOS0 {
-        translation -1 0.81 0.1859  # TODO measure x-coordinate
+        translation -1 0.81 0.1859  # TODO measure actual position
         rotation 0 0 1 2.356194490192345
-        name "base_scan_rear_left_multilayer_sim"
+        name "base_scan_rear_multilayer_sim"
         fieldOfView 4.71238898038469
         numberOfLayers 32
         version "32"

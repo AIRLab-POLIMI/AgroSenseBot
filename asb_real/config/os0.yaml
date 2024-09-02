@@ -66,7 +66,7 @@ scan_front_multilayer/os_driver:
     # use_system_default_qos[optional]: if false, data are published with sensor
     # data QoS. This is preferable for production but default QoS is needed for
     # rosbag. See: https://github.com/ros2/rosbag2/issues/125
-    use_system_default_qos: false
+    use_system_default_qos: true
 
 scan_rear_multilayer/os_driver:
   ros__parameters:
@@ -117,15 +117,15 @@ scan_rear_multilayer/os_driver:
     # assigned.
     imu_port: 0
     # sensor_frame[optional]: name to use when referring to the sensor frame.
-    sensor_frame: base_scan_rear_left_multilayer
+    sensor_frame: base_scan_rear_multilayer
     # lidar_frame[optional]: name to use when referring to the lidar frame.
-    lidar_frame: base_scan_rear_left_multilayer_lidar
+    lidar_frame: base_scan_rear_multilayer_lidar
     # imu_frame[optional]: name to use when referring to the imu frame.
-    imu_frame: base_scan_rear_left_multilayer_imu
+    imu_frame: base_scan_rear_multilayer_imu
     # point_cloud_frame[optional]: which frame of reference to use when
     # generating PointCloud2 or LaserScan messages, select between the values of
     # lidar_frame and sensor_frame.
-    point_cloud_frame: base_scan_rear_left_multilayer
+    point_cloud_frame: base_scan_rear_multilayer
     # proc_mask[optional]: use any combination of the 4 flags IMG, PCL, IMU and
     # SCAN to enable or disable their respective messages.
     proc_mask: PCL
@@ -136,4 +136,4 @@ scan_rear_multilayer/os_driver:
     # use_system_default_qos[optional]: if false, data are published with sensor
     # data QoS. This is preferable for production but default QoS is needed for
     # rosbag. See: https://github.com/ros2/rosbag2/issues/125
-    use_system_default_qos: false
+    use_system_default_qos: true

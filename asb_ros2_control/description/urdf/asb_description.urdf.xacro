@@ -635,7 +635,7 @@
       <child link="sprayer_link"/>
       <origin xyz="-1.06 0 0.52" rpy="0 0 0"/>
     </joint>
-    <link name="base_scan_rear_left_multilayer_sim">
+    <link name="base_scan_rear_multilayer_sim">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
@@ -649,16 +649,16 @@
         </geometry>
       </collision>
     </link>
-    <joint name="base_link_base_scan_rear_left_multilayer_sim_joint" type="fixed">
+    <joint name="base_link_base_scan_rear_multilayer_sim_joint" type="fixed">
       <parent link="base_link"/>
-      <child link="base_scan_rear_left_multilayer_sim"/>
+      <child link="base_scan_rear_multilayer_sim"/>
       <origin xyz="-1 0.81 0.1859" rpy="0 0 2.356194"/>
     </joint>
-    <link name="base_scan_rear_left_multilayer">
+    <link name="base_scan_rear_multilayer">
     </link>
-    <joint name="base_link_base_scan_rear_left_multilayer_joint" type="fixed">
+    <joint name="base_link_base_scan_rear_multilayer_joint" type="fixed">
       <parent link="base_link"/>
-      <child link="base_scan_rear_left_multilayer"/>
+      <child link="base_scan_rear_multilayer"/>
       <origin xyz="-1 0.81 0.1859" rpy="0 0 -3.141593"/>
     </joint>
     <link name="base_scan_front_multilayer_sim">
