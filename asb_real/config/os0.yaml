@@ -55,10 +55,10 @@ scan_front_multilayer/os_driver:
     # point_cloud_frame[optional]: which frame of reference to use when
     # generating PointCloud2 or LaserScan messages, select between the values of
     # lidar_frame and sensor_frame.
-    point_cloud_frame: base_scan_front_multilayer_pcl
+    point_cloud_frame: base_scan_front_multilayer
     # proc_mask[optional]: use any combination of the 4 flags IMG, PCL, IMU and
     # SCAN to enable or disable their respective messages.
-    proc_mask: IMG|PCL|IMU|SCAN
+    proc_mask: PCL
     # scan_ring[optional]: use this parameter in conjunction with the SCAN flag
     # to select which beam of the LidarScan to use when producing the LaserScan
     # message. Choose a value the range [0, sensor_beams_count).
@@ -68,7 +68,7 @@ scan_front_multilayer/os_driver:
     # rosbag. See: https://github.com/ros2/rosbag2/issues/125
     use_system_default_qos: false
 
-scan_rear_left_multilayer/os_driver:
+scan_rear_multilayer/os_driver:
   ros__parameters:
     # sensor_hostname[required]: hostname or IP address of the sensor (IP4 or
     # IP6).
@@ -125,10 +125,10 @@ scan_rear_left_multilayer/os_driver:
     # point_cloud_frame[optional]: which frame of reference to use when
     # generating PointCloud2 or LaserScan messages, select between the values of
     # lidar_frame and sensor_frame.
-    point_cloud_frame: base_scan_rear_left_multilayer_pcl
+    point_cloud_frame: base_scan_rear_left_multilayer
     # proc_mask[optional]: use any combination of the 4 flags IMG, PCL, IMU and
     # SCAN to enable or disable their respective messages.
-    proc_mask: IMG|PCL|IMU|SCAN
+    proc_mask: PCL
     # scan_ring[optional]: use this parameter in conjunction with the SCAN flag
     # to select which beam of the LidarScan to use when producing the LaserScan
     # message. Choose a value the range [0, sensor_beams_count).
