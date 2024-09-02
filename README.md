@@ -17,6 +17,7 @@ sudo apt-get install -y python3-websocket &&  # websocket python package for asb
 sudo apt-get install -y xterm &&  # used in asb_logging play_bag.launch.py
 sudo apt-get install -y ros-iron-xacro ros-iron-ros2controlcli ros-iron-ros2-controllers-test-nodes ros-iron-diff-drive-controller ros-iron-joint-state-broadcaster ros-iron-webots-ros2 ros-iron-rqt-gui ros-iron-rqt-tf-tree ros-iron-nav2-* ros-iron-robot-localization ros-iron-tf-transformations &&  # ROS2 dependencies
 sudo apt-get install -y ros-iron-microstrain-inertial-driver ros-iron-microstrain-inertial-rqt ros-iron-ntrip-client &&  # MicroStrain 3DM-GQ7-GNSS/INS and RTK NTRIP client
+sudo apt-get install -y ros-iron-ouster-ros &&  # Ouster OS0 drivers
 sudo apt-get install -y ros-iron-octomap-ros ros-iron-octomap-server &&  # Octomap packages for canopy estimation
 sudo pip3 install transforms3d &&  # used in navigation scripts to convert Euler angles to quaternions
 pip3 install rosbags &&  # used in asb_logging bags_utils.py
