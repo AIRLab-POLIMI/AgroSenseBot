@@ -38,6 +38,7 @@ local_costmap:
       footprint: "[[0.9, 0.8], [0.9, -0.8], [-1.1, -0.8], [-1.1, 0.8]]"
       footprint_padding: 0.1
 
+#      plugins: ["static_layer", "inflation_layer"]
       plugins: ["static_layer", "voxel_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -90,6 +91,7 @@ global_costmap:
       width: 200
       height: 200
       track_unknown_space: true
+#      plugins: ["static_layer", "inflation_layer"]
       plugins: ["static_layer", "voxel_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
