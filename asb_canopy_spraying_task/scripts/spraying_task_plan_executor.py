@@ -148,7 +148,7 @@ class SprayingTaskPlanExecutor(Node):
         self.target_loop_rate = self.get_parameter('target_loop_rate').get_parameter_value().double_value
         self.target_loop_duration = 1 / self.target_loop_rate
 
-        default_max_loop_rate = 55  # Hz
+        default_max_loop_rate = 100  # Hz
         self.declare_parameter('max_loop_rate', float(default_max_loop_rate))
         self.max_loop_rate = self.get_parameter('max_loop_rate').get_parameter_value().double_value
         self.min_loop_duration = 1 / self.max_loop_rate
@@ -354,6 +354,8 @@ class SprayingTaskPlanExecutor(Node):
                     self.do_loop_operations_and_sleep(current_item=item)
                     if item.get_type() == TaskPlanItemType.ROW:
                         self.stop_spray_regulator()
+                        if item_index > 0:
+                            item_index -= 1
                     self.stop_platform_and_wait_control_mode_manual_to_auto()
                     break  # (back to start of main loop)
 
