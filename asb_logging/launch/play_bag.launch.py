@@ -19,13 +19,14 @@ def generate_launch_description():
     )
 
     play_node = launch.actions.ExecuteProcess(
-        cmd="xterm -e ros2 bag play".split() + [PathJoinSubstitution([bag_name_launch_configuration])],
+        cmd="xterm -e ros2 bag play --clock --read-ahead-queue-size 100000".split() + [PathJoinSubstitution([bag_name_launch_configuration])],
         cwd=os.path.expanduser("~/asb_logs/"),
         output='screen',
     )
 
     include_rviz_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "rviz.launch.py")),
+        launch_arguments={"use_sim_time": "true"}.items(),
     )
 
     ld = launch.LaunchDescription()
