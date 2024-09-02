@@ -53,9 +53,6 @@ def generate_launch_description():
         name="lidar_filter_front",
         parameters=[
             os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
-            {
-                "point_type": "pcl::PointXYZ",
-            },
         ],
         remappings={
             "points_in": "/scan_front_multilayer/points",
@@ -70,9 +67,6 @@ def generate_launch_description():
         name="lidar_filter_rear",
         parameters=[
             os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
-            {
-                "point_type": "pcl::PointXYZ",
-            },
         ],
         remappings={
             "points_in": "/scan_rear_multilayer/points",
