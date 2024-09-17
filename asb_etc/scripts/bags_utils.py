@@ -46,7 +46,7 @@ def dataframe_to_csv(bag_path: str, topics: Dict[str, list]) -> None:
 
 
 def test():
-    test_bag_path = path.expanduser('~/tmp/rosbag2_2024_02_06-14_36_14')
+    test_bag_path = path.expanduser('~/tmp/rosbag2_2024-09-10__11-14-08_all_except_sensors')
     test_topics = {
         '/not_a_topic': [
             'not_a_field',
@@ -56,8 +56,8 @@ def test():
             'angle_min',
         ],
         '/asb_platform_controller/platform_state': [
-            'left_motor_battery_current',
-            'right_motor_battery_current',
+            'left_motor_velocity',
+            'right_motor_velocity',
         ],
     }
     dataframe_to_csv(test_bag_path, test_topics)
