@@ -14,19 +14,19 @@ rows:
   - row_id: row_0
     frame_id: vineyard
     start_point:
-      x: 7.5
+      x: 7.0
       y: 0.0
     end_point:
-      x: 15.0
+      x: 14.0
       y: 0.0
-#  - row_id: row_1
-#    frame_id: vineyard
-#    start_point:
-#      x: 0.0
-#      y: -2.5
-#    end_point:
-#      x: 15.0
-#      y: -2.5
+  - row_id: row_1
+    frame_id: vineyard
+    start_point:
+      x: 7.0
+      y: -2.5
+    end_point:
+      x: 14.0
+      y: -2.5
 #  - row_id: row_2
 #    frame_id: vineyard
 #    start_point:

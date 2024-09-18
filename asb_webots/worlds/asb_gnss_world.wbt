@@ -65,7 +65,7 @@ Pose {
       rotation 0 0 1 1.9608
       children [
         CadShape {
-          url "models/cornaredo_vine.dae"
+          url "models/cornaredo_vine_2_rows.dae"
         }
       ]
     }
