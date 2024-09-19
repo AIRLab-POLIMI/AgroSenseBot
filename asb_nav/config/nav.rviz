@@ -4,18 +4,17 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Environment1/tf1
         - /Environment1/tf1/Frames1
         - /Sensors1/front1/Autocompute Value Bounds1
         - /Sensors1/filtered front1/Topic1
         - /Sensors1/filtered front1/Autocompute Value Bounds1
-        - /Sensors1/rear1/Autocompute Value Bounds1
+        - /Sensors1/rear1/Topic1
+        - /Sensors1/filtered rear1/Autocompute Value Bounds1
+        - /Global Planner1/Path1
         - /Controller1/footprint1/Topic1
         - /Localization1/Odometry position1/Shape1
-        - /Localization1/robot localization1
         - /Localization1/gnss 11/Covariance1
         - /Localization1/gnss 11/Covariance1/Position1
-        - /Localization1/gnss 1 history1/Covariance1
         - /Localization1/gnss 1 history1/Covariance1/Position1
         - /Localization1/gnss 21/Covariance1/Position1
         - /Localization1/gnss 21/Covariance1/Orientation1
@@ -23,8 +22,8 @@ Panels:
         - /Localization1/gnss 2 history1/Covariance1/Position1
         - /Canopy1/canopy_depth1
         - /Canopy1/canopy_depth1/Namespaces1
-      Splitter Ratio: 0.5414258241653442
-    Tree Height: 371
+      Splitter Ratio: 0.6411483287811279
+    Tree Height: 912
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -82,16 +81,16 @@ Visualization Manager:
             accelerometer_link:
               Value: false
             base_footprint:
-              Value: false
+              Value: true
             base_link:
               Value: false
             base_scan_front_multilayer:
               Value: false
             base_scan_front_multilayer_sim:
               Value: false
-            base_scan_rear_left_multilayer:
+            base_scan_rear_multilayer:
               Value: false
-            base_scan_rear_left_multilayer_sim:
+            base_scan_rear_multilayer_sim:
               Value: false
             gnss_1_link:
               Value: false
@@ -113,10 +112,16 @@ Visualization Manager:
               Value: false
             right_track:
               Value: false
+            row_0:
+              Value: true
+            row_1:
+              Value: true
             sat_map:
               Value: false
             sprayer_link:
               Value: false
+            vineyard:
+              Value: true
           Marker Scale: 3
           Name: tf
           Show Arrows: false
@@ -133,9 +138,9 @@ Visualization Manager:
                       {}
                     base_scan_front_multilayer_sim:
                       {}
-                    base_scan_rear_left_multilayer:
+                    base_scan_rear_multilayer:
                       {}
-                    base_scan_rear_left_multilayer_sim:
+                    base_scan_rear_multilayer_sim:
                       {}
                     gnss_1_link:
                       {}
@@ -156,9 +161,14 @@ Visualization Manager:
                       {}
               sat_map:
                 {}
+              vineyard:
+                row_0:
+                  {}
+                row_1:
+                  {}
           Update Interval: 0
           Value: true
-        - Alpha: 0.5
+        - Alpha: 0.20000000298023224
           Class: rviz_default_plugins/RobotModel
           Collision Enabled: false
           Description File: ""
@@ -198,11 +208,11 @@ Visualization Manager:
               Show Axes: false
               Show Trail: false
               Value: true
-            base_scan_rear_left_multilayer:
+            base_scan_rear_multilayer:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-            base_scan_rear_left_multilayer_sim:
+            base_scan_rear_multilayer_sim:
               Alpha: 1
               Show Axes: false
               Show Trail: false
@@ -253,7 +263,7 @@ Visualization Manager:
           Cell Size: 1
           Class: rviz_default_plugins/Grid
           Color: 160; 160; 164
-          Enabled: true
+          Enabled: false
           Line Style:
             Line Width: 0.029999999329447746
             Value: Lines
@@ -266,16 +276,52 @@ Visualization Manager:
           Plane: XY
           Plane Cell Count: 100
           Reference Frame: <Fixed Frame>
-          Value: true
+          Value: false
         - Alpha: 0.05000000074505806
           Cell Size: 0.10000000149011612
+          Class: rviz_default_plugins/Grid
+          Color: 160; 160; 164
+          Enabled: false
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: grid minor
+          Normal Cell Count: 0
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Plane: XY
+          Plane Cell Count: 1000
+          Reference Frame: <Fixed Frame>
+          Value: false
+        - Alpha: 0.10000000149011612
+          Cell Size: 1.25
           Class: rviz_default_plugins/Grid
           Color: 160; 160; 164
           Enabled: true
           Line Style:
             Line Width: 0.029999999329447746
             Value: Lines
-          Name: grid minor
+          Name: grid rows major
+          Normal Cell Count: 0
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Plane: XY
+          Plane Cell Count: 100
+          Reference Frame: <Fixed Frame>
+          Value: true
+        - Alpha: 0.05000000074505806
+          Cell Size: 0.125
+          Class: rviz_default_plugins/Grid
+          Color: 160; 160; 164
+          Enabled: true
+          Line Style:
+            Line Width: 0.029999999329447746
+            Value: Lines
+          Name: grid rows minor
           Normal Cell Count: 0
           Offset:
             X: 0
@@ -291,7 +337,7 @@ Visualization Manager:
           Class: rviz_default_plugins/Map
           Color Scheme: costmap
           Draw Behind: true
-          Enabled: true
+          Enabled: false
           Name: geofence map
           Topic:
             Depth: 5
@@ -307,7 +353,7 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /geofence_map_updates
           Use Timestamp: false
-          Value: true
+          Value: false
         - Alpha: 0.699999988079071
           Binary representation: false
           Binary threshold: 100
@@ -344,7 +390,7 @@ Visualization Manager:
           Axis: Z
           Channel Name: range
           Class: rviz_default_plugins/PointCloud2
-          Color: 255; 25; 0
+          Color: 255; 255; 255
           Color Transformer: FlatColor
           Decay Time: 0
           Enabled: false
@@ -403,22 +449,22 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: false
           Value: true
-        - Alpha: 1
+        - Alpha: 0.5
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
             Max Value: 2
             Min Value: 0
             Value: false
           Axis: Z
-          Channel Name: intensity
+          Channel Name: range
           Class: rviz_default_plugins/PointCloud2
-          Color: 255; 0; 0
-          Color Transformer: AxisColor
+          Color: 255; 255; 255
+          Color Transformer: FlatColor
           Decay Time: 0
           Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
-          Max Intensity: 4096
+          Max Intensity: 140041
           Min Color: 0; 0; 0
           Min Intensity: 0
           Name: rear
@@ -433,10 +479,44 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Best Effort
-            Value: /scan_rear_left_multilayer/points
+            Value: /scan_rear_multilayer/points
           Use Fixed Frame: true
-          Use rainbow: true
+          Use rainbow: false
           Value: false
+        - Alpha: 0.5
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.4000000059604645
+            Min Value: 0
+            Value: false
+          Axis: Z
+          Channel Name: range
+          Class: rviz_default_plugins/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: AxisColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Max Intensity: 140041
+          Min Color: 0; 0; 0
+          Min Intensity: 0
+          Name: filtered rear
+          Position Transformer: XYZ
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Best Effort
+            Value: /scan_rear_multilayer/points_filtered
+          Use Fixed Frame: true
+          Use rainbow: false
+          Value: true
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -601,7 +681,7 @@ Visualization Manager:
           Shaft Diameter: 0.009999999776482582
           Shaft Length: 0
           Topic:
-            Depth: 5
+            Depth: 10
             Durability Policy: Volatile
             Filter size: 10
             History Policy: Keep Last
@@ -678,6 +758,27 @@ Visualization Manager:
             Value: /global_costmap/obstacle_layer_updates
           Use Timestamp: false
           Value: false
+        - Alpha: 1
+          Arrow Length: 0.30000001192092896
+          Axes Length: 0.30000001192092896
+          Axes Radius: 0.009999999776482582
+          Class: rviz_default_plugins/PoseArray
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.10000000149011612
+          Head Radius: 0.10000000149011612
+          Name: approach poses
+          Shaft Length: 0.20000000298023224
+          Shaft Radius: 0.05000000074505806
+          Shape: Arrow (3D)
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /approach_poses
+          Value: true
       Enabled: true
       Name: Global Planner
     - Class: rviz_common/Group
@@ -1032,7 +1133,7 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /initialpose
           Value: true
-      Enabled: true
+      Enabled: false
       Name: Clicked
     - Class: rviz_common/Group
       Displays:
@@ -1131,7 +1232,7 @@ Visualization Manager:
               Scale: 0.20000000298023224
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 100
           Name: robot localization
           Position Tolerance: 0
@@ -1152,7 +1253,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /ekf_filter_map_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1283,7 +1384,7 @@ Visualization Manager:
               Value: true
             Position:
               Alpha: 1
-              Color: 255; 0; 0
+              Color: 255; 255; 255
               Scale: 0.05000000074505806
               Value: true
             Value: true
@@ -1364,33 +1465,12 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /canopy_visualization_markers
           Value: true
-      Enabled: true
+      Enabled: false
       Name: Canopy
-    - Alpha: 1
-      Arrow Length: 0.30000001192092896
-      Axes Length: 0.30000001192092896
-      Axes Radius: 0.009999999776482582
-      Class: rviz_default_plugins/PoseArray
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.10000000149011612
-      Head Radius: 0.10000000149011612
-      Name: approach poses
-      Shaft Length: 0.20000000298023224
-      Shaft Radius: 0.05000000074505806
-      Shape: Arrow (3D)
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /approach_poses
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: map
+    Fixed Frame: vineyard
     Frame Rate: 30
   Name: root
   Tools:
@@ -1424,7 +1504,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0.3299998342990875
+      Angle: 0
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -1434,25 +1514,25 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 60.94144821166992
-      Target Frame: base_link
+      Scale: 94.23198699951172
+      Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: -0.23005400598049164
-      Y: 0.11229964345693588
+      X: 15.072525024414062
+      Y: -1.3600190877914429
     Saved: ~
 Window Geometry:
   AgroSenseBot:
-    collapsed: false
+    collapsed: true
   Displays:
     collapsed: true
   Height: 1366
   Hide Left Dock: true
-  Hide Right Dock: false
+  Hide Right Dock: true
   Image:
     collapsed: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000158000004bdfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e700000413000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c1000000000000000000000001000001c1000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d000004bd0000042500fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000500000001d7fc0100000003fb0000000a0049006d0061006700650000000000000005000000005e00fffffffb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000339000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000156000004bdfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e700000413000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c1000000000000000000000001000001c1000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000003d000004bd0000042500fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000500000001d7fc0100000003fb0000000a0049006d0061006700650000000000000005000000005e00fffffffb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000500000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

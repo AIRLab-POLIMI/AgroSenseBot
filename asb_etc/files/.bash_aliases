@@ -100,6 +100,10 @@ _complete_alias () {
 
 # System utils aliases
 
+alias ll='ls -halF'
+alias la='ls -A'
+alias l='ls -CF'
+
 alias x='xdg-open'
 
 alias b='byobu'
@@ -118,6 +122,8 @@ alias duh='clr; pwd; du -had1 | sort -hr'
 alias clr='tput reset' # like clear, but actually clears the terminal, erasing previous output
 
 alias S='source ~/.bashrc'
+
+alias cda='cd $COLCON_WS/src/AgroSenseBot/'
 
 alias sai='sudo apt install'
 complete -F _complete_alias sai

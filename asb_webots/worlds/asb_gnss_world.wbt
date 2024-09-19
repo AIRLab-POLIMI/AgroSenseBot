@@ -61,11 +61,11 @@ Pose {
       }
     }
     DEF VINES Pose {
-      translation 12.68 -5.45 0.45
+      translation 14.9917 -4.49951 0.45
       rotation 0 0 1 1.9608
       children [
         CadShape {
-          url "models/cornaredo_vine.dae"
+          url "models/cornaredo_vine_2_rows.dae"
         }
       ]
     }

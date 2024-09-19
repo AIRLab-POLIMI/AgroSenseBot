@@ -370,8 +370,12 @@ class SprayingTaskPlan:
         for i, (r_1, r_2) in enumerate(row_pairs):
             inter_row = TaskPlanItem(item_id=None)
             inter_row.set_type(TaskPlanItemType.ROW)
-            approach = TaskPlanItem(item_id=None)
-            approach.set_type(TaskPlanItemType.APPROACH)
+
+            approach_close = TaskPlanItem(item_id=None)
+            approach_close.set_type(TaskPlanItemType.APPROACH)
+
+            approach_far = TaskPlanItem(item_id=None)
+            approach_far.set_type(TaskPlanItemType.APPROACH)
 
             theta, r_1_t, r_2_t = transform_rows(r_1, r_2)
             path_start: Point | None = None
@@ -406,12 +410,6 @@ class SprayingTaskPlan:
                     PoseStamped(header=Header(frame_id=self.map_frame), pose=Pose(position=path_end, orientation=yaw_to_quaternion(theta + np.pi))),
                 ])
 
-                theta_approach, p_s_t, _ = transform_points(inter_row.get_row_waypoints()[0].pose.position, inter_row.get_row_waypoints()[1].pose.position)
-                approach.set_approach_pose(PoseStamped(
-                    header=Header(frame_id=self.map_frame),
-                    pose=Pose(position=un_transform(theta_approach, Point(x=p_s_t.x - self.row_approach_margin, y=p_s_t.y)), orientation=yaw_to_quaternion(theta_approach)),
-                ))
-
             else:  # path goes from row's start to end
 
                 if r_1 is not None and r_2 is not None:
@@ -438,15 +436,19 @@ class SprayingTaskPlan:
                     PoseStamped(header=Header(frame_id=self.map_frame), pose=Pose(position=path_end, orientation=yaw_to_quaternion(theta))),
                 ])
 
-                theta_approach, p_s_t, _ = transform_points(inter_row.get_row_waypoints()[0].pose.position, inter_row.get_row_waypoints()[1].pose.position)
-                approach.set_approach_pose(PoseStamped(
-                    header=Header(frame_id=self.map_frame),
-                    pose=Pose(position=un_transform(theta_approach, Point(x=p_s_t.x - self.row_approach_margin, y=p_s_t.y)), orientation=yaw_to_quaternion(theta_approach)),
-                ))
+            approach_close.set_approach_pose(inter_row.get_row_waypoints()[0])
 
-            approach.set_item_id(f"approach_{inter_row.get_item_id()}")
+            theta_approach_2, p_s_t, _ = transform_points(inter_row.get_row_waypoints()[0].pose.position, inter_row.get_row_waypoints()[1].pose.position)
+            approach_far.set_approach_pose(PoseStamped(
+                header=Header(frame_id=self.map_frame),
+                pose=Pose(position=un_transform(theta_approach_2, Point(x=p_s_t.x - self.row_approach_margin, y=p_s_t.y)), orientation=yaw_to_quaternion(theta_approach_2)),
+            ))
 
-            self.items.append(approach)
+            approach_close.set_item_id(f"approach_close_{inter_row.get_item_id()}")
+            approach_far.set_item_id(f"approach_far_{inter_row.get_item_id()}")
+
+            self.items.append(approach_close)
+            self.items.append(approach_far)
             self.items.append(inter_row)
 
 
