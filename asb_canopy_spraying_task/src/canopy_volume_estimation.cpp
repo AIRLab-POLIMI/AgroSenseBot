@@ -31,7 +31,7 @@ CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimatio
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   points_in_subscriber_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-    "points_in", rclcpp::SensorDataQoS().durability_volatile().best_effort().keep_last(1),
+    "points_in", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
     std::bind(&CanopyVolumeEstimation::points_in_callback, this, _1));
 
   initialize_canopy_region_service_ = this->create_service<InitializeCanopyRegion>(
