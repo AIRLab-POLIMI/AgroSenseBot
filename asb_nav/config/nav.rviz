@@ -4,13 +4,15 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Environment1
         - /Environment1/tf1/Frames1
         - /Sensors1/front1/Autocompute Value Bounds1
+        - /Sensors1/filtered front1
         - /Sensors1/filtered front1/Topic1
         - /Sensors1/filtered front1/Autocompute Value Bounds1
         - /Sensors1/rear1/Topic1
+        - /Sensors1/filtered rear1
         - /Sensors1/filtered rear1/Autocompute Value Bounds1
-        - /Global Planner1/Path1
         - /Controller1/footprint1/Topic1
         - /Localization1/Odometry position1/Shape1
         - /Localization1/gnss 11/Covariance1
@@ -20,10 +22,9 @@ Panels:
         - /Localization1/gnss 21/Covariance1/Orientation1
         - /Localization1/gnss 2 history1/Covariance1
         - /Localization1/gnss 2 history1/Covariance1/Position1
-        - /Canopy1/canopy_depth1
-        - /Canopy1/canopy_depth1/Namespaces1
+        - /Task1/canopy_depth1/Namespaces1
       Splitter Ratio: 0.6411483287811279
-    Tree Height: 1069
+    Tree Height: 873
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -74,119 +75,19 @@ Visualization Manager:
           Use Timestamp: false
           Value: false
         - Class: rviz_default_plugins/TF
-          Enabled: true
+          Enabled: false
           Frame Timeout: 15
           Frames:
             All Enabled: false
-            accelerometer_link:
-              Value: false
-            base_footprint:
-              Value: true
-            base_link:
-              Value: false
-            base_scan_front_multilayer:
-              Value: true
-            base_scan_front_multilayer_imu:
-              Value: true
-            base_scan_front_multilayer_lidar:
-              Value: true
-            base_scan_front_multilayer_sim:
-              Value: false
-            base_scan_rear_multilayer:
-              Value: true
-            base_scan_rear_multilayer_imu:
-              Value: true
-            base_scan_rear_multilayer_lidar:
-              Value: true
-            base_scan_rear_multilayer_sim:
-              Value: false
-            gnss_1_link:
-              Value: false
-            gnss_2_link:
-              Value: false
-            gq7_gnss_1_antenna_link:
-              Value: true
-            gq7_gnss_2_antenna_link:
-              Value: true
-            gq7_odometer_link:
-              Value: true
-            gyro_link:
-              Value: false
-            hedge:
-              Value: false
-            imu_link:
-              Value: false
-            inertial_link:
-              Value: false
-            left_track:
-              Value: false
-            map:
-              Value: false
-            odom:
-              Value: false
-            right_track:
-              Value: false
-            sat_map:
-              Value: false
-            sprayer_link:
-              Value: false
-            vineyard:
-              Value: true
           Marker Scale: 3
           Name: tf
           Show Arrows: false
           Show Axes: true
           Show Names: true
           Tree:
-            map:
-              hedge:
-                {}
-              odom:
-                base_footprint:
-                  base_link:
-                    base_scan_front_multilayer:
-                      base_scan_front_multilayer_imu:
-                        {}
-                      base_scan_front_multilayer_lidar:
-                        {}
-                    base_scan_front_multilayer_sim:
-                      {}
-                    base_scan_rear_multilayer:
-                      base_scan_rear_multilayer_imu:
-                        {}
-                      base_scan_rear_multilayer_lidar:
-                        {}
-                    base_scan_rear_multilayer_sim:
-                      {}
-                    gnss_1_link:
-                      {}
-                    gnss_2_link:
-                      {}
-                    imu_link:
-                      accelerometer_link:
-                        {}
-                      gq7_gnss_1_antenna_link:
-                        {}
-                      gq7_gnss_2_antenna_link:
-                        {}
-                      gq7_odometer_link:
-                        {}
-                      gyro_link:
-                        {}
-                    inertial_link:
-                      {}
-                    left_track:
-                      {}
-                    right_track:
-                      {}
-                    sprayer_link:
-                      {}
-              sat_map:
-                {}
-              vineyard:
-                {}
+            {}
           Update Interval: 0
-          Value: true
+          Value: false
         - Alpha: 0.5
           Class: rviz_default_plugins/RobotModel
           Collision Enabled: false
@@ -198,85 +99,20 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /robot_description
-          Enabled: true
+          Enabled: false
           Links:
             All Links Enabled: true
             Expand Joint Details: false
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            accelerometer_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_footprint:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_front_multilayer:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_front_multilayer_sim:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_rear_multilayer:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_rear_multilayer_sim:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            gnss_1_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            gnss_2_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            gyro_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            inertial_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            left_track:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            right_track:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            sprayer_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
           Mass Properties:
             Inertia: false
             Mass: false
           Name: robot model
           TF Prefix: ""
           Update Interval: 0
-          Value: true
+          Value: false
           Visual Enabled: true
         - Alpha: 0.10000000149011612
           Cell Size: 1
@@ -434,10 +270,10 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: false
           Value: false
-        - Alpha: 0.5
+        - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
-            Max Value: 0.4000000059604645
+            Max Value: 2
             Min Value: 0
             Value: false
           Axis: Z
@@ -502,10 +338,10 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: false
           Value: false
-        - Alpha: 0.5
+        - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
-            Max Value: 0.4000000059604645
+            Max Value: 2
             Min Value: 0
             Value: false
           Axis: Z
@@ -652,7 +488,7 @@ Visualization Manager:
             Reliability Policy: Best Effort
             Value: /scan_front_multilayer/nearir_image
           Value: false
-      Enabled: true
+      Enabled: false
       Name: Sensors
     - Class: rviz_common/Group
       Displays:
@@ -777,27 +613,6 @@ Visualization Manager:
             Value: /global_costmap/obstacle_layer_updates
           Use Timestamp: false
           Value: false
-        - Alpha: 1
-          Arrow Length: 0.30000001192092896
-          Axes Length: 0.30000001192092896
-          Axes Radius: 0.009999999776482582
-          Class: rviz_default_plugins/PoseArray
-          Color: 255; 25; 0
-          Enabled: true
-          Head Length: 0.10000000149011612
-          Head Radius: 0.10000000149011612
-          Name: approach poses
-          Shaft Length: 0.20000000298023224
-          Shaft Radius: 0.05000000074505806
-          Shape: Arrow (3D)
-          Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            Filter size: 10
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /approach_poses
-          Value: true
       Enabled: true
       Name: Global Planner
     - Class: rviz_common/Group
@@ -1152,7 +967,7 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /initialpose
           Value: true
-      Enabled: false
+      Enabled: true
       Name: Clicked
     - Class: rviz_common/Group
       Displays:
@@ -1472,11 +1287,58 @@ Visualization Manager:
       Name: Localization
     - Class: rviz_common/Group
       Displays:
+        - Alpha: 1
+          Arrow Length: 0.30000001192092896
+          Axes Length: 0.30000001192092896
+          Axes Radius: 0.009999999776482582
+          Class: rviz_default_plugins/PoseArray
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.10000000149011612
+          Head Radius: 0.10000000149011612
+          Name: approach poses
+          Shaft Length: 0.20000000298023224
+          Shaft Radius: 0.05000000074505806
+          Shape: Arrow (3D)
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /approach_poses
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 255; 255; 255
+          Enabled: true
+          Name: left row
+          Topic:
+            Depth: 5
+            Durability Policy: Transient Local
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /row_left_viz
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 255; 255; 255
+          Enabled: true
+          Name: right row
+          Topic:
+            Depth: 5
+            Durability Policy: Transient Local
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /row_right_viz
+          Value: true
         - Class: rviz_default_plugins/MarkerArray
           Enabled: true
           Name: canopy_depth
           Namespaces:
-            {}
+            row_0: true
           Topic:
             Depth: 5
             Durability Policy: Transient Local
@@ -1484,8 +1346,8 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /canopy_visualization_markers
           Value: true
-      Enabled: false
-      Name: Canopy
+      Enabled: true
+      Name: Task
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1523,7 +1385,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.6049988269805908
+      Angle: -1.56999933719635
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -1533,25 +1395,25 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 72.14627075195312
+      Scale: 93.17815399169922
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 10.155537605285645
-      Y: -1.5596059560775757
+      X: 10.760635375976562
+      Y: 0.36105966567993164
     Saved: ~
 Window Geometry:
   AgroSenseBot:
-    collapsed: true
+    collapsed: false
   Displays:
     collapsed: true
   Height: 1523
   Hide Left Dock: true
-  Hide Right Dock: true
+  Hide Right Dock: false
   Image:
     collapsed: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001560000055afc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e7000004b0000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c1000000000000000000000001000001c10000055afc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000003d0000055a0000042500fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000500000001d7fc0100000003fb0000000a0049006d0061006700650000000000000005000000005e00fffffffb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000005000000055a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001560000055afc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb0000000a00560069006500770073000000003d00000168000000a400fffffffb000000100044006900730070006c00610079007300000001ab000003ec000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c1000000000000000000000001000001c10000055afc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d0000055a0000042500fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000500000001d7fc0100000003fb0000000a0049006d0061006700650000000000000005000000005e00fffffffb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fb0000000800540069006d0065010000000000000500000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003390000055a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

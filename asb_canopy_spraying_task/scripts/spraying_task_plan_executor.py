@@ -16,7 +16,7 @@ from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState, GetState_Request
 from asb_msgs.msg import Heartbeat, PlatformState, SprayRegulatorStatus
 from asb_msgs.srv import StartRowSpraying, StartRowSpraying_Request, StopRowSpraying, StopRowSpraying_Request
-from geometry_msgs.msg import Point, Pose, PoseStamped, PoseArray
+from geometry_msgs.msg import Point, Pose, PoseStamped, PoseArray, Polygon, PolygonStamped, Point32
 from nav_msgs.msg import Path
 from std_msgs.msg import Header, String
 from action_msgs.msg import GoalStatus, GoalInfo
@@ -187,8 +187,10 @@ class SprayingTaskPlanExecutor(Node):
             history=HistoryPolicy.KEEP_LAST,
             depth=10
         )
-        self.approach_poses_pub = self.create_publisher(PoseArray, '/approach_poses', 10)
-        self.row_path_pub = self.create_publisher(Path, '/plan', 10)
+        self.row_left_viz_pub = self.create_publisher(PolygonStamped, '/row_left_viz', qos_reliable_transient_local_depth_10)
+        self.row_right_viz_pub = self.create_publisher(PolygonStamped, '/row_right_viz', qos_reliable_transient_local_depth_10)
+        self.approach_poses_pub = self.create_publisher(PoseArray, '/approach_poses', qos_reliable_transient_local_depth_10)
+        self.row_path_pub = self.create_publisher(Path, '/plan', qos_reliable_transient_local_depth_10)
         self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', 10)
         self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
@@ -628,6 +630,40 @@ class SprayingTaskPlanExecutor(Node):
 
         elif item.get_type() == TaskPlanItemType.ROW:
             self.get_logger().info(f"STARTING row navigation: {item.get_item_id()}")
+
+            if item.get_left_row_id() is not None:
+                left_row: TaskPlanRow = self.task_plan.get_row(item.get_left_row_id())
+                p_s = left_row.get_start_point().point
+                p_e = left_row.get_end_point().point
+
+                self.row_left_viz_pub.publish(PolygonStamped(
+                    header=Header(
+                        frame_id=left_row.get_start_point().header.frame_id,
+                        stamp=self.get_clock().now().to_msg(),
+                    ),
+                    polygon=Polygon(points=[
+                        Point32(x=p_s.x, y=p_s.y),
+                        Point32(x=p_e.x, y=p_e.y),
+                    ])
+
+                ))
+
+            if item.get_right_row_id() is not None:
+                right_row: TaskPlanRow = self.task_plan.get_row(item.get_right_row_id())
+                p_s = right_row.get_start_point().point
+                p_e = right_row.get_end_point().point
+
+                self.row_right_viz_pub.publish(PolygonStamped(
+                    header=Header(
+                        frame_id=right_row.get_start_point().header.frame_id,
+                        stamp=self.get_clock().now().to_msg(),
+                    ),
+                    polygon=Polygon(points=[
+                        Point32(x=p_s.x, y=p_s.y),
+                        Point32(x=p_e.x, y=p_e.y),
+                    ])
+
+                ))
 
             row_path = self.get_row_path(item)
             if row_path is None:
