@@ -27,7 +27,7 @@ PROTO MultiLayerLidar [
     rotation IS rotation
     children [
       DEF CHASSIS Pose {
-        translation 0 0 0
+        translation 0 0 0.04
         children [
           Shape {
             appearance PBRAppearance {
@@ -47,7 +47,7 @@ PROTO MultiLayerLidar [
     name IS name
     model IS model
     boundingObject Pose {
-      translation 0 0 0
+      translation 0 0 0.04
       children [
         Cylinder {
           height 0.0742
