@@ -56,6 +56,7 @@ asb_base_controller:
     publish_pid_state: true
 
     min_turning_radius: 1.4
+    max_wheel_angular_velocity: 314.159265359  # rad/s, referring to the track's motor velocity. 3000/60*2*pi.
 
     # Velocity and acceleration limits. Whenever a min_* is unspecified, default to -max_*
     linear.x.has_velocity_limits: true

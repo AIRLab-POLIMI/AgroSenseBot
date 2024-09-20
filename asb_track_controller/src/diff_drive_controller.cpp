@@ -328,6 +328,15 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
     else
     {
       angular_command = angular_vel_setpoint + angular_command_pid_.computeCommand(angular_vel_error, (uint64_t)period.nanoseconds());
+
+      auto gains = angular_command_pid_.getGains();
+      double p_error_, i_error_, d_error_;
+      angular_command_pid_.getCurrentPIDErrors(p_error_, i_error_, d_error_);
+      double i_term = gains.i_gain_ * i_error_;
+      if((i_term >= gains.i_max_*0.99) || (i_term <= gains.i_min_*0.99)) {
+        auto& clk = *get_node()->get_clock();
+        RCLCPP_WARN_THROTTLE(logger, clk, 5000, "angular command PID is saturated (this message is throttled to 5 s)");
+      }
     }
 
     if (params_.publish_pid_state)
@@ -349,26 +358,45 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
     realtime_limited_velocity_publisher_->unlockAndPublish();
   }
 
-  // Compute wheels velocities:
-  // Compute wheels velocities:
+  // Compute wheels velocities
   double velocity_left;
   double velocity_right;
+  double min_track_vel = std::fabs(linear_vel_reference) / left_wheel_radius;
 
-  if ((angular_command > 0) == (linear_vel_reference > 0)) {
-    velocity_left = linear_vel_reference / left_wheel_radius;
-    velocity_right = (linear_vel_reference + 2 * angular_command * wheel_separation / 2.0) / right_wheel_radius;
-  } else {
-    velocity_left = (linear_vel_reference - 2 * angular_command * wheel_separation / 2.0) / left_wheel_radius;
-    velocity_right = linear_vel_reference / right_wheel_radius;
+  velocity_left = (linear_vel_reference - angular_command * wheel_separation / 2.0) / left_wheel_radius;
+  velocity_right = (linear_vel_reference + angular_command * wheel_separation / 2.0) / right_wheel_radius;
+
+  // The velocity of both tracks is increased in absolute value (without affecting the curvature). The track with lower
+  // velocity in absolute value will become +- min_track_velocity, which is the velocity it would have with pure linear
+  // velocity.
+  // Up-scaling both track velocities does not affect the curvature, but will increase the effective linear and angular
+  // velocities (resulting from track commands) with respect to the requested reference (cmd_vel). The PID computation
+  // of the angular velocity is not affected because it is computed based on the effective linear velocity and the
+  // curvature.
+  double track_under_rev_factor = std::min(
+    std::fabs(velocity_left)/min_track_vel,
+    std::fabs(velocity_right)/min_track_vel
+    );
+  velocity_left = velocity_left / track_under_rev_factor;
+  velocity_right = velocity_right / track_under_rev_factor;
+
+  // If one or both track velocities is higher in absolute value to the maximum track velocity, both are scaled so that
+  // the maximum track velocity is equal to +- max_track_vel.
+  // Down-scaling both track velocities does not affect the curvature, but will decrease the effective linear and
+  // angular velocities (resulting from track commands) with respect to the requested reference (cmd_vel). Again, the
+  // PID computation of the angular velocity is not affected because it is computed based on the effective linear
+  // velocity and the curvature.
+  double track_over_rev_factor = std::max(
+    std::fabs(velocity_left) / params_.max_wheel_angular_velocity,
+    std::fabs(velocity_right) / params_.max_wheel_angular_velocity
+    );
+  if (track_over_rev_factor > 1.0)
+  {
+    velocity_left = velocity_left / track_over_rev_factor;
+    velocity_right = velocity_right / track_over_rev_factor;
   }
 
-  double over_rev_factor = std::max(std::fabs(velocity_left)/314.159265359, std::fabs(velocity_right)/314.159265359);
-  if (over_rev_factor > 1.0) {
-    velocity_left = velocity_left / over_rev_factor;
-    velocity_right = velocity_right / over_rev_factor;
-  }
-
-  // Set wheels velocities:
+  // Set wheels velocities
   for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
   {
     registered_left_wheel_handles_[index].velocity.get().set_value(velocity_left);

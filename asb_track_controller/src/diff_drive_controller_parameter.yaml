@@ -158,7 +158,12 @@ diff_drive_controller:
   min_turning_radius: {
     type: double,
     default_value: 0.0, # meters
-    description: "Minimum turning radius below which the command will not be actuated.",
+    description: "Minimum turning radius, in meters, below which the command will not be actuated.",
+  }
+  max_wheel_angular_velocity: {
+    type: double,
+    default_value: 100.0, # rad/s
+    description: "Maximum angular velocity, in rad/s, of the wheel's motor joints to be commanded.",
   }
   linear:
     x:
