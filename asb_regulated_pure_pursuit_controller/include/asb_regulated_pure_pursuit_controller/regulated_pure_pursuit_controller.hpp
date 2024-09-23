@@ -236,7 +236,6 @@ protected:
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> lookahead_curvature_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> min_curvature_pub_;
   std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> max_curvature_pub_;
-  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> robot_path_distance_pub_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::PathHandler> path_handler_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::ParameterHandler> param_handler_;
   std::unique_ptr<asb_regulated_pure_pursuit_controller::CollisionChecker> collision_checker_;

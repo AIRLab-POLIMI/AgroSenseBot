@@ -83,7 +83,6 @@ void RegulatedPurePursuitController::configure(
   lookahead_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("lookahead_curvature", 1);
   min_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("min_curvature", 1);
   max_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("max_curvature", 1);
-  robot_path_distance_pub_ = node->create_publisher<std_msgs::msg::Float64>("robot_global_path_distance", 1);
 
   RCLCPP_INFO(logger_, "ASB RPP configured.");
 }
@@ -105,7 +104,6 @@ void RegulatedPurePursuitController::cleanup()
   lookahead_curvature_pub_.reset();
   min_curvature_pub_.reset();
   max_curvature_pub_.reset();
-  robot_path_distance_pub_.reset();
 }
 
 void RegulatedPurePursuitController::activate()
@@ -125,7 +123,6 @@ void RegulatedPurePursuitController::activate()
   lookahead_curvature_pub_->on_activate();
   min_curvature_pub_->on_activate();
   max_curvature_pub_->on_activate();
-  robot_path_distance_pub_->on_activate();
 }
 
 void RegulatedPurePursuitController::deactivate()
@@ -145,7 +142,6 @@ void RegulatedPurePursuitController::deactivate()
   lookahead_curvature_pub_->on_deactivate();
   min_curvature_pub_->on_deactivate();
   max_curvature_pub_->on_deactivate();
-  robot_path_distance_pub_->on_deactivate();
 }
 
 std::unique_ptr<geometry_msgs::msg::PointStamped> RegulatedPurePursuitController::createCarrotMsg(
@@ -299,9 +295,6 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
   global_path_pub_->publish(transformed_plan);
 
   double robot_path_distance = std::hypot(transformed_plan.poses[0].pose.position.x, transformed_plan.poses[0].pose.position.y);
-  std_msgs::msg::Float64 robot_path_distance_msg = std_msgs::msg::Float64();
-  robot_path_distance_msg.data = robot_path_distance;
-  robot_path_distance_pub_->publish(robot_path_distance_msg);
   if (robot_path_distance > params_->max_robot_path_dist) {
     throw nav2_core::InvalidPath("RegulatedPurePursuitController robot too far from global plan!");
   }

@@ -116,10 +116,10 @@ def generate_launch_description():
         output="screen",
     )
 
-    fake_scan_node = Node(
+    global_path_distance_publisher_node = Node(
         package="asb_etc",
-        executable="fake_scan_pub.py",
-        name="fake_scan_publisher",
+        executable="global_path_distance_publisher.py",
+        name="global_path_distance_publisher",
         output="screen",
     )
 
@@ -157,9 +157,7 @@ def generate_launch_description():
 
     # navigation
     ld.add_action(nav2_bringup_include)
-
-    # sensors
-    # ld.add_action(fake_scan_node)
+    ld.add_action(global_path_distance_publisher_node)
 
     # viz
     ld.add_action(rviz_include)
