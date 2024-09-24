@@ -447,13 +447,13 @@ class SprayingTaskPlanExecutor(Node):
 
         while rclpy.ok() and self.get_control_mode() != ControlMode.MANUAL:
             self.do_loop_operations_and_sleep()
-            self.get_logger().info(f"WAITING control mode switch to MANUAL", throttle_duration_sec=1.0)
+            self.get_logger().info(f"WAITING control mode switch to MANUAL", throttle_duration_sec=10.0)
 
         self.stop_platform = False
 
         while rclpy.ok() and self.get_control_mode() != ControlMode.AUTO:
             self.do_loop_operations_and_sleep()
-            self.get_logger().info(f"WAITING control mode switch to AUTO", throttle_duration_sec=1.0)
+            self.get_logger().info(f"WAITING control mode switch to AUTO", throttle_duration_sec=10.0)
 
     def start_spray_regulator(self, item: TaskPlanItem) -> None:
         if item.get_type() != TaskPlanItemType.ROW:
