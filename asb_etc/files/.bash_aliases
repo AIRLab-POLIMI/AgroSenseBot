@@ -193,3 +193,18 @@ alias ust='ros2 param set use_sim_time true'
 
 alias vf='rr rqt_tf_tree rqt_tf_tree'
 
+alias sima='clr; cb; rl asb_sim nav_dual_rtk_sim.launch.py record:=false start_in_control_mode_GCU:=true fake_heartbeat:=true'
+complete -F _complete_alias sima
+
+alias sim='clr; cb; rl asb_sim nav_dual_rtk_sim.launch.py record:=false'
+complete -F _complete_alias sim
+
+alias reala='clr; cb; rl asb_real nav_dual_rtk_real.launch.py start_in_control_mode_GCU:=true fake_heartbeat:=true'
+complete -F _complete_alias reala
+
+alias real='clr; cb; rl asb_real nav_dual_rtk_real.launch.py'
+complete -F _complete_alias real
+
+alias gq='rl asb_real gq7_launch.py'
+complete -F _complete_alias gq
+
