@@ -32,15 +32,11 @@ local_costmap:
       footprint: "[[0.9, 0.8], [0.9, -0.8], [-1.1, -0.8], [-1.1, 0.8]]"
       footprint_padding: 0.1
 
-      plugins: ["static_layer", "voxel_layer", "inflation_layer"]
+      plugins: ["static_layer", "voxel_layer", "denoise_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /geofence_map
         map_subscribe_transient_local: True
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 1.5
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -59,9 +55,9 @@ local_costmap:
           marking: True
           data_type: "PointCloud2"
           raytrace_max_range: 6.0
-          raytrace_min_range: 0.0
+          raytrace_min_range: 0.2
           obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.2
         scan_rear:
           topic: /scan_rear_multilayer/points_filtered
           min_obstacle_height: 0.5
@@ -70,9 +66,18 @@ local_costmap:
           marking: True
           data_type: "PointCloud2"
           raytrace_max_range: 6.0
-          raytrace_min_range: 0.0
+          raytrace_min_range: 0.2
           obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.2
+      denoise_layer:
+        plugin: "nav2_costmap_2d::DenoiseLayer"
+        enabled: True
+        minimal_group_size: 10
+        group_connectivity_type: 8
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 1.5
 
 global_costmap:
   global_costmap:
@@ -91,7 +96,7 @@ global_costmap:
       width: 200
       height: 200
       track_unknown_space: true
-      plugins: ["static_layer", "voxel_layer", "inflation_layer"]
+      plugins: ["static_layer", "voxel_layer", "denoise_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /geofence_map
@@ -114,9 +119,9 @@ global_costmap:
           marking: True
           data_type: "PointCloud2"
           raytrace_max_range: 5.5
-          raytrace_min_range: 0.0
+          raytrace_min_range: 0.2
           obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.2
         scan_rear:
           topic: /scan_rear_multilayer/points_filtered
           min_obstacle_height: 0.5
@@ -125,9 +130,14 @@ global_costmap:
           marking: True
           data_type: "PointCloud2"
           raytrace_max_range: 5.5
-          raytrace_min_range: 0.0
+          raytrace_min_range: 0.2
           obstacle_max_range: 5.5
-          obstacle_min_range: 0.0
+          obstacle_min_range: 0.2
+      denoise_layer:
+        plugin: "nav2_costmap_2d::DenoiseLayer"
+        enabled: True
+        minimal_group_size: 10
+        group_connectivity_type: 8
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
