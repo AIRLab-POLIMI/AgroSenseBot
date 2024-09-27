@@ -17,10 +17,21 @@ class ControlModePublisher(Node):
 
         set_manual_mode_future = self.set_control_mode_service.call_async(SetControlMode_Request(control_mode=SetControlMode_Request.CONTROL_MODE_RCU))  # set control mode to MANUAL
         set_manual_mode_future.add_done_callback(self.set_manual_mode_response)
+        self.set_manual_mode_timeout_timer = self.create_timer(1.0, self.set_manual_mode_timeout_callback)
 
-    def set_manual_mode_response(self, response_future):
-        self.get_logger().info(f"set manual mode response: {response_future.result().result}")
+    def set_manual_mode_response(self, _):
+        self.set_manual_mode_timeout_timer.cancel()
+        self.get_logger().info(f"mode set to manual")
         rclpy.shutdown()
+
+    def set_manual_mode_timeout_callback(self):
+        self.set_manual_mode_timeout_timer.cancel()
+        self.get_logger().error(f"set manual mode service call timeout, retrying.")
+
+        # retry
+        set_manual_mode_future = self.set_control_mode_service.call_async(SetControlMode_Request(control_mode=SetControlMode_Request.CONTROL_MODE_RCU))  # set control mode to MANUAL
+        set_manual_mode_future.add_done_callback(self.set_manual_mode_response)
+        self.set_manual_mode_timeout_timer = self.create_timer(1.0, self.set_manual_mode_timeout_callback)
 
 
 def main(args=None):
