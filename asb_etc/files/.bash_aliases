@@ -228,6 +228,7 @@ alias ts='rl asb_canopy_spraying_task execute_task.launch.xml'
 complete -F _complete_alias ts
 
 alias ts-dr='ts dry_run:=true'
+alias ts-l='ts loop:=true'
 
 # launch rviz
 alias rv='rl asb_nav rviz.launch.py use_sim_time:=true'

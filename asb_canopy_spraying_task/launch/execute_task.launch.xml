@@ -1,6 +1,7 @@
 <launch>
 
 	<arg name="dry_run" default="false" />
+	<arg name="loop" default="false" />
 
   <arg name="use_sim_time" default="false" />
 
@@ -32,6 +33,7 @@
   <node pkg="asb_canopy_spraying_task" exec="spraying_task_plan_executor.py" name="spraying_task_plan_executor">
     <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/task_plan_auto_gen.yaml" />
     <param name="dry_run" value="$(var dry_run)" />
+    <param name="loop" value="$(var loop)" />
   </node>
 
 </launch>

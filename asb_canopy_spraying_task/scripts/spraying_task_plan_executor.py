@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os.path
+from datetime import datetime
 
 import numpy as np
 import threading
@@ -102,10 +103,13 @@ class SprayingTaskPlanExecutor(Node):
         self.task_plan_file_path = os.path.expanduser(self.get_parameter('task_plan_file_path').get_parameter_value().string_value)
         self.get_logger().info(f"task_plan_file_path set to {self.task_plan_file_path}")
 
-        default_log_dir_path = os.path.expanduser("~/asb_logs/asb_canopy_spraying_task_plan.yaml")
+        date_stamp = datetime.now().strftime("%Y-%m-%d")
+        default_log_dir_path = os.path.join(os.path.expanduser("~/asb_logs/"), date_stamp)
         self.declare_parameter('log_dir_path', default_log_dir_path)
         self.task_log_dir_path = os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value)
         self.get_logger().info(f"log_dir_path set to {self.task_log_dir_path}")
+
+        self.task_result_filename = datetime.now().strftime("%Y-%m-%d__%H-%M-%S__spraying_task_plan_result.yaml")
 
         default_dry_run = False
         self.declare_parameter('dry_run', default_dry_run)
@@ -117,6 +121,18 @@ class SprayingTaskPlanExecutor(Node):
                 f"* DRY RUN *\n"
                 f"***********\n"
             )
+
+        if not self.dry_run:
+            default_loop = False
+            self.declare_parameter('loop', default_loop)
+            self.loop = self.get_parameter('loop').get_parameter_value().bool_value
+            if self.loop:
+                self.get_logger().info(
+                    f"\n"
+                    f"***********\n"
+                    f"*  LOOP   *\n"
+                    f"***********\n"
+                )
 
         default_base_frame = "base_link"
         self.declare_parameter('base_frame', default_base_frame)
@@ -264,6 +280,7 @@ class SprayingTaskPlanExecutor(Node):
             item = self.task_plan.items[item_index]
             item.set_result(TaskPlanItemResult())
             item.get_result().item_started = True
+            self.get_logger().info(f"\n*************\nSTARTING ITEM {item.get_item_id()}")
 
             self.do_loop_operations_and_sleep(current_item=item)
 
@@ -347,8 +364,12 @@ class SprayingTaskPlanExecutor(Node):
                     if item_index < len(self.task_plan.items):
                         break  # (back to start of main loop)
                     else:
-                        self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
-                        return
+                        if self.loop:
+                            self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s, looping back to start")
+                            item_index = 0
+                        else:
+                            self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
+                            return
 
                 if self.navigation_action_status == NavigationActionStatus.FAILED:
                     item.get_result().navigation_result = self.navigation_action_status.name
@@ -401,7 +422,7 @@ class SprayingTaskPlanExecutor(Node):
 
     def log_task_results(self) -> None:
         chrono = Chronometer()
-        self.task_plan.write(os.path.expanduser(os.path.join(self.task_log_dir_path, "spraying_task_plan_result.yaml")))
+        self.task_plan.write(os.path.expanduser(os.path.join(self.task_log_dir_path, self.task_result_filename)))
         self.get_logger().info(f"wrote task results, it took {chrono.total():.3f} s")
 
     def do_loop_operations_and_sleep(self, current_item: TaskPlanItem = None) -> None:
