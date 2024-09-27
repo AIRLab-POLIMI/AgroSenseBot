@@ -20,6 +20,7 @@
 #include "tf2_ros/transform_listener.h"
 #include "tf2_eigen/tf2_eigen/tf2_eigen.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
 
 #include <chrono>
@@ -39,12 +40,15 @@ private:
   void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
 
   std::string base_frame_id_;
-  double x_min_, x_max_, y_min_, y_max_, z_min_, z_max_;
+
+  double x_min_, x_max_, y_min_, y_max_, z_min_, z_max_; // pointcloud filter params
+  double scan_min_height_, scan_max_height_; // scan filter params
 
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr points_in_subscriber_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan >::SharedPtr scan_publisher_;
 };
 
 

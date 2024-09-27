@@ -40,6 +40,7 @@ def generate_launch_description():
         remappings={
             "points_in": "/scan_front_multilayer/points",
             "points_out": "/scan_front_multilayer/points_filtered",
+            "scan_out": "/scan_front",
         }.items(),
         output="screen",
     )
@@ -54,6 +55,7 @@ def generate_launch_description():
         remappings={
             "points_in": "/scan_rear_multilayer/points",
             "points_out": "/scan_rear_multilayer/points_filtered",
+            "scan_out": "/scan_rear",
         }.items(),
         output="screen",
     )

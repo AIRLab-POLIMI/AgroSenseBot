@@ -13,3 +13,8 @@
   x: 14.6155
   y: -3.58378
   yaw: 1.9608
+- child_frame_id: vineyard_view
+  frame_id: vineyard
+  x: 9.95243
+  y: -1.09584
+  yaw: -1.5707963267948966
