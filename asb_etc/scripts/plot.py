@@ -6,7 +6,7 @@ from bag_to_dataframe import bag_to_dataframe
 import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = [10, 10]
 
-bag_path = path.expanduser('~/asb_logs/2024-09-23/rosbag2_2024-09-23__09-18-07_all_except_sensors')
+bag_path = path.expanduser('~/asb_logs/2024-09-23/rosbag2_2024-09-23__15-20-16_all_except_sensors')
 
 plot_relative_time = False
 
@@ -25,7 +25,7 @@ topics_fields_options = {
     #     'angular.z':
     #         (['-'], {'color': 'cyan', 'linewidth': 1.5}),
     # },
-    '/robot_global_path_distance': {
+    '/benchmarking/robot_global_path_distance': {
         'data':
             (['-'], {'color': 'black', 'linewidth': 1.5}),
     },
