@@ -10,16 +10,16 @@ planner_server:
       allow_unknown: true                 # allow traveling in unknown space
       tolerance: 0.25                     # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
       max_iterations: 10000000            # maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
-      max_on_approach_iterations: 1000    # Maximum number of iterations after within tolerances to continue to try to find exact solution
+      max_on_approach_iterations: 10000   # Maximum number of iterations after within tolerances to continue to try to find exact solution
       max_planning_time: 5.0              # max time in s for planner to plan, smooth
       analytic_expansion_ratio: 3.5       # The ratio to attempt analytic expansions during search for final approach.
       analytic_expansion_max_length: 12.0 # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
       motion_model_for_search: "REEDS_SHEPP"    # Hybrid-A* DUBIN or REEDS_SHEPP
       angle_quantization_bins: 72         # Number of angle bins for search
-      reverse_penalty: 2.0                # Penalty to apply if motion is reversing, must be => 1 (only used for REEDS_SHEPP)
+      reverse_penalty: 1.0                # Penalty to apply if motion is reversing, must be => 1 (only used for REEDS_SHEPP)
       change_penalty: 1.5                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
       non_straight_penalty: 2.0           # Penalty to apply if motion is non-straight, must be => 1
-      cost_penalty: 3.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
+      cost_penalty: 10.0                  # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
       retrospective_penalty: 0.015        # Heuristic penalty to apply to SE2 node penalty. Causes Hybrid-A* to prefer later maneuvers before earlier ones along the path. Saves search time since earlier (shorter) branches are not expanded until it is necessary. Must be >= 0.0 and <= 1.0. Must be 0.0 to be fully admissible.
       lookup_table_size: 20.0             # Size of the dubin/reeds-sheep distance window to cache, in meters.
       cache_obstacle_heuristic: false     # TODO try true. Cache the obstacle map dynamic programming distance expansion heuristic between subsequent replannings of the same goal location. Dramatically speeds up replanning performance (40x) if costmap is largely static.
