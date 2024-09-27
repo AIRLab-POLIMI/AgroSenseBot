@@ -153,9 +153,6 @@ alias cap='pygmentize -g' # replacement of cat with python-pygments to cat with 
 alias ipy='ipython3'
 complete -F _complete_alias ipy
 
-alias r='rviz2'
-complete -F _complete_alias r
-
 alias cb='cd $COLCON_WS && colcon build --continue-on-error --symlink-install ; cd -'
 complete -F _complete_alias cb
 
@@ -193,18 +190,45 @@ alias ust='ros2 param set use_sim_time true'
 
 alias vf='rr rqt_tf_tree rqt_tf_tree'
 
-alias sima='clr; cb; rl asb_sim nav_dual_rtk_sim.launch.py record:=false start_in_control_mode_GCU:=true fake_heartbeat:=true'
-complete -F _complete_alias sima
 
-alias sim='clr; cb; rl asb_sim nav_dual_rtk_sim.launch.py record:=false'
+# launch record and fake heartbeat options
+nr='record:=false'
+nrs='record:=true record_sensors:=false'
+fk='start_in_control_mode_GCU:=true fake_heartbeat:=true'
+
+# launch sim
+alias sim='clr; cb; rl asb_sim nav_dual_rtk_sim.launch.py'
 complete -F _complete_alias sim
 
-alias reala='clr; cb; rl asb_real nav_dual_rtk_real.launch.py start_in_control_mode_GCU:=true fake_heartbeat:=true'
-complete -F _complete_alias reala
+alias sim-nr='sim $nr'
+alias sim-nrs='sim $nrs'
+alias sim-fk='sim $fk'
+alias sim-nr-fk='sim $nr $fk'
+alias sim-nrs-fk='sim $nrs $fk'
 
-alias real='clr; cb; rl asb_real nav_dual_rtk_real.launch.py'
-complete -F _complete_alias real
+alias ma='rr asb_sim set_control_mode_manual_to_auto.py'
+alias m='rr asb_sim set_control_mode_manual.py'
 
+# launch real
+alias r='clr; cb; rl asb_real nav_dual_rtk_real.launch.py'
+complete -F _complete_alias r
+
+alias r-nr='r $nr'
+alias r-nrs='r $nrs'
+alias r-fk='r $fk'
+alias r-nr-fk='r $nr $fk'
+alias r-nrs-fk='r $nrs $fk'
+
+# launch GQ7 sensor
 alias gq='rl asb_real gq7_launch.py'
 complete -F _complete_alias gq
 
+# launch task
+alias ts='rl asb_canopy_spraying_task execute_task.launch.xml'
+complete -F _complete_alias ts
+
+alias ts-dr='ts dry_run:=true'
+
+# launch rviz
+alias rv='rl asb_nav rviz.launch.py use_sim_time:=true'
+complete -F _complete_alias rv
