@@ -240,21 +240,6 @@ std::unique_ptr<std_msgs::msg::Float64> RegulatedPurePursuitController::createCu
   return curvature_msg;
 }
 
-//double RegulatedPurePursuitController::getLookAheadDistance(
-//  const geometry_msgs::msg::Twist & speed)
-//{
-//  // If using velocity-scaled look ahead distances, find and clamp the dist
-//  // Else, use the static look ahead distance
-//  double lookahead_dist = params_->lookahead_dist;
-//  if (params_->use_velocity_scaled_lookahead_dist) {
-//    lookahead_dist = fabs(speed.linear.x) * params_->lookahead_time;
-//    lookahead_dist = std::clamp(
-//      lookahead_dist, params_->min_lookahead_dist, params_->max_lookahead_dist);
-//  }
-//
-//  return lookahead_dist;
-//}
-
 double calculateCurvature(geometry_msgs::msg::Point lookahead_point)
 {
   // Find distance^2 to look ahead point (carrot) in robot base frame
@@ -335,14 +320,17 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
 
   double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
 
-  if (params_->use_goal_angle_approach) {
+  if (params_->use_goal_angle_approach || params_->use_goal_angle_at_cusp) {
     const double remaining_distance = nav2_util::geometry_utils::calculate_path_length(transformed_plan);
     double dist_to_cusp = findVelocitySignChange(transformed_plan);
-    if (remaining_distance < params_->goal_angle_approach_dist && remaining_distance < dist_to_cusp) {
-      double x_g = goal_pose.pose.position.x, y_g = goal_pose.pose.position.y, t = tf2::getYaw(goal_pose.pose.orientation);
+    bool goal_angle_end = params_->use_goal_angle_approach && (remaining_distance < params_->goal_angle_approach_dist && remaining_distance < dist_to_cusp);
+    bool goal_angle_cusp = params_->use_goal_angle_at_cusp && (dist_to_cusp < params_->goal_angle_cusp_dist);
+    if (goal_angle_end || goal_angle_cusp) {
+
+      double x_g = carrot_pose.pose.position.x, y_g = carrot_pose.pose.position.y, t = tf2::getYaw(carrot_pose.pose.orientation);
       lookahead_curvature = tan(t) / (x_g + y_g * tan(t));
 
-      auto angle_goal_pose = goal_pose;
+      auto angle_goal_pose = carrot_pose;
       angle_goal_pose.pose.position.x = y_g * sin(t) + x_g * cos(t);
       angle_goal_pose.pose.position.y = x_g * cos(t) * tan(t/2) + y_g * (1 - cos(t));
       angle_goal_pose_pub_->publish(angle_goal_pose);

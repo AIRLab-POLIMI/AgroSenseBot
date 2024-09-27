@@ -38,8 +38,11 @@ controller_server:
       inflation_cost_scaling_factor: 3.0
       use_collision_detection: true
       use_interpolation: true
+
       use_goal_angle_approach: true
       goal_angle_approach_dist: 1.0
+      use_goal_angle_at_cusp: true
+      goal_angle_cusp_dist: 1.0
 
       use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles TODO set true
 
