@@ -113,8 +113,6 @@ if ! shopt -oq posix; then
 fi
 
 
-export ROSCONSOLE_FORMAT='[${severity} ${node}] [${time}]: ${message}'
-
 export DO_NOT_CLEAR=false
 
 # Git
@@ -126,6 +124,7 @@ echo "source /opt/ros/iron/setup.bash" &&
 source /opt/ros/iron/setup.bash ||
 export DO_NOT_CLEAR=true
 
+export RCUTILS_CONSOLE_OUTPUT_FORMAT='[{severity} {name} {time}]: {message}'
 export RCUTILS_COLORIZED_OUTPUT=1
 export COLCON_WS=~/w/agrosensebot_ws
 export ROS_DOMAIN_ID=109
