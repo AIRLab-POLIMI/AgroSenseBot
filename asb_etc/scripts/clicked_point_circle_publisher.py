@@ -12,7 +12,7 @@ class ClickedPointCirclePublisher(Node):
         super().__init__('curvature_publisher')
 
         self.clicked_point_sub_ = self.create_subscription(PointStamped, '/clicked_point', self.clicked_point_callback, 10)
-        self.clicked_point_curvature_pub_ = self.create_publisher(PolygonStamped, '/clicked_point_circle', 10)
+        self.clicked_point_circle_pub_ = self.create_publisher(PolygonStamped, '/circle_viz', 10)
 
         self.r = 2.0  # m
 
@@ -26,7 +26,7 @@ class ClickedPointCirclePublisher(Node):
             Point32(x=c_x + self.r * np.cos(2 * np.pi * t), y=c_y + self.r * np.sin(2 * np.pi * t), z=c_z)
             for t in np.linspace(0, 1, 100, endpoint=True)
         ]
-        self.clicked_point_curvature_pub_.publish(msg)
+        self.clicked_point_circle_pub_.publish(msg)
 
 
 def main(args=None):
