@@ -42,9 +42,16 @@ def generate_launch_description():
         description="Whether to send and receive motor velocities from simulator.",
     )
 
+    launch_webots_launch_configuration = LaunchConfiguration("launch_webots")
+    launch_webots_launch_argument = DeclareLaunchArgument(
+        'launch_webots',
+        default_value='true',
+        description="Whether to launch the webots simulator.",
+    )
+
     webots_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg("asb_webots"), "launch", "sim_webots.launch.py")),
-        condition=IfCondition(use_simulator_launch_configuration)
+        condition=IfCondition(launch_webots_launch_configuration)
     )
 
     front_os0_filter_node = Node(
@@ -125,6 +132,7 @@ def generate_launch_description():
     ld.add_action(print_debug_launch_argument)
     ld.add_action(start_in_control_mode_gcu_launch_argument)
     ld.add_action(use_simulator_launch_argument)
+    ld.add_action(launch_webots_launch_argument)
 
     ld.add_action(webots_launch)
     ld.add_action(front_os0_filter_node)

@@ -180,7 +180,7 @@ void ASBPlatformController::set_value(std::string name, double value){
 
 controller_interface::return_type ASBPlatformController::update(const rclcpp::Time & time, const rclcpp::Duration & /*period*/){
   auto logger = get_node()->get_logger();
-  if (get_state().id() == State::PRIMARY_STATE_INACTIVE) {
+  if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE) {
     if (!is_halted) {
       halt();
       is_halted = true;

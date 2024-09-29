@@ -23,9 +23,10 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(asb_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(octomap_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(octomap REQUIRED)
+find_package(octomap_ros REQUIRED)
+find_package(octomap_msgs REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(pcl_ros REQUIRED)
 
@@ -34,11 +35,15 @@ add_executable(canopy_volume_estimation_node
     src/canopy_volume_estimation.cpp
 )
 
+target_link_libraries(canopy_volume_estimation_node
+    ${OCTOMAP_LIBRARIES}
+)
+
 target_include_directories(canopy_volume_estimation_node PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_compile_features(canopy_volume_estimation_node PUBLIC c_std_99 cxx_std_17 cxx_std_20)  # Require C99 and C++17
+target_compile_features(canopy_volume_estimation_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 # Link the executable with the necessary libraries
 ament_target_dependencies(canopy_volume_estimation_node
@@ -48,9 +53,10 @@ ament_target_dependencies(canopy_volume_estimation_node
     tf2_geometry_msgs
     asb_msgs
     geometry_msgs
-    octomap_msgs
     visualization_msgs
     octomap
+    octomap_ros
+    octomap_msgs
     pcl_conversions
     pcl_ros
 )

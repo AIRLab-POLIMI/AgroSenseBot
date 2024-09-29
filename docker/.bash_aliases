@@ -123,7 +123,7 @@ alias clr='tput reset' # like clear, but actually clears the terminal, erasing p
 
 alias S='source ~/.bashrc'
 
-alias cda='cd $ROS_WS/src/AgroSenseBot/'
+alias cda='cd $COLCON_WS/src/AgroSenseBot/'
 
 alias sai='sudo apt install'
 complete -F _complete_alias sai
@@ -153,7 +153,7 @@ alias cap='pygmentize -g' # replacement of cat with python-pygments to cat with 
 alias ipy='ipython3'
 complete -F _complete_alias ipy
 
-alias cb='cd $ROS_WS && colcon build --continue-on-error --symlink-install ; cd -'
+alias cb='cd $COLCON_WS && colcon build --continue-on-error --symlink-install ; cd -'
 complete -F _complete_alias cb
 
 alias rt='ros2 topic'

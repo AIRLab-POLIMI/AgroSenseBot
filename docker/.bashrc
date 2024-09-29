@@ -113,23 +113,25 @@ if ! shopt -oq posix; then
 fi
 
 
-export RCUTILS_CONSOLE_OUTPUT_FORMAT='[{severity} {name} {date_time_with_ms}]: {message}'
-export RCUTILS_COLORIZED_OUTPUT=1
-export ROS_TARGET_DISTRO=jazzy
-export ROS_WS=~/w/agrosensebot_ws
-export ROS_DOMAIN_ID=109
-
-DO_NOT_CLEAR=false
+export DO_NOT_CLEAR=false
 
 # Git
-GIT_COMPLETION_CMD="source /usr/share/bash-completion/completions/git"
-$GIT_COMPLETION_CMD || DO_NOT_CLEAR=true
+echo "source /usr/share/bash-completion/completions/git" &&
+source /usr/share/bash-completion/completions/git ||
+export DO_NOT_CLEAR=true
 
-SOURCE_ROS_CMD="source /opt/ros/$ROS_TARGET_DISTRO/setup.bash"
-echo $SOURCE_ROS_CMD && $SOURCE_ROS_CMD || DO_NOT_CLEAR=true
+echo "source /opt/ros/jazzy/setup.bash" &&
+source /opt/ros/jazzy/setup.bash ||
+export DO_NOT_CLEAR=true
 
-SOURCE_ROS_WS_CMD="source $ROS_WS/install/setup.bash"
-echo $SOURCE_ROS_WS_CMD && $SOURCE_ROS_WS_CMD || DO_NOT_CLEAR=true
+export RCUTILS_CONSOLE_OUTPUT_FORMAT='[{severity} {name} {time}]: {message}'
+export RCUTILS_COLORIZED_OUTPUT=1
+export COLCON_WS=~/w/agrosensebot_ws
+export ROS_DOMAIN_ID=109
+
+echo "source $COLCON_WS/install/setup.bash" &&
+source $COLCON_WS/install/setup.bash ||
+export DO_NOT_CLEAR=true
 
 if [[ "$DO_NOT_CLEAR" == "false" ]]; then
     clear

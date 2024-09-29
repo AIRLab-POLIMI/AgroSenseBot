@@ -122,7 +122,7 @@ InterfaceConfiguration DiffDriveController::state_interface_configuration() cons
 controller_interface::return_type DiffDriveController::update(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   auto logger = get_node()->get_logger();
-  if (get_state().id() == State::PRIMARY_STATE_INACTIVE)
+  if (get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
   {
     if (!is_halted)
     {

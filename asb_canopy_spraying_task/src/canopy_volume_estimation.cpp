@@ -106,7 +106,7 @@ bool CanopyVolumeEstimation::transform_region_of_interest(const CanopyRegionOfIn
 void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response) {
   RCLCPP_DEBUG(this->get_logger(), "initialize_canopy_region %s", request->canopy_id.c_str());
 
-  if (canopy_maps.contains(request->canopy_id)) {
+  if (canopy_maps.find(request->canopy_id) != canopy_maps.end()) {
     canopy_maps[request->canopy_id].suspended = false;
   } else {
     canopy_maps[request->canopy_id] = CanopyMap();
@@ -137,7 +137,7 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
 }
 
 void CanopyVolumeEstimation::suspend_canopy_region(const std::shared_ptr<SuspendCanopyRegion::Request> request, std::shared_ptr<SuspendCanopyRegion::Response> response) {
-  if (canopy_maps.contains(request->canopy_id)) {
+  if (canopy_maps.find(request->canopy_id) != canopy_maps.end()) {
     canopy_maps[request->canopy_id].suspended = true;
     response->result = true;
     return;

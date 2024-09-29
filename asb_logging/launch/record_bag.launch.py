@@ -41,7 +41,7 @@ def generate_launch_description():
     )
 
     record_all_except_sensors_node = launch.actions.ExecuteProcess(
-        cmd=f"ros2 bag record --node-name record_all_except_sensors --output {next_index:04}_rosbag2_{stamp}_no_sensors -a --exclude {sensors_regex} --compression-mode file --compression-format zstd --max-bag-duration 60".split(),
+        cmd=f"ros2 bag record --node-name record_all_except_sensors --output {next_index:04}_rosbag2_{stamp}_no_sensors -a --exclude-regex {sensors_regex} --compression-mode file --compression-format zstd --max-bag-duration 60".split(),
         cwd=logs_dir,
         output='screen',
         condition=IfCondition(record_launch_configuration),

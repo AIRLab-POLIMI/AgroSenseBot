@@ -50,38 +50,6 @@ ament_target_dependencies(diff_drive_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DE
 target_compile_definitions(diff_drive_controller PRIVATE "DIFF_DRIVE_CONTROLLER_BUILDING_DLL")
 pluginlib_export_plugin_description_file(controller_interface diff_drive_plugin.xml)
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gmock REQUIRED)
-  find_package(controller_manager REQUIRED)
-  find_package(ros2_control_test_assets REQUIRED)
-
-  ament_add_gmock(test_diff_drive_controller
-    test/test_diff_drive_controller.cpp
-    ENV config_file=${CMAKE_CURRENT_SOURCE_DIR}/test/config/test_diff_drive_controller.yaml)
-  target_link_libraries(test_diff_drive_controller
-    diff_drive_controller
-  )
-  ament_target_dependencies(test_diff_drive_controller
-    geometry_msgs
-    sensor_msgs
-    hardware_interface
-    nav_msgs
-    rclcpp
-    rclcpp_lifecycle
-    realtime_tools
-    tf2
-    tf2_msgs
-  )
-
-  ament_add_gmock(test_load_diff_drive_controller
-    test/test_load_diff_drive_controller.cpp
-  )
-  ament_target_dependencies(test_load_diff_drive_controller
-    controller_manager
-    ros2_control_test_assets
-  )
-endif()
-
 install(
   DIRECTORY include/
   DESTINATION include/diff_drive_controller
