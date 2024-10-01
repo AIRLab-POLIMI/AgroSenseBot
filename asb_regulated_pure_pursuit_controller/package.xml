@@ -4,8 +4,11 @@
   <name>asb_regulated_pure_pursuit_controller</name>
   <version>1.2.5</version>
   <description>Regulated Pure Pursuit Controller</description>
-  <maintainer email="stevenmacenski@gmail.com">Steve Macenski</maintainer>
-  <maintainer email="shrijitsingh99@gmail.com">Shrijit Singh</maintainer>
+
+  <author email="enrico.piazza@unimi.it">Enrico Piazza</author>
+  <author email="enrico.piazza@polimi.it">Enrico Piazza</author>
+  <maintainer email="enrico.piazza@polimi.it">Enrico Piazza</maintainer>
+
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
