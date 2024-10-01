@@ -319,6 +319,7 @@ class SprayingRegulator(Node):
         self.fan_rpm = platform_state_msg.fan_motor_velocity_rpm
 
     def start_row_spraying_callback(self, request: StartRowSpraying_Request, response: StartRowSpraying_Response) -> StartRowSpraying_Response:
+        self.get_logger().info(f"received start spraying request, row_id: {request.row_id}, side: {SprayingSide.from_msg(request).name.lower()}")
         p_1: PointStamped = request.start
         p_2: PointStamped = request.end
         canopy_radius = self.max_canopy_width/2

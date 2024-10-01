@@ -11,6 +11,7 @@ from rclpy import Future
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from rclpy.client import Client
 from rclpy.action import ActionClient
+from rclpy.timer import Timer
 from rclpy.time import Time
 from rclpy.node import Node
 from rclpy.duration import Duration
@@ -213,6 +214,8 @@ class SprayingTaskPlanExecutor(Node):
         self.start_row_spraying_service = self.create_client(StartRowSpraying, 'start_row_spraying')
         self.stop_row_spraying_service = self.create_client(StopRowSpraying, 'stop_row_spraying')
         self.spray_regulator_status_sub = self.create_subscription(SprayRegulatorStatus, 'spray_regulator_status', self.spray_regulator_status_callback, qos_reliable_transient_local_depth_10)
+        self.start_left_row_spraying_timeout_timer: Timer | None = None
+        self.start_right_row_spraying_timeout_timer: Timer | None = None
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         # navigation action variables
@@ -280,7 +283,7 @@ class SprayingTaskPlanExecutor(Node):
             item = self.task_plan.items[item_index]
             item.set_result(TaskPlanItemResult())
             item.get_result().item_started = True
-            self.get_logger().info(f"\n*************\nSTARTING ITEM {item.get_item_id()}")
+            self.get_logger().info(f"\n*************\nSTARTING ITEM {item_index} --- {item.get_item_id()}")
 
             self.do_loop_operations_and_sleep(current_item=item)
 
@@ -364,11 +367,16 @@ class SprayingTaskPlanExecutor(Node):
                     if item_index < len(self.task_plan.items):
                         break  # (back to start of main loop)
                     else:
+                        self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
                         if self.loop:
-                            self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s, looping back to start")
+                            self.get_logger().info(
+                                f"\n*************************************************************************\n"
+                                f"                        looping back to start\n"
+                                f"*************************************************************************\n"
+                            )
                             item_index = 0
+                            break  # (back to start of main loop)
                         else:
-                            self.get_logger().info(f"finished task plan in {run_chrono.delta():.1f} s")
                             return
 
                 if self.navigation_action_status == NavigationActionStatus.FAILED:
@@ -501,6 +509,7 @@ class SprayingTaskPlanExecutor(Node):
                     end=self.left_row.get_end_point()
                 ))
                 left_response_future.add_done_callback(self.start_left_row_spraying_response_callback)
+                self.start_left_row_spraying_timeout_timer = self.create_timer(1.0, self.start_left_row_spraying_timeout_callback)
                 self.left_spraying_state = SprayState.REQUESTED
 
         if item.get_right_row_id() is not None:
@@ -516,9 +525,23 @@ class SprayingTaskPlanExecutor(Node):
                     end=self.right_row.get_end_point()
                 ))
                 right_response_future.add_done_callback(self.start_right_row_spraying_response_callback)
+                self.start_right_row_spraying_timeout_timer = self.create_timer(1.0, self.start_right_row_spraying_timeout_callback)
                 self.right_spraying_state = SprayState.REQUESTED
 
+    def start_left_row_spraying_timeout_callback(self) -> None:
+        self.get_logger().warn(f"left spraying service request timed out, retrying")
+        self.start_left_row_spraying_timeout_timer.cancel()
+        left_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying_Request(
+            row_id=self.left_row.get_row_id(),
+            side=StartRowSpraying_Request.SIDE_LEFT,
+            start=self.left_row.get_start_point(),
+            end=self.left_row.get_end_point()
+        ))
+        left_response_future.add_done_callback(self.start_left_row_spraying_response_callback)
+        self.start_left_row_spraying_timeout_timer = self.create_timer(1.0, self.start_left_row_spraying_timeout_callback)
+
     def start_left_row_spraying_response_callback(self, response_future) -> None:
+        self.start_left_row_spraying_timeout_timer.cancel()
         if response_future.result().result:
             self.left_spraying_state = SprayState.STARTING
             self.get_logger().info(f"left_spraying_state: STARTING")
@@ -526,7 +549,20 @@ class SprayingTaskPlanExecutor(Node):
             self.left_spraying_state = SprayState.FAILED
             self.get_logger().error(f"left_spraying_state: FAILED")
 
+    def start_right_row_spraying_timeout_callback(self) -> None:
+        self.get_logger().warn(f"right spraying service request timed out, retrying")
+        self.start_right_row_spraying_timeout_timer.cancel()
+        right_response_future: Future = self.start_row_spraying_service.call_async(StartRowSpraying_Request(
+            row_id=self.right_row.get_row_id(),
+            side=StartRowSpraying_Request.SIDE_RIGHT,
+            start=self.right_row.get_start_point(),
+            end=self.right_row.get_end_point()
+        ))
+        right_response_future.add_done_callback(self.start_right_row_spraying_response_callback)
+        self.start_right_row_spraying_timeout_timer = self.create_timer(1.0, self.start_right_row_spraying_timeout_callback)
+
     def start_right_row_spraying_response_callback(self, response_future) -> None:
+        self.start_right_row_spraying_timeout_timer.cancel()
         if response_future.result().result:
             self.right_spraying_state = SprayState.STARTING
             self.get_logger().info(f"right_spraying_state: STARTING")

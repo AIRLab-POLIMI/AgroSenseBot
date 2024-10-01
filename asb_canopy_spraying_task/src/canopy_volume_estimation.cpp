@@ -104,7 +104,7 @@ bool CanopyVolumeEstimation::transform_region_of_interest(const CanopyRegionOfIn
 }
 
 void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response) {
-  RCLCPP_DEBUG(this->get_logger(), "initialize_canopy_region %s", request->canopy_id.c_str());
+  RCLCPP_INFO(this->get_logger(), "received initialize canopy region request, row_id: %s", request->canopy_id.c_str());
 
   if (canopy_maps.contains(request->canopy_id)) {
     canopy_maps[request->canopy_id].suspended = false;
