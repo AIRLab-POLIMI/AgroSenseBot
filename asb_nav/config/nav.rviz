@@ -1455,7 +1455,7 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /benchmarking/robot_global_path_distance_viz
           Value: true
-      Enabled: false
+      Enabled: true
       Name: Benchmarking
     - Class: rviz_common/Group
       Displays:
@@ -1595,11 +1595,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 72.10725402832031
+      Scale: 62.75725555419922
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 1.5602067708969116
-      Y: 0.9373360276222229
+      X: 1.479610562324524
+      Y: 0.6332600116729736
     Saved: ~
 Window Geometry:
   AgroSenseBot:

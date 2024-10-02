@@ -64,11 +64,26 @@ class TaskPlanItemType(Enum):
     ROW = 1
 
 
+class ApproachType(Enum):
+    PLANNED = 0
+    STRAIGHT = 1
+
+    @classmethod
+    def from_str(cls, approach_type: str) -> Self:
+        if approach_type == "PLANNED":
+            return ApproachType.PLANNED
+        elif approach_type == "STRAIGHT":
+            return ApproachType.STRAIGHT
+        else:
+            raise ValueError(f"ApproachType.from_str: unknown approach type [{approach_type}]")
+
+
 class TaskPlanItem:
     def __init__(self, item_id):
         self._item_id: str = item_id
         self._type: TaskPlanItemType | None = None
         self._approach_pose: PoseStamped | None = None
+        self._approach_type: ApproachType | None = None
         self._row_waypoints: list[PoseStamped] | None = list()
         self._left_row_id: str | None = None
         self._right_row_id: str | None = None
@@ -82,6 +97,7 @@ class TaskPlanItem:
             item.set_result(d['result'])
         if item.get_type() == TaskPlanItemType.APPROACH:
             item.set_approach_pose(dict_to_pose_stamped(d['approach_pose']))
+            item.set_approach_type(ApproachType.from_str(d['approach_type']))
         elif item.get_type() == TaskPlanItemType.ROW:
             item.set_row_waypoints(list(map(dict_to_pose_stamped, d['row_waypoints'])))
             if 'left_row_id' in d:
@@ -99,6 +115,7 @@ class TaskPlanItem:
         }
         if self._type == TaskPlanItemType.APPROACH:
             d['approach_pose'] = pose_stamped_to_dict(self._approach_pose)
+            d['approach_type'] = self._approach_type.name if self._approach_type is not None else None
         elif self._type == TaskPlanItemType.ROW:
             d['row_waypoints'] = list(map(lambda w: pose_stamped_to_dict(w), self._row_waypoints))
             if self._left_row_id is not None:
@@ -142,6 +159,18 @@ class TaskPlanItem:
         if not isinstance(pose_stamped, PoseStamped):
             raise TypeError(f"trying to set approach pose of type different than PoseStamped in item {self._item_id}")
         self._approach_pose = pose_stamped
+
+    def get_approach_type(self) -> ApproachType | None:
+        if self._type != TaskPlanItemType.APPROACH:
+            raise ValueError(f"trying to get approach type (i.e., the type of approach) from an item [{self._item_id}] with type different than APPROACH")
+        return self._approach_type
+
+    def set_approach_type(self, approach_type: ApproachType) -> None:
+        if self._type != TaskPlanItemType.APPROACH:
+            raise ValueError(f"trying to set approach type (i.e., the type of approach) to an item [{self._item_id}] with type different than APPROACH")
+        if not isinstance(approach_type, ApproachType):
+            raise TypeError(f"trying to set approach type of type different than ApproachType in item {self._item_id}")
+        self._approach_type = approach_type
 
     def get_row_waypoints(self) -> list[PoseStamped]:
         if self._type != TaskPlanItemType.ROW:
@@ -251,6 +280,12 @@ class SprayingTaskPlan:
         self.items: list[TaskPlanItem] = list()
         self.rows: list[TaskPlanRow] = list()
         self.map_frame: str = "map"
+
+        self.straight_approach_controller_id: str = "FollowPath"
+        self.straight_approach_goal_checker_id: str = "asb_goal_checker"
+        self.straight_approach_progress_checker_id: str = "simple_progress_checker"
+        self.straight_approach_path_pose_distance: float = 0.1
+
         self.row_path_controller_id: str = "FollowPath"
         self.row_path_goal_checker_id: str = "asb_goal_checker"
         self.row_path_progress_checker_id: str = "simple_progress_checker"
@@ -313,6 +348,7 @@ class SprayingTaskPlan:
         t = SprayingTaskPlan()
         i_0 = TaskPlanItem(item_id='approach_1')
         i_0.set_type(TaskPlanItemType.APPROACH)
+        i_0.set_approach_type(ApproachType.PLANNED)
         i_0.set_approach_pose(PoseStamped(header=Header(frame_id='map')))
         t.items.append(i_0)
 
@@ -373,9 +409,11 @@ class SprayingTaskPlan:
 
             approach_close = TaskPlanItem(item_id=None)
             approach_close.set_type(TaskPlanItemType.APPROACH)
+            approach_close.set_approach_type(ApproachType.PLANNED)
 
             approach_far = TaskPlanItem(item_id=None)
             approach_far.set_type(TaskPlanItemType.APPROACH)
+            approach_far.set_approach_type(ApproachType.STRAIGHT)
 
             theta, r_1_t, r_2_t = transform_rows(r_1, r_2)
             path_start: Point | None = None

@@ -35,7 +35,8 @@ import tf2_geometry_msgs  # imports PoseStamped into tf2
 from enum import Enum
 from typing_extensions import Self
 
-from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemResult, TaskPlanItemType, TaskPlanRow
+from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemResult, TaskPlanItemType, TaskPlanRow, \
+    ApproachType
 
 
 class NavigationActionStatus(Enum):
@@ -195,7 +196,7 @@ class SprayingTaskPlanExecutor(Node):
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: PlatformState | None = None
         self.stop_platform: bool = True
-        self.approach_poses = PoseArray(header=Header(frame_id=self.task_plan.map_frame))
+        self.approach_poses_viz = PoseArray(header=Header(frame_id=self.task_plan.map_frame))
 
         # publishers, subscribers, timers and loop rate
         qos_reliable_transient_local_depth_10 = QoSProfile(
@@ -206,8 +207,8 @@ class SprayingTaskPlanExecutor(Node):
         )
         self.row_left_viz_pub = self.create_publisher(PolygonStamped, '/row_left_viz', qos_reliable_transient_local_depth_10)
         self.row_right_viz_pub = self.create_publisher(PolygonStamped, '/row_right_viz', qos_reliable_transient_local_depth_10)
-        self.approach_poses_pub = self.create_publisher(PoseArray, '/approach_poses', qos_reliable_transient_local_depth_10)
-        self.row_path_pub = self.create_publisher(Path, '/plan', qos_reliable_transient_local_depth_10)
+        self.approach_poses_viz_pub = self.create_publisher(PoseArray, '/approach_poses', qos_reliable_transient_local_depth_10)
+        self.path_viz_pub = self.create_publisher(Path, '/plan', qos_reliable_transient_local_depth_10)
         self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', 10)
         self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
@@ -608,6 +609,8 @@ class SprayingTaskPlanExecutor(Node):
                 self.left_spraying_state = SprayState.NOT_SPRAYING
                 self.left_row = None
             else:
+                if not self.start_left_row_spraying_timeout_timer.is_canceled():
+                    self.start_left_row_spraying_timeout_timer.cancel()
                 left_response_future: Future = self.stop_row_spraying_service.call_async(StopRowSpraying_Request(
                     row_id=self.left_row.get_row_id()
                 ))
@@ -619,6 +622,8 @@ class SprayingTaskPlanExecutor(Node):
                 self.right_spraying_state = SprayState.NOT_SPRAYING
                 self.right_row = None
             else:
+                if not self.start_right_row_spraying_timeout_timer.is_canceled():
+                    self.start_right_row_spraying_timeout_timer.cancel()
                 right_response_future: Future = self.stop_row_spraying_service.call_async(StopRowSpraying_Request(
                     row_id=self.right_row.get_row_id()
                 ))
@@ -668,20 +673,42 @@ class SprayingTaskPlanExecutor(Node):
         self.navigation_action_status = NavigationActionStatus.NOT_STARTED
 
         if item.get_type() == TaskPlanItemType.APPROACH:
-            self.get_logger().info(f"STARTING approach navigation: {item.get_item_id()}")
+            self.get_logger().info(f"STARTING {item.get_approach_type().name.lower()} approach navigation: {item.get_item_id()}")
 
             if item.get_approach_pose().header.frame_id != self.task_plan.map_frame:
                 self.get_logger().error(f"the approach pose's frame_id does not match the task plan map_frame")
                 return False
 
-            self.approach_poses.poses.append(item.get_approach_pose().pose)
-            self.approach_poses.header.stamp = self.get_clock().now().to_msg()
-            self.approach_poses_pub.publish(self.approach_poses)
+            self.approach_poses_viz.poses.append(item.get_approach_pose().pose)
+            self.approach_poses_viz.header.stamp = self.get_clock().now().to_msg()
+            self.approach_poses_viz_pub.publish(self.approach_poses_viz)
 
-            if self.dry_run:
-                self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+            if item.get_approach_type() == ApproachType.PLANNED:
+                if self.dry_run:
+                    self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+                else:
+                    self.execute_navigate_to_pose_action(pose=item.get_approach_pose())
+
+            elif item.get_approach_type() == ApproachType.STRAIGHT:
+                straight_approach_path = self.get_straight_approach_path(item)
+                if straight_approach_path is None:
+                    return False
+
+                self.path_viz_pub.publish(straight_approach_path)
+
+                if self.dry_run:
+                    self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+                else:
+                    self.execute_follow_path_action(
+                        path=straight_approach_path,
+                        controller_id=self.task_plan.straight_approach_controller_id,
+                        goal_checker_id=self.task_plan.straight_approach_goal_checker_id,
+                        progress_checker_id=self.task_plan.straight_approach_progress_checker_id,
+                    )
+
             else:
-                self.execute_navigate_to_pose_action(pose=item.get_approach_pose())
+                self.get_logger().error(f"unknown approach type [{item.get_approach_type().name}] for item {item.get_item_id()}")
+                return False
 
             return True
 
@@ -726,12 +753,16 @@ class SprayingTaskPlanExecutor(Node):
             if row_path is None:
                 return False
 
-            self.row_path_pub.publish(row_path)
+            self.path_viz_pub.publish(row_path)
 
             if self.dry_run:
                 self.navigation_action_status = NavigationActionStatus.SUCCEEDED
             else:
-                self.execute_follow_path_action(path=row_path, controller_id=self.task_plan.row_path_controller_id, goal_checker_id=self.task_plan.row_path_goal_checker_id, progress_checker_id=self.task_plan.row_path_progress_checker_id)
+                self.execute_follow_path_action(
+                    path=row_path, controller_id=self.task_plan.row_path_controller_id,
+                    goal_checker_id=self.task_plan.row_path_goal_checker_id,
+                    progress_checker_id=self.task_plan.row_path_progress_checker_id,
+                )
 
             return True
 
@@ -764,6 +795,8 @@ class SprayingTaskPlanExecutor(Node):
         return None
 
     def get_row_path(self, item: TaskPlanItem) -> Path | None:
+        if item.get_type() != TaskPlanItemType.ROW:
+            raise ValueError(f"trying to get row path from an item [{item.get_item_id()}] with type different than ROW")
 
         row_waypoints = item.get_row_waypoints()
         if len(row_waypoints) < 2:
@@ -795,23 +828,50 @@ class SprayingTaskPlanExecutor(Node):
         else:
             row_poses = item.get_row_waypoints()
 
+        return self.make_path(row_poses)
+
+    def get_straight_approach_path(self, item: TaskPlanItem) -> Path | None:
+        if item.get_type() != TaskPlanItemType.APPROACH or item.get_approach_type() != ApproachType.STRAIGHT:
+            raise ValueError(f"trying to get straight approach path from an item [{item.get_item_id()}] with type different than STRAIGHT APPROACH")
+
+        if item.get_approach_pose() is None:
+            raise ValueError(f"trying to get straight approach path from an item [{item.get_item_id()}] without approach pose")
+
+        if self.dry_run:
+            prev_item = self.task_plan.get_preceding_item(item)
+            if prev_item.get_type() == TaskPlanItemType.APPROACH:
+                start_pose = prev_item.get_approach_pose()
+            elif prev_item.get_type() == TaskPlanItemType.ROW:
+                start_pose = prev_item.get_row_waypoints()[-1]
+            else:
+                self.get_logger().error(f"previous item [{prev_item.get_item_id()}] has unknown type: {prev_item.get_type().name}")
+                return None
+        else:
+            start_pose = self.get_robot_pose(timeout=0.1)
+            if start_pose is None:
+                self.get_logger().error(f"could not get robot pose for straight approach item {item.get_item_id()}")
+                return None
+
+        return self.make_path([start_pose, item.get_approach_pose()])
+
+    def make_path(self, poses_list: list[PoseStamped]) -> Path | None:
         path_header = Header(stamp=self.get_clock().now().to_msg(), frame_id=self.task_plan.map_frame)
         path = Path(header=path_header)
 
-        for row_pose in row_poses:
+        for row_pose in poses_list:
             if row_pose.header.frame_id != path_header.frame_id:
                 self.get_logger().error(f"row pose frame id [{row_pose.header.frame_id}] does not match the task plan's map frame id [{path_header.frame_id}]")
                 return None
             row_pose.header = path_header
 
-        for i, (p1, p2) in enumerate(zip(row_poses[0: -1], row_poses[1:])):
+        for i, (p1, p2) in enumerate(zip(poses_list[0: -1], poses_list[1:])):
             p1_array = np.array([p1.pose.position.x, p1.pose.position.y, p1.pose.position.z])
             p2_array = np.array([p2.pose.position.x, p2.pose.position.y, p2.pose.position.z])
             int_points = list(np.linspace(
                 p1_array,
                 p2_array,
                 num=int(np.ceil(np.linalg.norm(p2_array - p1_array) / self.task_plan.row_path_pose_distance)),
-                endpoint=i == len(row_poses) - 2
+                endpoint=i == len(poses_list) - 2
             ))
             interpolated_poses = list(map(
                 lambda v: PoseStamped(

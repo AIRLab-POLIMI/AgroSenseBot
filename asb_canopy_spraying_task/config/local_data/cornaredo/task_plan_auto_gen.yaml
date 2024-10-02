@@ -1,4 +1,10 @@
 map_frame: vineyard
+
+straight_approach_controller_id: FollowPath
+straight_approach_goal_checker_id: asb_goal_checker
+straight_approach_progress_checker_id: simple_progress_checker
+straight_approach_path_pose_distance: 0.1
+
 row_path_controller_id: FollowStraightPath
 row_path_goal_checker_id: asb_goal_checker
 row_path_progress_checker_id: simple_progress_checker
