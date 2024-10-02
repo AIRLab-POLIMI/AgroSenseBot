@@ -120,8 +120,8 @@ protected:
   double _visualizations_edges_line_size;
   double _visualizations_path_footprint_line_size;
   bool _debug_visualizations;
-  std::string _motion_model_for_search;
-  MotionModel _motion_model;
+  std::string _motion_model_for_search, _motion_model_for_approach;
+  MotionModel _motion_model, _approach_motion_model;
   rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr _raw_plan_publisher;
   rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>::SharedPtr _planned_footprints_publisher;
   rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>::SharedPtr _expansions_publisher;

@@ -74,7 +74,8 @@ struct HybridMotionTable
     unsigned int & size_x_in,
     unsigned int & size_y_in,
     unsigned int & angle_quantization_in,
-    SearchInfo & search_info);
+    SearchInfo & search_info,
+    const MotionModel &approach_motion_model);
 
   /**
    * @brief Initializing using Reeds-Shepp model
@@ -87,7 +88,8 @@ struct HybridMotionTable
     unsigned int & size_x_in,
     unsigned int & size_y_in,
     unsigned int & angle_quantization_in,
-    SearchInfo & search_info);
+    SearchInfo & search_info,
+    const MotionModel &approach_motion_model);
 
   /**
    * @brief Get projections of motion models
@@ -124,6 +126,7 @@ struct HybridMotionTable
   float cusp_penalty;
   float travel_distance_reward;
   ompl::base::StateSpacePtr state_space;
+  ompl::base::StateSpacePtr approach_state_space;
   std::vector<std::vector<double>> delta_xs;
   std::vector<std::vector<double>> delta_ys;
   std::vector<TrigValues> trig_values;
@@ -376,6 +379,7 @@ public:
    */
   static void initMotionModel(
     const MotionModel & motion_model,
+    const MotionModel & approach_motion_model,
     unsigned int & size_x,
     unsigned int & size_y,
     unsigned int & angle_quantization,

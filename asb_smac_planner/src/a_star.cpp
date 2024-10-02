@@ -32,8 +32,8 @@ using namespace std::chrono;  // NOLINT
 namespace asb_smac_planner {
 
   template<typename NodeT>
-  AStarAlgorithm<NodeT>::AStarAlgorithm(const MotionModel &motion_model, const SearchInfo &search_info)
-        : _traverse_unknown(true), _is_initialized(false), _max_iterations(0), _max_planning_time(0), _x_size(0), _y_size(0), _search_info(search_info), _goal_coordinates(Coordinates()), _start(nullptr), _goal(nullptr), _motion_model(motion_model) {
+  AStarAlgorithm<NodeT>::AStarAlgorithm(const MotionModel &motion_model, const MotionModel &approach_motion_model, const SearchInfo &search_info)
+        : _traverse_unknown(true), _is_initialized(false), _max_iterations(0), _max_planning_time(0), _x_size(0), _y_size(0), _search_info(search_info), _goal_coordinates(Coordinates()), _start(nullptr), _goal(nullptr), _motion_model(motion_model), _approach_motion_model(approach_motion_model) {
       _graph.reserve(100000);
   }
 
@@ -52,7 +52,7 @@ namespace asb_smac_planner {
       }
       _is_initialized = true;
       _dim3_size = dim_3_size;
-      _expander = std::make_unique<AnalyticExpansion<NodeT>>(_motion_model, _search_info, _traverse_unknown, _dim3_size);
+      _expander = std::make_unique<AnalyticExpansion<NodeT>>(_approach_motion_model, _search_info, _traverse_unknown, _dim3_size);   ////////////////////// TODO correct? ////////////////////////////
   }
 
   template<>
@@ -81,7 +81,7 @@ namespace asb_smac_planner {
       if (getSizeX() != x_size || getSizeY() != y_size) {
           _x_size = x_size;
           _y_size = y_size;
-          NodeT::initMotionModel(_motion_model, _x_size, _y_size, _dim3_size, _search_info);
+          NodeT::initMotionModel(_motion_model, _approach_motion_model, _x_size, _y_size, _dim3_size, _search_info);
       }
       _expander->setCollisionChecker(collision_checker);
   }

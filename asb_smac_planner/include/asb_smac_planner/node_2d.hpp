@@ -251,6 +251,7 @@ public:
    */
   static void initMotionModel(
     const MotionModel & motion_model,
+    const MotionModel & approach_motion_model,
     unsigned int & size_x,
     unsigned int & size_y,
     unsigned int & num_angle_quantization,

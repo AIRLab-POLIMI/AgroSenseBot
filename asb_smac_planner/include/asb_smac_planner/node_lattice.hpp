@@ -104,7 +104,7 @@ struct LatticeMotionTable
   float rotation_penalty;
   bool allow_reverse_expansion;
   std::vector<std::vector<MotionPrimitive>> motion_primitives;
-  ompl::base::StateSpacePtr state_space;
+  ompl::base::StateSpacePtr state_space, approach_state_space;
   std::vector<TrigValues> trig_values;
   std::string current_lattice_filepath;
   LatticeMetadata lattice_metadata;
@@ -334,6 +334,7 @@ public:
    */
   static void initMotionModel(
     const MotionModel & motion_model,
+    const MotionModel & approach_motion_model,
     unsigned int & size_x,
     unsigned int & size_y,
     unsigned int & angle_quantization,

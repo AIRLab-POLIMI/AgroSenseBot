@@ -51,7 +51,7 @@ namespace asb_smac_planner {
 
 // http://planning.cs.uiuc.edu/node821.html
 // Model for ackermann style vehicle with minimum radius restriction
-  void HybridMotionTable::initDubin(unsigned int &size_x_in, unsigned int & /*size_y_in*/, unsigned int &num_angle_quantization_in, SearchInfo &search_info) {
+  void HybridMotionTable::initDubin(unsigned int &size_x_in, unsigned int & /*size_y_in*/, unsigned int &num_angle_quantization_in, SearchInfo &search_info, const MotionModel &approach_motion_model) {
       size_x = size_x_in;
       change_penalty = search_info.change_penalty;
       non_straight_penalty = search_info.non_straight_penalty;
@@ -74,7 +74,7 @@ namespace asb_smac_planner {
       // 2) chord length must be greater than sqrt(2) to leave current cell
       // 3) maximum curvature must be respected, represented by minimum turning angle
       // Thusly:
-      // On circle of radius minimum turning angle, we need select motion primatives
+      // On circle of radius minimum turning angle, we need select motion primitives
       // with chord length > sqrt(2) and be an increment of our bin size
       //
       // chord >= sqrt(2) >= 2 * R * sin (angle / 2); where angle / N = quantized bin size
@@ -109,6 +109,18 @@ namespace asb_smac_planner {
 
       // Create the correct OMPL state space
       state_space = std::make_unique<ompl::base::DubinsStateSpace>(min_turning_radius);
+      switch (approach_motion_model) {
+          case MotionModel::DUBIN:
+              approach_state_space = std::make_unique<ompl::base::DubinsStateSpace>(min_turning_radius);
+              break;
+          case MotionModel::REEDS_SHEPP:
+              approach_state_space = std::make_unique<ompl::base::ReedsSheppStateSpace>(min_turning_radius);
+              break;
+          default:
+              throw std::runtime_error("Invalid approach motion model for analytic expansion (approach). Please select between"
+                                       " Dubin (Ackermann forward only),"
+                                       " Reeds-Shepp (Ackermann forward and back).");
+      }
 
       // Precompute projection deltas
       delta_xs.resize(projections.size());
@@ -135,7 +147,7 @@ namespace asb_smac_planner {
 // http://planning.cs.uiuc.edu/node822.html
 // Same as Dubin model but now reverse is valid
 // See notes in Dubin for explanation
-  void HybridMotionTable::initReedsShepp(unsigned int &size_x_in, unsigned int & /*size_y_in*/, unsigned int &num_angle_quantization_in, SearchInfo &search_info) {
+  void HybridMotionTable::initReedsShepp(unsigned int &size_x_in, unsigned int & /*size_y_in*/, unsigned int &num_angle_quantization_in, SearchInfo &search_info, const MotionModel &approach_motion_model) {
       size_x = size_x_in;
       change_penalty = search_info.change_penalty;
       non_straight_penalty = search_info.non_straight_penalty;
@@ -178,6 +190,18 @@ namespace asb_smac_planner {
 
       // Create the correct OMPL state space
       state_space = std::make_unique<ompl::base::ReedsSheppStateSpace>(min_turning_radius);
+      switch (approach_motion_model) {
+          case MotionModel::DUBIN:
+              approach_state_space = std::make_unique<ompl::base::DubinsStateSpace>(min_turning_radius);
+              break;
+          case MotionModel::REEDS_SHEPP:
+              approach_state_space = std::make_unique<ompl::base::ReedsSheppStateSpace>(min_turning_radius);
+              break;
+          default:
+              throw std::runtime_error("Invalid approach motion model for analytic expansion (approach). Please select between"
+                                       " Dubin (Ackermann forward only),"
+                                       " Reeds-Shepp (Ackermann forward and back).");
+      }
 
       // Precompute projection deltas
       delta_xs.resize(projections.size());
@@ -308,14 +332,14 @@ namespace asb_smac_planner {
       return std::max(obstacle_heuristic, dist_heuristic);
   }
 
-  void NodeHybrid::initMotionModel(const MotionModel &motion_model, unsigned int &size_x, unsigned int &size_y, unsigned int &num_angle_quantization, SearchInfo &search_info) {
+  void NodeHybrid::initMotionModel(const MotionModel &motion_model, const MotionModel &approach_motion_model, unsigned int &size_x, unsigned int &size_y, unsigned int &num_angle_quantization, SearchInfo &search_info) {
       // find the motion model selected
       switch (motion_model) {
           case MotionModel::DUBIN:
-              motion_table.initDubin(size_x, size_y, num_angle_quantization, search_info);
+              motion_table.initDubin(size_x, size_y, num_angle_quantization, search_info, approach_motion_model);
               break;
           case MotionModel::REEDS_SHEPP:
-              motion_table.initReedsShepp(size_x, size_y, num_angle_quantization, search_info);
+              motion_table.initReedsShepp(size_x, size_y, num_angle_quantization, search_info, approach_motion_model);
               break;
           default:
               throw std::runtime_error("Invalid motion model for Hybrid A*. Please select between"

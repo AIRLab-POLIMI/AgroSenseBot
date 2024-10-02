@@ -74,7 +74,7 @@ public:
   /**
    * @brief A constructor for asb_smac_planner::AStarAlgorithm
    */
-  explicit AStarAlgorithm(const MotionModel & motion_model, const SearchInfo & search_info);
+  explicit AStarAlgorithm(const MotionModel & motion_model, const MotionModel & approach_motion_model, const SearchInfo & search_info);
 
   /**
    * @brief A destructor for asb_smac_planner::AStarAlgorithm
@@ -101,7 +101,7 @@ public:
 
   /**
    * @brief Creating path from given costmap, start, and goal
-   * @param path Reference to a vector of indicies of generated path
+   * @param path Reference to a vector of indices of generated path
    * @param num_iterations Reference to number of iterations to create plan
    * @param tolerance Reference to tolerance in costmap nodes
    * @param expansions_log Optional expansions logged for debug
@@ -159,7 +159,7 @@ public:
 
   /**
    * @brief Get maximum number of on-approach iterations after within threshold
-   * @return Reference to Maximum on-appraoch iterations parameter
+   * @return Reference to Maximum on-approach iterations parameter
    */
   int & getOnApproachMaxIterations();
 
@@ -228,7 +228,7 @@ protected:
   inline bool areInputsValid();
 
   /**
-   * @brief Clear hueristic queue of nodes to search
+   * @brief Clear heuristic queue of nodes to search
    */
   inline void clearQueue();
 
@@ -257,7 +257,7 @@ protected:
   Graph _graph;
   NodeQueue _queue;
 
-  MotionModel _motion_model;
+  MotionModel _motion_model, _approach_motion_model;
   NodeHeuristicPair _best_heuristic_node;
 
   GridCollisionChecker * _collision_checker;

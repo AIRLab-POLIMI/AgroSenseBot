@@ -3,7 +3,7 @@
 <package format="3">
   <name>asb_smac_planner</name>
   <version>1.2.10</version>
-  <description>Smac global planning plugin: A*, Hybrid-A*, State Lattice</description>
+  <description>ASB SMAC global planning plugin: Hybrid-A*</description>
 
   <author email="enrico.piazza@unimi.it">Enrico Piazza</author>
   <author email="enrico.piazza@polimi.it">Enrico Piazza</author>
@@ -41,7 +41,5 @@
   <export>
     <build_type>ament_cmake</build_type>
     <nav2_core plugin="${prefix}/smac_plugin_hybrid.xml" />
-    <nav2_core plugin="${prefix}/smac_plugin_2d.xml" />
-    <nav2_core plugin="${prefix}/smac_plugin_lattice.xml" />
   </export>
 </package>

@@ -92,53 +92,9 @@ ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
-# 2D plugin
-add_library(${library_name}_2d SHARED
-    src/smac_planner_2d.cpp
-    src/a_star.cpp
-    src/smoother.cpp
-    src/collision_checker.cpp
-    src/analytic_expansion.cpp
-    src/node_hybrid.cpp
-    src/node_lattice.cpp
-    src/costmap_downsampler.cpp
-    src/node_2d.cpp
-    src/node_basic.cpp
-)
-
-target_link_libraries(${library_name}_2d ${OMPL_LIBRARIES})
-target_include_directories(${library_name}_2d PUBLIC ${Eigen3_INCLUDE_DIRS})
-
-ament_target_dependencies(${library_name}_2d
-  ${dependencies}
-)
-
-# Lattice plugin
-add_library(${library_name}_lattice SHARED
-    src/smac_planner_lattice.cpp
-    src/a_star.cpp
-    src/smoother.cpp
-    src/collision_checker.cpp
-    src/analytic_expansion.cpp
-    src/node_hybrid.cpp
-    src/node_lattice.cpp
-    src/costmap_downsampler.cpp
-    src/node_2d.cpp
-    src/node_basic.cpp
-)
-
-target_link_libraries(${library_name}_lattice ${OMPL_LIBRARIES})
-target_include_directories(${library_name}_lattice PUBLIC ${Eigen3_INCLUDE_DIRS})
-
-ament_target_dependencies(${library_name}_lattice
-  ${dependencies}
-)
-
 pluginlib_export_plugin_description_file(nav2_core smac_plugin_hybrid.xml)
-pluginlib_export_plugin_description_file(nav2_core smac_plugin_2d.xml)
-pluginlib_export_plugin_description_file(nav2_core smac_plugin_lattice.xml)
 
-install(TARGETS ${library_name} ${library_name}_2d ${library_name}_lattice
+install(TARGETS ${library_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
@@ -148,17 +104,15 @@ install(DIRECTORY include
   DESTINATION include
 )
 
-install(DIRECTORY lattice_primitives/sample_primitives DESTINATION share/${PROJECT_NAME})
-
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  set(AMENT_LINT_AUTO_FILE_EXCLUDE include/asb_smac_planner/thirdparty/robin_hood.h)
-  ament_lint_auto_find_test_dependencies()
-  find_package(ament_cmake_gtest REQUIRED)
-  add_subdirectory(test)
-endif()
+#if(BUILD_TESTING)
+#  find_package(ament_lint_auto REQUIRED)
+#  set(AMENT_LINT_AUTO_FILE_EXCLUDE include/asb_smac_planner/thirdparty/robin_hood.h)
+#  ament_lint_auto_find_test_dependencies()
+#  find_package(ament_cmake_gtest REQUIRED)
+#  add_subdirectory(test)
+#endif()
 
 ament_export_include_directories(include ${OMPL_INCLUDE_DIRS})
-ament_export_libraries(${library_name} ${library_name}_2d ${library_name}_lattice)
+ament_export_libraries(${library_name})
 ament_export_dependencies(${dependencies})
 ament_package()

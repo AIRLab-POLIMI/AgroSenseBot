@@ -117,6 +117,14 @@ void SmacPlannerHybrid::configure(const rclcpp_lifecycle::LifecycleNode::WeakPtr
                              "valid options are MOORE, VON_NEUMANN, DUBIN, REEDS_SHEPP, STATE_LATTICE.", _motion_model_for_search.c_str());
     }
 
+    nav2_util::declare_parameter_if_not_declared(node, name + ".motion_model_for_approach", rclcpp::ParameterValue(std::string("DUBIN")));
+    node->get_parameter(name + ".motion_model_for_approach", _motion_model_for_approach);
+    _approach_motion_model = fromString(_motion_model_for_approach);
+    if (_approach_motion_model == MotionModel::UNKNOWN) {
+        RCLCPP_WARN(_logger, "Unable to get approach MotionModel search type. Given '%s', "
+                             "valid options are DUBIN, REEDS_SHEPP.", _motion_model_for_approach.c_str());
+    }
+
     if (_max_on_approach_iterations <= 0) {
         RCLCPP_INFO(_logger, "On approach iteration selected as <= 0, "
                              "disabling tolerance and on approach iterations.");
@@ -150,7 +158,7 @@ void SmacPlannerHybrid::configure(const rclcpp_lifecycle::LifecycleNode::WeakPtr
     _collision_checker.setFootprint(_costmap_ros->getRobotFootprint(), _costmap_ros->getUseRadius(), findCircumscribedCost(_costmap_ros));
 
     // Initialize A* template
-    _a_star = std::make_unique<AStarAlgorithm<NodeHybrid>>(_motion_model, _search_info);
+    _a_star = std::make_unique<AStarAlgorithm<NodeHybrid>>(_motion_model, _approach_motion_model, _search_info);
     _a_star->initialize(_allow_unknown, _max_iterations, _max_on_approach_iterations, _max_planning_time, _lookup_table_dim, _angle_quantizations);
 
     // Initialize path smoother
@@ -177,7 +185,7 @@ void SmacPlannerHybrid::configure(const rclcpp_lifecycle::LifecycleNode::WeakPtr
 
     RCLCPP_INFO(_logger, "Configured plugin %s of type ASB SmacPlannerHybrid with "
                          "maximum iterations %i, max on approach iterations %i, and %s. Tolerance %.2f."
-                         "Using motion model: %s.", _name.c_str(), _max_iterations, _max_on_approach_iterations, _allow_unknown ? "allowing unknown traversal" : "not allowing unknown traversal", _tolerance, toString(_motion_model).c_str());
+                         "Using search motion model: %s. Using approach search motion model: %s.", _name.c_str(), _max_iterations, _max_on_approach_iterations, _allow_unknown ? "allowing unknown traversal" : "not allowing unknown traversal", _tolerance, toString(_motion_model).c_str(), toString(_approach_motion_model).c_str());
 }
 
 void SmacPlannerHybrid::activate() {
@@ -487,6 +495,13 @@ rcl_interfaces::msg::SetParametersResult SmacPlannerHybrid::dynamicParametersCal
                     RCLCPP_WARN(_logger, "Unable to get MotionModel search type. Given '%s', "
                                          "valid options are MOORE, VON_NEUMANN, DUBIN, REEDS_SHEPP.", _motion_model_for_search.c_str());
                 }
+            } else if (name == _name + ".motion_model_for_approach") {
+                reinit_a_star = true;
+                _approach_motion_model = fromString(parameter.as_string());
+                if (_approach_motion_model == MotionModel::UNKNOWN) {
+                    RCLCPP_WARN(_logger, "Unable to get approach MotionModel search type. Given '%s', "
+                                         "valid options are MOORE, VON_NEUMANN, DUBIN, REEDS_SHEPP.", _motion_model_for_approach.c_str());
+                }
             }
         }
     }
@@ -513,7 +528,7 @@ rcl_interfaces::msg::SetParametersResult SmacPlannerHybrid::dynamicParametersCal
 
         // Re-Initialize A* template
         if (reinit_a_star) {
-            _a_star = std::make_unique<AStarAlgorithm<NodeHybrid>>(_motion_model, _search_info);
+            _a_star = std::make_unique<AStarAlgorithm<NodeHybrid>>(_motion_model, _approach_motion_model, _search_info);
             _a_star->initialize(_allow_unknown, _max_iterations, _max_on_approach_iterations, _max_planning_time, _lookup_table_dim, _angle_quantizations);
         }
 

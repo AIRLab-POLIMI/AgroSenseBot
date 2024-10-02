@@ -91,7 +91,7 @@ namespace asb_smac_planner {
 
   template<typename NodeT>
   typename AnalyticExpansion<NodeT>::AnalyticExpansionNodes AnalyticExpansion<NodeT>::getAnalyticPath(const NodePtr &node, const NodePtr &goal, const NodeGetter &node_getter) {
-      static ompl::base::ScopedState<> from(node->motion_table.state_space), to(node->motion_table.state_space), s(node->motion_table.state_space);
+      static ompl::base::ScopedState<> from(node->motion_table.approach_state_space), to(node->motion_table.approach_state_space), s(node->motion_table.approach_state_space);
       from[0] = node->pose.x;
       from[1] = node->pose.y;
       from[2] = node->motion_table.getAngleFromBin(node->pose.theta);
@@ -99,7 +99,7 @@ namespace asb_smac_planner {
       to[1] = goal->pose.y;
       to[2] = node->motion_table.getAngleFromBin(goal->pose.theta);
 
-      float d = node->motion_table.state_space->distance(from(), to());
+      float d = node->motion_table.approach_state_space->distance(from(), to());
 
       // If the length is too far, exit. This prevents unsafe shortcutting of paths
       // into higher cost areas far out from the goal itself, let search do the work of getting
@@ -130,7 +130,7 @@ namespace asb_smac_planner {
 
       // Check intermediary poses (non-goal, non-start)
       for (float i = 1; i <= num_intervals; i++) {
-          node->motion_table.state_space->interpolate(from(), to(), i / num_intervals, s());
+          node->motion_table.approach_state_space->interpolate(from(), to(), i / num_intervals, s());
           reals = s.reals();
           // Make sure in range [0, 2PI)
           theta = (reals[2] < 0.0) ? (reals[2] + 2.0 * M_PI) : reals[2];
