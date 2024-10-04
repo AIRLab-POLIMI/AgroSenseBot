@@ -113,11 +113,11 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
 
   scan_msg->angle_min = -M_PI;
   scan_msg->angle_max = M_PI;
-  scan_msg->angle_increment = M_PI / 180.0;
+  scan_msg->angle_increment = M_PI / (5 * 180.0);
   scan_msg->time_increment = 0.0;
   scan_msg->scan_time = 1.0 / 30.0;
   scan_msg->range_min = 0.0;
-  scan_msg->range_max = std::numeric_limits<float>::max();
+  scan_msg->range_max = 30.0;
 
   uint32_t ranges_size = std::ceil((scan_msg->angle_max - scan_msg->angle_min) / scan_msg->angle_increment);
   scan_msg->ranges.assign(ranges_size, std::numeric_limits<float>::infinity());

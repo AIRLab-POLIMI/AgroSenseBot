@@ -76,12 +76,12 @@ controller_server:
       max_robot_pose_search_dist: 10.0
       min_approach_linear_velocity: 0.4
       approach_velocity_scaling_dist: 0.5
-      max_allowed_time_to_collision_up_to_carrot: 2.0
+      max_allowed_time_to_collision_up_to_carrot: 1.5
       regulated_linear_scaling_min_speed: 0.25
       cost_scaling_dist: 0.3
       cost_scaling_gain: 1.0
       inflation_cost_scaling_factor: 3.0
-      use_collision_detection: false  # [!]
+      use_collision_detection: true
       use_interpolation: true
       use_goal_angle_approach: true
       goal_angle_approach_dist: 0.4

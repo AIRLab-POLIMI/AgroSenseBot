@@ -4,6 +4,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/UnevenTerrain.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/Soil.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/humans/pedestrian/protos/Pedestrian.proto"
 
 EXTERNPROTO "OusterOS0.proto"
 
@@ -37,16 +38,22 @@ Viewpoint {
 TexturedBackground {}
 TexturedBackgroundLight {}
 
-Pose {
+DEF VINE_POSE Pose {
   translation 0 0 0
   rotation 0 0 1 0
   children [
+    Pedestrian {
+      translation 4.01 11.98 1.7
+      rotation 0 0 1 -0.261795307179586
+      name "pedestrian"
+    }
     UnevenTerrain {
       translation 0 12.26 -0.49
       name "terrain"
       size 200 200 1.5
       perlinNOctaves 6
       appearance Soil {
+        color 0.3 0.3 0.1
         textureTransform TextureTransform {
           scale 100 100
         }
@@ -63,12 +70,6 @@ Pose {
     }
   ]
 }
-
-#AgroSenseBot {
-#  translation 12.3 13.1 0.8
-#  rotation 0 0 1 -2.8
-#  name "asb_webots_robot"
-#}
 
 Robot {
   translation 12.3 13.1 0.8
