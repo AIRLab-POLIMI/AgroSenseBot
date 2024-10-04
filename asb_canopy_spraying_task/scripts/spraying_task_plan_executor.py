@@ -140,6 +140,10 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('base_frame', default_base_frame)
         self.base_frame = self.get_parameter('base_frame').get_parameter_value().string_value
 
+        default_start_up_timeout = 30.0  # s
+        self.declare_parameter('start_up_timeout', float(default_start_up_timeout))
+        self.start_up_timeout = self.get_parameter('start_up_timeout').get_parameter_value().double_value
+
         default_robot_pose_time_tolerance = 0.2  # s
         self.declare_parameter('robot_pose_time_tolerance', float(default_robot_pose_time_tolerance))
         self.robot_pose_time_tolerance = Duration(seconds=self.get_parameter('robot_pose_time_tolerance').get_parameter_value().double_value)
@@ -235,7 +239,7 @@ class SprayingTaskPlanExecutor(Node):
             # wait for localization
             self.get_logger().info(f"waiting for robot pose...")
             robot_pose_chrono = Chronometer()
-            robot_pose = self.get_robot_pose(timeout=10.0)
+            robot_pose = self.get_robot_pose(timeout=self.start_up_timeout)
             if robot_pose is not None:
                 self.get_logger().info(f"robot pose received (took {robot_pose_chrono.total():.4f} s)")
             else:
@@ -245,7 +249,7 @@ class SprayingTaskPlanExecutor(Node):
             # wait for navigation stack
             self.get_logger().info(f"waiting for navigation stack...")
             nav_stack_chrono = Chronometer()
-            nav_stack_ready = self.wait_navigation_stack_is_ready(timeout=10.0)
+            nav_stack_ready = self.wait_navigation_stack_is_ready(timeout=self.start_up_timeout)
             if nav_stack_ready:
                 self.get_logger().info(f"navigation stack is ready (took {nav_stack_chrono.total():.4f} s)")
             else:
@@ -255,7 +259,7 @@ class SprayingTaskPlanExecutor(Node):
             # wait for spray regulator
             self.get_logger().info(f"waiting for spray regulator...")
             spray_regulator_chrono = Chronometer()
-            spray_regulator_ready = self.wait_spray_regulator_is_ready(timeout=10.0)
+            spray_regulator_ready = self.wait_spray_regulator_is_ready(timeout=self.start_up_timeout)
             if spray_regulator_ready:
                 self.get_logger().info(f"spray regulator is ready (took {spray_regulator_chrono.total():.4f} s), ready to start the task\n\n")
             else:
