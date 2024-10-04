@@ -231,5 +231,8 @@ alias ts-dr='ts dry_run:=true'
 alias ts-l='ts loop:=true'
 
 # launch rviz
-alias rv='rl asb_nav rviz.launch.py use_sim_time:=true'
+alias rv='rl asb_nav rviz.launch.py'
 complete -F _complete_alias rv
+
+alias rv-ust='rl asb_nav rviz.launch.py use_sim_time:=true'
+complete -F _complete_alias rv-ust
