@@ -1,0 +1,41 @@
+<launch>
+
+	<arg name="auto_set_control_mode" default="false" />
+	<arg name="dry_run" default="false" />
+	<arg name="loop" default="false" />
+
+  <arg name="use_sim_time" default="false" />
+
+  <node pkg="asb_canopy_spraying_task" exec="canopy_volume_estimation_node" name="canopy_volume_estimation">
+    <remap from="points_in" to="/scan_front_multilayer/points_filtered"/>
+    <param name="use_sim_time" value="$(var use_sim_time)" />
+    <param name="resolution" value="0.05" />
+    <param name="hit_count_threshold" value="5" />
+    <param name="max_range" value="5.0" />
+  </node>
+
+  <node pkg="asb_canopy_spraying_task" exec="spraying_regulator.py" name="spraying_regulator">
+    <remap from="velocity_odom" to="/ekf_filter_map_odometry"/>
+    <param name="velocity_timeout" value="0.1" />
+    <param name="canopy_data_timeout" value="1.0" />
+    <param name="fan_velocity_target_rpm" value="1200" />
+    <param name="fan_velocity_threshold_rpm" value="800" />
+    <param name="velocity_threshold" value="0.1" />
+    <param name="max_canopy_width" value="2.0" />
+    <param name="canopy_roi_frame_id" value="sprayer_link" />
+    <param name="canopy_roi_x_1" value="-0.25" />
+    <param name="canopy_roi_x_2" value="0.25" />
+    <param name="normalizing_velocity" value="1.0" />
+    <param name="canopy_layer_bounds" value="[0.2, 0.6, 1.0, 1.4, 1.8, 2.2]" />
+    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
+    <param name="nozzle_rate_lookup_table_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzle_rate_lookup_table.yaml" />
+  </node>
+
+  <node pkg="asb_canopy_spraying_task" exec="spraying_task_sm.py" name="spraying_task_sm">
+    <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/task_plan_auto_gen.yaml" />
+    <param name="auto_set_control_mode" value="$(var auto_set_control_mode)" />
+    <param name="dry_run" value="$(var dry_run)" />
+    <param name="loop" value="$(var loop)" />
+  </node>
+
+</launch>

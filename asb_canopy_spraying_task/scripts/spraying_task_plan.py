@@ -391,7 +391,7 @@ class SprayingTaskPlan:
         else:
             return found_rows[0]
 
-    def generate_items(self) -> None:
+    def generate_items(self, only_inter_row_items=False) -> None:
         self.items = list()
         rows = [None] + self.rows + [None]
         row_pairs: list[(TaskPlanRow | None, TaskPlanRow | None)] = list(zip(rows[0:-1], rows[1:]))
@@ -485,8 +485,9 @@ class SprayingTaskPlan:
             approach_close.set_item_id(f"approach_close_{inter_row.get_item_id()}")
             approach_far.set_item_id(f"approach_far_{inter_row.get_item_id()}")
 
-            self.items.append(approach_close)
-            self.items.append(approach_far)
+            if not only_inter_row_items:
+                self.items.append(approach_close)
+                self.items.append(approach_far)
             self.items.append(inter_row)
 
 

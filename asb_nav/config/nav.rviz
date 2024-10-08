@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Environment1
         - /Environment1/tf1
         - /Environment1/tf1/Frames1
         - /Sensors1/front multilayer1/Autocompute Value Bounds1
@@ -108,6 +109,12 @@ Visualization Manager:
               Value: false
             inertial_link:
               Value: false
+            inter_row_0:
+              Value: true
+            inter_row_0_row_1:
+              Value: true
+            inter_row_1:
+              Value: true
             left_track:
               Value: false
             map:
@@ -118,8 +125,6 @@ Visualization Manager:
               Value: false
             row_0:
               Value: true
-            row_1:
-              Value: true
             sat_map:
               Value: false
             sprayer_link:
@@ -128,7 +133,7 @@ Visualization Manager:
               Value: true
             vineyard_view:
               Value: false
-          Marker Scale: 0.5
+          Marker Scale: 2
           Name: tf
           Show Arrows: false
           Show Axes: true
@@ -168,9 +173,13 @@ Visualization Manager:
               sat_map:
                 {}
               vineyard:
-                row_0:
+                inter_row_0:
                   {}
-                row_1:
+                inter_row_0_row_1:
+                  {}
+                inter_row_1:
+                  {}
+                row_0:
                   {}
                 vineyard_view:
                   {}
@@ -1458,7 +1467,6 @@ Visualization Manager:
           Name: canopy_depth
           Namespaces:
             row_0: true
-            row_1: true
           Topic:
             Depth: 5
             Durability Policy: Transient Local
@@ -1653,11 +1661,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 72.99742889404297
+      Scale: 66.2086181640625
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.7004455327987671
-      Y: 0.9424508810043335
+      X: 0.7986283898353577
+      Y: 0.7661243677139282
     Saved: ~
 Window Geometry:
   AgroSenseBot:

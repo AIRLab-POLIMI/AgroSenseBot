@@ -14,7 +14,7 @@ alternate_rows: True
 switch_direction: True
 row_path_external_dist: 1.25
 row_path_margin: 2.0
-row_approach_margin: 1.0
+row_approach_margin: 1.0  # for straightening
 
 rows:
   - row_id: row_0
