@@ -224,7 +224,7 @@ alias gq='rl asb_real gq7_launch.py'
 complete -F _complete_alias gq
 
 # launch task
-alias ts='rl asb_canopy_spraying_task execute_task.launch.xml'
+alias ts='rl asb_canopy_spraying_task execute_task_sm.launch.xml'
 complete -F _complete_alias ts
 
 alias ts-dr='ts dry_run:=true'
