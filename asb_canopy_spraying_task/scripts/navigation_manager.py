@@ -65,8 +65,13 @@ class Chronometer:
 class NavigationManager:
     def __init__(self, node: SprayingTaskPlanExecutor):
         self._node = node
+        Chronometer.node = self._node
 
-        Chronometer.node = node
+        self._node.declare_parameter('base_frame', rclpy.Parameter.Type.STRING)
+        self._base_frame = self._node.get_parameter('base_frame').get_parameter_value().string_value
+
+        self._node.declare_parameter('robot_pose_time_tolerance', rclpy.Parameter.Type.DOUBLE)
+        self._robot_pose_time_tolerance = Duration(seconds=self._node.get_parameter('robot_pose_time_tolerance').get_parameter_value().double_value)
 
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self._node)
@@ -289,7 +294,7 @@ class NavigationManager:
             frame_id = self._node.task_plan.map_frame
 
         robot_pose = PoseStamped()
-        robot_pose.header.frame_id = self._node.base_frame
+        robot_pose.header.frame_id = self._base_frame
         robot_pose.pose.orientation.w = 1
 
         # TODO use self.transform_pose_stamped
@@ -300,7 +305,7 @@ class NavigationManager:
             try:
                 robot_pose_t = self._tf_buffer.transform(robot_pose, frame_id, timeout=Duration(seconds=0.01))
                 transform_age = self._node.get_clock().now() - Time.from_msg(robot_pose_t.header.stamp)
-                if transform_age < self._node.robot_pose_time_tolerance:
+                if transform_age < self._robot_pose_time_tolerance:
                     return robot_pose_t
                 else:
                     self._node.get_logger().error(f"robot pose age too high: {transform_age.nanoseconds/1e9:.6f}")
@@ -310,7 +315,7 @@ class NavigationManager:
             self._loop_rate.sleep()
 
         if last_ex is not None:
-            self._node.get_logger().error(f"could not transform {self._node.base_frame} to {self._node.task_plan.map_frame}: {last_ex}")
+            self._node.get_logger().error(f"could not transform {self._base_frame} to {self._node.task_plan.map_frame}: {last_ex}")
         return None
 
     def _transform_pose_stamped(self, pose_stamped, frame_id, timeout):
@@ -320,7 +325,7 @@ class NavigationManager:
             try:
                 robot_pose_t = self._tf_buffer.transform(pose_stamped, frame_id, timeout=Duration(seconds=0.01))
                 transform_age = self._node.get_clock().now() - Time.from_msg(robot_pose_t.header.stamp)
-                if transform_age < self._node.robot_pose_time_tolerance:
+                if transform_age < self._robot_pose_time_tolerance:
                     return robot_pose_t
                 else:
                     self._node.get_logger().error(f"robot pose age too high: {transform_age.nanoseconds/1e9:.6f}")
@@ -330,7 +335,7 @@ class NavigationManager:
             self._loop_rate.sleep()
 
         if last_ex is not None:
-            self._node.get_logger().error(f"could not transform {self._node.base_frame} to {self._node.task_plan.map_frame}: {last_ex}")
+            self._node.get_logger().error(f"could not transform {self._base_frame} to {self._node.task_plan.map_frame}: {last_ex}")
         return None
 
     def _make_path(self, poses_list: list[PoseStamped]) -> Path | None:

@@ -1,25 +1,28 @@
 #! /usr/bin/python3
 
-from rclpy.node import Node
+from __future__ import annotations
+
 from geometry_msgs.msg import TransformStamped, PoseStamped
 from tf2_ros import StaticTransformBroadcaster
 
-from spraying_task_plan import SprayingTaskPlan, TaskPlanItem, TaskPlanItemType
+from spraying_task_plan import TaskPlanItem, TaskPlanItemType
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from spraying_task_sm import SprayingTaskPlanExecutor
 
 
 class PlanManager:
 
-    def __init__(self, node: Node, task_plan: SprayingTaskPlan):
+    def __init__(self, node: SprayingTaskPlanExecutor):
         self._node = node
         self._tf_static_broadcaster = StaticTransformBroadcaster(self._node)
         self._loop_rate = self._node.create_rate(10)
 
-        self.task_plan = task_plan
-
     def setup(self):
         # broadcast inter-row frames
         inter_row_item: TaskPlanItem
-        for inter_row_item in self.task_plan.items:
+        for inter_row_item in self._node.task_plan.items:
             if inter_row_item.get_type() != TaskPlanItemType.ROW:
                 self._node.get_logger().error(f"only ROW items should be used with state machine task executor")
                 continue

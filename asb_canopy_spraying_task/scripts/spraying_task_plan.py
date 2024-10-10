@@ -298,6 +298,15 @@ class SprayingTaskPlan:
         self.row_path_margin: float = 1.0
         self.row_approach_margin: float = 1.0
 
+        # parameters for spraying regulation
+        self.fan_velocity_target_rpm: int = 1200
+        self.fan_velocity_threshold_rpm: int = 800
+        self.max_canopy_width: float = 2.0
+        self.canopy_roi_x_1: float = -0.25
+        self.canopy_roi_x_2: float = 0.25
+        self.normalizing_velocity: float = 1.0
+        self.canopy_layer_bounds: list[float] = [0.2, 0.6, 1.0, 1.4, 1.8, 2.2]
+
     @classmethod
     def from_dict(cls, d) -> Self:
         t = SprayingTaskPlan()
@@ -314,6 +323,14 @@ class SprayingTaskPlan:
         t.row_path_margin = d['row_path_margin']
         t.row_approach_margin = d['row_approach_margin']
 
+        t.fan_velocity_target_rpm = d['fan_velocity_target_rpm']
+        t.fan_velocity_threshold_rpm = d['fan_velocity_threshold_rpm']
+        t.max_canopy_width = d['max_canopy_width']
+        t.canopy_roi_x_1 = d['canopy_roi_x_1']
+        t.canopy_roi_x_2 = d['canopy_roi_x_2']
+        t.normalizing_velocity = d['normalizing_velocity']
+        t.canopy_layer_bounds = d['canopy_layer_bounds']
+
         if 'items' in d:
             t.items = list(map(TaskPlanItem.from_dict, d['items']))
         return t
@@ -325,11 +342,21 @@ class SprayingTaskPlan:
             'row_path_goal_checker_id': self.row_path_goal_checker_id,
             'row_path_progress_checker_id': self.row_path_progress_checker_id,
             'row_path_pose_distance': self.row_path_pose_distance,
+
             'alternate_rows': self.alternate_rows,
             'switch_direction': self.switch_direction,
             'row_path_external_dist': self.row_path_external_dist,
             'row_path_margin': self.row_path_margin,
             'row_approach_margin': self.row_approach_margin,
+
+            'fan_velocity_target_rpm': self.fan_velocity_target_rpm,
+            'fan_velocity_threshold_rpm': self.fan_velocity_threshold_rpm,
+            'max_canopy_width': self.max_canopy_width,
+            'canopy_roi_x_1': self.canopy_roi_x_1,
+            'canopy_roi_x_2': self.canopy_roi_x_2,
+            'normalizing_velocity': self.normalizing_velocity,
+            'canopy_layer_bounds': self.canopy_layer_bounds,
+
             'items': list(map(lambda i: i.to_dict(), self.items)),
             'rows': list(map(lambda i: i.to_dict(), self.rows)),
         }

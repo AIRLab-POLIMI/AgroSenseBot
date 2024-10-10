@@ -12,9 +12,17 @@ row_path_pose_distance: 0.1
 
 alternate_rows: True
 switch_direction: True
-row_path_external_dist: 1.25
-row_path_margin: 2.0
-row_approach_margin: 1.0  # for straightening
+row_path_external_dist: 1.25  # distance of inter-row path from row when navigating on the outside (as opposed to between two rows)
+row_path_margin: 2.0  # distance of the positioning pose to the beginning of the rows
+row_approach_margin: 1.0  # distance between the straightening and positioning approach pose
+
+fan_velocity_target_rpm: 1200
+fan_velocity_threshold_rpm: 800
+max_canopy_width: 2.0
+canopy_roi_x_1: -0.25
+canopy_roi_x_2: 0.25
+normalizing_velocity: 1.0
+canopy_layer_bounds: [0.2, 0.6, 1.0, 1.4, 1.8, 2.2]
 
 rows:
   - row_id: row_0
@@ -33,19 +41,3 @@ rows:
     end_point:
       x: 14.0
       y: -2.5
-#  - row_id: row_2
-#    frame_id: vineyard
-#    start_point:
-#      x: 0.0
-#      y: -5.0
-#    end_point:
-#      x: 15.0
-#      y: -5.0
-#  - row_id: row_3
-#    frame_id: vineyard
-#    start_point:
-#      x: 0.0
-#      y: -7.5
-#    end_point:
-#      x: 15.0
-#      y: -7.5
