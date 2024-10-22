@@ -15,7 +15,6 @@ from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState, GetState_Request
 from geometry_msgs.msg import Point, Pose, PoseStamped, PoseArray, Polygon, PolygonStamped, Point32, Quaternion
 from nav_msgs.msg import Path
-from rclpy.timer import Timer
 from std_msgs.msg import Header
 from action_msgs.msg import GoalStatus, GoalInfo
 from nav2_msgs.srv import ClearEntireCostmap, IsPathValid
