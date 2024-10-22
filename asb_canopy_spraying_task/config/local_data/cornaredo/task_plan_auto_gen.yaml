@@ -1,5 +1,10 @@
 map_frame: vineyard
 
+positioning_approach_planner_id: GridBased
+positioning_approach_controller_id: FollowPath
+positioning_approach_goal_checker_id: asb_goal_checker
+positioning_approach_progress_checker_id: simple_progress_checker
+
 straight_approach_controller_id: FollowPath
 straight_approach_goal_checker_id: asb_goal_checker
 straight_approach_progress_checker_id: simple_progress_checker

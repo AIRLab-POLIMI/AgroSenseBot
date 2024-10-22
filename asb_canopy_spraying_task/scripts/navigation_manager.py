@@ -15,10 +15,11 @@ from rclpy.duration import Duration
 from lifecycle_msgs.srv import GetState, GetState_Request
 from geometry_msgs.msg import Point, Pose, PoseStamped, PoseArray, Polygon, PolygonStamped, Point32, Quaternion
 from nav_msgs.msg import Path
+from rclpy.timer import Timer
 from std_msgs.msg import Header
 from action_msgs.msg import GoalStatus, GoalInfo
-from nav2_msgs.srv import ClearEntireCostmap, ClearEntireCostmap_Request
-from nav2_msgs.action import FollowPath, NavigateToPose
+from nav2_msgs.srv import ClearEntireCostmap, IsPathValid
+from nav2_msgs.action import FollowPath, ComputePathToPose
 
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
@@ -43,6 +44,14 @@ class NavigationActionStatus(Enum):
     IN_PROGRESS = 3
     SUCCEEDED = 4
     FAILED = 5
+
+
+class NavigationPlanValidity(Enum):
+    UNKNOWN = 0
+    REQUESTED = 1
+    VALID = 2
+    INVALID = 3
+    FAILED = 4
 
 
 class Chronometer:
@@ -73,11 +82,18 @@ class NavigationManager:
         self._node.declare_parameter('robot_pose_time_tolerance', rclpy.Parameter.Type.DOUBLE)
         self._robot_pose_time_tolerance = Duration(seconds=self._node.get_parameter('robot_pose_time_tolerance').get_parameter_value().double_value)
 
+        self._node.declare_parameter('check_plan_validity_rate', rclpy.Parameter.Type.DOUBLE)
+        self._check_plan_validity_rate = self._node.get_parameter('check_plan_validity_rate').get_parameter_value().double_value
+
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self._node)
 
         # variables for task execution
+        self.planning_action_status: NavigationActionStatus = NavigationActionStatus.NOT_STARTED
         self.navigation_action_status: NavigationActionStatus = NavigationActionStatus.NOT_STARTED
+        self.plan_validity: NavigationPlanValidity = NavigationPlanValidity.UNKNOWN
+        self._planned_path: Path | None = None
+        self._plan_is_valid_request_chrono: Chronometer = Chronometer()
         self._approach_poses_viz = PoseArray(header=Header(frame_id=self._node.task_plan.map_frame))
         self._last_robot_pose_stamped: PoseStamped | None = None
 
@@ -98,33 +114,44 @@ class NavigationManager:
         # navigation service, action, rate
         self._clear_local_costmap_service = self._node.create_client(ClearEntireCostmap, '/local_costmap/clear_entirely_local_costmap')
         self._clear_global_costmap_service = self._node.create_client(ClearEntireCostmap, '/global_costmap/clear_entirely_global_costmap')
-        self._follow_path_client = ActionClient(self._node, FollowPath, 'follow_path')
-        self._navigate_to_pose_client = ActionClient(self._node, NavigateToPose, 'navigate_to_pose')
+        self._is_path_valid_service = self._node.create_client(IsPathValid, '/is_path_valid')
+        self._compute_path_to_pose_client = ActionClient(self._node, ComputePathToPose, '/compute_path_to_pose')
+        self._follow_path_client = ActionClient(self._node, FollowPath, '/follow_path')
         self._navigation_goal_handle: rclpy.action.client.ClientGoalHandle | None = None
-        self._navigate_to_pose_feedback: NavigateToPose.Feedback | None = None
         self._follow_path_feedback: FollowPath.Feedback | None = None
         self._loop_rate = self._node.create_rate(self._node.target_loop_rate)
 
-    def clear_local_costmap(self):
-        self._clear_local_costmap_service.call_async(ClearEntireCostmap_Request())
+    def clear_local_costmap(self) -> None:
+        self._clear_local_costmap_service.call_async(ClearEntireCostmap.Request())
 
-    def clear_global_costmap(self):
-        self._clear_global_costmap_service.call_async(ClearEntireCostmap_Request())
+    def clear_global_costmap(self) -> None:
+        self._clear_global_costmap_service.call_async(ClearEntireCostmap.Request())
 
-    def start_positioning_approach(self, item: TaskPlanItem):
-        # NOTE: the navigation action functions set self.navigation_action_status to REQUESTED, and eventually to
-        # - NavigationActionStatus.FAILED_TO_START
-        # - NavigationActionStatus.IN_PROGRESS
-        # - NavigationActionStatus.SUCCEEDED
-        # - NavigationActionStatus.FAILED
-        self.navigation_action_status = NavigationActionStatus.NOT_STARTED
+    def check_plan_is_valid(self) -> None:
+        if self._plan_is_valid_request_chrono.total() < 1/self._check_plan_validity_rate:
+            return
 
-        if item.get_type() != TaskPlanItemType.ROW:
-            self._node.get_logger().error(f"only ROW items should be used with state machine task executor")
+        self._plan_is_valid_request_chrono = Chronometer()
+        if self._planned_path is None:
+            self._node.get_logger().error(f"trying to check if plan is valid, but planned path is None")
+            self.plan_validity = NavigationPlanValidity.FAILED  # eventually it will be externally set to NavigationPlanValidity.UNKNOWN
+            return
 
-        self._node.get_logger().info(f"STARTING positioning approach navigation for {item.get_item_id()}")
+        response_future = self._is_path_valid_service.call_async(IsPathValid.Request(path=self._planned_path))
+        response_future.add_done_callback(self._is_path_valid_response_callback)
 
-        approach_frame_id = item.get_item_id()
+    def _is_path_valid_response_callback(self, future: Future) -> None:
+        if future.result().is_valid:
+            self.plan_validity = NavigationPlanValidity.VALID
+        else:
+            self.plan_validity = NavigationPlanValidity.INVALID  # eventually it will be externally set to NavigationPlanValidity.UNKNOWN
+
+    def plan_positioning_approach(self, item: TaskPlanItem) -> None:
+        self.planning_action_status = NavigationActionStatus.NOT_STARTED
+
+        self._node.get_logger().info(f"PLANNING positioning approach navigation for {item.get_item_id()}")
+
+        approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
         positioning_approach_pose_stamped = PoseStamped(
             header=Header(
                 frame_id=approach_frame_id,
@@ -141,12 +168,35 @@ class NavigationManager:
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
         if self._node.dry_run:
-            self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+            self.planning_action_status = NavigationActionStatus.SUCCEEDED
             self._last_robot_pose_stamped = positioning_approach_pose_stamped
         else:
-            self._execute_navigate_to_pose_action(pose=positioning_approach_pose_stamped)
+            self._execute_compute_path_to_pose_action(
+                goal_pose=positioning_approach_pose_stamped,
+                planner_id=self._node.task_plan.positioning_approach_planner_id,
+            )
 
-    def start_straightening_approach(self, item: TaskPlanItem):
+    def start_positioning_navigation(self, item: TaskPlanItem) -> None:
+        # NOTE: the navigation action functions set self.navigation_action_status to REQUESTED, and eventually to
+        # - NavigationActionStatus.FAILED_TO_START
+        # - NavigationActionStatus.IN_PROGRESS
+        # - NavigationActionStatus.SUCCEEDED
+        # - NavigationActionStatus.FAILED
+        self.navigation_action_status = NavigationActionStatus.NOT_STARTED
+
+        self._node.get_logger().info(f"STARTING positioning approach navigation for {item.get_item_id()}")
+
+        if self._node.dry_run:
+            self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+        else:
+            self._execute_follow_path_action(
+                path=self._planned_path,
+                controller_id=self._node.task_plan.positioning_approach_controller_id,
+                goal_checker_id=self._node.task_plan.positioning_approach_goal_checker_id,
+                progress_checker_id=self._node.task_plan.positioning_approach_progress_checker_id,
+            )
+
+    def start_straightening_approach(self, item: TaskPlanItem) -> None:
         # NOTE: the navigation action functions set self.navigation_action_status to REQUESTED, and eventually to
         # - NavigationActionStatus.FAILED_TO_START
         # - NavigationActionStatus.IN_PROGRESS
@@ -159,7 +209,7 @@ class NavigationManager:
 
         self._node.get_logger().info(f"STARTING straightening approach navigation for {item.get_item_id()}")
 
-        approach_frame_id = item.get_item_id()
+        approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
         straightening_approach_pose_stamped = PoseStamped(
             header=Header(
                 frame_id=approach_frame_id,
@@ -205,7 +255,7 @@ class NavigationManager:
                 progress_checker_id=self._node.task_plan.straight_approach_progress_checker_id,
             )
 
-    def start_inter_row_navigation(self, item: TaskPlanItem):
+    def start_inter_row_navigation(self, item: TaskPlanItem) -> None:
         # NOTE: the navigation action functions set self.navigation_action_status to REQUESTED, and eventually to
         # - NavigationActionStatus.FAILED_TO_START
         # - NavigationActionStatus.IN_PROGRESS
@@ -318,7 +368,7 @@ class NavigationManager:
             self._node.get_logger().error(f"could not transform {self._base_frame} to {self._node.task_plan.map_frame}: {last_ex}")
         return None
 
-    def _transform_pose_stamped(self, pose_stamped, frame_id, timeout):
+    def _transform_pose_stamped(self, pose_stamped: PoseStamped, frame_id: str, timeout: float) -> PoseStamped | None:
         transform_chrono = Chronometer()
         last_ex: TransformException | None = None
         while rclpy.ok() and transform_chrono.total() < timeout:
@@ -380,7 +430,9 @@ class NavigationManager:
             return False
         if not self._wait_for_service(self._clear_global_costmap_service, timeout=timeout):
             return False
-        if not self._wait_action_server(self._navigate_to_pose_client, "navigate_to_pose", timeout=timeout):
+        if not self._wait_for_service(self._is_path_valid_service, timeout=timeout):
+            return False
+        if not self._wait_action_server(self._compute_path_to_pose_client, "compute_path_to_pose", timeout=timeout):
             return False
         if not self._wait_action_server(self._follow_path_client, "follow_path", timeout=timeout):
             return False
@@ -436,67 +488,57 @@ class NavigationManager:
         return True
 
     """
-     Send the NavigateToPose action request.
+     Send the ComputePathToPose action request.
     """
-    def _execute_navigate_to_pose_action(self, pose: PoseStamped) -> None:
-        if self.navigation_action_status not in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.SUCCEEDED]:
-            self._node.get_logger().error(f"trying to start a navigation action while another action is executing")
+    def _execute_compute_path_to_pose_action(self, goal_pose: PoseStamped, planner_id: str) -> None:
+        if self.planning_action_status not in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.SUCCEEDED]:
+            self._node.get_logger().error(f"trying to start a planning action while another action is executing")
             return
 
-        goal_msg = NavigateToPose.Goal()
-        goal_msg.pose = pose
+        goal_msg = ComputePathToPose.Goal()
+        # goal_msg.start = start  # TODO use as last robot position if dry_run==True
+        goal_msg.goal = goal_pose
+        goal_msg.planner_id = planner_id
+        goal_msg.use_start = False
 
-        self._node.get_logger().debug(f"execute_navigate_to_pose_action: sending goal")
-        response_future: Future = self._navigate_to_pose_client.send_goal_async(goal_msg, self._navigate_to_pose_feedback_callback)
-        response_future.add_done_callback(self._navigate_to_pose_response_callback)
-        self.navigation_action_status = NavigationActionStatus.REQUESTED
-        # TODO action timeout
+        self._node.get_logger().debug(f"execute_compute_path_to_pose_action: sending goal")
+        response_future: Future = self._compute_path_to_pose_client.send_goal_async(goal_msg)
+        response_future.add_done_callback(self._compute_path_to_pose_response_callback)
+        self.planning_action_status = NavigationActionStatus.REQUESTED
 
     """
-     Receive the NavigateToPose action response.
+     Receive the ComputePathToPose action response.
     """
-    def _navigate_to_pose_response_callback(self, future: Future) -> None:
-        if self.navigation_action_status != NavigationActionStatus.REQUESTED:
+    def _compute_path_to_pose_response_callback(self, future: Future) -> None:
+        if self.planning_action_status != NavigationActionStatus.REQUESTED:
             self._node.get_logger().error(
-                f"received a navigation action response but navigation_action_status is "
-                f"{self.navigation_action_status.name}, it should be REQUESTED")
+                f"received a navigation action response but planning_action_status is "
+                f"{self.planning_action_status.name}, it should be REQUESTED")
             return
 
-        self._navigation_goal_handle = future.result()
-        if self._navigation_goal_handle.accepted:
-            self._node.get_logger().debug(f"navigate_to_pose action response: accepted")
-            result_future: Future = self._navigation_goal_handle.get_result_async()
-            result_future.add_done_callback(self._navigate_to_pose_result_callback)
-            self.navigation_action_status = NavigationActionStatus.IN_PROGRESS
+        compute_path_to_pose_goal_handle = future.result()
+        if compute_path_to_pose_goal_handle.accepted:
+            self._node.get_logger().debug(f"compute_path_to_pose action response: accepted")
+            result_future: Future = compute_path_to_pose_goal_handle.get_result_async()
+            result_future.add_done_callback(self._compute_path_to_pose_result_callback)
+            self.planning_action_status = NavigationActionStatus.IN_PROGRESS
 
         else:
-            self._node.get_logger().warn(f"navigate_to_pose action response: rejected")
-            self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
+            self._node.get_logger().warn(f"compute_path_to_pose action response: rejected")
+            self.planning_action_status = NavigationActionStatus.FAILED_TO_START
 
     """
-     Receive the NavigateToPose action feedback.
+     Receive the ComputePathToPose action result.
     """
-    def _navigate_to_pose_feedback_callback(self, msg) -> None:
-        self._navigate_to_pose_feedback = msg.feedback
-        self._node.get_logger().info(
-            f"navigate_to_pose_feedback:\n"
-            f"    distance_remaining:       {msg.feedback.distance_remaining:.1f} m\n"
-            f"    estimated_time_remaining: {Duration.from_msg(msg.feedback.estimated_time_remaining).nanoseconds/1e9:.1f} s\n"
-            f"    navigation_time:          {Duration.from_msg(msg.feedback.navigation_time).nanoseconds/1e9:.1f} s\n",
-            throttle_duration_sec=5.0
-        )
-
-    """
-     Receive the NavigateToPose action result.
-    """
-    def _navigate_to_pose_result_callback(self, goal_result_future) -> None:
-        navigation_result_status = goal_result_future.result().status
-        if navigation_result_status == GoalStatus.STATUS_SUCCEEDED:
-            self._node.get_logger().debug('navigate_to_pose action succeeded')
-            self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+    def _compute_path_to_pose_result_callback(self, goal_result_future) -> None:
+        compute_path_to_pose_result_status = goal_result_future.result().status
+        if compute_path_to_pose_result_status == GoalStatus.STATUS_SUCCEEDED:
+            self._node.get_logger().debug('compute_path_to_pose action succeeded')
+            self._planned_path = goal_result_future.result().result.path
+            self.planning_action_status = NavigationActionStatus.SUCCEEDED
         else:
-            self._node.get_logger().debug(f'navigate_to_pose action failed with status code: {navigation_result_status}')
-            self.navigation_action_status = NavigationActionStatus.FAILED
+            self._node.get_logger().debug(f'compute_path_to_pose action failed with status code: {compute_path_to_pose_result_status}')
+            self.planning_action_status = NavigationActionStatus.FAILED
 
     """
      Send the FollowPath action request.
@@ -516,7 +558,6 @@ class NavigationManager:
         response_future: Future = self._follow_path_client.send_goal_async(goal_msg, self._follow_path_feedback_callback)
         response_future.add_done_callback(self._follow_path_response_callback)
         self.navigation_action_status = NavigationActionStatus.REQUESTED
-        # TODO action timeout
 
     """
      Receive the FollowPath action response.
@@ -566,7 +607,7 @@ class NavigationManager:
     """
      Request to cancel the current navigation action, if there is one in progress.
     """
-    def cancel_navigation_action(self):
+    def cancel_navigation_action(self) -> None:
         if self._navigation_goal_handle is not None:
             self._node.get_logger().info('canceling current navigation action')
             cancel_navigation_action_future: Future = self._navigation_goal_handle.cancel_goal_async()

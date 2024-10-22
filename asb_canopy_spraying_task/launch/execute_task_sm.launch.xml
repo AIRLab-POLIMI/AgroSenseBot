@@ -18,25 +18,28 @@
   <node pkg="asb_canopy_spraying_task" exec="spraying_task_sm.py" name="spraying_task_sm">
     <remap from="velocity_odom" to="/ekf_filter_map_odometry"/>
 
-    <param name="log_dir_path" value="~/asb_logs/" />
+    <!-- task execution params -->
     <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/task_plan_auto_gen.yaml" />
-    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
-    <param name="nozzle_rate_lookup_table_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzle_rate_lookup_table.yaml" />
-
-    <param name="enable_pump" value="$(var enable_pump)" />
+    <param name="log_dir_path" value="~/asb_logs/" />
     <param name="auto_set_control_mode" value="$(var auto_set_control_mode)" />
     <param name="dry_run" value="$(var dry_run)" />
     <param name="loop" value="$(var loop)" />
-
     <param name="start_up_timeout" value="30.0" />
-    <param name="robot_pose_time_tolerance" value="0.2" />
     <param name="platform_status_timeout" value="0.2" />
     <param name="start_spray_regulator_timeout" value="10.0" />
     <param name="start_navigation_action_timeout" value="10.0" />
     <param name="min_loop_rate" value="25.0" />
     <param name="target_loop_rate" value="50.0" />
-    <param name="base_frame" value="base_link" />
 
+    <!-- navigation params -->
+    <param name="base_frame" value="base_link" />
+    <param name="robot_pose_time_tolerance" value="0.2" />
+    <param name="check_plan_validity_rate" value="2.0" />
+
+    <!-- spraying params -->
+    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
+    <param name="nozzle_rate_lookup_table_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzle_rate_lookup_table.yaml" />
+    <param name="enable_pump" value="$(var enable_pump)" />
     <param name="velocity_timeout" value="0.1" />
     <param name="fan_rpm_timeout" value="0.5" />
     <param name="canopy_data_timeout" value="1.0" />

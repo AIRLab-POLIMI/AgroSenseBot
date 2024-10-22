@@ -281,6 +281,11 @@ class SprayingTaskPlan:
         self.rows: list[TaskPlanRow] = list()
         self.map_frame: str = "map"
 
+        self.positioning_approach_planner_id: str = "GridBased"
+        self.positioning_approach_controller_id: str = "FollowPath"
+        self.positioning_approach_goal_checker_id: str = "asb_goal_checker"
+        self.positioning_approach_progress_checker_id: str = "simple_progress_checker"
+
         self.straight_approach_controller_id: str = "FollowPath"
         self.straight_approach_goal_checker_id: str = "asb_goal_checker"
         self.straight_approach_progress_checker_id: str = "simple_progress_checker"
