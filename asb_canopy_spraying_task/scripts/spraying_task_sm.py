@@ -539,7 +539,7 @@ class SprayingTaskPlanExecutor(Node):
         self.do_loop_operations_and_sleep(current_item=self.current_item)
         self.clear_global_costmap_for_replanning_chrono = Chronometer()
 
-        if self.clear_global_costmap_for_replanning_count > self.clear_global_costmap_for_replanning_max_retries:
+        if self.clear_global_costmap_for_replanning_count >= self.clear_global_costmap_for_replanning_max_retries:
             self.get_logger().warn(f"max attempts reached for clearing global costmap for replanning [{self.clear_global_costmap_for_replanning_max_retries}] for item {self.current_item.get_item_id()}")
             self.clear_global_costmap_for_replanning_count = 0
             return 'give_up'
