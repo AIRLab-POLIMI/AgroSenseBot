@@ -58,6 +58,7 @@ def generate_launch_description():
             "points_in": "/scan_front_multilayer/points",
             "points_out": "/scan_front_multilayer/points_filtered",
             "scan_out": "/scan_front",
+            "heartbeat_out": "/scan_heartbeat_front",
         }.items(),
         output="screen",
     )
@@ -73,6 +74,7 @@ def generate_launch_description():
             "points_in": "/scan_rear_multilayer/points",
             "points_out": "/scan_rear_multilayer/points_filtered",
             "scan_out": "/scan_rear",
+            "heartbeat_out": "/scan_heartbeat_rear",
         }.items(),
         output="screen",
     )

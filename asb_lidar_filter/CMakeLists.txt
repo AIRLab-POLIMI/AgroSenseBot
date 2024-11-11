@@ -33,6 +33,7 @@ ament_target_dependencies(asb_lidar_filter_node
     pcl_ros
     tf2
     tf2_ros
+    std_msgs
     geometry_msgs
 )
 

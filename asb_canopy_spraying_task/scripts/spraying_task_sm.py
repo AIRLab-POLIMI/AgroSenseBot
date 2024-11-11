@@ -14,7 +14,7 @@ from rclpy.time import Time
 from rclpy.node import Node
 from rclpy.duration import Duration
 from asb_msgs.msg import Heartbeat, PlatformState
-from std_msgs.msg import String
+from std_msgs.msg import String, Header
 
 from enum import Enum
 from typing_extensions import Self
@@ -117,6 +117,9 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('platform_status_timeout', rclpy.Parameter.Type.DOUBLE)
         self.platform_status_timeout = Duration(seconds=self.get_parameter('platform_status_timeout').get_parameter_value().double_value)
 
+        self.declare_parameter('scan_heartbeat_timeout', rclpy.Parameter.Type.DOUBLE)
+        self.scan_heartbeat_timeout = Duration(seconds=self.get_parameter('scan_heartbeat_timeout').get_parameter_value().double_value)
+
         self.declare_parameter('start_spray_regulator_timeout', rclpy.Parameter.Type.DOUBLE)
         self.start_spray_regulator_timeout = self.get_parameter('start_spray_regulator_timeout').get_parameter_value().double_value
 
@@ -158,6 +161,8 @@ class SprayingTaskPlanExecutor(Node):
         self.start_spray_regulator_chrono: Chronometer | None = None
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: PlatformState | None = None
+        self.last_scan_heartbeat_front_msg: PlatformState | None = None
+        self.last_scan_heartbeat_rear_msg: PlatformState | None = None
         self.stop_platform: bool = True
 
         # managers
@@ -173,9 +178,17 @@ class SprayingTaskPlanExecutor(Node):
             history=HistoryPolicy.KEEP_LAST,
             depth=10
         )
+        qos_reliable_volatile_depth_1 = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
         self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', qos_reliable_transient_local_depth_10)
         self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
+        self.scan_heartbeat_front_sub = self.create_subscription(Header, '/scan_heartbeat_front', self.scan_heartbeat_front_callback, qos_reliable_volatile_depth_1)
+        self.scan_heartbeat_rear_sub = self.create_subscription(Header, '/scan_heartbeat_rear', self.scan_heartbeat_rear_callback, qos_reliable_volatile_depth_1)
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         positioning_approach_sm = StateMachine(outcomes=['success', 'failure'])
@@ -747,7 +760,7 @@ class SprayingTaskPlanExecutor(Node):
         else:
             self.current_item_pub.publish(String())
 
-        if not self.stop_platform:
+        if not self.stop_platform and self.check_system_condition():
             # publish heartbeat message
             self.heartbeat_alive_bit = not self.heartbeat_alive_bit
             self.heartbeat_pub.publish(Heartbeat(stamp=self.get_clock().now().to_msg(), alive_bit=self.heartbeat_alive_bit))
@@ -766,13 +779,32 @@ class SprayingTaskPlanExecutor(Node):
     def platform_status_callback(self, platform_status: PlatformState):
         self.last_platform_status_msg = platform_status
 
+    def scan_heartbeat_front_callback(self, scan_heartbeat: Header):
+        self.last_scan_heartbeat_front_msg = scan_heartbeat
+
+    def scan_heartbeat_rear_callback(self, scan_heartbeat: Header):
+        self.last_scan_heartbeat_rear_msg = scan_heartbeat
+
     def get_control_mode(self):
         platform_status_age = self.get_clock().now() - Time.from_msg(self.last_platform_status_msg.stamp)
         if platform_status_age > self.platform_status_timeout:
-            self.get_logger().error(f"platform_status_age: {platform_status_age.nanoseconds/1e9}")
+            self.get_logger().error(f"platform_status_age: {platform_status_age.nanoseconds/1e9}", throttle_duration_sec=10.0)
             return ControlMode.UNKNOWN
         else:
             return ControlMode.from_msg(self.last_platform_status_msg.control_mode)
+
+    def check_system_condition(self) -> bool:
+        scan_front_age = self.get_clock().now() - Time.from_msg(self.last_scan_heartbeat_front_msg.stamp)
+        scan_front_age_too_old = scan_front_age > self.scan_heartbeat_timeout
+        if scan_front_age_too_old:
+            self.get_logger().error(f"scan_front_age [{scan_front_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.scan_heartbeat_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+
+        scan_rear_age = self.get_clock().now() - Time.from_msg(self.last_scan_heartbeat_rear_msg.stamp)
+        scan_rear_age_too_old = scan_rear_age > self.scan_heartbeat_timeout
+        if scan_rear_age_too_old:
+            self.get_logger().error(f"scan_rear_age [{scan_rear_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.scan_heartbeat_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+
+        return not scan_front_age_too_old and not scan_rear_age_too_old
 
     def stop_platform_and_wait_control_mode_manual_to_auto(self) -> None:
         if self.dry_run:

@@ -48,7 +48,8 @@ private:
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr points_in_subscriber_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_publisher_;
-  rclcpp::Publisher<sensor_msgs::msg::LaserScan >::SharedPtr scan_publisher_;
+  rclcpp::Publisher<std_msgs::msg::Header>::SharedPtr heartbeat_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_publisher_;
 };
 
 

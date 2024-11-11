@@ -63,6 +63,9 @@ ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
   points_out_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
     "points_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
+  heartbeat_publisher_ = this->create_publisher<std_msgs::msg::Header>(
+    "heartbeat_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
+
   scan_publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>(
     "scan_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
@@ -133,6 +136,7 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
     if (range < scan_msg->ranges[i]) scan_msg->ranges[i] = range;
   }
 
+  heartbeat_publisher_->publish(scan_msg->header);
   scan_publisher_->publish(std::move(scan_msg));
 
 }
