@@ -41,6 +41,8 @@ private:
 
   std::string base_frame_id_;
 
+  int mask_filter_size_;
+
   double x_min_, x_max_, y_min_, y_max_, z_min_, z_max_; // pointcloud filter params
   double scan_min_height_, scan_max_height_; // scan filter params
 
