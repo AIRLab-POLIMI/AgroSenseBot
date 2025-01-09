@@ -33,6 +33,9 @@ ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
   this->declare_parameter("base_frame_id", "base_footprint");
   base_frame_id_ = this->get_parameter("base_frame_id").as_string();
 
+  this->declare_parameter("mask_filter_size", 2);
+  mask_filter_size_ = (int)this->get_parameter("mask_filter_size").as_int();
+
   // pointcloud filter params
   this->declare_parameter("x_min", 0.0);
   this->declare_parameter("x_max", 0.0);
@@ -87,23 +90,69 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
   pcl_ros::transformPointCloud(*points_out, *points_out, sensor_to_base_transform_stamped);
   points_out->header.frame_id = base_frame_id_;
 
-  // filter the input pointcloud with a box modelling the space occupied by the robot (remove points inside the box)
-  pcl::CropBox<PointType> crop_box_filter;
-  crop_box_filter.setNegative(true);
-  crop_box_filter.setInputCloud(points_out);
-  crop_box_filter.setMin(Eigen::Vector4f(
-    (float)std::min(x_min_, x_max_),
-    (float)std::min(y_min_, y_max_),
-    (float)std::min(z_min_, z_max_),
-    1.0
-  ));
-  crop_box_filter.setMax(Eigen::Vector4f(
-    (float)std::max(x_min_, x_max_),
-    (float)std::max(y_min_, y_max_),
-    (float)std::max(z_min_, z_max_),
-    1.0
-  ));
-  crop_box_filter.filter(*points_out);
+  if(points_out->isOrganized()) {
+    // if the pointcloud is organized (it was generated from the real sensor), filter the input pointcloud with a box modelling the space
+    // occupied by the robot (remove points inside the box) and also the points adjacent to the ones inside the box, which are likely to be
+    // reflections on tangent surfaces
+    float x_min = (float)std::min(x_min_, x_max_);
+    float x_max = (float)std::max(x_min_, x_max_);
+    float y_min = (float)std::min(y_min_, y_max_);
+    float y_max = (float)std::max(y_min_, y_max_);
+    float z_min = (float)std::min(z_min_, z_max_);
+    float z_max = (float)std::max(z_min_, z_max_);
+    std::vector<bool> mask(points_out->height * points_out->width, false);
+
+    for(int i = 0; i < (int)points_out->height; i++) {
+      for(int j = 0; j < (int)points_out->width; j++) {
+        if(
+            points_out->at(j,i).x >= x_min && points_out->at(j,i).x <= x_max &&
+            points_out->at(j,i).y >= y_min && points_out->at(j,i).y <= y_max &&
+            points_out->at(j,i).z >= z_min && points_out->at(j,i).z <= z_max
+            ) {
+
+          // insert in the mask the points adjacent to the ones in the box
+          for(int d_i = -mask_filter_size_; d_i < mask_filter_size_ + 1; d_i++) {
+            for (int d_j = -mask_filter_size_; d_j < mask_filter_size_ + 1; d_j++) {
+              if (i + d_i >= 0 && i + d_i < (int)points_out->height && j + d_j >= 0 && j + d_j < (int)points_out->width) {
+                mask[(i + d_i) * (int)points_out->width + (j + d_j)] = true; // using flat index
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // remove masked points by setting them as NaN (to keep the pointcloud organized)
+    for(int i = 0; i < (int)points_out->height; i++) {
+      for(int j = 0; j < (int)points_out->width; j++) {
+        if(mask[i * (int)points_out->width + j]){
+          points_out->at(j,i).x = std::numeric_limits<float>::quiet_NaN();
+          points_out->at(j,i).y = std::numeric_limits<float>::quiet_NaN();
+          points_out->at(j,i).z = std::numeric_limits<float>::quiet_NaN();
+        }
+      }
+    }
+
+  } else {
+    // if the pointcloud is NOT organized (from sim sensor), filter the input pointcloud with a box modelling the space occupied by the
+    // robot (remove points inside the box)
+    pcl::CropBox<PointType> crop_box_filter;
+    crop_box_filter.setNegative(true);
+    crop_box_filter.setInputCloud(points_out);
+    crop_box_filter.setMin(Eigen::Vector4f(
+        (float)std::min(x_min_, x_max_),
+        (float)std::min(y_min_, y_max_),
+        (float)std::min(z_min_, z_max_),
+        1.0
+    ));
+    crop_box_filter.setMax(Eigen::Vector4f(
+        (float)std::max(x_min_, x_max_),
+        (float)std::max(y_min_, y_max_),
+        (float)std::max(z_min_, z_max_),
+        1.0
+    ));
+    crop_box_filter.filter(*points_out);
+  }
 
   sensor_msgs::msg::PointCloud2::SharedPtr points_out_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
   points_out_msg->header = points_in_msg->header;
