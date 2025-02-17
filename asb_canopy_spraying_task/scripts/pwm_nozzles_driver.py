@@ -17,6 +17,9 @@ class PwmNozzlesDriver(Node):
     def __init__(self):
         super().__init__('pwm_nozzles_driver')
 
+        can_channel_name: str = "vcan1"
+        send_test_messages: bool = True
+
         self.nozzles_command_timeout: float = 1.0  # s
         read_valve_state_rate = 1.0  # Hz
         valve_command_rate = 20.0  # Hz
@@ -69,13 +72,15 @@ class PwmNozzlesDriver(Node):
 
         # configure valve addresses  # TODO set all valves to pre-operational state before setting addresses (they may already be configured)
         try:
-            self.can_bus = can.Bus(interface='socketcan', channel='vcan1', bitrate=250000, receive_own_messages=True)
+            self.can_bus = can.Bus(interface='socketcan', channel=can_channel_name, bitrate=250000, receive_own_messages=send_test_messages)
             self.can_listener = can.BufferedReader()
             self.notifier = can.Notifier(self.can_bus, [self.can_listener])
 
             for a in self.valve_addresses:
                 self.set_valve_address_command(can_bus=self.can_bus, valve_address=a)
-                self.test_set_valve_address_command_response(can_bus=self.can_bus, valve_address=a, fill_data_array=True)
+
+                if send_test_messages:
+                    self.test_set_valve_address_command_response(can_bus=self.can_bus, valve_address=a, fill_data_array=True)
 
                 start_time = time.time()
                 while True:
@@ -126,6 +131,9 @@ class PwmNozzlesDriver(Node):
 
         for valve_address, valve_rate in valve_rates.items():
             self.control_valve_state_command(can_bus=self.can_bus, valve_address=valve_address, rate=valve_rate)
+
+        if shutting_down:
+            self.reset_valve_address_command(self.can_bus)
 
         if self.send_valve_read_command and not shutting_down:
             self.send_valve_read_command = False
@@ -242,6 +250,29 @@ class PwmNozzlesDriver(Node):
             self.get_logger().debug(f"set_valve_address_command: message sent on {can_bus.channel_info}, valve_address: {valve_address}")
         except can.CanError:
             self.get_logger().fatal("set_valve_address_command: message could not be sent")
+
+    def reset_valve_address_command(self, can_bus: can.Bus):
+
+        msg = can.Message(
+            arbitration_id=0x500,
+            data=[
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ],
+            is_extended_id=False
+        )
+
+        try:
+            can_bus.send(msg)
+            self.get_logger().debug(f"reset_valve_address_command: message sent on {can_bus.channel_info}")
+        except can.CanError:
+            self.get_logger().fatal("reset_valve_address_command: message could not be sent")
 
     def test_set_valve_address_command_response(self, can_bus: can.Bus, valve_address: int, fill_data_array: bool):
         if not isinstance(valve_address, int):
