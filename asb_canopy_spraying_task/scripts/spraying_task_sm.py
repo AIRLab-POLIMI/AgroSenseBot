@@ -438,6 +438,16 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def setup_sm_cb(self) -> str:
+        # wait for sensor data and system conditions to be ok
+        self.get_logger().info(f"waiting for sensors and system conditions...")
+        system_condition_chrono = Chronometer()
+        system_condition_ok = self.wait_for_system_condition_ok(timeout=self.start_up_timeout)
+        if system_condition_ok:
+            self.get_logger().info(f"sensor data received and system conditions are ok (took {system_condition_chrono.total():.4f} s)")
+        else:
+            self.get_logger().fatal(f"sensor data NOT received or system conditions are NOT ok (took {system_condition_chrono.total():.4f} s), aborting task")
+            return 'failure'
+
         if not self.dry_run:
             # wait for localization
             self.get_logger().info(f"waiting for robot pose...")
@@ -793,7 +803,19 @@ class SprayingTaskPlanExecutor(Node):
         else:
             return ControlMode.from_msg(self.last_platform_status_msg.control_mode)
 
+    def wait_for_system_condition_ok(self, timeout: float) -> bool:
+        timeout_chrono = Chronometer()
+        while rclpy.ok() and not self.check_system_condition():
+            self.get_logger().info(f"waiting for system condition to be ok", throttle_duration_sec=1.0)
+            if timeout_chrono.total() > timeout:
+                return False
+            self.loop_rate.sleep()
+        return True
+
     def check_system_condition(self) -> bool:
+        if self.last_scan_heartbeat_front_msg is None or self.last_scan_heartbeat_rear_msg is None:
+            return False
+
         scan_front_age = self.get_clock().now() - Time.from_msg(self.last_scan_heartbeat_front_msg.stamp)
         scan_front_age_too_old = scan_front_age > self.scan_heartbeat_timeout
         if scan_front_age_too_old:
