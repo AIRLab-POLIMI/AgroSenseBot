@@ -10,6 +10,8 @@ find_package(rclcpp REQUIRED)
 find_package(asb_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(pcl_ros REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(webots_ros2_driver REQUIRED)
 
@@ -29,6 +31,8 @@ ament_target_dependencies(
         ${PROJECT_NAME}
         pluginlib
         rclcpp
+        pcl_conversions
+        pcl_ros
         asb_msgs
         sensor_msgs
         nav_msgs

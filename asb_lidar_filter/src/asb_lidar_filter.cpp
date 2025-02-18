@@ -134,6 +134,7 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
     }
 
   } else {
+      RCLCPP_WARN(this->get_logger(), "pointcloud is not organized");
     // if the pointcloud is NOT organized (from sim sensor), filter the input pointcloud with a box modelling the space occupied by the
     // robot (remove points inside the box)
     pcl::CropBox<PointType> crop_box_filter;

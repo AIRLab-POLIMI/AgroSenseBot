@@ -70,6 +70,7 @@ PROTO MultiLayerLidar [
     projection "cylindrical"
     type "fixed"
     noise IS noise
+    near 0.2
     resolution -1
     defaultFrequency IS defaultFrequency
     minFrequency 1

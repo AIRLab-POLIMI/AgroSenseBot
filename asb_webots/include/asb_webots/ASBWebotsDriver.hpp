@@ -5,6 +5,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "asb_msgs/msg/sim_state_cmd.hpp"
 #include "asb_msgs/msg/sim_state.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "sensor_msgs/msg/imu.hpp"
@@ -23,6 +24,7 @@ namespace asb_webots_driver {
 
         rclcpp::Subscription<asb_msgs::msg::SimStateCmd>::SharedPtr sim_state_cmd_subscriber_;
         rclcpp::Publisher<asb_msgs::msg::SimState>::SharedPtr sim_state_publisher_;
+        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr lidar_front_publisher_;
         rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr gnss_1_publisher_, gnss_2_publisher_;
         rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr inertial_unit_publisher_;
         rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
@@ -30,6 +32,8 @@ namespace asb_webots_driver {
 
         std::string sim_state_topic_;
         std::string sim_state_cmd_topic_;
+
+        WbDeviceTag lidar_front_;
 
         WbDeviceTag gnss_1_, gnss_2_;
         std::string gnss_1_topic_, gnss_2_topic_;

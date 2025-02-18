@@ -2,12 +2,17 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include <functional>
+#include <webots/lidar.h>
+#include <webots/lidar_point.h>
 #include <webots/gps.h>
 #include <webots/inertial_unit.h>
 #include <webots/gyro.h>
 #include <webots/motor.h>
 #include <webots/robot.h>
 #include <chrono>
+#include <limits>
+#include <pcl/point_types.h>
+#include "pcl_conversions/pcl_conversions.h"
 
 using namespace std::chrono_literals;
 using namespace sensor_msgs::msg;
@@ -184,12 +189,17 @@ namespace asb_webots_driver {
             "gyro_covariance_diagonal: %f, %f, %f",
             gyro_covariance_diagonal_[0], gyro_covariance_diagonal_[1], gyro_covariance_diagonal_[2]);
 
+        lidar_front_ = wb_robot_get_device("base_scan_front_multilayer_sim");
+
         gnss_1_ = wb_robot_get_device(gnss_1_frame_id_.c_str());
         gnss_2_ = wb_robot_get_device(gnss_2_frame_id_.c_str());
         inertial_unit_ = wb_robot_get_device(inertial_unit_child_frame_id_.c_str());
         gyro_ = wb_robot_get_device(gyro_frame_id_.c_str());
         right_motor_ = wb_robot_get_device("right_motor");
         left_motor_ = wb_robot_get_device("left_motor");
+
+        wb_lidar_enable(lidar_front_, 1);  // TODO ***************************************************************
+        wb_lidar_enable_point_cloud(lidar_front_);
 
         wb_gps_enable(gnss_1_, 1);
         wb_gps_enable(gnss_2_, 1);
@@ -214,6 +224,9 @@ namespace asb_webots_driver {
         sim_state_publisher_ = node->create_publisher<asb_msgs::msg::SimState>(
             sim_state_topic_, rclcpp::SensorDataQoS().reliable());
 
+        lidar_front_publisher_ = node->create_publisher<sensor_msgs::msg::PointCloud2>(
+              "/scan_front_multilayer/points", rclcpp::SensorDataQoS().durability_volatile().reliable());
+
         gnss_1_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
             gnss_1_topic_, rclcpp::SensorDataQoS().reliable());
 
@@ -236,6 +249,51 @@ namespace asb_webots_driver {
     }
 
     void ASBWebotsDriver::step() {
+
+        bool pce = wb_lidar_is_point_cloud_enabled(lidar_front_);
+        std::cout << " wb_lidar_is_point_cloud_enabled: " << (pce?"TRUE":"*******FALSE*********") << std::endl;
+
+        if(pce) {
+            int l = wb_lidar_get_number_of_layers(lidar_front_);
+            std::cout << " l: " << l<< std::endl;
+
+            int hr = wb_lidar_get_horizontal_resolution(lidar_front_);
+            std::cout << " hr: " << hr << std::endl;
+
+            int np = wb_lidar_get_number_of_points(lidar_front_);
+            std::cout << " np: " << np << " hr*l==np: " << ((hr*l==np)?"TRUE":"*******FALSE*********") << std::endl;
+
+            if(hr*l==np) {
+                typedef pcl::PointXYZ PointType;
+                auto nan_f = std::numeric_limits<float>::quiet_NaN();
+                PointType default_point = PointType(nan_f, nan_f, nan_f);
+                auto lidar_front_pointcloud = std::make_shared<pcl::PointCloud<PointType>>(hr, l, default_point);
+
+                lidar_front_pointcloud->width = hr;
+                lidar_front_pointcloud->height = l;
+                lidar_front_pointcloud->is_dense = false;
+                lidar_front_pointcloud->resize(np);
+
+                for(int i = 0; i < l; i++) {
+                    const WbLidarPoint *layer_points = wb_lidar_get_layer_point_cloud(lidar_front_, i);
+                    if(layer_points != nullptr) {
+                        for (int j = 0; j < hr; j++) {
+                            WbLidarPoint p = layer_points[j];
+                            lidar_front_pointcloud->at(j, i).x = p.x;
+                            lidar_front_pointcloud->at(j, i).y = p.y;
+                            lidar_front_pointcloud->at(j, i).z = p.z;
+                        }
+                    }
+                }
+
+                sensor_msgs::msg::PointCloud2::SharedPtr lidar_front_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+                pcl::toROSMsg(*lidar_front_pointcloud, *lidar_front_msg);
+                lidar_front_msg->header.stamp = rclcpp::Clock().now();
+                lidar_front_msg->header.frame_id = "base_scan_front_multilayer_sim";  // TODO********************************************************
+                lidar_front_publisher_->publish(*lidar_front_msg);
+            }
+        }
+
         // wb_motor_set_velocity sets the linear track velocity (not the track wheel angular velocity),
         // so we need to divide by the wheel radius since sim_state_cmd_msg_.left_motor_speed_ref is an angular velocity.
         wb_motor_set_velocity(left_motor_, sim_state_cmd_msg_.left_motor_speed_ref * TRACK_WHEEL_RADIUS / GEARBOX_REDUCTION_RATIO);

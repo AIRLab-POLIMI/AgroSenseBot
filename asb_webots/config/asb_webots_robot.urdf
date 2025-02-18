@@ -4,15 +4,15 @@
 
         <plugin type="asb_webots_driver::ASBWebotsDriver" />
 
-        <device reference="base_scan_front_multilayer_sim" type="Lidar">
-            <ros>
-                <enabled>true</enabled>
-                <updateRate>10</updateRate>
-                <topicName>/scan_front_multilayer</topicName>
-                <alwaysOn>false</alwaysOn>
-                <frameName>base_scan_front_multilayer_sim</frameName>
-            </ros>
-        </device>
+<!--        <device reference="base_scan_front_multilayer_sim" type="Lidar">-->
+<!--            <ros>-->
+<!--                <enabled>true</enabled>-->
+<!--                <updateRate>10</updateRate>-->
+<!--                <topicName>/scan_front_multilayer</topicName>-->
+<!--                <alwaysOn>false</alwaysOn>-->
+<!--                <frameName>base_scan_front_multilayer_sim</frameName>-->
+<!--            </ros>-->
+<!--        </device>-->
 
         <device reference="base_scan_rear_multilayer_sim" type="Lidar">
             <ros>
@@ -21,6 +21,16 @@
                 <topicName>/scan_rear_multilayer</topicName>
                 <alwaysOn>false</alwaysOn>
                 <frameName>base_scan_rear_multilayer_sim</frameName>
+            </ros>
+        </device>
+
+        <device reference="Sick LMS 291" type="Lidar">
+            <ros>
+                <enabled>true</enabled>
+                <updateRate>10</updateRate>
+                <topicName>/vel</topicName>
+                <alwaysOn>true</alwaysOn>
+                <frameName>vel</frameName>
             </ros>
         </device>
 

@@ -52,6 +52,7 @@ def generate_launch_description():
         executable="asb_lidar_filter_node",
         name="lidar_filter_front",
         parameters=[
+            {"mask_filter_size": 10},
             os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
         ],
         remappings={
@@ -68,6 +69,7 @@ def generate_launch_description():
         executable="asb_lidar_filter_node",
         name="lidar_filter_rear",
         parameters=[
+            {"mask_filter_size": 10},
             os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
         ],
         remappings={
