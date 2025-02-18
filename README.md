@@ -4,7 +4,7 @@
 
 To install everything needed to run the AgroSenseBot software on the onboard computer or on a development PC, 
 [install ROS2 Iron](https://docs.ros.org/en/iron/Installation/Ubuntu-Install-Debians.html) (Ubuntu 22.04) 
-and [install Webots](https://cyberbotics.com/doc/guide/installing-webots), then run these commands:
+and [install Webots 2023b](https://cyberbotics.com/doc/guide/installing-webots), then run these commands:
 
 ```shell
 sudo add-apt-repository -y ppa:lely/ppa &&  # lely PPA repo
