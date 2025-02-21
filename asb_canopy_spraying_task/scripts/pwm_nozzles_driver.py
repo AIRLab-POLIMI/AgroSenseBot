@@ -70,7 +70,7 @@ class PwmNozzlesDriver(Node):
         self.create_timer(1.0 / read_valve_state_rate, self.read_valve_state_timer_callback)
         self.create_timer(1.0 / valve_command_rate, self.valve_command_timer_callback)
 
-        # configure valve addresses  # TODO set all valves to pre-operational state before setting addresses (they may already be configured)
+        # configure valve addresses
         try:
             self.can_bus = can.Bus(interface='socketcan', channel=can_channel_name, bitrate=250000, receive_own_messages=send_test_messages)
             self.can_listener = can.BufferedReader()

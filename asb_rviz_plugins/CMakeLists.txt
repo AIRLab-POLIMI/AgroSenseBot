@@ -47,27 +47,32 @@ set (THIS_PACKAGE_INCLUDE_DEPENDS
 )
 
 include_directories(
-        include
-        ${QWT_INCLUDE_DIRS}
+    include
+    ${QWT_INCLUDE_DIRS}
 )
 
 # Define source file
 set(${PROJECT_NAME}_SRCS
-        src/asb_panel.cpp
-        src/asb_widget.cpp
-        src/asb_linear_dial.cpp
+    src/asb_panel.cpp
+    src/asb_widget.cpp
+    src/asb_panel_nozzles.cpp
+    src/asb_widget_nozzles.cpp
+    src/asb_linear_dial.cpp
 )
 
 # Define header file
 set(${PROJECT_NAME}_HDRS
-        include/${PROJECT_NAME}/asb_panel.hpp
-        include/${PROJECT_NAME}/asb_widget.h
-        include/${PROJECT_NAME}/asb_linear_dial.h
+    include/${PROJECT_NAME}/asb_panel.hpp
+    include/${PROJECT_NAME}/asb_widget.h
+    include/${PROJECT_NAME}/asb_panel_nozzles.hpp
+    include/${PROJECT_NAME}/asb_widget_nozzles.h
+    include/${PROJECT_NAME}/asb_linear_dial.h
 )
 
 # Define ui file
 set(${PROJECT_NAME}_UIS
-        resources/asb.ui
+    resources/asb.ui
+    resources/asb_nozzles.ui
 )
 
 message(STATUS "Generate header for ui with rviz2_QT_VERSION: ${rviz2_QT_VERSION}")
@@ -78,15 +83,15 @@ endforeach()
 
 ## Add library is needed in order to generate the header file from ui file.
 add_library(${PROJECT_NAME} SHARED
-        ${${PROJECT_NAME}_SRCS}
-        ${${PROJECT_NAME}_HDRS}
-        ${${PROJECT_NAME}_UIS_H}
-        ${${PROJECT_NAME}_MOCS}
+    ${${PROJECT_NAME}_SRCS}
+    ${${PROJECT_NAME}_HDRS}
+    ${${PROJECT_NAME}_UIS_H}
+    ${${PROJECT_NAME}_MOCS}
 )
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${Qt5Widgets_INCLUDE_DIRS}
-        ${OGRE_INCLUDE_DIRS}
+    ${Qt5Widgets_INCLUDE_DIRS}
+    ${OGRE_INCLUDE_DIRS}
 )
 target_link_libraries(${PROJECT_NAME} rviz_common::rviz_common Qwt::Qwt)
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
@@ -96,17 +101,17 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "RVIZ_DEFAULT_PLUGINS_BUILDIN
 pluginlib_export_plugin_description_file(rviz_common plugins_description.xml)
 
 install(
-        TARGETS ${PROJECT_NAME}
-        EXPORT ${PROJECT_NAME}
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include
+    TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
 )
 
 install(
-        DIRECTORY include/
-        DESTINATION include
+    DIRECTORY include/
+    DESTINATION include
 )
 
 if(BUILD_TESTING)

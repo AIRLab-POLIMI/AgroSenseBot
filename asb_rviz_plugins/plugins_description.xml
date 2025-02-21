@@ -6,4 +6,10 @@
     <description>RViz panel showing the AgroSenseBot robot control system data.</description>
   </class>
 
+  <class name="asb_rviz_plugins/AgroSenseBotNozzles"
+         type="asb_rviz_plugins::ASBPanelNozzles"
+         base_class_type="rviz_common::Panel">
+    <description>RViz panel showing the AgroSenseBot nozzles state.</description>
+  </class>
+
 </library>

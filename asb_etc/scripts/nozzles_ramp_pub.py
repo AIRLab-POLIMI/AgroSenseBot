@@ -18,9 +18,12 @@ class LUTNozzlesPublisher(Node):
     def __init__(self):
         super().__init__('lut_nozzles_publisher')
 
+        self.declare_parameter('do_sequence', rclpy.Parameter.Type.BOOL)
+        self.do_sequence: bool = self.get_parameter('do_sequence').get_parameter_value().bool_value
+
         self.nozzle_ids = list()
         self.declare_parameter('nozzles_configuration_file_path', rclpy.Parameter.Type.STRING)
-        nozzles_configuration_file_path = os.path.expanduser(self.get_parameter('nozzles_configuration_file_path').get_parameter_value().string_value)
+        nozzles_configuration_file_path: str = os.path.expanduser(self.get_parameter('nozzles_configuration_file_path').get_parameter_value().string_value)
         with open(nozzles_configuration_file_path, 'r') as f:
             nozzles_configuration = yaml.safe_load(f)
         for nozzle_configuration in nozzles_configuration:
@@ -28,14 +31,16 @@ class LUTNozzlesPublisher(Node):
 
         publish_rate: float = 100.0
 
-        self.loop_lut: bool = True
+        self.declare_parameter('loop_lut', rclpy.Parameter.Type.BOOL)
+        self.loop_lut: bool = self.get_parameter('loop_lut').get_parameter_value().bool_value
         self.loop_pause: float = 2.0
         self.include_unknown_nozzle: bool = True
 
         lut = {
             0.0: -0.1,
-            5.0: 1.1,
-            5.1: 0.0,
+            0.7: 1.1,
+            0.9: 1.1,
+            1.0: 0.0,
         }
 
         self.lut_keys = list(lut.keys())
@@ -47,31 +52,67 @@ class LUTNozzlesPublisher(Node):
         self.create_timer(1.0/publish_rate, self.timer_callback)
 
     def timer_callback(self):
-        t = (self.get_clock().now() - self.t0).nanoseconds / 1E9
 
-        if self.loop_lut and t > max(self.lut_keys):
-            if t > max(self.lut_keys) + self.loop_pause:
-                self.t0 = self.get_clock().now()
+        t_max = max(self.lut_keys)
+
+        if self.do_sequence:
+            t = (self.get_clock().now() - self.t0).nanoseconds / 1E9
+            t_m = t % t_max
+            i = int(t/t_max)
+
+            if i < len(self.nozzle_ids):
+                nozzle_rate = np.interp(t_m, self.lut_keys, self.lut_values)
+                self.get_logger().info(f"sequence index: {i}, t: {t:.1f}, t_m: {t_m:.1f}     nozzle: {self.nozzle_ids[i]}  rate: {nozzle_rate:.4f}")
+
+                nozzle_command_msg = NozzleCommandArray(
+                    stamp=self.get_clock().now().to_msg(),
+                    nozzle_command_array=[
+                        NozzleCommand(
+                            nozzle_id=self.nozzle_ids[i],
+                            rate=nozzle_rate,
+                        ),
+                    ],
+                )
+
+                self.nozzles_command_pub.publish(nozzle_command_msg)
             else:
-                return
+                if self.loop_lut:
+                    if t < t_max * len(self.nozzle_ids) + self.loop_pause:
+                        self.get_logger().info(f"waiting to restart without publishing")
+                        return
+                    else:
+                        self.t0 = self.get_clock().now()
+                        return  # restart
+                else:
+                    return  # finished
 
-        nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
-        self.get_logger().info(f"nozzle_rate: {nozzle_rate:.4f}")
+        else:
 
-        nozzle_command_msg = NozzleCommandArray(stamp=self.get_clock().now().to_msg())
-        for nozzle_id in self.nozzle_ids:
-            nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
-                nozzle_id=nozzle_id,
-                rate=nozzle_rate,
-            ))
+            t = (self.get_clock().now() - self.t0).nanoseconds / 1E9
 
-        if self.include_unknown_nozzle:
-            nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
-                nozzle_id='test_nozzle_id',
-                rate=nozzle_rate,
-            ))
+            if t > t_max:
+                if self.loop_lut and t > t_max + self.loop_pause:
+                    self.t0 = self.get_clock().now()
+                else:
+                    return
 
-        self.nozzles_command_pub.publish(nozzle_command_msg)
+            nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
+            self.get_logger().info(f"nozzle_rate: {nozzle_rate:.4f}")
+
+            nozzle_command_msg = NozzleCommandArray(stamp=self.get_clock().now().to_msg())
+            for nozzle_id in self.nozzle_ids:
+                nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
+                    nozzle_id=nozzle_id,
+                    rate=nozzle_rate,
+                ))
+
+            if self.include_unknown_nozzle:
+                nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
+                    nozzle_id='test_nozzle_id',
+                    rate=nozzle_rate,
+                ))
+
+            self.nozzles_command_pub.publish(nozzle_command_msg)
 
 
 def main(args=None):
