@@ -31,7 +31,7 @@ def generate_launch_description():
     use_vcan0_launch_argument = DeclareLaunchArgument(
         "use_vcan0",
         default_value="false",
-        description="Use the virtual CAN network vcan0 instead of the physical CAN network (can0).",
+        description="Use the virtual CAN network vcan0 instead of the physical CAN network (can2).",
     )
 
     fake_heartbeat_launch_configuration = LaunchConfiguration("fake_heartbeat")

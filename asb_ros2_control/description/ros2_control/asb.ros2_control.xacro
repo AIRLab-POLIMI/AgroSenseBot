@@ -14,7 +14,7 @@
           <param name="can_interface_name">vcan0</param>
         </xacro:if>
         <xacro:unless value="${test}">
-          <param name="can_interface_name">can0</param>
+          <param name="can_interface_name">can2</param>
         </xacro:unless>
         <param name="tracks_maximum_velocity_rpm">3000</param>  <!-- 3000/60*2*pi = 314.159265359 rad/s -->
         <param name="fan_maximum_velocity_rpm">2400</param>  <!-- 2400/60*2*pi = 251.327412287 rad/s -->

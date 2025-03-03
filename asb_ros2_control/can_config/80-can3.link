@@ -1,5 +1,5 @@
 [Match]
-OriginalName=can*
+OriginalName=can3
 
 [Link]
 TransmitQueueLength=1000

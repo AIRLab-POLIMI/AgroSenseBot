@@ -1,0 +1,5 @@
+[Match]
+OriginalName=can2
+
+[Link]
+TransmitQueueLength=1000

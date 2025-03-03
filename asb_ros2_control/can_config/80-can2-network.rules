@@ -1,0 +1,1 @@
+SUBSYSTEM=="net", ACTION=="change|add", KERNEL=="can*", ATTRS{serial}=="0023002C4343570C20303138", ATTR{tx_queue_len}="1000", NAME="can2"

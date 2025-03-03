@@ -1,0 +1,5 @@
+[NetDev]
+Name=vcan1
+Kind=vcan
+MTUBytes=16
+Description=Virtual VCAN1 network interface

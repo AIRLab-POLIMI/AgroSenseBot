@@ -2,4 +2,4 @@
 Name=vcan0
 Kind=vcan
 MTUBytes=16
-Description=Virtual CAN0 network interface
+Description=Virtual VCAN0 network interface

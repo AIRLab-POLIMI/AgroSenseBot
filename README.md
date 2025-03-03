@@ -39,24 +39,13 @@ The password is not stored on this repository since it should not be published.
 ### Set up the CAN network
 
 Before running the AgroSenseBot ROS2 software, it is necessary to set up the CAN network.
-The can0 network is used to communicate with the real hardware, and the vcan0 virtual CAN network is used when running 
-tests in the simulator.
-To persistently set up the CAN networks can0 and vcan0, run the following command in a terminal.
+The can2 network is used to communicate with the real platform hardware, and the vcan0 virtual CAN network is used when 
+running tests in the simulator. The PWM nozzles communication is on separate can networks, vcan1 and can3.
+To persistently set up the CAN networks vcan0, vcan1, can2, and can3, run the following command in a terminal, which 
+installs the network and udev configuration files.
 ```shell
 ros2 run asb_ros2_control setup_can_networks.sh
 ```
-
-Otherwise, the CAN networks can be manually set up with the following commands, but will not persist after rebooting the operating system:
-```shell
-ros2 run asb_ros2_control setup_vcan0.sh  # to set up the vcan0 network, or
-ros2 run asb_ros2_control setup_can0.sh  # to set up the can0 network
-```
-To shut down the CAN networks that have been manually set up (p.e., for testing), use the following commands:
-```shell
-ros2 run asb_ros2_control shutdown_vcan0.sh  # to shut down the vcan0 network, or
-ros2 run asb_ros2_control shutdown_can0.sh  # to shut down the can0 network
-```
-
 
 ### Connect to the onboard computer through SSH
 
