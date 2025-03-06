@@ -17,8 +17,8 @@ class PwmNozzlesDriver(Node):
     def __init__(self):
         super().__init__('pwm_nozzles_driver')
 
-        can_channel_name: str = "vcan1"
-        send_test_messages: bool = True
+        can_channel_name: str = "can3"
+        send_test_messages: bool = False
 
         self.nozzles_command_timeout: float = 1.0  # s
         read_valve_state_rate = 1.0  # Hz
@@ -162,7 +162,7 @@ class PwmNozzlesDriver(Node):
             raise ValueError("not (0.0 <= rate <= 1.0)")
 
         valve_open_state: int = 100  # 0, 100 [%], byte 1
-        main_frequency: int = 20  # 10, 20 [Hz], byte 2
+        main_frequency: int = 10  # 10, 20 [Hz], byte 2
         main_active_perc: int = int(100 * rate)  # 0...100 [%], byte 3
         hold_phase_frequency: int = 5  # 0...20 [kHz], byte 4
         hold_phase_active_perc: int = 30  # 0...100 [%], byte 5

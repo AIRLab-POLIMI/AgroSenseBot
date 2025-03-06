@@ -34,13 +34,13 @@ class LUTNozzlesPublisher(Node):
         self.declare_parameter('loop_lut', rclpy.Parameter.Type.BOOL)
         self.loop_lut: bool = self.get_parameter('loop_lut').get_parameter_value().bool_value
         self.loop_pause: float = 2.0
-        self.include_unknown_nozzle: bool = True
+        self.include_unknown_nozzle: bool = False
 
         lut = {
-            0.0: -0.1,
-            0.7: 1.1,
-            0.9: 1.1,
-            1.0: 0.0,
+            0.0: 0.0,
+            5.0: 0.0,
+            10.0: 1.0,
+            15.0: 0.0,
         }
 
         self.lut_keys = list(lut.keys())
