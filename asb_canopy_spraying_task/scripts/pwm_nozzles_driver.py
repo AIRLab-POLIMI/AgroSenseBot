@@ -8,8 +8,16 @@ from rclpy import qos
 from rclpy.node import Node
 
 import time
+import datetime
 import can
-from rclpy.time import Time
+from rclpy.time import Time, Duration
+
+
+def compute_tick_milliseconds() -> int:
+    now: datetime.datetime = datetime.datetime.now()
+    midnight: datetime.datetime = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    milliseconds_since_midnight = int((now - midnight).seconds*1E3 + (now - midnight).microseconds/1E3)
+    return milliseconds_since_midnight
 
 
 class PwmNozzlesDriver(Node):
@@ -22,8 +30,9 @@ class PwmNozzlesDriver(Node):
 
         self.nozzles_command_timeout: float = 1.0  # s
         read_valve_state_rate = 1.0  # Hz
-        valve_command_rate = 20.0  # Hz
+        self.valve_command_rate = 20.0  # Hz
         set_valve_address_response_timeout = 1.0  # s
+        self.valve_state_response_timeout = Duration(seconds=7.0)
 
         self.declare_parameter('nozzles_configuration_file_path', rclpy.Parameter.Type.STRING)
         nozzles_configuration_file_path = os.path.expanduser(self.get_parameter('nozzles_configuration_file_path').get_parameter_value().string_value)
@@ -67,8 +76,10 @@ class PwmNozzlesDriver(Node):
         self.send_valve_read_command: bool = False
         self.last_nozzles_command: NozzleCommandArray | None = None
         self.nozzles_command_sub = self.create_subscription(NozzleCommandArray, '/nozzles_command', callback=self.nozzles_command_callback, qos_profile=qos.qos_profile_sensor_data)
-        self.create_timer(1.0 / read_valve_state_rate, self.read_valve_state_timer_callback)
-        self.create_timer(1.0 / valve_command_rate, self.valve_command_timer_callback)
+
+        self.last_valve_state_stamp: dict[int, Time] = dict()
+        for valve_address in self.valve_addresses:
+            self.last_valve_state_stamp[valve_address] = self.get_clock().now()
 
         # configure valve addresses
         try:
@@ -76,7 +87,15 @@ class PwmNozzlesDriver(Node):
             self.can_listener = can.BufferedReader()
             self.notifier = can.Notifier(self.can_bus, [self.can_listener])
 
+            already_configured = False
             for a in self.valve_addresses:
+                if already_configured:
+                    break
+
+                time.sleep(0.01)
+                self.broadcast_sync(can_bus=self.can_bus, groups_number=1)
+
+                time.sleep(0.01)
                 self.set_valve_address_command(can_bus=self.can_bus, valve_address=a)
 
                 if send_test_messages:
@@ -86,17 +105,21 @@ class PwmNozzlesDriver(Node):
                 while True:
                     m = self.can_listener.get_message(timeout=0.001)
                     if time.time() - start_time > set_valve_address_response_timeout:
-                        self.get_logger().fatal(f"set_valve_address_command timeout, address: {a}, timeout: {set_valve_address_response_timeout}")
-                        raise RuntimeError(f"could not set up valves")
+                        self.get_logger().info(f"set_valve_address_command timeout, address: {a}, timeout: {set_valve_address_response_timeout}. Assuming valves are already configured.")
+                        already_configured = True
+                        break
                     if m is not None and m.arbitration_id == 0x100 and m.data[0] == a and (len(m.data) == 1 or m.data[1] == 0):
                         self.get_logger().info(f"valve address {a} set for nozzle {self.valve_address_to_nozzle_id[a]}. It took {(time.time() - start_time)*1000:.1f} ms.")
                         break
 
-            self.t0 = self.get_clock().now()  # time of valves configuration
-
         except OSError as e:
             self.get_logger().fatal(f"Could not open CAN socket: {e}")
             raise KeyboardInterrupt
+
+        # Create timers for sending the commands, sending the state requests, and reading the state responses
+        self.create_timer(1.0 / read_valve_state_rate, self.read_valve_state_timer_callback)
+        self.create_timer(1.0 / self.valve_command_rate, self.valve_command_timer_callback)
+        self.create_timer(1.0 / read_valve_state_rate, self.valve_state_response_timer_callback)
 
     def nozzles_command_callback(self, msg: NozzleCommandArray) -> None:
         self.last_nozzles_command = msg
@@ -116,6 +139,25 @@ class PwmNozzlesDriver(Node):
 
         self.send_valve_commands(nozzles_command)
 
+    def valve_state_response_timer_callback(self):
+        now: Time = self.get_clock().now()
+        start_time = time.time()
+        while True:
+            m = self.can_listener.get_message(timeout=0.001)
+            if m is None:
+                break
+            if time.time() - start_time > 1.0 / 10 / self.valve_command_rate:  # prevent this timer execution from being longer then the command timer
+                return
+            if 0x481 <= m.arbitration_id <= 0x4FF:
+                valve_address = m.arbitration_id - 0x480
+                self.last_valve_state_stamp[valve_address] = now
+
+        for valve_address in self.valve_addresses:
+            age = now - self.last_valve_state_stamp[valve_address]
+            self.get_logger().debug(f"valve_state_response_timer_callback: valve_address: {valve_address}  state age: {age.nanoseconds/1E9:0.3f} s")
+            if age > self.valve_state_response_timeout:
+                self.get_logger().warn(f"valve_state_response_timer_callback: valve_address: {valve_address}  state age: {age.nanoseconds/1E9:0.3f} s")
+
     def send_valve_commands(self, nozzles_command: NozzleCommandArray, shutting_down=False):
 
         valve_rates: dict[int, float] = dict()
@@ -132,13 +174,10 @@ class PwmNozzlesDriver(Node):
         for valve_address, valve_rate in valve_rates.items():
             self.control_valve_state_command(can_bus=self.can_bus, valve_address=valve_address, rate=valve_rate)
 
-        if shutting_down:
-            self.reset_valve_address_command(self.can_bus)
-
         if self.send_valve_read_command and not shutting_down:
             self.send_valve_read_command = False
-            tick = int((self.get_clock().now() - self.t0).nanoseconds / 1E6)  # time since configuration of valves in milliseconds
-            self.broadcast_sync(can_bus=self.can_bus, groups_number=1, tick=tick)
+            # tick = int((self.get_clock().now() - self.t0).nanoseconds / 1E6)  # time since configuration of valves in milliseconds
+            self.broadcast_sync(can_bus=self.can_bus, groups_number=1)
             self.broadcast_read_valve_state_command(can_bus=self.can_bus)
 
     def shutdown(self) -> None:
@@ -188,13 +227,15 @@ class PwmNozzlesDriver(Node):
             self.get_logger().debug(f"control_valve_state_command: message sent on {can_bus.channel_info}, "
                                     f"valve_address: {valve_address}, rate: {rate:0.3f}, main_active_perc: {main_active_perc}")
         except can.CanError:
-            self.get_logger().fatal("control_valve_state_command: message could not be sent")
+            self.get_logger().fatal("CanError, control_valve_state_command: message could not be sent")
 
-    def broadcast_sync(self, can_bus: can.Bus, groups_number: int, tick: int):
+    def broadcast_sync(self, can_bus: can.Bus, groups_number: int):
         if not isinstance(groups_number, int):
             raise TypeError("not isinstance(groups_number, int)")
         if not (1 <= groups_number <= 4):
             raise ValueError("not (1 <= groups_number <= 4)")
+
+        tick: int = compute_tick_milliseconds()
 
         if not isinstance(tick, int):
             raise TypeError("not isinstance(tick, int)")
@@ -222,7 +263,7 @@ class PwmNozzlesDriver(Node):
             can_bus.send(msg)
             self.get_logger().debug(f"broadcast_sync: message sent on {can_bus.channel_info}, groups_number: {groups_number}, tick: {tick}")
         except can.CanError:
-            self.get_logger().fatal("broadcast_sync: message could not be sent")
+            self.get_logger().fatal("CanError, broadcast_sync: message could not be sent")
 
     def set_valve_address_command(self, can_bus: can.Bus, valve_address: int):
         if not isinstance(valve_address, int):
@@ -249,9 +290,9 @@ class PwmNozzlesDriver(Node):
             can_bus.send(msg)
             self.get_logger().debug(f"set_valve_address_command: message sent on {can_bus.channel_info}, valve_address: {valve_address}")
         except can.CanError:
-            self.get_logger().fatal("set_valve_address_command: message could not be sent")
+            self.get_logger().fatal("CanError, set_valve_address_command: message could not be sent")
 
-    def reset_valve_address_command(self, can_bus: can.Bus):
+    def ___reset_valve_address_command(self, can_bus: can.Bus):
 
         msg = can.Message(
             arbitration_id=0x500,
@@ -272,7 +313,7 @@ class PwmNozzlesDriver(Node):
             can_bus.send(msg)
             self.get_logger().debug(f"reset_valve_address_command: message sent on {can_bus.channel_info}")
         except can.CanError:
-            self.get_logger().fatal("reset_valve_address_command: message could not be sent")
+            self.get_logger().fatal("CanError, reset_valve_address_command: message could not be sent")
 
     def test_set_valve_address_command_response(self, can_bus: can.Bus, valve_address: int, fill_data_array: bool):
         if not isinstance(valve_address, int):
@@ -290,7 +331,7 @@ class PwmNozzlesDriver(Node):
             can_bus.send(msg)
             self.get_logger().debug(f"test_set_valve_address_command_response: message sent on {can_bus.channel_info}, valve_address: {valve_address}")
         except can.CanError:
-            self.get_logger().fatal("test_set_valve_address_command_response: message could not be sent")
+            self.get_logger().fatal("CanError, test_set_valve_address_command_response: message could not be sent")
 
     def broadcast_read_valve_state_command(self, can_bus: can.Bus):
         msg = can.Message(
@@ -303,7 +344,7 @@ class PwmNozzlesDriver(Node):
             can_bus.send(msg)
             self.get_logger().debug(f"broadcast_read_valve_state_command: message sent on {can_bus.channel_info}")
         except can.CanError:
-            self.get_logger().fatal("broadcast_read_valve_state_command: message could not be sent")
+            self.get_logger().fatal("CanError, broadcast_read_valve_state_command: message could not be sent")
 
 
 def main(args=None):

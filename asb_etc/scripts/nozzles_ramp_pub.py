@@ -36,11 +36,24 @@ class LUTNozzlesPublisher(Node):
         self.loop_pause: float = 2.0
         self.include_unknown_nozzle: bool = False
 
+        # lut = {
+        #     0.0: 0.0,
+        #     5.0: 1.0,
+        #     10.0: 1.0,
+        #     15.0: 0.0,
+        # }
+
+        x = 0.1
+        t0 = 5.0
+        t = 10.0
+        t1 = 5.0
         lut = {
             0.0: 0.0,
-            5.0: 0.0,
-            10.0: 1.0,
-            15.0: 0.0,
+            t0-0.01: 0.0,
+            t0: x,
+            t0+t: x,
+            t0+t+0.01: 0.0,
+            t0+t+t1: 0.0,
         }
 
         self.lut_keys = list(lut.keys())

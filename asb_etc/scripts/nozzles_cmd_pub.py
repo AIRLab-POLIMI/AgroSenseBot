@@ -32,7 +32,51 @@ class LUTNozzlesPublisher(Node):
             stamp=self.get_clock().now().to_msg(),
             nozzle_command_array=[
                 NozzleCommand(
-                    nozzle_id=nozzle_id,
+                    nozzle_id="1R",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="2R",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="3R",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="4R",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="5R",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="6R",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="1L",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="2L",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="3L",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="4L",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="5L",
+                    rate=nozzle_rate,
+                ),
+                NozzleCommand(
+                    nozzle_id="6L",
                     rate=nozzle_rate,
                 ),
             ],
