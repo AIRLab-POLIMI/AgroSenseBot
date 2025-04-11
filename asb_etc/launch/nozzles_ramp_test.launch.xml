@@ -9,8 +9,8 @@
     <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
   </node>
 
-  <node pkg="asb_canopy_spraying_task" exec="pwm_nozzles_driver.py" name="pwm_nozzles_driver">
-    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
-  </node>
+<!--  <node pkg="asb_canopy_spraying_task" exec="pwm_nozzles_driver.py" name="pwm_nozzles_driver">-->
+<!--    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />-->
+<!--  </node>-->
 
 </launch>

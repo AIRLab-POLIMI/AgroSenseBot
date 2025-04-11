@@ -176,9 +176,8 @@ class PwmNozzlesDriver(Node):
 
         if self.send_valve_read_command and not shutting_down:
             self.send_valve_read_command = False
-            # tick = int((self.get_clock().now() - self.t0).nanoseconds / 1E6)  # time since configuration of valves in milliseconds
-            self.broadcast_sync(can_bus=self.can_bus, groups_number=1)
-            self.broadcast_read_valve_state_command(can_bus=self.can_bus)
+            # self.broadcast_sync(can_bus=self.can_bus, groups_number=1)
+            # self.broadcast_read_valve_state_command(can_bus=self.can_bus)
 
     def shutdown(self) -> None:
 

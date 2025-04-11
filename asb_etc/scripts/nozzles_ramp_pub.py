@@ -43,10 +43,10 @@ class LUTNozzlesPublisher(Node):
         #     15.0: 0.0,
         # }
 
-        x = 0.1
-        t0 = 5.0
-        t = 10.0
-        t1 = 5.0
+        x = 0.1  # peak open cmd [0...1]
+        t0 = 5.0  # pre-peak closed duration [s]
+        t = 10.0  # open duration [s]
+        t1 = 5.0  # post peak closed duration [s]
         lut = {
             0.0: 0.0,
             t0-0.01: 0.0,
