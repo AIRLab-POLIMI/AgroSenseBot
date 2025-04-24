@@ -92,8 +92,8 @@ class PwmNozzlesDriver(Node):
                 if already_configured:
                     break
 
-                time.sleep(0.01)
-                self.broadcast_sync(can_bus=self.can_bus, groups_number=1)
+                # time.sleep(0.01)
+                # self.broadcast_sync(can_bus=self.can_bus, groups_number=1)  # seems unnecessary
 
                 time.sleep(0.01)
                 self.set_valve_address_command(can_bus=self.can_bus, valve_address=a)
@@ -173,6 +173,7 @@ class PwmNozzlesDriver(Node):
 
         for valve_address, valve_rate in valve_rates.items():
             self.control_valve_state_command(can_bus=self.can_bus, valve_address=valve_address, rate=valve_rate)
+            time.sleep(1.0 / self.valve_command_rate / (1 + len(valve_rates.items())))
 
         if self.send_valve_read_command and not shutting_down:
             self.send_valve_read_command = False
