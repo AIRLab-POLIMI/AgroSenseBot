@@ -43,7 +43,7 @@ class LUTNozzlesPublisher(Node):
         #     15.0: 0.0,
         # }
 
-        x = 0.1  # peak open cmd [0...1]
+        x = 1.0  # peak open cmd [0...1]
         t0 = 5.0  # pre-peak closed duration [s]
         t = 10.0  # open duration [s]
         t1 = 5.0  # post peak closed duration [s]
@@ -109,11 +109,19 @@ class LUTNozzlesPublisher(Node):
                 else:
                     return
 
-            nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
-            self.get_logger().info(f"nozzle_rate: {nozzle_rate:.4f}")
+            self.get_logger().info(f"\n**** NOZZLE RATES ****")
 
             nozzle_command_msg = NozzleCommandArray(stamp=self.get_clock().now().to_msg())
             for nozzle_id in self.nozzle_ids:
+                nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
+
+                # if nozzle_id == "1R":
+                #     nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
+                # else:
+                #     nozzle_rate = 0.5
+
+                self.get_logger().info(f"{nozzle_id}: {nozzle_rate:.4f}")
+
                 nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
                     nozzle_id=nozzle_id,
                     rate=nozzle_rate,
