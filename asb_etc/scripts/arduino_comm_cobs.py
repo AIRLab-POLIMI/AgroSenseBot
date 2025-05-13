@@ -4,8 +4,10 @@ import serial
 import struct
 import time
 from cobs import cobs  # smart binary serial encoding and decoding
+from datetime import datetime
+import pandas as pd
 
-s = serial.Serial('/dev/ttyACM0', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=3)
+s = serial.Serial('/dev/ttyACM2', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=3)
 
 COBS_DELIMITER = b'\x00'
 PAYLOAD_SIZE_UINT32 = 3
@@ -13,6 +15,12 @@ PAYLOAD_SIZE_BYTES = 4 * PAYLOAD_SIZE_UINT32
 
 t_prev = time.perf_counter()
 error_count = 0
+
+# saved data
+t_list = list()
+t_msg_list = list()
+v_list = list()
+p_list = list()
 
 while True:
     try:
@@ -32,7 +40,13 @@ while True:
                 sensor_value_voltage = adc_value / (2**12 - 1) * 5 # [V]
                 sensor_value_pressure = (sensor_value_voltage - 0.5) / 4 * 1.2  # [MPa]
 
-                print(f"t [µs] = {t}, value [MPa] = {sensor_value_pressure:+6.4f}, value [V] = {sensor_value_voltage:+6.4f}, analog_read [µs] = {delta_analog_read}, error_count = {error_count}")
+                t_msg = datetime.now()
+                t_list.append(t)
+                t_msg_list.append(t_msg)
+                v_list.append(sensor_value_voltage)
+                p_list.append(sensor_value_pressure)
+
+                # print(f"t [µs] = {t}, value [MPa] = {sensor_value_pressure:+6.4f}, value [bar] = {sensor_value_pressure*10:+6.4f}, value [V] = {sensor_value_voltage:+6.4f}, analog_read [µs] = {delta_analog_read}, error_count = {error_count}")
 
             else:
                 error_count += 1
@@ -40,6 +54,9 @@ while True:
     except KeyboardInterrupt as err:
         print("caught keyboard ctrl-c:".format(err))
         print("exiting.")
-        exit(0)
+        break
     except (serial.serialutil.SerialException, cobs.DecodeError):
         print("Unexpected error:", sys.exc_info()[0])  # restart serial
+        break
+
+pd.DataFrame({'t_msg':t_msg_list, 't': t_list, 'v': v_list, 'p': p_list}).to_csv(f"/home/agrosensebot/tmp/p_{str(datetime.now()).replace(' ', '_')}.csv")

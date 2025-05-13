@@ -3,11 +3,16 @@
   <arg name="do_sequence" default="false" />
   <arg name="loop_lut" default="false" />
 
+  <arg name="perc" />
+
   <node pkg="asb_etc" exec="nozzles_ramp_pub.py" name="nozzles_ramp_pub">
+    <param name="perc" value="$(var perc)" />
     <param name="loop_lut" value="$(var loop_lut)" />
     <param name="do_sequence" value="$(var do_sequence)" />
     <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
   </node>
+
+  <node pkg="asb_etc" exec="arduino_comm_cobs.py" name="arduino_comm_cobs"/>
 
 <!--  <node pkg="asb_canopy_spraying_task" exec="pwm_nozzles_driver.py" name="pwm_nozzles_driver">-->
 <!--    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />-->
