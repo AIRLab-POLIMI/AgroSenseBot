@@ -25,8 +25,21 @@ class PwmNozzlesDriver(Node):
     def __init__(self):
         super().__init__('pwm_nozzles_driver')
 
-        can_channel_name: str = "can3"
-        send_test_messages: bool = False
+        self.declare_parameter('simulate_nozzle_valves', rclpy.Parameter.Type.BOOL)
+        simulate_nozzle_valves: bool = self.get_parameter('simulate_nozzle_valves').get_parameter_value().bool_value
+
+        self.declare_parameter('nozzle_valves_can_channel', rclpy.Parameter.Type.STRING)
+        nozzle_valves_can_channel: str = self.get_parameter('nozzle_valves_can_channel').get_parameter_value().string_value
+
+        self.declare_parameter('nozzle_valves_virtual_can_channel', rclpy.Parameter.Type.STRING)
+        nozzle_valves_virtual_can_channel: str = self.get_parameter('nozzle_valves_virtual_can_channel').get_parameter_value().string_value
+
+        if simulate_nozzle_valves:
+            can_channel_name: str = nozzle_valves_virtual_can_channel
+            send_test_messages: bool = True
+        else:
+            can_channel_name: str = nozzle_valves_can_channel
+            send_test_messages: bool = False
 
         self.nozzles_command_timeout: float = 1.0  # s
         read_valve_state_rate = 1.0  # Hz
@@ -119,7 +132,7 @@ class PwmNozzlesDriver(Node):
         # Create timers for sending the commands, sending the state requests, and reading the state responses
         self.create_timer(1.0 / read_valve_state_rate, self.read_valve_state_timer_callback)
         self.create_timer(1.0 / self.valve_command_rate, self.valve_command_timer_callback)
-        self.create_timer(1.0 / read_valve_state_rate, self.valve_state_response_timer_callback)
+        # self.create_timer(1.0 / read_valve_state_rate, self.valve_state_response_timer_callback)
 
     def nozzles_command_callback(self, msg: NozzleCommandArray) -> None:
         self.last_nozzles_command = msg
@@ -139,6 +152,7 @@ class PwmNozzlesDriver(Node):
 
         self.send_valve_commands(nozzles_command)
 
+    ### NOT USED
     def valve_state_response_timer_callback(self):
         now: Time = self.get_clock().now()
         start_time = time.time()
@@ -175,10 +189,10 @@ class PwmNozzlesDriver(Node):
             self.control_valve_state_command(can_bus=self.can_bus, valve_address=valve_address, rate=valve_rate)
             time.sleep(1.0 / self.valve_command_rate / (1 + len(valve_rates.items())))
 
-        if self.send_valve_read_command and not shutting_down:
-            self.send_valve_read_command = False
-            # self.broadcast_sync(can_bus=self.can_bus, groups_number=1)
-            # self.broadcast_read_valve_state_command(can_bus=self.can_bus)
+        # if self.send_valve_read_command and not shutting_down:
+        #     self.send_valve_read_command = False
+        #     self.broadcast_sync(can_bus=self.can_bus, groups_number=1)
+        #     self.broadcast_read_valve_state_command(can_bus=self.can_bus)
 
     def shutdown(self) -> None:
 
