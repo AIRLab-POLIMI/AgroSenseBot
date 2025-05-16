@@ -98,8 +98,10 @@ class SprayingManager:
         self._max_canopy_width = self._node.task_plan.max_canopy_width
         self._canopy_roi_x_1 = self._node.task_plan.canopy_roi_x_1
         self._canopy_roi_x_2 = self._node.task_plan.canopy_roi_x_2
-        self._normalizing_velocity = self._node.task_plan.normalizing_velocity
         self._canopy_layer_bounds = self._node.task_plan.canopy_layer_bounds
+        self._hectare_ref_volume = self._node.task_plan.hectare_ref_volume
+        self._canopy_ref_depth = self._node.task_plan.canopy_ref_depth
+        self._inter_row = self._node.task_plan.inter_row
 
         # canopy layer bound configuration variables
         if len(self._canopy_layer_bounds) < 2:
@@ -152,32 +154,32 @@ class SprayingManager:
             raise TypeError("one or more parameters have the wrong type")
         for k, v in nozzle_rate_lookup_table.items():
             if not isinstance(k, (float, int)) or not isinstance(v, (float, int)):
-                self._node.get_logger().fatal(f"key or value in nozzle_rate_lookup_table is not of type float or int in file {nozzle_rate_lookup_table_file_path}")
+                self._node.get_logger().fatal(f"desired nozzle flow rate (dict key) or nozzle valve rate command (dict value) in nozzle_rate_lookup_table is not of type float or int in file {nozzle_rate_lookup_table_file_path}")
                 raise TypeError("one or more parameters have the wrong type")
         if len(nozzle_rate_lookup_table) < 2:
             self._node.get_logger().fatal(f"less than 2 key-value pairs specified in nozzle_rate_lookup_table in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
         if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.keys()))) > 0):
-            self._node.get_logger().fatal(f"keys in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"desired nozzle flow rate values (dict keys) in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
-        if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.values()))) > 0):
-            self._node.get_logger().fatal(f"values in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
-            raise ValueError("one or more parameters are not correct")
+        # if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.values()))) > 0):
+        #     self._node.get_logger().fatal(f"values in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
+        #     raise ValueError("one or more parameters are not correct")
         min_lut_key = np.min(list(nozzle_rate_lookup_table.keys()))
         if min_lut_key < 0.0:
-            self._node.get_logger().fatal(f"smaller key of nozzle_rate_lookup_table [{min_lut_key}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"smallest desired nozzle flow rate (dict key) of nozzle_rate_lookup_table [{min_lut_key}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
         min_lut_value = np.min(list(nozzle_rate_lookup_table.values()))
         if min_lut_value < 0.0:
-            self._node.get_logger().fatal(f"minimum value of nozzle_rate_lookup_table [{min_lut_value}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"minimum nozzle valve rate command (dict value) of nozzle_rate_lookup_table [{min_lut_value}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
         max_lut_value = np.max(list(nozzle_rate_lookup_table.values()))
         if max_lut_value > 1.0:
-            self._node.get_logger().fatal(f"maximum value of nozzle_rate_lookup_table [{max_lut_value}] is not less or equal to 1 in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"maximum nozzle valve rate command (dict value) of nozzle_rate_lookup_table [{max_lut_value}] is not less or equal to 1 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
 
-        self._nozzle_rate_lookup_table_keys = list(nozzle_rate_lookup_table.keys())
-        self._nozzle_rate_lookup_table_values = list(nozzle_rate_lookup_table.values())
+        self._nozzle_rate_lookup_table_keys = np.array(list(nozzle_rate_lookup_table.keys()))  # desired nozzle flow rate [L/s]
+        self._nozzle_rate_lookup_table_values = np.array(list(nozzle_rate_lookup_table.values()))  # nozzle valve rate command [0...1]
 
         # spraying variables
         self.spraying_status: SprayingStatus = SprayingStatus.NOT_SPRAYING
@@ -296,15 +298,20 @@ class SprayingManager:
                 zero_all_cmds()
                 return
 
-            # compute nozzle rates
+            # compute nozzle flow rates for each canopy layer
             for z_1, _ in self._canopy_layer_bound_pairs:
                 mean_depth = spraying_request.mean_depth[z_1]
-                rate = self._current_velocity / self._normalizing_velocity * np.interp(mean_depth, self._nozzle_rate_lookup_table_keys, self._nozzle_rate_lookup_table_values, left=0.0)
+                flow_rate = (
+                        (self._current_velocity * mean_depth * self._inter_row * self._hectare_ref_volume) /
+                        (2E4 * self._canopy_ref_depth * len(self._canopy_layer_bound_pairs))
+                )  # [L/s]
+                self._node.get_logger().info(f"z_1: {z_1}, flow_rate: {flow_rate} ")
+                nozzle_rate = np.interp(flow_rate, self._nozzle_rate_lookup_table_keys, self._nozzle_rate_lookup_table_values, left=0.0)
                 nozzles = self._nozzles_by_side_layer[(spraying_request.side, z_1)]
                 for nozzle in nozzles:
                     nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
                         nozzle_id=nozzle['id'],
-                        rate=rate,
+                        rate=nozzle_rate,
                     ))
 
         self.spraying_status = SprayingStatus.STARTED

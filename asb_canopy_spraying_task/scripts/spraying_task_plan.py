@@ -309,7 +309,9 @@ class SprayingTaskPlan:
         self.max_canopy_width: float = 2.0
         self.canopy_roi_x_1: float = -0.25
         self.canopy_roi_x_2: float = 0.25
-        self.normalizing_velocity: float = 1.0
+        self.hectare_ref_volume: float = 1.0
+        self.inter_row: float = 1.0
+        self.canopy_ref_depth: float = 1.0
         self.canopy_layer_bounds: list[float] = [0.2, 0.6, 1.0, 1.4, 1.8, 2.2]
 
     @classmethod
@@ -333,7 +335,9 @@ class SprayingTaskPlan:
         t.max_canopy_width = d['max_canopy_width']
         t.canopy_roi_x_1 = d['canopy_roi_x_1']
         t.canopy_roi_x_2 = d['canopy_roi_x_2']
-        t.normalizing_velocity = d['normalizing_velocity']
+        t.hectare_ref_volume = d['hectare_ref_volume']
+        t.inter_row = d['inter_row']
+        t.canopy_ref_depth = d['canopy_ref_depth']
         t.canopy_layer_bounds = d['canopy_layer_bounds']
 
         if 'items' in d:
@@ -359,7 +363,9 @@ class SprayingTaskPlan:
             'max_canopy_width': self.max_canopy_width,
             'canopy_roi_x_1': self.canopy_roi_x_1,
             'canopy_roi_x_2': self.canopy_roi_x_2,
-            'normalizing_velocity': self.normalizing_velocity,
+            'hectare_ref_volume': self.hectare_ref_volume,
+            'inter_row': self.inter_row,
+            'canopy_ref_depth': self.canopy_ref_depth,
             'canopy_layer_bounds': self.canopy_layer_bounds,
 
             'items': list(map(lambda i: i.to_dict(), self.items)),
