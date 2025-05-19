@@ -30,7 +30,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(os.path.join(pkg('asb_real'), 'launch', 'ntrip_client_launch.py')),
             launch_arguments={
                 'host': '158.102.7.10',  # SPIN3 GNSS
-                'mountpoint': 'RTK_NRT_RTCM3',  # nearest base station
+                'mountpoint': 'NRT',  # nearest base station
                 'username': 'agrosensebot',
                 'password': ntrip_caster_password,
             }.items()
