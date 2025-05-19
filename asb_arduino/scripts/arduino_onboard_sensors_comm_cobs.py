@@ -7,7 +7,7 @@ from cobs import cobs  # smart binary serial encoding and decoding
 from datetime import datetime
 import pandas as pd
 
-s = serial.Serial('/dev/ttyACM2', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=3)
+s = serial.Serial('/dev/arduino_onboard', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=3)
 
 COBS_DELIMITER = b'\x00'
 PAYLOAD_SIZE_UINT32 = 3
@@ -46,10 +46,15 @@ while True:
                 v_list.append(sensor_value_voltage)
                 p_list.append(sensor_value_pressure)
 
-                # print(f"t [µs] = {t}, value [MPa] = {sensor_value_pressure:+6.4f}, value [bar] = {sensor_value_pressure*10:+6.4f}, value [V] = {sensor_value_voltage:+6.4f}, analog_read [µs] = {delta_analog_read}, error_count = {error_count}")
+                print(f"t [µs] = {t}, value [MPa] = {sensor_value_pressure:+6.4f}, value [bar] = {sensor_value_pressure*10:+6.4f}, value [V] = {sensor_value_voltage:+6.4f}, analog_read [µs] = {delta_analog_read}, error_count = {error_count}")
 
             else:
+                print(f"Decode error ({error_count})")
                 error_count += 1
+
+        else:
+            print(f"Decode error ({error_count})")
+            error_count += 1
 
     except KeyboardInterrupt as err:
         print("caught keyboard ctrl-c:".format(err))
