@@ -46,7 +46,7 @@ while True:
                 v_list.append(sensor_value_voltage)
                 p_list.append(sensor_value_pressure)
 
-                print(f"t [µs] = {t}, value [MPa] = {sensor_value_pressure:+6.4f}, value [bar] = {sensor_value_pressure*10:+6.4f}, value [V] = {sensor_value_voltage:+6.4f}, analog_read [µs] = {delta_analog_read}, error_count = {error_count}")
+                # print(f"t [µs] = {t}, value [MPa] = {sensor_value_pressure:+6.4f}, value [bar] = {sensor_value_pressure*10:+6.4f}, value [V] = {sensor_value_voltage:+6.4f}, analog_read [µs] = {delta_analog_read}, error_count = {error_count}")
 
             else:
                 print(f"Decode error ({error_count})")
