@@ -22,6 +22,8 @@ sudo apt-get install -y ros-iron-octomap-ros ros-iron-octomap-server &&  # Octom
 sudo pip3 install transforms3d &&  # used in navigation scripts to convert Euler angles to quaternions
 pip3 install rosbags &&  # used in asb_logging bags_utils.py
 pip install typing_extensions &&  # used in asb_canopy_spraying_task
+pip install python-can &&  # used in asb_canopy_spraying_task pwm_nozzles_driver.py
+pip install cobs &&  # used to decode serial data from arduino
 mkdir -p ~/asb_logs/ &&
 mkdir -p ~/w/agrosensebot_ws/src/ &&
 cd ~/w/agrosensebot_ws/src/ &&

@@ -98,8 +98,10 @@ class SprayingManager:
         self._max_canopy_width = self._node.task_plan.max_canopy_width
         self._canopy_roi_x_1 = self._node.task_plan.canopy_roi_x_1
         self._canopy_roi_x_2 = self._node.task_plan.canopy_roi_x_2
-        self._normalizing_velocity = self._node.task_plan.normalizing_velocity
         self._canopy_layer_bounds = self._node.task_plan.canopy_layer_bounds
+        self._hectare_ref_volume = self._node.task_plan.hectare_ref_volume
+        self._canopy_ref_depth = self._node.task_plan.canopy_ref_depth
+        self._inter_row = self._node.task_plan.inter_row
 
         # canopy layer bound configuration variables
         if len(self._canopy_layer_bounds) < 2:
@@ -152,32 +154,32 @@ class SprayingManager:
             raise TypeError("one or more parameters have the wrong type")
         for k, v in nozzle_rate_lookup_table.items():
             if not isinstance(k, (float, int)) or not isinstance(v, (float, int)):
-                self._node.get_logger().fatal(f"key or value in nozzle_rate_lookup_table is not of type float or int in file {nozzle_rate_lookup_table_file_path}")
+                self._node.get_logger().fatal(f"desired nozzle flow rate (dict key) or nozzle valve rate command (dict value) in nozzle_rate_lookup_table is not of type float or int in file {nozzle_rate_lookup_table_file_path}")
                 raise TypeError("one or more parameters have the wrong type")
         if len(nozzle_rate_lookup_table) < 2:
             self._node.get_logger().fatal(f"less than 2 key-value pairs specified in nozzle_rate_lookup_table in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
         if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.keys()))) > 0):
-            self._node.get_logger().fatal(f"keys in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"desired nozzle flow rate values (dict keys) in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
-        if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.values()))) > 0):
-            self._node.get_logger().fatal(f"values in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
-            raise ValueError("one or more parameters are not correct")
+        # if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.values()))) > 0):
+        #     self._node.get_logger().fatal(f"values in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
+        #     raise ValueError("one or more parameters are not correct")
         min_lut_key = np.min(list(nozzle_rate_lookup_table.keys()))
         if min_lut_key < 0.0:
-            self._node.get_logger().fatal(f"smaller key of nozzle_rate_lookup_table [{min_lut_key}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"smallest desired nozzle flow rate (dict key) of nozzle_rate_lookup_table [{min_lut_key}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
         min_lut_value = np.min(list(nozzle_rate_lookup_table.values()))
         if min_lut_value < 0.0:
-            self._node.get_logger().fatal(f"minimum value of nozzle_rate_lookup_table [{min_lut_value}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"minimum nozzle valve rate command (dict value) of nozzle_rate_lookup_table [{min_lut_value}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
         max_lut_value = np.max(list(nozzle_rate_lookup_table.values()))
         if max_lut_value > 1.0:
-            self._node.get_logger().fatal(f"maximum value of nozzle_rate_lookup_table [{max_lut_value}] is not less or equal to 1 in file {nozzle_rate_lookup_table_file_path}")
+            self._node.get_logger().fatal(f"maximum nozzle valve rate command (dict value) of nozzle_rate_lookup_table [{max_lut_value}] is not less or equal to 1 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
 
-        self._nozzle_rate_lookup_table_keys = list(nozzle_rate_lookup_table.keys())
-        self._nozzle_rate_lookup_table_values = list(nozzle_rate_lookup_table.values())
+        self._nozzle_rate_lookup_table_keys = np.array(list(nozzle_rate_lookup_table.keys()))  # desired nozzle flow rate [L/s]
+        self._nozzle_rate_lookup_table_values = np.array(list(nozzle_rate_lookup_table.values()))  # nozzle valve rate command [0...1]
 
         # spraying variables
         self.spraying_status: SprayingStatus = SprayingStatus.NOT_SPRAYING
@@ -195,10 +197,16 @@ class SprayingManager:
             history=HistoryPolicy.KEEP_LAST,
             depth=1
         )
+        qos_reliable_transient_local_10 = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
         self._tf_static_broadcaster = StaticTransformBroadcaster(node)
         self._platform_state_sub = self._node.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self._platform_state_callback, qos_profile=rclpy.qos.qos_profile_sensor_data)
         self._velocity_odom_sub = self._node.create_subscription(Odometry, 'velocity_odom', self._velocity_odom_callback, 1)
-        self._canopy_data_sub = self._node.create_subscription(CanopyDataArray, 'canopy_data', self._canopy_data_callback, 10)
+        self._canopy_data_sub = self._node.create_subscription(CanopyDataArray, 'canopy_data', self._canopy_data_callback, qos_reliable_transient_local_10)
         self._canopy_region_of_interest_pub = self._node.create_publisher(CanopyRegionOfInterest, 'canopy_region_of_interest', qos_profile=qos_reliable_transient_local)
         self._fan_command_pub = self._node.create_publisher(FanCmd, '/asb_platform_controller/fan_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
         self._pump_command_pub = self._node.create_publisher(PumpCmd, '/asb_platform_controller/pump_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
@@ -250,7 +258,7 @@ class SprayingManager:
         # if the velocity is not available, go to FAILED state
         velocity_age = self._node.get_clock().now() - self._last_velocity_time
         if velocity_age > self._velocity_timeout:
-            self._node.get_logger().error(f"last velocity message age [{velocity_age}] older than timeout [{self._velocity_timeout}]. Can not compute spray regulation.")
+            self._node.get_logger().error(f"last velocity message age [{velocity_age.nanoseconds/1E9:0.3f} s] older than timeout [{self._velocity_timeout.nanoseconds/1E9:0.3f} s]. Can not compute spray regulation.")
             self.spraying_status = SprayingStatus.FAILURE
             zero_all_cmds()
             return
@@ -258,7 +266,7 @@ class SprayingManager:
         # if the fan velocity is not available, go to FAILED state
         fan_rpm_age = self._node.get_clock().now() - self._last_fan_rpm_time
         if fan_rpm_age > self._fan_rpm_timeout:
-            self._node.get_logger().error(f"last fan_rpm message age [{fan_rpm_age}] older than timeout [{self._fan_rpm_timeout}]. Can not operate sprayer.")
+            self._node.get_logger().error(f"last fan_rpm message age [{fan_rpm_age.nanoseconds/1E9:0.3f} s] older than timeout [{self._fan_rpm_timeout.nanoseconds/1E9:0.3f} s]. Can not operate sprayer.")
             self.spraying_status = SprayingStatus.FAILURE
             zero_all_cmds()
             return
@@ -273,7 +281,7 @@ class SprayingManager:
 
         # if everything is ok, compute the nozzle command for the requested sides
         nozzle_command_msg = NozzleCommandArray(stamp=self._node.get_clock().now().to_msg())
-        for row_id, spraying_request in self._active_spraying_requests.items():
+        for row_id, spraying_request in self._active_spraying_requests.items():  ### TODO RuntimeError: dictionary changed size during iteration
 
             # if we didn't receive any canopy data since initialization, there is a problem
             if spraying_request.last_canopy_data_msg is None:
@@ -296,15 +304,20 @@ class SprayingManager:
                 zero_all_cmds()
                 return
 
-            # compute nozzle rates
+            # compute nozzle flow rates for each canopy layer
             for z_1, _ in self._canopy_layer_bound_pairs:
                 mean_depth = spraying_request.mean_depth[z_1]
-                rate = self._current_velocity / self._normalizing_velocity * np.interp(mean_depth, self._nozzle_rate_lookup_table_keys, self._nozzle_rate_lookup_table_values, left=0.0)
+                flow_rate = (
+                        (self._current_velocity * mean_depth * self._inter_row * self._hectare_ref_volume) /
+                        (2E4 * self._canopy_ref_depth * len(self._canopy_layer_bound_pairs))
+                )  # [L/s]  TODO this may need the number of nozzles per layer to be always one
+
+                nozzle_rate = np.interp(flow_rate, self._nozzle_rate_lookup_table_keys, self._nozzle_rate_lookup_table_values, left=0.0)
                 nozzles = self._nozzles_by_side_layer[(spraying_request.side, z_1)]
                 for nozzle in nozzles:
                     nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
                         nozzle_id=nozzle['id'],
-                        rate=rate,
+                        rate=nozzle_rate,
                     ))
 
         self.spraying_status = SprayingStatus.STARTED
@@ -435,6 +448,7 @@ class SprayingManager:
 
         result = future.result().result
         if result:
+            self._node.get_logger().info(f"started spraying [row_id: {row_id}, side: {spraying_side.name}]")
             self._active_spraying_requests[row_id] = SprayingRequest(side=spraying_side, init_time=self._node.get_clock().now())
         else:
             self._node.get_logger().error(f"init_canopy_region_response: row_id: {row_id} result: {result}")
@@ -450,6 +464,7 @@ class SprayingManager:
             return
 
         for row_id in list(self._active_spraying_requests.keys()):
+            self._node.get_logger().info(f"stopping spraying row {row_id}")
             self._active_spraying_requests.pop(row_id)
             self._suspend_canopy_volume_estimation(row_id)
 

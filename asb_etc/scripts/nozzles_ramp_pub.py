@@ -21,6 +21,9 @@ class LUTNozzlesPublisher(Node):
         self.declare_parameter('do_sequence', rclpy.Parameter.Type.BOOL)
         self.do_sequence: bool = self.get_parameter('do_sequence').get_parameter_value().bool_value
 
+        self.declare_parameter('perc', rclpy.Parameter.Type.DOUBLE)
+        self.perc: float = self.get_parameter('perc').get_parameter_value().double_value
+
         self.nozzle_ids = list()
         self.declare_parameter('nozzles_configuration_file_path', rclpy.Parameter.Type.STRING)
         nozzles_configuration_file_path: str = os.path.expanduser(self.get_parameter('nozzles_configuration_file_path').get_parameter_value().string_value)
@@ -34,13 +37,28 @@ class LUTNozzlesPublisher(Node):
         self.declare_parameter('loop_lut', rclpy.Parameter.Type.BOOL)
         self.loop_lut: bool = self.get_parameter('loop_lut').get_parameter_value().bool_value
         self.loop_pause: float = 2.0
-        self.include_unknown_nozzle: bool = True
+        self.include_unknown_nozzle: bool = False
 
+        # lut = {
+        #     0.0: 0.0,
+        #     5.0: 1.0,
+        #     10.0: 1.0,
+        #     15.0: 0.0,
+        # }
+
+        self.other_nozzles_rate = 1.0
+
+        x = self.perc  # peak open cmd [0...1]
+        t0 = 5.0  # pre-peak closed duration [s]
+        t = 10.0  # open duration [s]
+        t1 = 5.0  # post peak closed duration [s]
         lut = {
-            0.0: -0.1,
-            0.7: 1.1,
-            0.9: 1.1,
-            1.0: 0.0,
+            0.0: 0.0,
+            t0-0.01: 0.0,
+            t0: x,
+            t0+t: x,
+            t0+t+0.01: 0.0,
+            t0+t+t1: 0.0,
         }
 
         self.lut_keys = list(lut.keys())
@@ -96,11 +114,21 @@ class LUTNozzlesPublisher(Node):
                 else:
                     return
 
-            nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
-            self.get_logger().info(f"nozzle_rate: {nozzle_rate:.4f}")
+            self.get_logger().info(f"\n**** NOZZLE RATES ****")
 
             nozzle_command_msg = NozzleCommandArray(stamp=self.get_clock().now().to_msg())
             for nozzle_id in self.nozzle_ids:
+                # nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
+
+                if nozzle_id == "1R":
+                    nozzle_rate = np.interp(t, self.lut_keys, self.lut_values)
+                elif nozzle_id in ["4R", "5R", "6R"]:
+                    nozzle_rate = self.other_nozzles_rate
+                else:
+                    nozzle_rate = 0.0
+
+                self.get_logger().info(f"{nozzle_id}: {nozzle_rate:.4f}")
+
                 nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
                     nozzle_id=nozzle_id,
                     rate=nozzle_rate,

@@ -1,0 +1,1 @@
+SUBSYSTEM=="tty", ATTRS{serial}=="F412FA9F5E78", SYMLINK+="arduino_onboard"

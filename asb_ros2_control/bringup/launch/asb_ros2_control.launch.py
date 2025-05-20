@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from launch_ros.actions import Node
 from ament_index_python import get_package_share_directory as pkg
@@ -113,10 +110,6 @@ def generate_launch_description():
         )
     )
 
-    include_logging_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg("asb_logging"), "launch", "record_bag.launch.py"))
-    )
-
     fake_heartbeat_publisher_node = Node(
         package="asb_sim",
         executable="test_heartbeat.py",
@@ -137,7 +130,6 @@ def generate_launch_description():
     ld.add_action(joint_state_broadcaster_spawner)
     ld.add_action(delay_platform_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
-    ld.add_action(include_logging_launch)
     ld.add_action(fake_heartbeat_publisher_node)
 
     return ld
