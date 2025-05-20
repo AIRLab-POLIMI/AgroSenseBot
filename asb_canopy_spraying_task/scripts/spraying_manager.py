@@ -197,10 +197,16 @@ class SprayingManager:
             history=HistoryPolicy.KEEP_LAST,
             depth=1
         )
+        qos_reliable_transient_local_10 = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
         self._tf_static_broadcaster = StaticTransformBroadcaster(node)
         self._platform_state_sub = self._node.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self._platform_state_callback, qos_profile=rclpy.qos.qos_profile_sensor_data)
         self._velocity_odom_sub = self._node.create_subscription(Odometry, 'velocity_odom', self._velocity_odom_callback, 1)
-        self._canopy_data_sub = self._node.create_subscription(CanopyDataArray, 'canopy_data', self._canopy_data_callback, 10)
+        self._canopy_data_sub = self._node.create_subscription(CanopyDataArray, 'canopy_data', self._canopy_data_callback, qos_reliable_transient_local_10)
         self._canopy_region_of_interest_pub = self._node.create_publisher(CanopyRegionOfInterest, 'canopy_region_of_interest', qos_profile=qos_reliable_transient_local)
         self._fan_command_pub = self._node.create_publisher(FanCmd, '/asb_platform_controller/fan_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
         self._pump_command_pub = self._node.create_publisher(PumpCmd, '/asb_platform_controller/pump_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
@@ -252,7 +258,7 @@ class SprayingManager:
         # if the velocity is not available, go to FAILED state
         velocity_age = self._node.get_clock().now() - self._last_velocity_time
         if velocity_age > self._velocity_timeout:
-            self._node.get_logger().error(f"last velocity message age [{velocity_age}] older than timeout [{self._velocity_timeout}]. Can not compute spray regulation.")
+            self._node.get_logger().error(f"last velocity message age [{velocity_age.nanoseconds/1E9:0.3f} s] older than timeout [{self._velocity_timeout.nanoseconds/1E9:0.3f} s]. Can not compute spray regulation.")
             self.spraying_status = SprayingStatus.FAILURE
             zero_all_cmds()
             return
@@ -260,7 +266,7 @@ class SprayingManager:
         # if the fan velocity is not available, go to FAILED state
         fan_rpm_age = self._node.get_clock().now() - self._last_fan_rpm_time
         if fan_rpm_age > self._fan_rpm_timeout:
-            self._node.get_logger().error(f"last fan_rpm message age [{fan_rpm_age}] older than timeout [{self._fan_rpm_timeout}]. Can not operate sprayer.")
+            self._node.get_logger().error(f"last fan_rpm message age [{fan_rpm_age.nanoseconds/1E9:0.3f} s] older than timeout [{self._fan_rpm_timeout.nanoseconds/1E9:0.3f} s]. Can not operate sprayer.")
             self.spraying_status = SprayingStatus.FAILURE
             zero_all_cmds()
             return
@@ -275,7 +281,7 @@ class SprayingManager:
 
         # if everything is ok, compute the nozzle command for the requested sides
         nozzle_command_msg = NozzleCommandArray(stamp=self._node.get_clock().now().to_msg())
-        for row_id, spraying_request in self._active_spraying_requests.items():
+        for row_id, spraying_request in self._active_spraying_requests.items():  ### TODO RuntimeError: dictionary changed size during iteration
 
             # if we didn't receive any canopy data since initialization, there is a problem
             if spraying_request.last_canopy_data_msg is None:
