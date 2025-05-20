@@ -310,8 +310,8 @@ class SprayingManager:
                 flow_rate = (
                         (self._current_velocity * mean_depth * self._inter_row * self._hectare_ref_volume) /
                         (2E4 * self._canopy_ref_depth * len(self._canopy_layer_bound_pairs))
-                )  # [L/s]
-                self._node.get_logger().info(f"z_1: {z_1}, flow_rate: {flow_rate} ")
+                )  # [L/s]  TODO this may need the number of nozzles per layer to be always one
+
                 nozzle_rate = np.interp(flow_rate, self._nozzle_rate_lookup_table_keys, self._nozzle_rate_lookup_table_values, left=0.0)
                 nozzles = self._nozzles_by_side_layer[(spraying_request.side, z_1)]
                 for nozzle in nozzles:
@@ -448,6 +448,7 @@ class SprayingManager:
 
         result = future.result().result
         if result:
+            self._node.get_logger().info(f"started spraying [row_id: {row_id}, side: {spraying_side.name}]")
             self._active_spraying_requests[row_id] = SprayingRequest(side=spraying_side, init_time=self._node.get_clock().now())
         else:
             self._node.get_logger().error(f"init_canopy_region_response: row_id: {row_id} result: {result}")
@@ -463,6 +464,7 @@ class SprayingManager:
             return
 
         for row_id in list(self._active_spraying_requests.keys()):
+            self._node.get_logger().info(f"stopping spraying row {row_id}")
             self._active_spraying_requests.pop(row_id)
             self._suspend_canopy_volume_estimation(row_id)
 
