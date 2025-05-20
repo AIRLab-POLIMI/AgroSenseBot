@@ -1,0 +1,5 @@
+<launch>
+
+  <node pkg="asb_arduino" exec="arduino_onboard_sensors_driver.py" name="arduino_onboard_sensors_driver" />
+
+</launch>
