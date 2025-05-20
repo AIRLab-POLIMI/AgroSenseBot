@@ -47,4 +47,7 @@
     <param name="canopy_roi_frame_id" value="sprayer_link" />
   </node>
 
+  <!-- ros bag recording of the task session to ~/asb_logs -->
+  <include file="$(find-pkg-share asb_logging)/launch/record_bag.launch.py"/>
+
 </launch>
