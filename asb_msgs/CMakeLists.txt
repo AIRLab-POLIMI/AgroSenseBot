@@ -23,6 +23,7 @@ find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+    msg/PolygonArrayStamped.msg
     msg/PlatformState.msg
     msg/PumpCmd.msg
     msg/SimState.msg
