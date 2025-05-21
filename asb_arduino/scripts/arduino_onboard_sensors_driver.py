@@ -48,15 +48,16 @@ class ArduinoSensorsDriver(Node):
                     self._sprayer_pressure_transmitter_voltage_pub.publish(Float32(data=sensor_value_voltage))
 
                 else:
-                    self.get_logger().error(f"Decode error ({self.error_count})")
                     self.error_count += 1
+                    self.get_logger().error(f"Decode error (accumulated errors: {self.error_count})")
 
             else:
-                self.get_logger().error(f"Decode error ({self.error_count})")
                 self.error_count += 1
+                self.get_logger().error(f"Decode error (accumulated errors: {self.error_count})")
 
         except (serial.serialutil.SerialException, cobs.DecodeError):
-            self.get_logger().error("Serial or COBS decode error:", sys.exc_info()[0])
+            self.error_count += 1
+            self.get_logger().error(f"Serial or COBS decode error: {sys.exc_info()[0]} (accumulated errors: {self.error_count})")
 
 
 def main(args=None):
