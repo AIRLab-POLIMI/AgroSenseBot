@@ -3,9 +3,9 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 
-from geometry_msgs.msg import Polygon, Point32
+from geometry_msgs.msg import Point32, PolygonStamped
 from std_msgs.msg import Header
-from asb_msgs.msg import PolygonArrayStamped
+from asb_msgs.msg import PolygonStampedArray
 
 
 class TestPolygonPublisher(Node):
@@ -18,26 +18,29 @@ class TestPolygonPublisher(Node):
             depth=10
         )
 
-        self.publisher = self.create_publisher(PolygonArrayStamped, '/polygons', qos_profile)
+        self.publisher = self.create_publisher(PolygonStampedArray, '/polygons', qos_profile)
         self.timer = self.create_timer(2.0, self.publish_polygons)
 
     def publish_polygons(self):
-        msg = PolygonArrayStamped()
-        msg.header = Header()
-        msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = 'vineyard'
+        msg = PolygonStampedArray()
+
+        header = Header()
+        header.stamp = self.get_clock().now().to_msg()
+        header.frame_id = 'vineyard'
 
         # Create two rectangles as example polygons
-        polygon1 = Polygon()
-        polygon1.points = [
-            Point32(x=0.0, y=0.0),
-            Point32(x=1.0, y=0.0),
+        polygon1 = PolygonStamped()
+        polygon1.header = header
+        polygon1.polygon.points = [
+            Point32(x=7.0, y=0.0),
+            Point32(x=14.0, y=0.0),
         ]
 
-        polygon2 = Polygon()
-        polygon2.points = [
-            Point32(x=2.0, y=2.0),
-            Point32(x=3.0, y=2.0),
+        polygon2 = PolygonStamped()
+        polygon2.header = header
+        polygon2.polygon.points = [
+            Point32(x=7.0, y=-2.5),
+            Point32(x=14.0, y=-2.5),
         ]
 
         msg.polygons = [polygon1, polygon2]
