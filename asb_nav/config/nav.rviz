@@ -20,7 +20,6 @@ Panels:
         - /Localization1/gnss 2 history1/Covariance1
         - /Localization1/gnss 2 history1/Covariance1/Position1
         - /Task1/canopy_depth1/Namespaces1
-        - /Interactive1/clicked point1
         - /Interactive1/circle text1/Namespaces1
       Splitter Ratio: 0.564039409160614
     Tree Height: 647
@@ -125,6 +124,8 @@ Visualization Manager:
               Value: false
             row_0:
               Value: true
+            row_1:
+              Value: true
             sat_map:
               Value: false
             sprayer_link:
@@ -180,6 +181,8 @@ Visualization Manager:
                 inter_row_1:
                   {}
                 row_0:
+                  {}
+                row_1:
                   {}
                 vineyard_view:
                   {}
@@ -371,7 +374,7 @@ Visualization Manager:
             Value: /geofence_map_updates
           Use Timestamp: false
           Value: false
-        - Alpha: 0.699999988079071
+        - Alpha: 1
           Binary representation: false
           Binary threshold: 100
           Class: rviz_default_plugins/Map
@@ -1467,6 +1470,7 @@ Visualization Manager:
           Name: canopy_depth
           Namespaces:
             row_0: true
+            row_1: true
           Topic:
             Depth: 5
             Durability Policy: Transient Local
@@ -1501,29 +1505,6 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /canopy_data_viz/row_1
-          Value: false
-        - Alpha: 0.20000000298023224
-          Binary representation: false
-          Binary threshold: 100
-          Class: rviz_default_plugins/Map
-          Color Scheme: map
-          Draw Behind: true
-          Enabled: false
-          Name: rows map
-          Topic:
-            Depth: 1
-            Durability Policy: Transient Local
-            Filter size: 10
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /rows_map
-          Update Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /rows_map_updates
-          Use Timestamp: false
           Value: false
       Enabled: true
       Name: Task
@@ -1712,11 +1693,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 61.10549545288086
+      Scale: 34.90496826171875
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 10.067991256713867
-      Y: -1.5302984714508057
+      X: 8.24793815612793
+      Y: -1.8191567659378052
     Saved: ~
 Window Geometry:
   AgroSenseBot:
