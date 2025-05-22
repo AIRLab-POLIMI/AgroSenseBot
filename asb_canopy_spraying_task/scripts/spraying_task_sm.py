@@ -798,7 +798,7 @@ class SprayingTaskPlanExecutor(Node):
     def get_control_mode(self):
         platform_status_age = self.get_clock().now() - Time.from_msg(self.last_platform_status_msg.stamp)
         if platform_status_age > self.platform_status_timeout:
-            self.get_logger().error(f"platform_status_age: {platform_status_age.nanoseconds/1e9}", throttle_duration_sec=10.0)
+            self.get_logger().error(f"platform_status_age [{platform_status_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.platform_status_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
             return ControlMode.UNKNOWN
         else:
             return ControlMode.from_msg(self.last_platform_status_msg.control_mode)
