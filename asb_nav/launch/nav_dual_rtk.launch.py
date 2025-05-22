@@ -123,6 +123,21 @@ def generate_launch_description():
         output="screen",
     )
 
+    geofence_map_server_node = Node(
+        package="asb_nav",
+        executable="geofence_map_server.py",
+        name="geofence_map_server",
+        output="screen",
+        parameters=[
+            {"geofence_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "cornaredo", "geofence.yaml")},
+            os.path.join(pkg("asb_nav"), "config", "geofence_map_publisher_params", "geofence_map_publisher_params.yaml"),
+        ],
+        remappings=[
+            ("polygons_in", "/geofence_polygons"),
+            ("map", "/geofence_map"),
+        ],
+    )
+
     nav2_bringup_include = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "nav2_navigation_launch.py")),
         launch_arguments={
@@ -156,6 +171,7 @@ def generate_launch_description():
     ld.add_action(zero_publisher_node)
 
     # navigation
+    ld.add_action(geofence_map_server_node)
     ld.add_action(nav2_bringup_include)
     ld.add_action(global_path_distance_publisher_node)
 

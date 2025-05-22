@@ -1,0 +1,4 @@
+geofence_map_server:
+  ros__parameters:
+    map_resolution: 0.05  # [m/pixel]
+    map_margin: 10.0  # [m]

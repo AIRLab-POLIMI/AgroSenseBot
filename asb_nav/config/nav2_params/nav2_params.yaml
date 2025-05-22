@@ -22,7 +22,7 @@ local_costmap:
       update_frequency: 5.0
       always_send_full_costmap: True
       publish_frequency: 2.0
-      global_frame: map
+      global_frame: vineyard
       robot_base_frame: base_footprint
       rolling_window: true
       width: 9
@@ -32,8 +32,8 @@ local_costmap:
       footprint: "[[0.9, 0.81], [0.9, -0.81], [-1.1, -0.81], [-1.1, 0.81]]"
       footprint_padding: 0.0
 
-      plugins: ["static_layer", "obstacle_layer", "denoise_layer", "inflation_layer"]
-      static_layer:
+      plugins: ["static_layer_geofence", "obstacle_layer", "denoise_layer", "inflation_layer"]
+      static_layer_geofence:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /geofence_map
         map_subscribe_transient_local: True
@@ -83,19 +83,19 @@ global_costmap:
       update_frequency: 1.0
       always_send_full_costmap: True
       publish_frequency: 1.0
-      global_frame: map
+      global_frame: vineyard
       robot_base_frame: base_footprint
 
       footprint: "[[0.9, 0.81], [0.9, -0.81], [-1.1, -0.81], [-1.1, 0.81]]"
       footprint_padding: 0.1
 
       resolution: 0.1
-      rolling_window: False
+      rolling_window: True
       width: 200
       height: 200
       track_unknown_space: true
-      plugins: ["static_layer", "obstacle_layer", "denoise_layer", "inflation_layer"]
-      static_layer:
+      plugins: ["static_layer_geofence", "obstacle_layer", "denoise_layer", "inflation_layer"]
+      static_layer_geofence:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /geofence_map
         map_subscribe_transient_local: True
