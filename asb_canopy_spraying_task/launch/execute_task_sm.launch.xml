@@ -49,12 +49,6 @@
     <param name="canopy_roi_frame_id" value="sprayer_link" />
   </node>
 
-  <node pkg="asb_nav" exec="polygon_to_occupancy_gridmap_pub.py" name="rows_occupancy_gridmap_publisher">
-    <remap from="polygons_in" to="row_polygons"/>
-    <remap from="map" to="/rows_map"/>
-    <param name="fixed_frame" value="vineyard" />
-  </node>
-
   <!-- ros bag recording of the task session to ~/asb_logs -->
   <include file="$(find-pkg-share asb_logging)/launch/record_bag.launch.py"/>
 

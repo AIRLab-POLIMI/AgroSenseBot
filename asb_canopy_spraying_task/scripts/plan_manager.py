@@ -28,8 +28,7 @@ class PlanManager:
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
             depth=10
         )
-
-        self._rows_polygons_pub = self._node.create_publisher(PolygonStampedArray, 'row_polygons', qos_profile)
+        self._rows_polygons_pub = self._node.create_publisher(PolygonStampedArray, '/geofence_polygons', qos_profile)
 
         self._loop_rate = self._node.create_rate(10)
 

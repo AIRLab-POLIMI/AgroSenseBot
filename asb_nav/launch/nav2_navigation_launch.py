@@ -1,6 +1,3 @@
-import os
-
-from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
@@ -13,16 +10,13 @@ from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
-    # Get the launch directory
-    bringup_dir = get_package_share_directory('nav2_bringup')
-
     namespace = LaunchConfiguration('namespace')
     use_sim_time = LaunchConfiguration('use_sim_time')
     autostart = LaunchConfiguration('autostart')
     params_file = LaunchConfiguration('params_file')
     controller_params_file = LaunchConfiguration('controller_params_file')
     planner_params_file = LaunchConfiguration('planner_params_file')
-    map_server_params_file = LaunchConfiguration('map_server_params_file')
+    map_server_params_file = LaunchConfiguration('map_server_params_file')  # to publish the geofence and the sat map
     use_composition = LaunchConfiguration('use_composition')
     container_name = LaunchConfiguration('container_name')
     container_name_full = (namespace, '/', container_name)
@@ -36,8 +30,8 @@ def generate_launch_description():
         'behavior_server',
         'bt_navigator',
         'waypoint_follower',
-        'map_server',
-        'sat_map_server',
+        # 'map_server',  # to publish the geofence from a map file (rather than polygons)
+        'sat_map_server',  # to publish the sat map
     ]
 
     remappings = [('/tf', 'tf'),
@@ -70,7 +64,7 @@ def generate_launch_description():
             convert_types=True),
         allow_substs=True)
 
-    map_server_configured_params = ParameterFile(
+    map_server_configured_params = ParameterFile(  # to publish the geofence and the sat map
         RewrittenYaml(
             source_file=map_server_params_file,
             root_key=namespace,
@@ -184,16 +178,16 @@ def generate_launch_description():
                 parameters=[configured_params],
                 arguments=['--ros-args', '--log-level', log_level],
                 remappings=remappings),
-            Node(
-                package='nav2_map_server',
-                executable='map_server',
-                name='map_server',
-                output='screen',
-                respawn=use_respawn,
-                respawn_delay=2.0,
-                parameters=[map_server_configured_params],
-                arguments=['--ros-args', '--log-level', log_level],
-                remappings=remappings+[('map', 'geofence_map')]),
+            # Node(  # to publish the geofence from a map file (rather than polygons)
+            #     package='nav2_map_server',
+            #     executable='map_server',
+            #     name='map_server',
+            #     output='screen',
+            #     respawn=use_respawn,
+            #     respawn_delay=2.0,
+            #     parameters=[map_server_configured_params],
+            #     arguments=['--ros-args', '--log-level', log_level],
+            #     remappings=remappings+[('map', 'geofence_map')]),
             Node(
                 package='nav2_map_server',
                 executable='map_server',

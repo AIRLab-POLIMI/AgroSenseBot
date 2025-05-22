@@ -32,14 +32,10 @@ local_costmap:
       footprint: "[[0.9, 0.81], [0.9, -0.81], [-1.1, -0.81], [-1.1, 0.81]]"
       footprint_padding: 0.0
 
-      plugins: ["static_layer_geofence", "static_layer_rows", "obstacle_layer", "denoise_layer", "inflation_layer"]
+      plugins: ["static_layer_geofence", "obstacle_layer", "denoise_layer", "inflation_layer"]
       static_layer_geofence:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /geofence_map
-        map_subscribe_transient_local: True
-      static_layer_rows:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_topic: /rows_map
         map_subscribe_transient_local: True
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -98,14 +94,10 @@ global_costmap:
       width: 200
       height: 200
       track_unknown_space: true
-      plugins: ["static_layer_geofence", "static_layer_rows", "obstacle_layer", "denoise_layer", "inflation_layer"]
+      plugins: ["static_layer_geofence", "obstacle_layer", "denoise_layer", "inflation_layer"]
       static_layer_geofence:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /geofence_map
-        map_subscribe_transient_local: True
-      static_layer_rows:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_topic: /rows_map
         map_subscribe_transient_local: True
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"

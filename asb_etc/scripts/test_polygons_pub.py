@@ -18,7 +18,7 @@ class TestPolygonPublisher(Node):
             depth=10
         )
 
-        self.publisher = self.create_publisher(PolygonStampedArray, '/polygons', qos_profile)
+        self.publisher = self.create_publisher(PolygonStampedArray, '/geofence_polygons', qos_profile)
         self.timer = self.create_timer(2.0, self.publish_polygons)
 
     def publish_polygons(self):
@@ -32,8 +32,8 @@ class TestPolygonPublisher(Node):
         polygon1 = PolygonStamped()
         polygon1.header = header
         polygon1.polygon.points = [
-            Point32(x=7.0, y=0.0),
-            Point32(x=14.0, y=0.0),
+            Point32(x=7.0, y=-5.0),
+            Point32(x=14.0, y=5.0),
         ]
 
         polygon2 = PolygonStamped()
