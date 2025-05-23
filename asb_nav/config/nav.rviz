@@ -4,6 +4,8 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Environment1
+        - /Environment1/tf1
         - /Sensors1/front multilayer1/Autocompute Value Bounds1
         - /Sensors1/filtered front multilayer1/Topic1
         - /Sensors1/filtered front multilayer1/Autocompute Value Bounds1
@@ -11,7 +13,9 @@ Panels:
         - /Sensors1/filtered rear multilayer1/Autocompute Value Bounds1
         - /Global Planner1/expansions1/Namespaces1
         - /Controller1/footprint1/Topic1
+        - /Controller1/lookahead arc1
         - /Localization1/Odometry position1/Shape1
+        - /Localization1/Odometry orientation1
         - /Localization1/gnss 11/Covariance1
         - /Localization1/gnss 11/Covariance1/Position1
         - /Localization1/gnss 1 history1/Covariance1/Position1
@@ -21,8 +25,8 @@ Panels:
         - /Localization1/gnss 2 history1/Covariance1/Position1
         - /Task1/canopy_depth1/Namespaces1
         - /Interactive1/circle text1/Namespaces1
-      Splitter Ratio: 0.564039409160614
-    Tree Height: 647
+      Splitter Ratio: 0.6176470518112183
+    Tree Height: 902
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -85,7 +89,7 @@ Visualization Manager:
             accelerometer_link:
               Value: false
             base_footprint:
-              Value: false
+              Value: true
             base_link:
               Value: false
             base_scan_front_multilayer:
@@ -109,15 +113,15 @@ Visualization Manager:
             inertial_link:
               Value: false
             inter_row_0:
-              Value: true
+              Value: false
             inter_row_0_row_1:
-              Value: true
+              Value: false
             inter_row_1:
-              Value: true
+              Value: false
             left_track:
               Value: false
             map:
-              Value: true
+              Value: false
             odom:
               Value: false
             right_track:
@@ -131,14 +135,14 @@ Visualization Manager:
             sprayer_link:
               Value: false
             vineyard:
-              Value: true
+              Value: false
             vineyard_view:
               Value: false
           Marker Scale: 1
           Name: tf
           Show Arrows: false
           Show Axes: true
-          Show Names: true
+          Show Names: false
           Tree:
             map:
               hedge:
@@ -729,7 +733,7 @@ Visualization Manager:
             Value: /plan
           Value: true
         - Alpha: 1
-          Buffer Length: 20
+          Buffer Length: 3
           Class: rviz_default_plugins/Path
           Color: 255; 100; 255
           Enabled: true
@@ -964,13 +968,13 @@ Visualization Manager:
         - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 255; 0; 0
+          Color: 255; 255; 0
           Enabled: true
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
           Line Style: Billboards
-          Line Width: 0.03999999910593033
+          Line Width: 0.009999999776482582
           Name: lookahead arc
           Offset:
             X: 0
@@ -993,7 +997,7 @@ Visualization Manager:
           Buffer Length: 1
           Class: rviz_default_plugins/Path
           Color: 0; 0; 255
-          Enabled: true
+          Enabled: false
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
@@ -1016,7 +1020,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /controller_server/lookahead_collision_arc
-          Value: true
+          Value: false
         - Alpha: 0.10000000149011612
           Buffer Length: 1000
           Class: rviz_default_plugins/Path
@@ -1119,7 +1123,7 @@ Visualization Manager:
               Scale: 1
               Value: true
             Value: false
-          Enabled: false
+          Enabled: true
           Keep: 1000
           Name: Odometry position
           Position Tolerance: 0.10000000149011612
@@ -1140,7 +1144,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /odom
-          Value: false
+          Value: true
         - Angle Tolerance: 0.05000000074505806
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1275,7 +1279,7 @@ Visualization Manager:
               Scale: 0.05000000074505806
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: gnss 1 history
           Position Tolerance: 0.20000000298023224
@@ -1296,7 +1300,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_1/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1353,7 +1357,7 @@ Visualization Manager:
               Scale: 0.05000000074505806
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: gnss 2 history
           Position Tolerance: 0.20000000298023224
@@ -1374,7 +1378,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_2/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1478,34 +1482,6 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /canopy_visualization_markers
           Value: true
-        - Class: rviz_default_plugins/Image
-          Enabled: false
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: row_0 depth
-          Normalize Range: true
-          Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /canopy_data_viz/row_0
-          Value: false
-        - Class: rviz_default_plugins/Image
-          Enabled: false
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: row_1 depth
-          Normalize Range: true
-          Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /canopy_data_viz/row_1
-          Value: false
       Enabled: true
       Name: Task
     - Class: rviz_common/Group
@@ -1693,27 +1669,27 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 34.90496826171875
-      Target Frame: <Fixed Frame>
+      Scale: 454.90679931640625
+      Target Frame: base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 8.24793815612793
-      Y: -1.8191567659378052
+      X: -0.2201612889766693
+      Y: -0.05970257520675659
     Saved: ~
 Window Geometry:
   AgroSenseBot:
-    collapsed: true
-  AgroSenseBotNozzles:
-    collapsed: true
-  Displays:
     collapsed: false
+  AgroSenseBotNozzles:
+    collapsed: false
+  Displays:
+    collapsed: true
   Height: 1366
   Help:
     collapsed: false
-  Hide Left Dock: false
-  Hide Right Dock: true
+  Hide Left Dock: true
+  Hide Right Dock: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000156000004bdfc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000002800fffffffb000000160072006f0077005f003000200064006500700074006800000000b8000000880000002800fffffffb0000000a00560069006500770073010000003d000001ad000000a400fffffffb000000100044006900730070006c00610079007301000001f00000030a000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000001c1000004bdfc0200000003fc0000003d000004bd0000000000fffffffaffffffff0100000002fb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c006500730000000000ffffffff0000019600fffffffb00000018004100670072006f00530065006e007300650042006f0074000000033f000001c1000001c100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d00650100000000000004500000000000000000000003a4000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000156000004bdfc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073000000003d000000ae000000a400fffffffb000000100044006900730070006c00610079007300000000f100000409000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001e000fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000001c1000004bdfc0200000003fc0000003d000004bd000004420100001cfa000000010100000002fb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c006500730100000000ffffffff0000019600fffffffb00000018004100670072006f00530065006e007300650042006f0074010000033f000001c1000001c100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d0065010000000000000450000000000000000000000339000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -1721,11 +1697,7 @@ Window Geometry:
   Tool Properties:
     collapsed: false
   Views:
-    collapsed: false
+    collapsed: true
   Width: 1280
   X: 1280
   Y: 0
-  row_0 depth:
-    collapsed: false
-  row_1 depth:
-    collapsed: false

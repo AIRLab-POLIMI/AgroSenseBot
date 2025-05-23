@@ -288,7 +288,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     if (params_->use_goal_angle_approach || params_->use_goal_angle_at_cusp) {
         const double remaining_distance = nav2_util::geometry_utils::calculate_path_length(transformed_plan);
         double dist_to_cusp = findVelocitySignChange(transformed_plan);
-        bool goal_angle_end = params_->use_goal_angle_approach && (remaining_distance < params_->goal_angle_approach_dist && remaining_distance < dist_to_cusp);
+        bool goal_angle_end = params_->use_goal_angle_approach && (remaining_distance < params_->goal_angle_approach_dist && remaining_distance < dist_to_cusp);  // remaining_distance < dist_to_cusp because if there is a cusp between the current pose and the goal, we should not apply the angular approach to the goal.
         bool goal_angle_cusp = params_->use_goal_angle_at_cusp && (dist_to_cusp < params_->goal_angle_cusp_dist);
         if (goal_angle_end || goal_angle_cusp) {
 
@@ -473,8 +473,20 @@ void RegulatedPurePursuitController::applyConstraints(const double &curvature, c
     linear_vel = std::min(cost_vel, curvature_vel);
     linear_vel = std::max(linear_vel, params_->regulated_linear_scaling_min_speed);  // TODO only apply if some param is true?
 
-    // Apply constraint to reduce speed on approach to the final goal pose
-    linear_vel = heuristics::approachVelocityConstraint(linear_vel, path, params_->min_approach_linear_velocity, params_->approach_velocity_scaling_dist);
+    // Apply constraint to reduce speed on approach to the final goal pose and to the next cusp
+    const double stop_dist = std::min(nav2_util::geometry_utils::calculate_path_length(path), findVelocitySignChange(path));  // distance to the point in the path where the robot needs to stop (goal or cusp)
+    double approach_scaling_factor = 1.0;
+    if (stop_dist < params_->approach_velocity_scaling_dist) {
+        approach_scaling_factor = stop_dist / params_->approach_velocity_scaling_dist;
+    } else {
+        approach_scaling_factor = 1.0;
+    }
+
+    double approach_vel = linear_vel * approach_scaling_factor;
+    if (approach_vel < params_->min_approach_linear_velocity) {
+        approach_vel = params_->min_approach_linear_velocity;
+    }
+    linear_vel = std::min(linear_vel, approach_vel);
 
     // Limit linear velocities to be valid
     linear_vel = std::clamp(fabs(linear_vel), 0.0, params_->desired_linear_vel);
