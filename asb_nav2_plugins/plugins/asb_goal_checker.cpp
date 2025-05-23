@@ -43,131 +43,107 @@
 #include "angles/angles.h"
 #include "nav2_util/node_utils.hpp"
 #include "nav2_util/geometry_utils.hpp"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+
 #include "tf2/utils.h"
+
 #pragma GCC diagnostic pop
 
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
 
-namespace asb_nav2_plugins
-{
+namespace asb_nav2_plugins {
 
-ASBGoalChecker::ASBGoalChecker()
-: xy_goal_tolerance_(0.25),
-  yaw_goal_tolerance_(0.25),
-  forward_(true),
-  in_goal_proximity_(false),
-  xy_goal_tolerance_sq_(0.0625)
-{
+ASBGoalChecker::ASBGoalChecker() : xy_goal_tolerance_(0.25), yaw_goal_tolerance_(0.25), forward_(true), in_goal_proximity_(false), xy_goal_tolerance_sq_(0.0625) {
 }
 
-void ASBGoalChecker::initialize(
-  const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
-  const std::string & plugin_name,
-  const std::shared_ptr<nav2_costmap_2d::Costmap2DROS>/*costmap_ros*/)
-{
-  plugin_name_ = plugin_name;
-  auto node = parent.lock();
+void ASBGoalChecker::initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent, const std::string &plugin_name, const std::shared_ptr<nav2_costmap_2d::Costmap2DROS>/*costmap_ros*/) {
+    plugin_name_ = plugin_name;
+    auto node = parent.lock();
 
-  nav2_util::declare_parameter_if_not_declared(
-    node,
-    plugin_name + ".xy_goal_tolerance", rclcpp::ParameterValue(0.25));
-  nav2_util::declare_parameter_if_not_declared(
-    node,
-    plugin_name + ".yaw_goal_tolerance", rclcpp::ParameterValue(0.25));
+    nav2_util::declare_parameter_if_not_declared(node, plugin_name + ".xy_goal_tolerance", rclcpp::ParameterValue(0.25));
+    nav2_util::declare_parameter_if_not_declared(node, plugin_name + ".yaw_goal_tolerance", rclcpp::ParameterValue(0.25));
 
-  node->get_parameter(plugin_name + ".xy_goal_tolerance", xy_goal_tolerance_);
-  node->get_parameter(plugin_name + ".yaw_goal_tolerance", yaw_goal_tolerance_);
+    node->get_parameter(plugin_name + ".xy_goal_tolerance", xy_goal_tolerance_);
+    node->get_parameter(plugin_name + ".yaw_goal_tolerance", yaw_goal_tolerance_);
 
-  xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
+    xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
 
-  // Add callback for dynamic parameters
-  dyn_params_handler_ = node->add_on_set_parameters_callback(
-    std::bind(&ASBGoalChecker::dynamicParametersCallback, this, _1));
+    // Add callback for dynamic parameters
+    dyn_params_handler_ = node->add_on_set_parameters_callback(std::bind(&ASBGoalChecker::dynamicParametersCallback, this, _1));
 
-  RCLCPP_INFO(node->get_logger(), "ASBGoalChecker initialized");
+    RCLCPP_INFO(node->get_logger(), "ASBGoalChecker initialized");
 }
 
-void ASBGoalChecker::reset()
-{
-  in_goal_proximity_ = false;
-}
-
-bool ASBGoalChecker::isGoalReached(
-  const geometry_msgs::msg::Pose & query_pose, const geometry_msgs::msg::Pose & goal_pose,
-  const geometry_msgs::msg::Twist &)
-{
-  double dx = goal_pose.position.x - query_pose.position.x;
-  double dy = goal_pose.position.y - query_pose.position.y;
-  double dyaw = angles::shortest_angular_distance(
-    tf2::getYaw(query_pose.orientation),
-    tf2::getYaw(goal_pose.orientation));
-
-  if ((dx * dx + dy * dy > xy_goal_tolerance_sq_) || (fabs(dyaw) > yaw_goal_tolerance_)) {
-    // We are outside the window
+void ASBGoalChecker::reset() {
     in_goal_proximity_ = false;
-    return false;
-  }
-
-  // compute the goal x coordinate in the robot frame
-  double theta = tf2::getYaw(query_pose.orientation);
-  double gx = dx * cos(-theta) - dy * sin(-theta);
-
-  if (!in_goal_proximity_) {
-    // We just entered the window
-    in_goal_proximity_ = true;
-    // If the goal is in front, we must move forward to reach the goal
-    forward_ = gx >= 0;
-  }
-
-  // From now on, as soon as we pass the goal (disregarding the y coordinate),
-  // we are as close to the goal as we are going to be
-  return forward_ ? gx <= 0 : gx >= 0;
 }
 
-bool ASBGoalChecker::getTolerances(
-  geometry_msgs::msg::Pose & pose_tolerance,
-  geometry_msgs::msg::Twist & vel_tolerance)
-{
-  double invalid_field = std::numeric_limits<double>::lowest();
+bool ASBGoalChecker::isGoalReached(const geometry_msgs::msg::Pose &query_pose, const geometry_msgs::msg::Pose &goal_pose, const geometry_msgs::msg::Twist &) {
+    double dx = goal_pose.position.x - query_pose.position.x;
+    double dy = goal_pose.position.y - query_pose.position.y;
+    double dyaw = angles::shortest_angular_distance(tf2::getYaw(query_pose.orientation), tf2::getYaw(goal_pose.orientation));
 
-  pose_tolerance.position.x = xy_goal_tolerance_;
-  pose_tolerance.position.y = xy_goal_tolerance_;
-  pose_tolerance.position.z = invalid_field;
-  pose_tolerance.orientation = nav2_util::geometry_utils::orientationAroundZAxis(yaw_goal_tolerance_);
-
-  vel_tolerance.linear.x = invalid_field;
-  vel_tolerance.linear.y = invalid_field;
-  vel_tolerance.linear.z = invalid_field;
-
-  vel_tolerance.angular.x = invalid_field;
-  vel_tolerance.angular.y = invalid_field;
-  vel_tolerance.angular.z = invalid_field;
-
-  return true;
-}
-
-rcl_interfaces::msg::SetParametersResult
-ASBGoalChecker::dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters)
-{
-  rcl_interfaces::msg::SetParametersResult result;
-  for (auto & parameter : parameters) {
-    const auto & type = parameter.get_type();
-    const auto & name = parameter.get_name();
-
-    if (type == ParameterType::PARAMETER_DOUBLE) {
-      if (name == plugin_name_ + ".xy_goal_tolerance") {
-        xy_goal_tolerance_ = parameter.as_double();
-        xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
-      } else if (name == plugin_name_ + ".yaw_goal_tolerance") {
-        yaw_goal_tolerance_ = parameter.as_double();
-      }
+    if ((dx * dx + dy * dy > xy_goal_tolerance_sq_) || (fabs(dyaw) > yaw_goal_tolerance_)) {
+        // We are outside the window
+        in_goal_proximity_ = false;
+        return false;
     }
-  }
-  result.successful = true;
-  return result;
+
+    // compute the goal x coordinate in the robot frame
+    double theta = tf2::getYaw(query_pose.orientation);
+    double gx = dx * cos(-theta) - dy * sin(-theta);
+
+    if (!in_goal_proximity_) {
+        // We just entered the window
+        in_goal_proximity_ = true;
+        // If the goal is in front, we must move forward to reach the goal
+        forward_ = gx >= 0;
+    }
+
+    // From now on, as soon as we pass the goal (disregarding the y coordinate),
+    // we are as close to the goal as we are going to be
+    return forward_ ? gx <= 0 : gx >= 0;
+}
+
+bool ASBGoalChecker::getTolerances(geometry_msgs::msg::Pose &pose_tolerance, geometry_msgs::msg::Twist &vel_tolerance) {
+    double invalid_field = std::numeric_limits<double>::lowest();
+
+    pose_tolerance.position.x = xy_goal_tolerance_;
+    pose_tolerance.position.y = xy_goal_tolerance_;
+    pose_tolerance.position.z = invalid_field;
+    pose_tolerance.orientation = nav2_util::geometry_utils::orientationAroundZAxis(yaw_goal_tolerance_);
+
+    vel_tolerance.linear.x = invalid_field;
+    vel_tolerance.linear.y = invalid_field;
+    vel_tolerance.linear.z = invalid_field;
+
+    vel_tolerance.angular.x = invalid_field;
+    vel_tolerance.angular.y = invalid_field;
+    vel_tolerance.angular.z = invalid_field;
+
+    return true;
+}
+
+rcl_interfaces::msg::SetParametersResult ASBGoalChecker::dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters) {
+    rcl_interfaces::msg::SetParametersResult result;
+    for (auto &parameter: parameters) {
+        const auto &type = parameter.get_type();
+        const auto &name = parameter.get_name();
+
+        if (type == ParameterType::PARAMETER_DOUBLE) {
+            if (name == plugin_name_ + ".xy_goal_tolerance") {
+                xy_goal_tolerance_ = parameter.as_double();
+                xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
+            } else if (name == plugin_name_ + ".yaw_goal_tolerance") {
+                yaw_goal_tolerance_ = parameter.as_double();
+            }
+        }
+    }
+    result.successful = true;
+    return result;
 }
 
 }  // namespace asb_nav2_plugins

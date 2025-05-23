@@ -18,39 +18,39 @@ find_package(pluginlib REQUIRED)
 nav2_package()
 
 include_directories(
-  include
+    include
 )
 
 set(dependencies
-  angles
-  rclcpp
-  rclcpp_action
-  rclcpp_components
-  std_msgs
-  nav2_msgs
-  nav_2d_utils
-  nav_2d_msgs
-  nav2_util
-  nav2_core
-  pluginlib
+    angles
+    rclcpp
+    rclcpp_action
+    rclcpp_components
+    std_msgs
+    nav2_msgs
+    nav_2d_utils
+    nav_2d_msgs
+    nav2_util
+    nav2_core
+    pluginlib
 )
 
 add_library(asb_goal_checker SHARED plugins/asb_goal_checker.cpp)
 ament_target_dependencies(asb_goal_checker ${dependencies})
 
 install(TARGETS asb_goal_checker
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY include/
-  DESTINATION include/
+    DESTINATION include/
 )
 
 ament_export_include_directories(include)
 ament_export_libraries(
-  asb_goal_checker
+    asb_goal_checker
 )
 ament_export_dependencies(${dependencies})
 pluginlib_export_plugin_description_file(nav2_core plugins.xml)

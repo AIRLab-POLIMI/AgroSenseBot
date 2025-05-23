@@ -33,71 +33,60 @@
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_costmap_2d/costmap_filters/filter_values.hpp"
 
-namespace asb_regulated_pure_pursuit_controller
-{
+namespace asb_regulated_pure_pursuit_controller {
 
 /**
  * @class asb_regulated_pure_pursuit_controller::CollisionChecker
  * @brief Checks for collision based on a RPP control command
  */
-class CollisionChecker
-{
+class CollisionChecker {
 public:
-  /**
-   * @brief Constructor for asb_regulated_pure_pursuit_controller::CollisionChecker
-   */
-  CollisionChecker(
-    rclcpp_lifecycle::LifecycleNode::SharedPtr node,
-    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros, Parameters * params);
+    /**
+     * @brief Constructor for asb_regulated_pure_pursuit_controller::CollisionChecker
+     */
+    CollisionChecker(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros, Parameters *params);
 
-  /**
-   * @brief Destrructor for asb_regulated_pure_pursuit_controller::CollisionChecker
-   */
-  ~CollisionChecker() = default;
+    /**
+     * @brief Destrructor for asb_regulated_pure_pursuit_controller::CollisionChecker
+     */
+    ~CollisionChecker() = default;
 
-  /**
-   * @brief Whether collision is imminent
-   * @param robot_pose Pose of robot
-   * @param carrot_pose Pose of carrot
-   * @param linear_vel linear velocity to forward project
-   * @param angular_vel angular velocity to forward project
-   * @param carrot_dist Distance to the carrot for PP
-   * @return Whether collision is imminent
-   */
-  bool isCollisionImminent(
-    const geometry_msgs::msg::PoseStamped &,
-    const double &, const double &,
-    const double &);
+    /**
+     * @brief Whether collision is imminent
+     * @param robot_pose Pose of robot
+     * @param carrot_pose Pose of carrot
+     * @param linear_vel linear velocity to forward project
+     * @param angular_vel angular velocity to forward project
+     * @param carrot_dist Distance to the carrot for PP
+     * @return Whether collision is imminent
+     */
+    bool isCollisionImminent(const geometry_msgs::msg::PoseStamped &, const double &, const double &, const double &);
 
-  /**
-   * @brief checks for collision at projected pose
-   * @param x Pose of pose x
-   * @param y Pose of pose y
-   * @param theta orientation of Yaw
-   * @return Whether in collision
-   */
-  bool inCollision(
-    const double & x,
-    const double & y,
-    const double & theta);
+    /**
+     * @brief checks for collision at projected pose
+     * @param x Pose of pose x
+     * @param y Pose of pose y
+     * @param theta orientation of Yaw
+     * @return Whether in collision
+     */
+    bool inCollision(const double &x, const double &y, const double &theta);
 
-  /**
-   * @brief Cost at a point
-   * @param x Pose of pose x
-   * @param y Pose of pose y
-   * @return Cost of pose in costmap
-   */
-  double costAtPose(const double & x, const double & y);
+    /**
+     * @brief Cost at a point
+     * @param x Pose of pose x
+     * @param y Pose of pose y
+     * @return Cost of pose in costmap
+     */
+    double costAtPose(const double &x, const double &y);
 
 protected:
-  rclcpp::Logger logger_ {rclcpp::get_logger("RPPCollisionChecker")};
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
-  nav2_costmap_2d::Costmap2D * costmap_;
-  std::unique_ptr<nav2_costmap_2d::FootprintCollisionChecker<nav2_costmap_2d::Costmap2D *>>
-  footprint_collision_checker_;
-  Parameters * params_;
-  std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
-  rclcpp::Clock::SharedPtr clock_;
+    rclcpp::Logger logger_{rclcpp::get_logger("RPPCollisionChecker")};
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
+    nav2_costmap_2d::Costmap2D *costmap_;
+    std::unique_ptr<nav2_costmap_2d::FootprintCollisionChecker<nav2_costmap_2d::Costmap2D *>> footprint_collision_checker_;
+    Parameters *params_;
+    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> carrot_arc_pub_;
+    rclcpp::Clock::SharedPtr clock_;
 };
 
 }  // namespace asb_regulated_pure_pursuit_controller
