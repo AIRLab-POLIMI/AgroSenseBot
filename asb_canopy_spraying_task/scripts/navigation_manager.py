@@ -93,7 +93,7 @@ class NavigationManager:
         self.plan_validity: NavigationPlanValidity = NavigationPlanValidity.UNKNOWN
         self._planned_path: Path | None = None
         self._plan_is_valid_request_chrono: Chronometer = Chronometer()
-        self._approach_poses_viz = PoseArray(header=Header(frame_id=self._node.task_plan.map_frame))
+        self._approach_poses_viz = PoseArray()
         self._last_robot_pose_stamped: PoseStamped | None = None
 
         # publishers, subscribers, timers and loop rate
@@ -162,7 +162,8 @@ class NavigationManager:
             )
         )
 
-        self._approach_poses_viz.poses.append(positioning_approach_pose_stamped.pose)
+        self._approach_poses_viz.poses = [positioning_approach_pose_stamped.pose]
+        self._approach_poses_viz.header.frame_id = positioning_approach_pose_stamped.header.frame_id
         self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
@@ -220,7 +221,8 @@ class NavigationManager:
             )
         )
 
-        self._approach_poses_viz.poses.append(straightening_approach_pose_stamped.pose)
+        self._approach_poses_viz.poses = [straightening_approach_pose_stamped.pose]
+        self._approach_poses_viz.header.frame_id = straightening_approach_pose_stamped.header.frame_id
         self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
