@@ -283,6 +283,12 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     goal_pose_pub_->publish(goal_pose);
     lookahead_circle_pub_->publish(createLookAheadCircleMsg(lookahead_dist, pose.header.stamp));
 
+    // Setting the velocity direction
+    double sign = 1.0;
+    if (params_->allow_reversing) {
+        sign = carrot_pose.pose.position.x >= 0.0 ? 1.0 : -1.0;
+    }
+
     double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
 
     if (params_->use_goal_angle_approach || params_->use_goal_angle_at_cusp) {
@@ -291,8 +297,9 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
         bool goal_angle_end = params_->use_goal_angle_approach && (remaining_distance < params_->goal_angle_approach_dist && remaining_distance < dist_to_cusp);  // remaining_distance < dist_to_cusp because if there is a cusp between the current pose and the goal, we should not apply the angular approach to the goal.
         bool goal_angle_cusp = params_->use_goal_angle_at_cusp && (dist_to_cusp < params_->goal_angle_cusp_dist);
         if (goal_angle_end || goal_angle_cusp) {
-
-            double x_g = carrot_pose.pose.position.x, y_g = carrot_pose.pose.position.y, t = tf2::getYaw(carrot_pose.pose.orientation);
+            // translate the carrot along the goal's y-axis such that when the robot reaches it,
+            // the angle of the robot will be equal to the heading of the goal pose
+            double x_g = carrot_pose.pose.position.x + sign * goal_dist_tol_/2, y_g = carrot_pose.pose.position.y, t = tf2::getYaw(carrot_pose.pose.orientation);
             lookahead_curvature = tan(t) / (x_g + y_g * tan(t));
 
             auto angle_goal_pose = carrot_pose;
@@ -312,12 +319,6 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     if (params_->use_fixed_curvature_lookahead) {
         auto curvature_lookahead_pose = getLookAheadPoint(params_->curvature_lookahead_dist, transformed_plan);
         regulation_curvature = calculateCurvature(curvature_lookahead_pose.pose.position);
-    }
-
-    // Setting the velocity direction
-    double sign = 1.0;
-    if (params_->allow_reversing) {
-        sign = carrot_pose.pose.position.x >= 0.0 ? 1.0 : -1.0;
     }
 
     double linear_vel, angular_vel;
@@ -363,7 +364,6 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     if (params_->use_collision_detection && collision_checker_->isCollisionImminent(pose, linear_vel, angular_vel, carrot_dist)) {
         throw nav2_core::NoValidControl("RegulatedPurePursuitController detected collision ahead!");
     }
-
 
     // populate and return message
     geometry_msgs::msg::TwistStamped cmd_vel;

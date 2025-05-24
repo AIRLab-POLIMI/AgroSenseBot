@@ -25,7 +25,7 @@ controller_server:
       min_turning_radius: 1.0
       desired_linear_vel: 0.6
       lookahead_dist: 1.0
-      use_adaptive_lookahead_dist: true
+      use_adaptive_lookahead_dist: false
       adaptive_lookahead_path_distance_margin: 0.3
       max_robot_path_dist: 0.3
       max_robot_pose_search_dist: 10.0
@@ -70,7 +70,7 @@ controller_server:
       min_turning_radius: 1.7
       desired_linear_vel: 1.1
       lookahead_dist: 2.8
-      use_adaptive_lookahead_dist: true
+      use_adaptive_lookahead_dist: false
       adaptive_lookahead_path_distance_margin: 0.3
       max_robot_path_dist: 1.0
       max_robot_pose_search_dist: 10.0
