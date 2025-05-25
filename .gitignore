@@ -5,3 +5,5 @@ asb_ros2_control/bringup/rviz/asb_ros2_control_rviz.rviz
 os-122419001190-metadata.json
 os-122419001208-metadata.json
 asb_nav/config/nav.rviz
+asb_arduino/libraries/Grove_-_Barometer_Sensor_BME280
+asb_arduino/libraries/PacketSerial

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Arduino IDE 2
+# Put the icon file in ~/.local/share/icons
+Icon=arduino-ide.png
+Exec=bash -i -c "~/.arduino/arduino-ide_2.3.6_Linux_64bit.AppImage"
+Comment="Arduino IDE"
+Categories=Development;IDE;
+Terminal=false
+StartupNotify=false
