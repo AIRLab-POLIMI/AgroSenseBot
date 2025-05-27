@@ -159,6 +159,9 @@ class SprayingTaskPlanExecutor(Node):
         self.start_navigation_action_chrono: Chronometer | None = None
         self.nav_chrono: Chronometer | None = None
         self.start_spray_regulator_chrono: Chronometer | None = None
+        self.inter_row_navigation_complete_pause_chrono: Chronometer | None = None
+        self.straightening_navigation_complete_pause_chrono: Chronometer | None = None
+        self.positioning_navigation_complete_pause_chrono: Chronometer | None = None
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: PlatformState | None = None
         self.last_scan_heartbeat_front_msg: PlatformState | None = None
@@ -257,6 +260,13 @@ class SprayingTaskPlanExecutor(Node):
                 }
             )
             StateMachine.add(
+                label='positioning_navigation_complete_pause',
+                state=CallbackState(self.positioning_navigation_complete_pause_sm_cb, class_instance=self), transitions={
+                    'success': 'success',
+                    'waiting': 'positioning_navigation_complete_pause',
+                }
+            )
+            StateMachine.add(
                 label='stop_navigation',
                 state=CallbackState(self.stop_navigation_sm_cb, class_instance=self), transitions={
                     'success': 'failure',
@@ -287,6 +297,13 @@ class SprayingTaskPlanExecutor(Node):
                     'waiting': 'wait_straightening_navigation_complete',
                     'stop': 'stop_navigation',
                     'failure': 'failure',
+                }
+            )
+            StateMachine.add(
+                label='straightening_navigation_complete_pause',
+                state=CallbackState(self.straightening_navigation_complete_pause_sm_cb, class_instance=self), transitions={
+                    'success': 'success',
+                    'waiting': 'straightening_navigation_complete_pause',
                 }
             )
             StateMachine.add(
@@ -345,6 +362,13 @@ class SprayingTaskPlanExecutor(Node):
                     'spraying_failure': 'stop_navigation',
                     'stop': 'stop_navigation',
                     'failure': 'failure',
+                }
+            )
+            StateMachine.add(
+                label='inter_row_navigation_complete_pause',
+                state=CallbackState(self.inter_row_navigation_complete_pause_sm_cb, class_instance=self), transitions={
+                    'success': 'success',
+                    'waiting': 'inter_row_navigation_complete_pause',
                 }
             )
             StateMachine.add(
@@ -631,6 +655,7 @@ class SprayingTaskPlanExecutor(Node):
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.positioning_navigation_complete_pause_chrono = Chronometer()
             return 'success'
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
@@ -641,6 +666,19 @@ class SprayingTaskPlanExecutor(Node):
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['success', 'waiting'])
+    def positioning_navigation_complete_pause_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        if self.dry_run:
+            return 'success'
+
+        if self.positioning_navigation_complete_pause_chrono.total() > 5:
+            return 'success'
+        else:
+            self.get_logger().info(f"**** WAITING ****", throttle_duration_sec=0.1)
+            return 'waiting'
 
     @cb_interface(outcomes=['success', 'waiting', 'stop', 'failure'])
     def wait_straightening_navigation_complete_sm_cb(self) -> str:
@@ -652,6 +690,7 @@ class SprayingTaskPlanExecutor(Node):
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.straightening_navigation_complete_pause_chrono = Chronometer()
             return 'success'
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
@@ -662,6 +701,19 @@ class SprayingTaskPlanExecutor(Node):
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['success', 'waiting'])
+    def straightening_navigation_complete_pause_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        if self.dry_run:
+            return 'success'
+
+        if self.straightening_navigation_complete_pause_chrono.total() > 5:
+            return 'success'
+        else:
+            self.get_logger().info(f"**** WAITING ****", throttle_duration_sec=0.1)
+            return 'waiting'
 
     @cb_interface(outcomes=['success'])
     def stop_navigation_sm_cb(self) -> str:
@@ -719,6 +771,7 @@ class SprayingTaskPlanExecutor(Node):
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation succeeded in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.inter_row_navigation_complete_pause_chrono = Chronometer()
             return 'success'
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
@@ -733,6 +786,19 @@ class SprayingTaskPlanExecutor(Node):
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['success', 'waiting'])
+    def inter_row_navigation_complete_pause_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        if self.dry_run:
+            return 'success'
+
+        if self.inter_row_navigation_complete_pause_chrono.total() > 5:
+            return 'success'
+        else:
+            self.get_logger().info(f"**** WAITING ****", throttle_duration_sec=0.1)
+            return 'waiting'
 
     def run(self):
         self.main_sm.execute()
