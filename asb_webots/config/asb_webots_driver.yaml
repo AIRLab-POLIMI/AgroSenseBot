@@ -7,7 +7,7 @@ asb_webots_robot:
     gnss_1_frame_id: gnss_1_link  # in the real robot, the NavSatFix message refers to the frame of the antenna 1 published by the microstrain driver
     gnss_2_topic: /gnss_2/llh_position
     gnss_2_frame_id: gnss_2_link  # in the real robot, the NavSatFix message refers to the frame of the antenna 2 published by the microstrain driver
-    gnss_update_rate: 2.0
+    gnss_update_rate: 1.0
     gnss_covariance_diagonal: [0.2, 0.2, 0.2]
 
     # TODO rename topic, it's not really an odometry
