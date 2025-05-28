@@ -15,8 +15,8 @@ controller_server:
       movement_time_allowance: 30.0
     asb_goal_checker:
       plugin: "asb_nav2_plugins::ASBGoalChecker"
-      xy_goal_tolerance: 0.2
-      yaw_goal_tolerance: 0.1
+      xy_goal_tolerance: 0.5
+      yaw_goal_tolerance: 0.2
 
     FollowPath:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
@@ -25,9 +25,7 @@ controller_server:
       min_turning_radius: 1.0
       desired_linear_vel: 0.6
       lookahead_dist: 1.0
-      use_adaptive_lookahead_dist: false
-      adaptive_lookahead_path_distance_margin: 0.3
-      max_robot_path_dist: 0.3
+      max_robot_path_dist: 0.5
       max_robot_pose_search_dist: 10.0
       min_approach_linear_velocity: 0.2
       approach_velocity_scaling_dist: 2.0
@@ -43,6 +41,7 @@ controller_server:
       goal_angle_approach_dist: 1.0
       use_goal_angle_at_cusp: true
       goal_angle_cusp_dist: 1.0
+      goal_cusp_approach_overextension_factor: 1.0
 
       use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles TODO set true
 
@@ -50,6 +49,8 @@ controller_server:
       regulated_linear_scaling_min_radius: 3.0
 
       # unused features
+      use_adaptive_lookahead_dist: false
+      adaptive_lookahead_path_distance_margin: 0.3
       use_velocity_scaled_lookahead_dist: false
       use_fixed_curvature_lookahead: false
       use_rotate_to_heading: false
@@ -70,12 +71,10 @@ controller_server:
       min_turning_radius: 1.7
       desired_linear_vel: 1.1
       lookahead_dist: 2.8
-      use_adaptive_lookahead_dist: false
-      adaptive_lookahead_path_distance_margin: 0.3
       max_robot_path_dist: 1.0
       max_robot_pose_search_dist: 10.0
       min_approach_linear_velocity: 0.2
-      approach_velocity_scaling_dist: 1.0
+      approach_velocity_scaling_dist: 2.0
       max_allowed_time_to_collision_up_to_carrot: 1.5
       regulated_linear_scaling_min_speed: 0.25
       cost_scaling_dist: 0.3
@@ -84,7 +83,8 @@ controller_server:
       use_collision_detection: true
       use_interpolation: true
       use_goal_angle_approach: true
-      goal_angle_approach_dist: 0.4
+      goal_angle_approach_dist: 2.8
+      goal_cusp_approach_overextension_factor: 1.0
 
       use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles TODO set true
 
@@ -92,6 +92,8 @@ controller_server:
       regulated_linear_scaling_min_radius: 3.0
 
       # unused features
+      use_adaptive_lookahead_dist: false
+      adaptive_lookahead_path_distance_margin: 0.3
       use_velocity_scaled_lookahead_dist: false
       use_fixed_curvature_lookahead: false
       use_rotate_to_heading: false

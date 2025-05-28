@@ -45,6 +45,7 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     declare_parameter_if_not_declared(node, plugin_name_ + ".min_approach_linear_velocity", rclcpp::ParameterValue(0.05));
     declare_parameter_if_not_declared(node, plugin_name_ + ".approach_velocity_scaling_dist", rclcpp::ParameterValue(0.6));
     declare_parameter_if_not_declared(node, plugin_name_ + ".goal_angle_approach_dist", rclcpp::ParameterValue(0.6));
+    declare_parameter_if_not_declared(node, plugin_name_ + ".goal_cusp_approach_overextension_factor", rclcpp::ParameterValue(0.5));
     declare_parameter_if_not_declared(node, plugin_name_ + ".goal_angle_cusp_dist", rclcpp::ParameterValue(0.6));
     declare_parameter_if_not_declared(node, plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", rclcpp::ParameterValue(1.0));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
@@ -92,6 +93,7 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     if (params_.goal_angle_cusp_dist > costmap_size_x / 2.0) {
         RCLCPP_WARN(logger_, "goal_angle_cusp_dist is larger than forward costmap extent, leading to permanent goal angle approach");
     }
+    node->get_parameter(plugin_name_ + ".goal_cusp_approach_overextension_factor", params_.goal_cusp_approach_overextension_factor);
     node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", params_.max_allowed_time_to_collision_up_to_carrot);
     node->get_parameter(plugin_name_ + ".use_regulated_linear_velocity_scaling", params_.use_regulated_linear_velocity_scaling);
     node->get_parameter(plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", params_.use_cost_regulated_linear_velocity_scaling);
