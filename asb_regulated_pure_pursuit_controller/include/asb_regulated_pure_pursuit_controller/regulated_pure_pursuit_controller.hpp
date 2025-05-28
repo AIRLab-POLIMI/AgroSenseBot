@@ -107,27 +107,12 @@ public:
 
 protected:
     /**
-     * @brief Creates a PointStamped message for visualization
-     * @param carrot_pose Input carrot point as a PoseStamped
-     * @return CarrotMsg a carrot point marker, PointStamped
-     */
-    std::unique_ptr<geometry_msgs::msg::PointStamped> createCarrotMsg(const geometry_msgs::msg::PoseStamped &carrot_pose);
-
-    /**
      * @brief Creates a Path message for visualization of the lookahead arc (not just up to the max collision checking
      * time, but the complete arc)
      * @param carrot_pose Input carrot point as a PoseStamped
      * @return LookaheadArcMsg nav_msgs::msg::Path
      */
-    std::unique_ptr<nav_msgs::msg::Path> createLookAheadArcMsg(const geometry_msgs::msg::PoseStamped &robot_pose, const double &linear_vel, const double &angular_vel, const double &carrot_dist);
-
-    /**
-     * @brief Creates a Path message for visualization of the lookahead arc (not just up to the max collision checking
-     * time, but the complete arc)
-     * @param carrot_pose Input carrot point as a PoseStamped
-     * @return LookaheadArcMsg nav_msgs::msg::Path
-     */
-    std::unique_ptr<nav_msgs::msg::Path> createLookAheadArcMsgFromCurvature(const geometry_msgs::msg::PoseStamped &robot_pose, const double &curvature, const double &distance, const double &sign);
+    static std::unique_ptr<nav_msgs::msg::Path> createLookAheadArcMsgFromCurvature(const geometry_msgs::msg::PoseStamped &robot_pose, const double &curvature, const double &distance, const double &sign);
 
     /**
      * @brief Creates a PolygonStamped message for visualization of the lookahead circle
@@ -141,7 +126,7 @@ protected:
      * @param curvature Input curvature as double
      * @return Float64 message containing the curvature value
      */
-    std::unique_ptr<std_msgs::msg::Float64> createCurvatureMsg(double curvature);
+    static std::unique_ptr<std_msgs::msg::Float64> createCurvatureMsg(double curvature);
 
     /**
      * @brief Whether robot should rotate to rough path heading
@@ -175,7 +160,7 @@ protected:
      * @param speed Speed of robot
      * @param pose_cost cost at this pose
      */
-    void applyConstraints(const double &curvature, const geometry_msgs::msg::Twist &speed, const double &pose_cost, const nav_msgs::msg::Path &path, double &linear_vel, double &sign);
+    void applyLinearVelocityConstraints(const double &curvature, const double &pose_cost, const double &stop_dist, const double &sign, double &linear_vel);
 
     /**
      * @brief Find the intersection a circle and a line segment.
@@ -197,11 +182,20 @@ protected:
     geometry_msgs::msg::PoseStamped getLookAheadPoint(const double &, const nav_msgs::msg::Path &);
 
     /**
-     * @brief checks for the cusp position
-     * @param pose Pose input to determine the cusp position
-     * @return robot distance from the cusp
+     * @brief Finds the lookahead pose that extends beyond the next_stop_pose such that its distance from the robot (origin) is equal to the lookahead_dist
+     * @param next_stop_pose the next stop pose
+     * @param lookahead_dist the lookahead distance
+     * @return the extended lookahead pose
      */
-    double findVelocitySignChange(const nav_msgs::msg::Path &transformed_plan);
+    static geometry_msgs::msg::PoseStamped getExtendedLookaheadPose(const geometry_msgs::msg::PoseStamped &next_stop_pose, const double lookahead_dist);
+
+    /**
+     * @brief find the next cusp in the transformed plan
+     * @param transformed_plan plan transformed in robot frame
+     * @return next pose in transformed_plan corresponding to the change in direction if it exists,
+     * otherwise the last pose
+     */
+    static geometry_msgs::msg::PoseStamped findStopPose(const nav_msgs::msg::Path &transformed_plan);
 
     rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
     std::shared_ptr<tf2_ros::Buffer> tf_;
@@ -215,15 +209,11 @@ protected:
     double control_duration_;
 
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>> carrot_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> carrot_pose_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> goal_pose_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> angle_goal_pose_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> overextended_goal_pose_pub_;
+    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> stop_pose_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>> lookahead_circle_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> lookahead_arc_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> angle_priority_arc_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> orig_curvature_arc_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> lookahead_curvature_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> min_curvature_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> max_curvature_pub_;

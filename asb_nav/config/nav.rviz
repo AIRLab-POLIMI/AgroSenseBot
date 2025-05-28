@@ -12,6 +12,7 @@ Panels:
         - /Sensors1/filtered rear multilayer1/Topic1
         - /Sensors1/filtered rear multilayer1/Autocompute Value Bounds1
         - /Global Planner1/expansions1/Namespaces1
+        - /Controller1
         - /Controller1/overextended_goal_pose1/Topic1
         - /Localization1/Odometry position1/Shape1
         - /Localization1/Odometry orientation1
@@ -945,26 +946,6 @@ Visualization Manager:
             Value: /controller_server/received_global_plan
           Value: false
         - Alpha: 1
-          Axes Length: 1
-          Axes Radius: 0.10000000149011612
-          Class: rviz_default_plugins/Pose
-          Color: 255; 0; 255
-          Enabled: true
-          Head Length: 0.05000000074505806
-          Head Radius: 0.10000000149011612
-          Name: rpp lookahead pose
-          Shaft Length: 0.10000000149011612
-          Shaft Radius: 0.05000000074505806
-          Shape: Arrow
-          Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            Filter size: 10
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /controller_server/lookahead_pose
-          Value: true
-        - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
           Color: 255; 0; 255
@@ -973,7 +954,7 @@ Visualization Manager:
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
           Line Style: Billboards
-          Line Width: 0.014999999664723873
+          Line Width: 0.009999999776482582
           Name: lookahead arc
           Offset:
             X: 0
@@ -1001,7 +982,7 @@ Visualization Manager:
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
           Line Style: Billboards
-          Line Width: 0.009999999776482582
+          Line Width: 0.004999999888241291
           Name: angle_priority_arc
           Offset:
             X: 0
@@ -1104,15 +1085,15 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /controller_server/lookahead_collision_arc
           Value: false
-        - Alpha: 0.5
+        - Alpha: 1
           Axes Length: 1
           Axes Radius: 0.10000000149011612
           Class: rviz_default_plugins/Pose
-          Color: 255; 0; 255
-          Enabled: false
+          Color: 255; 255; 255
+          Enabled: true
           Head Length: 0.05000000074505806
           Head Radius: 0.05000000074505806
-          Name: goal pose
+          Name: stop_pose
           Shaft Length: 0.05000000074505806
           Shaft Radius: 0.019999999552965164
           Shape: Arrow
@@ -1122,14 +1103,34 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /controller_server/goal_pose
-          Value: false
+            Value: /controller_server/stop_pose
+          Value: true
         - Alpha: 1
           Axes Length: 1
           Axes Radius: 0.10000000149011612
           Class: rviz_default_plugins/Pose
           Color: 255; 255; 0
           Enabled: true
+          Head Length: 0.05000000074505806
+          Head Radius: 0.05000000074505806
+          Name: lookahead_pose
+          Shaft Length: 0.05000000074505806
+          Shaft Radius: 0.019999999552965164
+          Shape: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/lookahead_pose
+          Value: true
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 0.10000000149011612
+          Class: rviz_default_plugins/Pose
+          Color: 255; 255; 0
+          Enabled: false
           Head Length: 0.05000000074505806
           Head Radius: 0.05000000074505806
           Name: angle goal pose
@@ -1143,13 +1144,13 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /controller_server/angle_goal_pose
-          Value: true
+          Value: false
         - Alpha: 1
           Axes Length: 1
           Axes Radius: 0.10000000149011612
           Class: rviz_default_plugins/Pose
           Color: 255; 0; 0
-          Enabled: true
+          Enabled: false
           Head Length: 0.05000000074505806
           Head Radius: 0.05000000074505806
           Name: overextended_goal_pose
@@ -1163,7 +1164,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /controller_server/overextended_goal_pose
-          Value: true
+          Value: false
         - Alpha: 1
           Class: rviz_default_plugins/Polygon
           Color: 25; 255; 0
@@ -1743,11 +1744,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 368.97967529296875
+      Scale: 215.1219024658203
       Target Frame: base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.09163754433393478
-      Y: -0.07970579713582993
+      X: 0.011952952481806278
+      Y: 0.15990307927131653
     Saved: ~
 Window Geometry:
   AgroSenseBot:

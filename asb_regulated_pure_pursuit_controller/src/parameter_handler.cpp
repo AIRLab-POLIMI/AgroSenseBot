@@ -44,9 +44,6 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     declare_parameter_if_not_declared(node, plugin_name_ + ".adaptive_lookahead_path_distance_margin", rclcpp::ParameterValue(0.3));
     declare_parameter_if_not_declared(node, plugin_name_ + ".min_approach_linear_velocity", rclcpp::ParameterValue(0.05));
     declare_parameter_if_not_declared(node, plugin_name_ + ".approach_velocity_scaling_dist", rclcpp::ParameterValue(0.6));
-    declare_parameter_if_not_declared(node, plugin_name_ + ".goal_angle_approach_dist", rclcpp::ParameterValue(0.6));
-    declare_parameter_if_not_declared(node, plugin_name_ + ".goal_cusp_approach_overextension_factor", rclcpp::ParameterValue(0.5));
-    declare_parameter_if_not_declared(node, plugin_name_ + ".goal_angle_cusp_dist", rclcpp::ParameterValue(0.6));
     declare_parameter_if_not_declared(node, plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", rclcpp::ParameterValue(1.0));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
@@ -56,8 +53,6 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     declare_parameter_if_not_declared(node, plugin_name_ + ".regulated_linear_scaling_min_radius", rclcpp::ParameterValue(0.90));
     declare_parameter_if_not_declared(node, plugin_name_ + ".regulated_linear_scaling_min_speed", rclcpp::ParameterValue(0.25));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_fixed_curvature_lookahead", rclcpp::ParameterValue(false));
-    declare_parameter_if_not_declared(node, plugin_name_ + ".use_goal_angle_approach", rclcpp::ParameterValue(false));
-    declare_parameter_if_not_declared(node, plugin_name_ + ".use_goal_angle_at_cusp", rclcpp::ParameterValue(false));
     declare_parameter_if_not_declared(node, plugin_name_ + ".curvature_lookahead_dist", rclcpp::ParameterValue(0.6));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_rotate_to_heading", rclcpp::ParameterValue(true));
     declare_parameter_if_not_declared(node, plugin_name_ + ".rotate_to_heading_min_angle", rclcpp::ParameterValue(0.785));
@@ -85,15 +80,6 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     if (params_.approach_velocity_scaling_dist > costmap_size_x / 2.0) {
         RCLCPP_WARN(logger_, "approach_velocity_scaling_dist is larger than forward costmap extent, leading to permanent slowdown");
     }
-    node->get_parameter(plugin_name_ + ".goal_angle_approach_dist", params_.goal_angle_approach_dist);
-    if (params_.goal_angle_approach_dist > costmap_size_x / 2.0) {
-        RCLCPP_WARN(logger_, "goal_angle_approach_dist is larger than forward costmap extent, leading to permanent goal angle approach");
-    }
-    node->get_parameter(plugin_name_ + ".goal_angle_cusp_dist", params_.goal_angle_cusp_dist);
-    if (params_.goal_angle_cusp_dist > costmap_size_x / 2.0) {
-        RCLCPP_WARN(logger_, "goal_angle_cusp_dist is larger than forward costmap extent, leading to permanent goal angle approach");
-    }
-    node->get_parameter(plugin_name_ + ".goal_cusp_approach_overextension_factor", params_.goal_cusp_approach_overextension_factor);
     node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", params_.max_allowed_time_to_collision_up_to_carrot);
     node->get_parameter(plugin_name_ + ".use_regulated_linear_velocity_scaling", params_.use_regulated_linear_velocity_scaling);
     node->get_parameter(plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", params_.use_cost_regulated_linear_velocity_scaling);
@@ -103,8 +89,6 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_radius", params_.regulated_linear_scaling_min_radius);
     node->get_parameter(plugin_name_ + ".regulated_linear_scaling_min_speed", params_.regulated_linear_scaling_min_speed);
     node->get_parameter(plugin_name_ + ".use_fixed_curvature_lookahead", params_.use_fixed_curvature_lookahead);
-    node->get_parameter(plugin_name_ + ".use_goal_angle_approach", params_.use_goal_angle_approach);
-    node->get_parameter(plugin_name_ + ".use_goal_angle_at_cusp", params_.use_goal_angle_at_cusp);
     node->get_parameter(plugin_name_ + ".curvature_lookahead_dist", params_.curvature_lookahead_dist);
     node->get_parameter(plugin_name_ + ".use_rotate_to_heading", params_.use_rotate_to_heading);
     node->get_parameter(plugin_name_ + ".rotate_to_heading_min_angle", params_.rotate_to_heading_min_angle);
@@ -143,7 +127,7 @@ rcl_interfaces::msg::SetParametersResult ParameterHandler::dynamicParametersCall
     rcl_interfaces::msg::SetParametersResult result;
     std::lock_guard<std::mutex> lock_reinit(mutex_);
 
-    for (auto parameter: parameters) {
+    for (const auto& parameter: parameters) {
         const auto &type = parameter.get_type();
         const auto &name = parameter.get_name();
 
@@ -202,10 +186,6 @@ rcl_interfaces::msg::SetParametersResult ParameterHandler::dynamicParametersCall
                 params_.use_regulated_linear_velocity_scaling = parameter.as_bool();
             } else if (name == plugin_name_ + ".use_fixed_curvature_lookahead") {
                 params_.use_fixed_curvature_lookahead = parameter.as_bool();
-            } else if (name == plugin_name_ + ".use_goal_angle_approach") {
-                params_.use_goal_angle_approach = parameter.as_bool();
-            } else if (name == plugin_name_ + ".use_goal_angle_at_cusp") {
-                params_.use_goal_angle_at_cusp = parameter.as_bool();
             } else if (name == plugin_name_ + ".use_cost_regulated_linear_velocity_scaling") {
                 params_.use_cost_regulated_linear_velocity_scaling = parameter.as_bool();
             } else if (name == plugin_name_ + ".use_collision_detection") {
