@@ -107,6 +107,7 @@ class NavigationManager:
         # viz publishers
         self._approach_poses_viz_pub = self._node.create_publisher(PoseArray, '/approach_poses', qos_reliable_transient_local_depth_10)
         self._path_viz_pub = self._node.create_publisher(Path, '/plan', qos_reliable_transient_local_depth_10)
+        self._approach_path_viz_pub = self._node.create_publisher(Path, '/approach_plan', qos_reliable_transient_local_depth_10)
         self._row_left_viz_pub = self._node.create_publisher(PolygonStamped, '/row_left_viz', qos_reliable_transient_local_depth_10)
         self._row_right_viz_pub = self._node.create_publisher(PolygonStamped, '/row_right_viz', qos_reliable_transient_local_depth_10)
 
@@ -210,7 +211,7 @@ class NavigationManager:
         self._node.get_logger().info(f"STARTING straightening approach navigation for {item.get_item_id()}")
 
         approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
-        straightening_approach_pose_stamped = PoseStamped(
+        straightening_approach_start_pose_stamped = PoseStamped(
             header=Header(
                 frame_id=approach_frame_id,
                 stamp=self._node.get_clock().now().to_msg(),
@@ -220,9 +221,19 @@ class NavigationManager:
                 orientation=Quaternion(w=1.0),
             )
         )
+        straightening_approach_goal_pose_stamped = PoseStamped(
+            header=Header(
+                frame_id=approach_frame_id,
+                stamp=self._node.get_clock().now().to_msg(),
+            ),
+            pose=Pose(
+                position=Point(x=self._node.task_plan.row_approach_margin, y=0.0),
+                orientation=Quaternion(w=1.0),
+            )
+        )
 
-        self._approach_poses_viz.poses = [straightening_approach_pose_stamped.pose]
-        self._approach_poses_viz.header.frame_id = straightening_approach_pose_stamped.header.frame_id
+        self._approach_poses_viz.poses = [straightening_approach_start_pose_stamped.pose]
+        self._approach_poses_viz.header.frame_id = straightening_approach_start_pose_stamped.header.frame_id
         self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
@@ -230,8 +241,8 @@ class NavigationManager:
             if self._last_robot_pose_stamped is not None:
                 start_pose = self._transform_pose_stamped(self._last_robot_pose_stamped, frame_id=approach_frame_id, timeout=0.1)
             else:
-                start_pose = straightening_approach_pose_stamped
-            self._last_robot_pose_stamped = straightening_approach_pose_stamped
+                start_pose = straightening_approach_start_pose_stamped
+            self._last_robot_pose_stamped = straightening_approach_start_pose_stamped
         else:
             start_pose = self.get_robot_pose(timeout=0.1, frame_id=approach_frame_id)
             if start_pose is None:
@@ -239,12 +250,12 @@ class NavigationManager:
                 self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
                 return
 
-        straight_approach_path = self._make_path([start_pose, straightening_approach_pose_stamped])
+        straight_approach_path = self._make_path([straightening_approach_start_pose_stamped, straightening_approach_goal_pose_stamped])
         if straight_approach_path is None:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
 
-        self._path_viz_pub.publish(straight_approach_path)
+        self._approach_path_viz_pub.publish(straight_approach_path)
 
         if self._node.dry_run:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
@@ -405,7 +416,7 @@ class NavigationManager:
             int_points = list(np.linspace(
                 p1_array,
                 p2_array,
-                num=int(np.ceil(np.linalg.norm(p2_array - p1_array) / self._node.task_plan.row_path_pose_distance)),
+                num=int(np.ceil(np.linalg.norm(p2_array - p1_array) / self._node.task_plan.path_pose_distance)),
                 endpoint=i == len(poses_list) - 2
             ))
             interpolated_poses = list(map(

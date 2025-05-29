@@ -1,7 +1,13 @@
 <class_libraries>
   <library path="asb_goal_checker">
     <class type="asb_nav2_plugins::ASBGoalChecker" base_class_type="nav2_core::GoalChecker">
-      <description>Checks if current pose is within goal window for x,y and yaw</description>
+      <description>Checks if robot pose is within goal window for x,y and yaw, is so, considers the goal reached once the robot crosses the goal pose's y axis</description>
+    </class>
+  </library>
+
+  <library path="asb_rotate_to_path_goal_checker">
+    <class type="asb_nav2_plugins::ASBRotateToPathGoalChecker" base_class_type="nav2_core::GoalChecker">
+      <description>considers the goal reached if the robot pose is pointed towards a straight line along the goal pose's x-axis and ending in the goal pose</description>
     </class>
   </library>
 </class_libraries>

@@ -162,6 +162,7 @@ class SprayingTaskPlanExecutor(Node):
         self.inter_row_navigation_complete_pause_chrono: Chronometer | None = None
         self.straightening_navigation_complete_pause_chrono: Chronometer | None = None
         self.positioning_navigation_complete_pause_chrono: Chronometer | None = None
+        self.positioning_navigation_complete_pause_duration: float = 0.0
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: PlatformState | None = None
         self.last_scan_heartbeat_front_msg: PlatformState | None = None
@@ -252,7 +253,7 @@ class SprayingTaskPlanExecutor(Node):
             StateMachine.add(
                 label='wait_positioning_navigation_complete',
                 state=CallbackState(self.wait_positioning_navigation_complete_sm_cb, class_instance=self), transitions={
-                    'success': 'success',
+                    'success': 'positioning_navigation_complete_pause',
                     'waiting': 'wait_positioning_navigation_complete',
                     'stop': 'stop_navigation',
                     'plan_invalid': 'stop_navigation',
@@ -674,7 +675,7 @@ class SprayingTaskPlanExecutor(Node):
         if self.dry_run:
             return 'success'
 
-        if self.positioning_navigation_complete_pause_chrono.total() > 5:
+        if self.positioning_navigation_complete_pause_chrono.total() > self.positioning_navigation_complete_pause_duration:
             return 'success'
         else:
             self.get_logger().info(f"**** WAITING ****", throttle_duration_sec=0.1)

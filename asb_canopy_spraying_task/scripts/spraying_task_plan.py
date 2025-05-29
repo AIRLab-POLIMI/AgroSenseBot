@@ -281,20 +281,20 @@ class SprayingTaskPlan:
         self.rows: list[TaskPlanRow] = list()
         self.map_frame: str = "map"
 
-        self.positioning_approach_planner_id: str = "GridBased"
-        self.positioning_approach_controller_id: str = "FollowPath"
-        self.positioning_approach_goal_checker_id: str = "asb_goal_checker"
-        self.positioning_approach_progress_checker_id: str = "simple_progress_checker"
+        self.positioning_approach_planner_id: str = "None"
+        self.positioning_approach_controller_id: str = "None"
+        self.positioning_approach_goal_checker_id: str = "None"
+        self.positioning_approach_progress_checker_id: str = "None"
 
-        self.straight_approach_controller_id: str = "FollowPath"
-        self.straight_approach_goal_checker_id: str = "asb_goal_checker"
-        self.straight_approach_progress_checker_id: str = "simple_progress_checker"
-        self.straight_approach_path_pose_distance: float = 0.1
+        self.straight_approach_controller_id: str = "None"
+        self.straight_approach_goal_checker_id: str = "None"
+        self.straight_approach_progress_checker_id: str = "None"
 
-        self.row_path_controller_id: str = "FollowPath"
-        self.row_path_goal_checker_id: str = "asb_goal_checker"
-        self.row_path_progress_checker_id: str = "simple_progress_checker"
-        self.row_path_pose_distance: float = 0.1
+        self.row_path_controller_id: str = "None"
+        self.row_path_goal_checker_id: str = "None"
+        self.row_path_progress_checker_id: str = "None"
+
+        self.path_pose_distance: float = np.nan
 
         # parameters for auto items generation
         self.alternate_rows: bool = False
@@ -319,10 +319,21 @@ class SprayingTaskPlan:
         t = SprayingTaskPlan()
         t.rows = list(map(TaskPlanRow.from_dict, d['rows']))
         t.map_frame = d['map_frame']
+
+        t.positioning_approach_planner_id = d['positioning_approach_planner_id']
+        t.positioning_approach_controller_id = d['positioning_approach_controller_id']
+        t.positioning_approach_goal_checker_id = d['positioning_approach_goal_checker_id']
+        t.positioning_approach_progress_checker_id = d['positioning_approach_progress_checker_id']
+
+        t.straight_approach_controller_id = d['straight_approach_controller_id']
+        t.straight_approach_goal_checker_id = d['straight_approach_goal_checker_id']
+        t.straight_approach_progress_checker_id = d['straight_approach_progress_checker_id']
+
         t.row_path_controller_id = d['row_path_controller_id']
         t.row_path_goal_checker_id = d['row_path_goal_checker_id']
         t.row_path_progress_checker_id = d['row_path_progress_checker_id']
-        t.row_path_pose_distance = d['row_path_pose_distance']
+
+        t.path_pose_distance = d['path_pose_distance']
 
         t.alternate_rows = bool(d['alternate_rows'])
         t.switch_direction = bool(d['switch_direction'])
@@ -347,10 +358,21 @@ class SprayingTaskPlan:
     def to_dict(self) -> dict:
         return {
             'map_frame': self.map_frame,
+
+            'positioning_approach_planner_id': self.positioning_approach_planner_id,
+            'positioning_approach_controller_id': self.positioning_approach_controller_id,
+            'positioning_approach_goal_checker_id': self.positioning_approach_goal_checker_id,
+            'positioning_approach_progress_checker_id': self.positioning_approach_progress_checker_id,
+
+            'straight_approach_controller_id': self.straight_approach_controller_id,
+            'straight_approach_goal_checker_id': self.straight_approach_goal_checker_id,
+            'straight_approach_progress_checker_id': self.straight_approach_progress_checker_id,
+
             'row_path_controller_id': self.row_path_controller_id,
             'row_path_goal_checker_id': self.row_path_goal_checker_id,
             'row_path_progress_checker_id': self.row_path_progress_checker_id,
-            'row_path_pose_distance': self.row_path_pose_distance,
+
+            'path_pose_distance': self.path_pose_distance,
 
             'alternate_rows': self.alternate_rows,
             'switch_direction': self.switch_direction,

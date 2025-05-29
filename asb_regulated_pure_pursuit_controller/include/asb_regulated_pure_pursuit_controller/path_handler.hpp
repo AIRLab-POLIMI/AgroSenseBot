@@ -56,7 +56,7 @@ public:
      * @param max_robot_pose_search_dist Distance to search for matching nearest path point
      * @return Path in new frame
      */
-    nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist);
+    nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist, bool prune);
 
     /**
      * @brief Transform a pose to another frame.

@@ -67,10 +67,13 @@ void RegulatedPurePursuitController::configure(const rclcpp_lifecycle::Lifecycle
 
     global_path_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/received_global_plan", 1);
     carrot_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/lookahead_pose", 1);
+    angle_lookahead_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/angle_lookahead_pose", 1);
     goal_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/goal_pose", 1);
     stop_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/stop_pose", 1);
     lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/lookahead_circle", 1);
     lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/lookahead_arc", 1);
+    path_lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/path_lookahead_arc", 1);
+    angle_priority_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/angle_lookahead_arc", 1);
     lookahead_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("lookahead_curvature", 1);
     min_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("min_curvature", 1);
     max_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("max_curvature", 1);
@@ -83,10 +86,13 @@ void RegulatedPurePursuitController::cleanup() {
                          " regulated_pure_pursuit_controller::RegulatedPurePursuitController", plugin_name_.c_str());
     global_path_pub_.reset();
     carrot_pose_pub_.reset();
+    angle_lookahead_pose_pub_.reset();
     goal_pose_pub_.reset();
     stop_pose_pub_.reset();
     lookahead_circle_pub_.reset();
     lookahead_arc_pub_.reset();
+    path_lookahead_arc_pub_.reset();
+    angle_priority_arc_pub_.reset();
     lookahead_curvature_pub_.reset();
     min_curvature_pub_.reset();
     max_curvature_pub_.reset();
@@ -97,10 +103,13 @@ void RegulatedPurePursuitController::activate() {
                          "regulated_pure_pursuit_controller::RegulatedPurePursuitController", plugin_name_.c_str());
     global_path_pub_->on_activate();
     carrot_pose_pub_->on_activate();
+    angle_lookahead_pose_pub_->on_activate();
     goal_pose_pub_->on_activate();
     stop_pose_pub_->on_activate();
     lookahead_circle_pub_->on_activate();
     lookahead_arc_pub_->on_activate();
+    path_lookahead_arc_pub_->on_activate();
+    angle_priority_arc_pub_->on_activate();
     lookahead_curvature_pub_->on_activate();
     min_curvature_pub_->on_activate();
     max_curvature_pub_->on_activate();
@@ -111,10 +120,13 @@ void RegulatedPurePursuitController::deactivate() {
                          "regulated_pure_pursuit_controller::RegulatedPurePursuitController", plugin_name_.c_str());
     global_path_pub_->on_deactivate();
     carrot_pose_pub_->on_deactivate();
+    angle_lookahead_pose_pub_->on_deactivate();
     goal_pose_pub_->on_deactivate();
     stop_pose_pub_->on_deactivate();
     lookahead_circle_pub_->on_deactivate();
     lookahead_arc_pub_->on_deactivate();
+    path_lookahead_arc_pub_->on_deactivate();
+    angle_priority_arc_pub_->on_deactivate();
     lookahead_curvature_pub_->on_deactivate();
     min_curvature_pub_->on_deactivate();
     max_curvature_pub_->on_deactivate();
@@ -192,7 +204,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     }
 
     // Transform path to robot base frame
-    auto transformed_plan = path_handler_->transformGlobalPlan(pose, params_->max_robot_pose_search_dist);
+    auto transformed_plan = path_handler_->transformGlobalPlan(pose, params_->max_robot_pose_search_dist, !params_->use_angular_approach);
     global_path_pub_->publish(transformed_plan);
 
     double robot_path_distance = std::hypot(transformed_plan.poses[0].pose.position.x, transformed_plan.poses[0].pose.position.y);
@@ -213,6 +225,10 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     if (params_->use_adaptive_lookahead_dist && (lookahead_dist < robot_path_distance + params_->adaptive_lookahead_path_distance_margin)) {
         lookahead_dist = robot_path_distance + params_->adaptive_lookahead_path_distance_margin;
     }
+    lookahead_circle_pub_->publish(createLookAheadCircleMsg(lookahead_dist, pose.header.stamp));
+
+    auto goal_pose = transformed_plan.poses.back();
+    goal_pose_pub_->publish(goal_pose);
 
     auto next_stop_pose = findStopPose(transformed_plan);
     stop_pose_pub_->publish(next_stop_pose);
@@ -227,12 +243,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     } else {
         carrot_pose = getLookAheadPoint(lookahead_dist, transformed_plan);
     }
-
-    auto goal_pose = transformed_plan.poses.back();
-
     carrot_pose_pub_->publish(carrot_pose);
-    goal_pose_pub_->publish(goal_pose);
-    lookahead_circle_pub_->publish(createLookAheadCircleMsg(lookahead_dist, pose.header.stamp));
 
     // Setting the velocity direction
     double sign = 1.0;
@@ -241,6 +252,29 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     }
 
     double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
+    if (params_->use_angular_approach) {
+        sign = -1.0;
+        lookahead_curvature = -lookahead_curvature;
+    }
+
+//    if (params_->use_angular_approach) {
+//        double x_g = carrot_pose.pose.position.x;
+//        double y_g = carrot_pose.pose.position.y;
+//        double t = tf2::getYaw(carrot_pose.pose.orientation);
+//
+//        double path_lookahead_curvature = lookahead_curvature;
+//        double angle_priority_curvature = tan(t) / (x_g + y_g * tan(t));
+//
+//        path_lookahead_arc_pub_->publish(createLookAheadArcMsgFromCurvature(pose, path_lookahead_curvature, std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y), sign));
+//        angle_priority_arc_pub_->publish(createLookAheadArcMsgFromCurvature(pose, angle_priority_curvature, std::hypot(x_g, y_g), sign));
+//        double a = 1.0 - std::clamp(next_stop_dist / params_->angular_approach_dist, 0.0, 1.0);  //interpolation factor, goes from 0 when next_stop_dist == params_->angular_approach_dist, to 1 when next_stop_dist == 0
+//        lookahead_curvature = a * angle_priority_curvature + (1 - a) * path_lookahead_curvature;
+//
+//        auto angle_lookahead_pose = carrot_pose;
+//        angle_lookahead_pose.pose.position.x = y_g * sin(t) + x_g * cos(t);
+//        angle_lookahead_pose.pose.position.y = x_g * cos(t) * tan(t / 2) + y_g * (1 - cos(t));
+//        angle_lookahead_pose_pub_->publish(angle_lookahead_pose);
+//    }
 
     double linear_vel, angular_vel;
     linear_vel = params_->desired_linear_vel;
@@ -281,6 +315,10 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
 
     const double &carrot_dist = hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y);
     lookahead_arc_pub_->publish(createLookAheadArcMsgFromCurvature(pose, lookahead_curvature, carrot_dist, sign));
+
+    if (params_->use_angular_approach) {
+        angle_priority_arc_pub_->publish(createLookAheadArcMsgFromCurvature(pose, -lookahead_curvature, carrot_dist, -sign));
+    }
 
     // Collision checking on this velocity heading
     if (params_->use_collision_detection && collision_checker_->isCollisionImminent(pose, linear_vel, angular_vel, carrot_dist)) {
