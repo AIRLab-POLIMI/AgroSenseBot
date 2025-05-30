@@ -61,6 +61,8 @@ void RegulatedPurePursuitController::configure(const rclcpp_lifecycle::Lifecycle
 
     double control_frequency = 20.0;
     goal_dist_tol_ = 0.25;  // reasonable default before first update
+    in_goal_proximity_ = false;
+    forward_ = true;
 
     node->get_parameter("controller_frequency", control_frequency);
     control_duration_ = 1.0 / control_frequency;
@@ -201,11 +203,51 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
         RCLCPP_WARN(logger_, "Unable to retrieve goal checker's tolerances!");
     } else {
         goal_dist_tol_ = pose_tolerance.position.x;
+        goal_yaw_tol_ = tf2::getYaw(pose_tolerance.orientation);
     }
 
     // Transform path to robot base frame
     auto transformed_plan = path_handler_->transformGlobalPlan(pose, params_->max_robot_pose_search_dist, !params_->use_angular_approach);
     global_path_pub_->publish(transformed_plan);
+
+    auto goal_pose = transformed_plan.poses.back();
+    goal_pose_pub_->publish(goal_pose);
+
+    // check if we should fail by being close to the goal but outside of yaw tolerance
+    if(!params_->use_angular_approach) {
+        bool goal_position_reached = false;
+
+        double dx = goal_pose.pose.position.x;
+        double dy = goal_pose.pose.position.y;
+        double dyaw = tf2::getYaw(goal_pose.pose.orientation);
+
+        if ((dx * dx + dy * dy > std::pow(goal_dist_tol_, 2))) {
+            // We are outside the window
+            in_goal_proximity_ = false;
+        } else {
+            // compute the goal x coordinate in the robot frame
+            if (!in_goal_proximity_) {
+                // We just entered the window
+                in_goal_proximity_ = true;
+                // If the goal is in front, we must move forward to reach the goal
+                forward_ = dx >= 0;
+            }
+
+            goal_position_reached = forward_ ? dx <= 0 : dx >= 0;
+        }
+
+        if(goal_position_reached) {
+            if (std::fabs(dyaw) > goal_yaw_tol_) {
+                RCLCPP_INFO(logger_, "Goal position reached, but yaw is out of tolerance [robot-goal yaw diff: %.3f rad, yaw tolerance: %f rad]", std::fabs(dyaw), goal_yaw_tol_);
+                throw nav2_core::NoValidControl("Goal position reached, but yaw is out of tolerance");
+            } else {
+                // return zero velocity command
+                geometry_msgs::msg::TwistStamped cmd_vel;
+                cmd_vel.header = pose.header;
+                return cmd_vel;
+            }
+        }
+    }
 
     double robot_path_distance = std::hypot(transformed_plan.poses[0].pose.position.x, transformed_plan.poses[0].pose.position.y);
     if (robot_path_distance > params_->max_robot_path_dist) {
@@ -226,9 +268,6 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
         lookahead_dist = robot_path_distance + params_->adaptive_lookahead_path_distance_margin;
     }
     lookahead_circle_pub_->publish(createLookAheadCircleMsg(lookahead_dist, pose.header.stamp));
-
-    auto goal_pose = transformed_plan.poses.back();
-    goal_pose_pub_->publish(goal_pose);
 
     auto next_stop_pose = findStopPose(transformed_plan);
     stop_pose_pub_->publish(next_stop_pose);

@@ -205,7 +205,8 @@ protected:
     rclcpp::Logger logger_{rclcpp::get_logger("RegulatedPurePursuitController")};
 
     Parameters *params_;
-    double goal_dist_tol_;
+    double goal_dist_tol_, goal_yaw_tol_;
+    bool in_goal_proximity_, forward_;
     double control_duration_;
 
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
