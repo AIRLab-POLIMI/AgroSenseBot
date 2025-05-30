@@ -28,7 +28,7 @@ Panels:
         - /Task1/canopy_depth1/Namespaces1
         - /Interactive1/circle text1/Namespaces1
       Splitter Ratio: 0.5896103978157043
-    Tree Height: 912
+    Tree Height: 1069
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -89,53 +89,57 @@ Visualization Manager:
           Frames:
             All Enabled: false
             accelerometer_link:
-              Value: false
+              Value: true
             base_footprint:
               Value: true
             base_link:
-              Value: false
+              Value: true
             base_scan_front_multilayer:
-              Value: false
+              Value: true
+            base_scan_front_multilayer_imu:
+              Value: true
+            base_scan_front_multilayer_lidar:
+              Value: true
             base_scan_front_multilayer_sim:
-              Value: false
+              Value: true
             base_scan_rear_multilayer:
-              Value: false
+              Value: true
+            base_scan_rear_multilayer_imu:
+              Value: true
+            base_scan_rear_multilayer_lidar:
+              Value: true
             base_scan_rear_multilayer_sim:
-              Value: false
+              Value: true
             gnss_1_link:
-              Value: false
+              Value: true
             gnss_2_link:
-              Value: false
+              Value: true
+            gq7_gnss_1_antenna_link:
+              Value: true
+            gq7_gnss_2_antenna_link:
+              Value: true
+            gq7_odometer_link:
+              Value: true
             gyro_link:
-              Value: false
+              Value: true
             hedge:
               Value: false
             imu_link:
               Value: false
             inertial_link:
-              Value: false
-            inter_row_0:
-              Value: true
-            inter_row_0_row_1:
-              Value: true
-            inter_row_1:
               Value: true
             left_track:
-              Value: false
+              Value: true
             map:
               Value: false
             odom:
               Value: false
             right_track:
-              Value: false
-            row_0:
-              Value: true
-            row_1:
               Value: true
             sat_map:
               Value: false
             sprayer_link:
-              Value: false
+              Value: true
             vineyard:
               Value: true
             vineyard_view:
@@ -153,11 +157,17 @@ Visualization Manager:
                 base_footprint:
                   base_link:
                     base_scan_front_multilayer:
-                      {}
+                      base_scan_front_multilayer_imu:
+                        {}
+                      base_scan_front_multilayer_lidar:
+                        {}
                     base_scan_front_multilayer_sim:
                       {}
                     base_scan_rear_multilayer:
-                      {}
+                      base_scan_rear_multilayer_imu:
+                        {}
+                      base_scan_rear_multilayer_lidar:
+                        {}
                     base_scan_rear_multilayer_sim:
                       {}
                     gnss_1_link:
@@ -166,6 +176,12 @@ Visualization Manager:
                       {}
                     imu_link:
                       accelerometer_link:
+                        {}
+                      gq7_gnss_1_antenna_link:
+                        {}
+                      gq7_gnss_2_antenna_link:
+                        {}
+                      gq7_odometer_link:
                         {}
                       gyro_link:
                         {}
@@ -180,16 +196,6 @@ Visualization Manager:
               sat_map:
                 {}
               vineyard:
-                inter_row_0:
-                  {}
-                inter_row_0_row_1:
-                  {}
-                inter_row_1:
-                  {}
-                row_0:
-                  {}
-                row_1:
-                  {}
                 vineyard_view:
                   {}
           Update Interval: 0
@@ -738,7 +744,7 @@ Visualization Manager:
           Buffer Length: 10
           Class: rviz_default_plugins/Path
           Color: 255; 255; 0
-          Enabled: false
+          Enabled: true
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
@@ -761,7 +767,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /plan
-          Value: false
+          Value: true
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -1822,7 +1828,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 186.7783966064453
+      Scale: 167.35494995117188
       Target Frame: base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0.050566453486680984
@@ -1830,19 +1836,19 @@ Visualization Manager:
     Saved: ~
 Window Geometry:
   AgroSenseBot:
-    collapsed: true
+    collapsed: false
   AgroSenseBotNozzles:
-    collapsed: true
+    collapsed: false
   Displays:
     collapsed: true
-  Height: 1366
+  Height: 1523
   Help:
     collapsed: false
   Hide Left Dock: true
-  Hide Right Dock: true
+  Hide Right Dock: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000183000004bdfc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e700000413000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001e000fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000004c8000004bdfc0200000003fc0000003d000004bd0000000000fffffffaffffffff0100000002fb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c006500730000000000ffffffff0000019600fffffffb00000018004100670072006f00530065006e007300650042006f0074000000033f000001c1000001c100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d0065010000000000000450000000000000000000000500000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001830000055afc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e7000004b0000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000001c10000055afc0200000003fc0000003d0000055a000004420100001cfa000000010100000002fb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c006500730100000000ffffffff0000019600fffffffb00000018004100670072006f00530065006e007300650042006f0074010000033f000001c1000001c100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d00650100000000000004500000000000000000000003390000055a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -1853,4 +1859,4 @@ Window Geometry:
     collapsed: true
   Width: 1280
   X: 1280
-  Y: 0
+  Y: 40

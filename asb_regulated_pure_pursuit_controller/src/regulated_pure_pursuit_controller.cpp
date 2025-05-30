@@ -217,11 +217,12 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     if(!params_->use_angular_approach) {
         bool goal_position_reached = false;
 
+        const double remaining_distance = nav2_util::geometry_utils::calculate_path_length(transformed_plan);
+
         double dx = goal_pose.pose.position.x;
-        double dy = goal_pose.pose.position.y;
         double dyaw = tf2::getYaw(goal_pose.pose.orientation);
 
-        if ((dx * dx + dy * dy > std::pow(goal_dist_tol_, 2))) {
+        if (remaining_distance > goal_dist_tol_) {
             // We are outside the window
             in_goal_proximity_ = false;
         } else {
