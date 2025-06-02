@@ -84,6 +84,9 @@ class NavigationManager:
         self._node.declare_parameter('check_plan_validity_rate', rclpy.Parameter.Type.DOUBLE)
         self._check_plan_validity_rate = self._node.get_parameter('check_plan_validity_rate').get_parameter_value().double_value
 
+        self._node.declare_parameter('print_navigation_feedback', rclpy.Parameter.Type.BOOL)
+        self._print_navigation_feedback = self._node.get_parameter('print_navigation_feedback').get_parameter_value().bool_value
+
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self._node)
 
@@ -210,27 +213,21 @@ class NavigationManager:
 
         self._node.get_logger().info(f"STARTING straightening approach navigation for {item.get_item_id()}")
 
+        def make_pose_stamped(x: float):
+            return PoseStamped(
+                header=Header(
+                    frame_id=approach_frame_id,
+                    stamp=self._node.get_clock().now().to_msg(),
+                ),
+                pose=Pose(
+                    position=Point(x=x, y=0.0),
+                    orientation=Quaternion(w=1.0),
+                )
+            )
+
         approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
-        straightening_approach_start_pose_stamped = PoseStamped(
-            header=Header(
-                frame_id=approach_frame_id,
-                stamp=self._node.get_clock().now().to_msg(),
-            ),
-            pose=Pose(
-                position=Point(x=-self._node.task_plan.row_approach_margin, y=0.0),
-                orientation=Quaternion(w=1.0),
-            )
-        )
-        straightening_approach_goal_pose_stamped = PoseStamped(
-            header=Header(
-                frame_id=approach_frame_id,
-                stamp=self._node.get_clock().now().to_msg(),
-            ),
-            pose=Pose(
-                position=Point(x=self._node.task_plan.row_approach_margin, y=0.0),
-                orientation=Quaternion(w=1.0),
-            )
-        )
+        straightening_approach_start_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+        straightening_approach_goal_pose_stamped = make_pose_stamped(self._node.task_plan.row_approach_margin)
 
         self._approach_poses_viz.poses = [straightening_approach_start_pose_stamped.pose]
         self._approach_poses_viz.header.frame_id = straightening_approach_start_pose_stamped.header.frame_id
@@ -244,13 +241,14 @@ class NavigationManager:
                 start_pose = straightening_approach_start_pose_stamped
             self._last_robot_pose_stamped = straightening_approach_start_pose_stamped
         else:
-            start_pose = self.get_robot_pose(timeout=0.1, frame_id=approach_frame_id)
-            if start_pose is None:
-                self._node.get_logger().error(f"could not get robot pose for straight approach item {item.get_item_id()}")
-                self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
-                return
+            start_pose = straightening_approach_start_pose_stamped
+            # start_pose = self.get_robot_pose(timeout=0.1, frame_id=approach_frame_id)
+            # if start_pose is None:
+            #     self._node.get_logger().error(f"could not get robot pose for straight approach item {item.get_item_id()}")
+            #     self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
+            #     return
 
-        straight_approach_path = self._make_path([straightening_approach_start_pose_stamped, straightening_approach_goal_pose_stamped])
+        straight_approach_path = self._make_path([start_pose, straightening_approach_goal_pose_stamped])
         if straight_approach_path is None:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
@@ -597,12 +595,13 @@ class NavigationManager:
     """
     def _follow_path_feedback_callback(self, msg) -> None:
         self._follow_path_feedback = msg.feedback
-        self._node.get_logger().info(
-            f"follow_path_feedback:\n"
-            f"    distance_to_goal:         {msg.feedback.distance_to_goal:.1f} m\n"
-            f"    speed:                    {msg.feedback.speed:.3f} m/s\n",
-            throttle_duration_sec=5.0
-        )
+        if self._print_navigation_feedback:
+            self._node.get_logger().info(
+                f"follow_path_feedback:\n"
+                f"    distance_to_goal:         {msg.feedback.distance_to_goal:.1f} m\n"
+                f"    speed:                    {msg.feedback.speed:.3f} m/s\n",
+                throttle_duration_sec=5.0
+            )
 
     """
      Receive the FollowPath action result.

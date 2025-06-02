@@ -550,6 +550,7 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_planning_positioning_approach_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nPOSITIONING")
         self.start_planning_action_chrono = Chronometer()
         self.planning_chrono = Chronometer()
         self.navigation_manager.plan_positioning_approach(self.current_item)
@@ -643,6 +644,7 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_straightening_approach_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nSTRAIGHTENING")
         self.start_navigation_action_chrono = Chronometer()
         self.nav_chrono = Chronometer()
 
@@ -738,6 +740,7 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_spray_regulator_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nSPRAYING")
         self.start_spray_regulator_chrono = Chronometer()
         self.spraying_manager.start_spray_regulator(self.current_item)
         return 'success'
@@ -767,6 +770,7 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_inter_row_navigation_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nINTER-ROW NAVIGATION")
         self.start_navigation_action_chrono = Chronometer()
         self.nav_chrono = Chronometer()
         self.navigation_manager.start_inter_row_navigation(self.current_item)

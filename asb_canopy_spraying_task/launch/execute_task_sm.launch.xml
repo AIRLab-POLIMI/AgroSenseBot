@@ -39,6 +39,7 @@
     <param name="base_frame" value="base_link" />
     <param name="robot_pose_time_tolerance" value="0.2" />
     <param name="check_plan_validity_rate" value="2.0" />
+    <param name="print_navigation_feedback" value="false" />
 
     <!-- spraying params -->
     <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
