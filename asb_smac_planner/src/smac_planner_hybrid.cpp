@@ -320,6 +320,24 @@ nav_msgs::msg::Path SmacPlannerHybrid::createPlan(const geometry_msgs::msg::Pose
         _raw_plan_publisher->publish(plan);
     }
 
+    // correct the raster error (the nodes used to compute the plan are quantized on the costmap)
+    if (plan.poses.size() >= 2) {
+        geometry_msgs::msg::Point start_error;
+        start_error.x = plan.poses.front().pose.position.x - start.pose.position.x;
+        start_error.y = plan.poses.front().pose.position.y - start.pose.position.y;
+
+        geometry_msgs::msg::Point end_error;
+        end_error.x = plan.poses.back().pose.position.x - goal.pose.position.x;
+        end_error.y = plan.poses.back().pose.position.y - goal.pose.position.y;
+
+        double n = (unsigned int)plan.poses.size() - 1.0;
+        for (unsigned int i = 0; i < plan.poses.size(); i++) {
+            double f = i/n;
+            plan.poses[i].pose.position.x -= end_error.x * f + start_error.x * (1 - f);
+            plan.poses[i].pose.position.y -= end_error.y * f + start_error.y * (1 - f);
+        }
+    }
+
     // Publish expansions for debug
     if (_debug_visualizations && expansions && (_expansions_publisher->get_subscription_count() > 0)) {
         auto edges_marker = std::make_unique<visualization_msgs::msg::MarkerArray>();
