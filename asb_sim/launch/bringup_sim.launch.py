@@ -79,6 +79,13 @@ def generate_launch_description():
         output="screen",
     )
 
+    gnss_status_publisher_node = Node(
+        package="asb_sim",
+        executable="gnss_status_publisher.py",
+        name="gnss_status_publisher",
+        output="screen",
+    )
+
     system_test_node = launch_ros.actions.LifecycleNode(
         name="test_node",
         namespace="system_test",
@@ -131,6 +138,7 @@ def generate_launch_description():
     ld.add_action(webots_launch)
     ld.add_action(front_os0_filter_node)
     ld.add_action(rear_os0_filter_node)
+    ld.add_action(gnss_status_publisher_node)
     ld.add_action(system_test_node)
     ld.add_action(lifecycle_inactive_state_handler)
     ld.add_action(lifecycle_configure)

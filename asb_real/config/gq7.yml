@@ -124,6 +124,7 @@ microstrain_inertial_driver:
     mip_filter_multi_antenna_offset_correction_data_rate: 2
     mip_gnss1_fix_info_data_rate: 1  # Rate of mip/gnss_1/fix_info topic
     mip_gnss2_fix_info_data_rate: 1  # Rate of mip/gnss_1/fix_info topic
+    mip_filter_gnss_dual_antenna_status_data_rate: 1  # Rate of mip/filter/gnss_dual_antenna_status
     mip_filter_status_data_rate: 1  # Rate of mip/filter/status topic
 
     #################################################################################################################

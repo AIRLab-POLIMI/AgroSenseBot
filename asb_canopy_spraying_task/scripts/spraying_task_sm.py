@@ -13,6 +13,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPo
 from rclpy.time import Time
 from rclpy.node import Node
 from rclpy.duration import Duration
+from microstrain_inertial_msgs.msg import MipGnssFixInfo, MipFilterGnssDualAntennaStatus
 from asb_msgs.msg import Heartbeat, PlatformState
 from std_msgs.msg import String, Header
 
@@ -120,6 +121,9 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('scan_heartbeat_timeout', rclpy.Parameter.Type.DOUBLE)
         self.scan_heartbeat_timeout = Duration(seconds=self.get_parameter('scan_heartbeat_timeout').get_parameter_value().double_value)
 
+        self.declare_parameter('gnss_status_timeout', rclpy.Parameter.Type.DOUBLE)
+        self.gnss_status_timeout = Duration(seconds=self.get_parameter('gnss_status_timeout').get_parameter_value().double_value)
+
         self.declare_parameter('start_spray_regulator_timeout', rclpy.Parameter.Type.DOUBLE)
         self.start_spray_regulator_timeout = self.get_parameter('start_spray_regulator_timeout').get_parameter_value().double_value
 
@@ -167,6 +171,9 @@ class SprayingTaskPlanExecutor(Node):
         self.last_platform_status_msg: PlatformState | None = None
         self.last_scan_heartbeat_front_msg: PlatformState | None = None
         self.last_scan_heartbeat_rear_msg: PlatformState | None = None
+        self.last_gnss_1_fix_status_msg: MipGnssFixInfo | None = None
+        self.last_gnss_2_fix_status_msg: MipGnssFixInfo | None = None
+        self.last_gnss_dual_antenna_fix_status_msg: MipFilterGnssDualAntennaStatus | None = None
         self.stop_platform: bool = True
 
         # managers
@@ -180,19 +187,22 @@ class SprayingTaskPlanExecutor(Node):
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
             history=HistoryPolicy.KEEP_LAST,
-            depth=10
+            depth=10,
         )
         qos_reliable_volatile_depth_1 = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.VOLATILE,
             history=HistoryPolicy.KEEP_LAST,
-            depth=10
+            depth=1,
         )
         self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
         self.current_item_pub = self.create_publisher(String, '~/current_item', qos_reliable_transient_local_depth_10)
         self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
         self.scan_heartbeat_front_sub = self.create_subscription(Header, '/scan_heartbeat_front', self.scan_heartbeat_front_callback, qos_reliable_volatile_depth_1)
         self.scan_heartbeat_rear_sub = self.create_subscription(Header, '/scan_heartbeat_rear', self.scan_heartbeat_rear_callback, qos_reliable_volatile_depth_1)
+        self.gnss_1_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_1/fix_info', self.gnss_1_fix_status_callback, qos_reliable_volatile_depth_1)
+        self.gnss_2_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_2/fix_info', self.gnss_2_fix_status_callback, qos_reliable_volatile_depth_1)
+        self.gnss_dual_antenna_fix_status_sub = self.create_subscription(MipFilterGnssDualAntennaStatus, '/mip/filter/gnss_dual_antenna_status', self.gnss_dual_antenna_fix_status_callback, qos_reliable_volatile_depth_1)
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         positioning_approach_sm = StateMachine(outcomes=['success', 'failure'])
@@ -856,13 +866,22 @@ class SprayingTaskPlanExecutor(Node):
     def platform_status_callback(self, platform_status: PlatformState):
         self.last_platform_status_msg = platform_status
 
+    def gnss_1_fix_status_callback(self, msg: MipGnssFixInfo):
+        self.last_gnss_1_fix_status_msg = msg
+
+    def gnss_2_fix_status_callback(self, msg: MipGnssFixInfo):
+        self.last_gnss_2_fix_status_msg = msg
+
+    def gnss_dual_antenna_fix_status_callback(self, msg: MipFilterGnssDualAntennaStatus):
+        self.last_gnss_dual_antenna_fix_status_msg = msg
+
     def scan_heartbeat_front_callback(self, scan_heartbeat: Header):
         self.last_scan_heartbeat_front_msg = scan_heartbeat
 
     def scan_heartbeat_rear_callback(self, scan_heartbeat: Header):
         self.last_scan_heartbeat_rear_msg = scan_heartbeat
 
-    def get_control_mode(self):
+    def get_control_mode(self) -> ControlMode:
         platform_status_age = self.get_clock().now() - Time.from_msg(self.last_platform_status_msg.stamp)
         if platform_status_age > self.platform_status_timeout:
             self.get_logger().error(f"platform_status_age [{platform_status_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.platform_status_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
@@ -880,20 +899,52 @@ class SprayingTaskPlanExecutor(Node):
         return True
 
     def check_system_condition(self) -> bool:
-        if self.last_scan_heartbeat_front_msg is None or self.last_scan_heartbeat_rear_msg is None:
+        """
+        Check system condition is ok
+        :return: True if *all* required topics are not timed out and their value is acceptable for continuing the execution of the task
+        """
+        if self.last_scan_heartbeat_front_msg is None:
+            return False
+        if self.last_scan_heartbeat_rear_msg is None:
             return False
 
-        scan_front_age = self.get_clock().now() - Time.from_msg(self.last_scan_heartbeat_front_msg.stamp)
-        scan_front_age_too_old = scan_front_age > self.scan_heartbeat_timeout
-        if scan_front_age_too_old:
-            self.get_logger().error(f"scan_front_age [{scan_front_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.scan_heartbeat_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+        if self.last_gnss_1_fix_status_msg is None:
+            return False
+        if self.last_gnss_2_fix_status_msg is None:
+            return False
+        if self.last_gnss_dual_antenna_fix_status_msg is None:
+            return False
 
-        scan_rear_age = self.get_clock().now() - Time.from_msg(self.last_scan_heartbeat_rear_msg.stamp)
-        scan_rear_age_too_old = scan_rear_age > self.scan_heartbeat_timeout
-        if scan_rear_age_too_old:
-            self.get_logger().error(f"scan_rear_age [{scan_rear_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.scan_heartbeat_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+        def is_msg_timed_out(msg_name: str, stamp: Time, timeout: Duration) -> bool:
+            msg_age = self.get_clock().now() - stamp
+            msg_age_too_old = msg_age > timeout
+            if msg_age_too_old:
+                self.get_logger().error(f"{msg_name} age [{msg_age.nanoseconds/1e9:.3f} s] higher than timeout [{timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return msg_age_too_old
 
-        return not scan_front_age_too_old and not scan_rear_age_too_old
+        if is_msg_timed_out(msg_name="scan_front", stamp=Time.from_msg(self.last_scan_heartbeat_front_msg.stamp), timeout=self.scan_heartbeat_timeout):
+            return False
+        if is_msg_timed_out(msg_name="scan_rear", stamp=Time.from_msg(self.last_scan_heartbeat_rear_msg.stamp), timeout=self.scan_heartbeat_timeout):
+            return False
+
+        if is_msg_timed_out(msg_name="gnss_1_fix_status", stamp=Time.from_msg(self.last_gnss_1_fix_status_msg.header.header.stamp), timeout=self.gnss_status_timeout):
+            return False
+        if is_msg_timed_out(msg_name="gnss_2_fix_status", stamp=Time.from_msg(self.last_gnss_2_fix_status_msg.header.header.stamp), timeout=self.gnss_status_timeout):
+            return False
+        if is_msg_timed_out(msg_name="gnss_dual_antenna_fix_status", stamp=Time.from_msg(self.last_gnss_dual_antenna_fix_status_msg.header.header.stamp), timeout=self.gnss_status_timeout):
+            return False
+
+        if self.last_gnss_1_fix_status_msg.fix_type != MipGnssFixInfo.FIX_TYPE_FIX_RTK_FIXED:
+            self.get_logger().error(f"gnss_1_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED (RTK fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+        if self.last_gnss_2_fix_status_msg.fix_type != MipGnssFixInfo.FIX_TYPE_FIX_RTK_FIXED:
+            self.get_logger().error(f"gnss_2_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED (RTK fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+        if self.last_gnss_dual_antenna_fix_status_msg.fix_type != MipFilterGnssDualAntennaStatus.FIX_TYPE_FIX_DA_FIXED:
+            self.get_logger().error(f"gnss_2_fix_status fix type is not FIX_TYPE_FIX_DA_FIXED (dual antenna fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+
+        return True
 
     def stop_platform_and_wait_control_mode_manual_to_auto(self) -> None:
         if self.dry_run:

@@ -29,6 +29,7 @@
     <param name="start_up_timeout" value="30.0" />
     <param name="platform_status_timeout" value="0.2" />
     <param name="scan_heartbeat_timeout" value="0.5" />
+    <param name="gnss_status_timeout" value="1.5" />
     <param name="start_spray_regulator_timeout" value="10.0" />
     <param name="start_navigation_action_timeout" value="10.0" />
     <param name="min_loop_rate" value="25.0" />
