@@ -17,7 +17,7 @@ controller_server:
     asb_goal_checker:
       plugin: "asb_nav2_plugins::ASBGoalChecker"
       xy_goal_tolerance: 0.3
-      yaw_goal_tolerance: 0.1
+      yaw_goal_tolerance: 0.2
 
     asb_rotate_to_path_goal_checker:
       plugin: "asb_nav2_plugins::ASBRotateToPathGoalChecker"

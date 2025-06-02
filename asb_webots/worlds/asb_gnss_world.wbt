@@ -96,7 +96,7 @@ Robot {
             GPS {
               name "gnss_1_link"
               type "satellite"
-              accuracy 0.05
+              accuracy 0.025
               noiseCorrelation 0
               resolution -1
               speedNoise 0
@@ -111,7 +111,7 @@ Robot {
             GPS {
               name "gnss_2_link"
               type "satellite"
-              accuracy 0.05
+              accuracy 0.025
               noiseCorrelation 0
               resolution -1
               speedNoise 0
