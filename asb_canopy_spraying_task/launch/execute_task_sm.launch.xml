@@ -5,6 +5,8 @@
 	<arg name="dry_run" default="false" />
 	<arg name="loop" default="false" />
 
+	<arg name="task_plan" default="rotate_to_path" />
+
   <arg name="use_sim_time" default="false" />
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_volume_estimation_node" name="canopy_volume_estimation">
@@ -21,7 +23,7 @@
     <remap from="velocity_odom" to="/ekf_filter_map_odometry"/>
 
     <!-- task execution params -->
-    <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/task_plan_auto_gen.yaml" />
+    <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/task_plan_$(var task_plan).yaml"/>
     <param name="log_dir_path" value="~/asb_logs/" />
     <param name="auto_set_control_mode" value="$(var auto_set_control_mode)" />
     <param name="dry_run" value="$(var dry_run)" />

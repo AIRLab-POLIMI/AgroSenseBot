@@ -97,7 +97,6 @@ class NavigationManager:
         self._planned_path: Path | None = None
         self._plan_is_valid_request_chrono: Chronometer = Chronometer()
         self._approach_poses_viz = PoseArray()
-        self._last_robot_pose_stamped: PoseStamped | None = None
 
         # publishers, subscribers, timers and loop rate
         qos_reliable_transient_local_depth_10 = QoSProfile(
@@ -173,7 +172,6 @@ class NavigationManager:
 
         if self._node.dry_run:
             self.planning_action_status = NavigationActionStatus.SUCCEEDED
-            self._last_robot_pose_stamped = positioning_approach_pose_stamped
         else:
             self._execute_compute_path_to_pose_action(
                 goal_pose=positioning_approach_pose_stamped,
@@ -211,8 +209,6 @@ class NavigationManager:
         if item.get_type() != TaskPlanItemType.ROW:
             self._node.get_logger().error(f"only ROW items should be used with state machine task executor")
 
-        self._node.get_logger().info(f"STARTING straightening approach navigation for {item.get_item_id()}")
-
         def make_pose_stamped(x: float):
             return PoseStamped(
                 header=Header(
@@ -226,35 +222,33 @@ class NavigationManager:
             )
 
         approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
-        straightening_approach_start_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
-        straightening_approach_goal_pose_stamped = make_pose_stamped(self._node.task_plan.row_approach_margin)
 
-        self._approach_poses_viz.poses = [straightening_approach_start_pose_stamped.pose]
-        self._approach_poses_viz.header.frame_id = straightening_approach_start_pose_stamped.header.frame_id
+        if self._node.task_plan.straight_approach_controller_id == "FollowPath":  # repeated straight path alignment
+            start_pose_stamped = make_pose_stamped(0.0)
+            mid_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+            goal_pose_stamped = make_pose_stamped(0.0)
+            straight_approach_path = self._make_path([start_pose_stamped, mid_pose_stamped, goal_pose_stamped])
+        elif self._node.task_plan.straight_approach_controller_id == "RotateToPath":  # rotate to path
+            start_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+            goal_pose_stamped = make_pose_stamped(self._node.task_plan.row_approach_margin)
+            straight_approach_path = self._make_path([start_pose_stamped, goal_pose_stamped])
+        else:
+            start_pose_stamped = make_pose_stamped(0.0)
+            goal_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+            straight_approach_path = self._make_path([start_pose_stamped, goal_pose_stamped])
+
+        self._approach_poses_viz.poses = [goal_pose_stamped.pose]
+        self._approach_poses_viz.header.frame_id = goal_pose_stamped.header.frame_id
         self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
-        if self._node.dry_run:
-            if self._last_robot_pose_stamped is not None:
-                start_pose = self._transform_pose_stamped(self._last_robot_pose_stamped, frame_id=approach_frame_id, timeout=0.1)
-            else:
-                start_pose = straightening_approach_start_pose_stamped
-            self._last_robot_pose_stamped = straightening_approach_start_pose_stamped
-        else:
-            start_pose = straightening_approach_start_pose_stamped
-            # start_pose = self.get_robot_pose(timeout=0.1, frame_id=approach_frame_id)
-            # if start_pose is None:
-            #     self._node.get_logger().error(f"could not get robot pose for straight approach item {item.get_item_id()}")
-            #     self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
-            #     return
-
-        straight_approach_path = self._make_path([start_pose, straightening_approach_goal_pose_stamped])
         if straight_approach_path is None:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
 
-        self._approach_path_viz_pub.publish(straight_approach_path)
+        self._path_viz_pub.publish(straight_approach_path)
 
+        self._node.get_logger().info(f"starting straightening approach navigation for {item.get_item_id()} using controller_id={self._node.task_plan.straight_approach_controller_id} goal_checker_id={self._node.task_plan.straight_approach_goal_checker_id}")
         if self._node.dry_run:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
@@ -315,25 +309,7 @@ class NavigationManager:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
 
-        if self._node.dry_run:
-            if self._last_robot_pose_stamped is not None:
-                start_pose = self._transform_pose_stamped(self._last_robot_pose_stamped, frame_id=row_waypoints[0].header.frame_id, timeout=0.1)
-            else:
-                start_pose = None
-            self._last_robot_pose_stamped = row_waypoints[-1]
-        else:
-            start_pose = self.get_robot_pose(timeout=0.1)
-            if start_pose is None:
-                self._node.get_logger().error(f"could not get robot pose for row item {item.get_item_id()}")
-                self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
-                return
-
-        if start_pose is not None:
-            row_poses = [start_pose] + row_waypoints
-        else:
-            row_poses = row_waypoints
-
-        row_path = self._make_path(row_poses)
+        row_path = self._make_path(row_waypoints)
         if row_path is None:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
@@ -344,7 +320,8 @@ class NavigationManager:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
             self._execute_follow_path_action(
-                path=row_path, controller_id=self._node.task_plan.row_path_controller_id,
+                path=row_path,
+                controller_id=self._node.task_plan.row_path_controller_id,
                 goal_checker_id=self._node.task_plan.row_path_goal_checker_id,
                 progress_checker_id=self._node.task_plan.row_path_progress_checker_id,
             )

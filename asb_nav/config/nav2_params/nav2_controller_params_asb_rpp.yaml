@@ -6,7 +6,7 @@ controller_server:
     min_theta_velocity_threshold: 0.01
     failure_tolerance: 0.3
     progress_checker_plugins: ["simple_progress_checker"]
-    goal_checker_plugins: ["asb_goal_checker", "asb_rotate_to_path_goal_checker"]
+    goal_checker_plugins: ["asb_goal_checker", "asb_strict_goal_checker", "asb_rotate_to_path_goal_checker"]
     controller_plugins: ["FollowPath", "RotateToPath", "FollowStraightPath"]
 
     simple_progress_checker:
@@ -18,6 +18,11 @@ controller_server:
       plugin: "asb_nav2_plugins::ASBGoalChecker"
       xy_goal_tolerance: 0.3
       yaw_goal_tolerance: 0.2
+
+    asb_strict_goal_checker:
+      plugin: "asb_nav2_plugins::ASBGoalChecker"
+      xy_goal_tolerance: 0.15
+      yaw_goal_tolerance: 0.05
 
     asb_rotate_to_path_goal_checker:
       plugin: "asb_nav2_plugins::ASBRotateToPathGoalChecker"
