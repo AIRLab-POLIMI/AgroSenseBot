@@ -45,7 +45,8 @@ class NavigationActionStatus(Enum):
     FAILED_TO_START = 2
     IN_PROGRESS = 3
     SUCCEEDED = 4
-    FAILED = 5
+    SOFT_FAILED = 5
+    FAILED = 6
 
 
 class NavigationPlanValidity(Enum):
@@ -615,7 +616,10 @@ class NavigationManager:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
             self._node.get_logger().info(f"follow_path action failed with status: {error_status_string[navigation_result_status]} error: {error_code_string[goal_result.error_code]}")
-            self.navigation_action_status = NavigationActionStatus.FAILED
+            if goal_result.error_code == FollowPath_Goal.FAILED_TO_MAKE_PROGRESS:
+                self.navigation_action_status = NavigationActionStatus.SOFT_FAILED
+            else:
+                self.navigation_action_status = NavigationActionStatus.FAILED
 
     """
      Request to cancel the current navigation action, if there is one in progress.

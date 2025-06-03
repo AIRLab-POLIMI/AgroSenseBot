@@ -213,41 +213,26 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     auto goal_pose = transformed_plan.poses.back();
     goal_pose_pub_->publish(goal_pose);
 
-    // check if we should fail by being close to the goal but outside of yaw tolerance
-    if(!params_->use_angular_approach) {
-        bool goal_position_reached = false;
+    if(!params_->use_angular_approach && transformed_plan.poses.size() == 1) {
+        double theta = tf2::getYaw(goal_pose.pose.orientation);  // goal angle in robot frame, -PI < theta < PI
+        if(theta > M_PI) theta -= 2 * M_PI;
+        double g_x = goal_pose.pose.position.x;
 
-        const double remaining_distance = nav2_util::geometry_utils::calculate_path_length(transformed_plan);
+        bool goal_forward = std::fabs(theta) < M_PI/2;
+        bool goal_behind = g_x < 0.0;
 
-        double dx = goal_pose.pose.position.x;
-        double dyaw = tf2::getYaw(goal_pose.pose.orientation);
-
-        if (remaining_distance > goal_dist_tol_) {
-            // We are outside the window
-            in_goal_proximity_ = false;
-        } else {
-            // compute the goal x coordinate in the robot frame
-            if (!in_goal_proximity_) {
-                // We just entered the window
-                in_goal_proximity_ = true;
-                // If the goal is in front, we must move forward to reach the goal
-                forward_ = dx >= 0;
-            }
-
-            goal_position_reached = forward_ ? dx <= 0 : dx >= 0;
-        }
-
-        if(goal_position_reached) {
-            if (std::fabs(dyaw) > goal_yaw_tol_) {
-                RCLCPP_INFO(logger_, "Goal position reached, but yaw is out of tolerance [robot-goal yaw diff: %.3f rad, yaw tolerance: %f rad]", std::fabs(dyaw), goal_yaw_tol_);
-                throw nav2_core::NoValidControl("Goal position reached, but yaw is out of tolerance");
-            } else {
+        if(goal_forward == goal_behind) {  // robot moves forward and goal is already behind, or robot moves backward and goal is already in front
+            if(std::fabs(speed.linear.x) > 0) {
                 // return zero velocity command
                 geometry_msgs::msg::TwistStamped cmd_vel;
                 cmd_vel.header = pose.header;
                 return cmd_vel;
+            } else {
+                RCLCPP_INFO(logger_, "Reached end of plan, but goal is out of tolerance");
+                throw nav2_core::FailedToMakeProgress("Reached end of plan");
             }
         }
+
     }
 
     double robot_path_distance = std::hypot(transformed_plan.poses[0].pose.position.x, transformed_plan.poses[0].pose.position.y);
@@ -296,25 +281,6 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
         sign = -1.0;
         lookahead_curvature = -lookahead_curvature;
     }
-
-//    if (params_->use_angular_approach) {
-//        double x_g = carrot_pose.pose.position.x;
-//        double y_g = carrot_pose.pose.position.y;
-//        double t = tf2::getYaw(carrot_pose.pose.orientation);
-//
-//        double path_lookahead_curvature = lookahead_curvature;
-//        double angle_priority_curvature = tan(t) / (x_g + y_g * tan(t));
-//
-//        path_lookahead_arc_pub_->publish(createLookAheadArcMsgFromCurvature(pose, path_lookahead_curvature, std::hypot(carrot_pose.pose.position.x, carrot_pose.pose.position.y), sign));
-//        angle_priority_arc_pub_->publish(createLookAheadArcMsgFromCurvature(pose, angle_priority_curvature, std::hypot(x_g, y_g), sign));
-//        double a = 1.0 - std::clamp(next_stop_dist / params_->angular_approach_dist, 0.0, 1.0);  //interpolation factor, goes from 0 when next_stop_dist == params_->angular_approach_dist, to 1 when next_stop_dist == 0
-//        lookahead_curvature = a * angle_priority_curvature + (1 - a) * path_lookahead_curvature;
-//
-//        auto angle_lookahead_pose = carrot_pose;
-//        angle_lookahead_pose.pose.position.x = y_g * sin(t) + x_g * cos(t);
-//        angle_lookahead_pose.pose.position.y = x_g * cos(t) * tan(t / 2) + y_g * (1 - cos(t));
-//        angle_lookahead_pose_pub_->publish(angle_lookahead_pose);
-//    }
 
     double linear_vel, angular_vel;
     linear_vel = params_->desired_linear_vel;

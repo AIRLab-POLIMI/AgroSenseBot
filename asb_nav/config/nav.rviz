@@ -13,6 +13,7 @@ Panels:
         - /Sensors1/filtered rear multilayer1/Autocompute Value Bounds1
         - /Global Planner1
         - /Global Planner1/expansions1/Namespaces1
+        - /Controller1
         - /Controller1/overextended_goal_pose1/Topic1
         - /Localization1/Odometry position1/Shape1
         - /Localization1/Odometry orientation1
@@ -126,10 +127,6 @@ Visualization Manager:
               Value: false
             right_track:
               Value: true
-            row_0:
-              Value: true
-            row_1:
-              Value: true
             sat_map:
               Value: false
             sprayer_link:
@@ -183,10 +180,6 @@ Visualization Manager:
                 inter_row_0_row_1:
                   {}
                 inter_row_1:
-                  {}
-                row_0:
-                  {}
-                row_1:
                   {}
                 vineyard_view:
                   {}
@@ -1088,7 +1081,7 @@ Visualization Manager:
         - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 255; 255; 0
+          Color: 255; 0; 255
           Enabled: true
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
@@ -1145,8 +1138,8 @@ Visualization Manager:
           Axes Length: 1
           Axes Radius: 0.10000000149011612
           Class: rviz_default_plugins/Pose
-          Color: 255; 255; 255
-          Enabled: false
+          Color: 255; 0; 255
+          Enabled: true
           Head Length: 0.05000000074505806
           Head Radius: 0.05000000074505806
           Name: stop_pose
@@ -1160,13 +1153,13 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /controller_server/stop_pose
-          Value: false
+          Value: true
         - Alpha: 1
           Axes Length: 1
           Axes Radius: 0.10000000149011612
           Class: rviz_default_plugins/Pose
           Color: 255; 255; 0
-          Enabled: true
+          Enabled: false
           Head Length: 0.05000000074505806
           Head Radius: 0.05000000074505806
           Name: lookahead_pose
@@ -1180,7 +1173,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /controller_server/lookahead_pose
-          Value: true
+          Value: false
         - Alpha: 1
           Axes Length: 1
           Axes Radius: 0.10000000149011612
@@ -1848,7 +1841,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 119.34132385253906
+      Scale: 202.01168823242188
       Target Frame: base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0.050566453486680984

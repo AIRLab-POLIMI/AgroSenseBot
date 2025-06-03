@@ -8,7 +8,6 @@ import numpy as np
 
 from tf_transformations import quaternion_from_euler, euler_from_quaternion
 from geometry_msgs.msg import PoseStamped, PointStamped, Point, Pose, Quaternion
-from rosidl_runtime_py import message_to_yaml
 from std_msgs.msg import Header
 
 
@@ -285,6 +284,7 @@ class SprayingTaskPlan:
         self.positioning_approach_controller_id: str = "None"
         self.positioning_approach_goal_checker_id: str = "None"
         self.positioning_approach_progress_checker_id: str = "None"
+        self.max_positioning_navigation_attempts: int = 0
 
         self.straight_approach_controller_id: str = "None"
         self.straight_approach_goal_checker_id: str = "None"
@@ -325,6 +325,7 @@ class SprayingTaskPlan:
         t.positioning_approach_controller_id = d['positioning_approach_controller_id']
         t.positioning_approach_goal_checker_id = d['positioning_approach_goal_checker_id']
         t.positioning_approach_progress_checker_id = d['positioning_approach_progress_checker_id']
+        t.max_positioning_navigation_attempts = d['max_positioning_navigation_attempts']
 
         t.straight_approach_controller_id = d['straight_approach_controller_id']
         t.straight_approach_goal_checker_id = d['straight_approach_goal_checker_id']
@@ -365,6 +366,7 @@ class SprayingTaskPlan:
             'positioning_approach_controller_id': self.positioning_approach_controller_id,
             'positioning_approach_goal_checker_id': self.positioning_approach_goal_checker_id,
             'positioning_approach_progress_checker_id': self.positioning_approach_progress_checker_id,
+            'max_positioning_navigation_attempts': self.max_positioning_navigation_attempts,
 
             'straight_approach_controller_id': self.straight_approach_controller_id,
             'straight_approach_goal_checker_id': self.straight_approach_goal_checker_id,

@@ -168,6 +168,7 @@ class SprayingTaskPlanExecutor(Node):
         self.failed_straightening_navigation_attempts: int = 0
         self.positioning_navigation_complete_pause_chrono: Chronometer | None = None
         self.positioning_navigation_complete_pause_duration: float = 0.0
+        self.failed_positioning_navigation_attempts: int = 0
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: PlatformState | None = None
         self.last_scan_heartbeat_front_msg: PlatformState | None = None
@@ -268,7 +269,15 @@ class SprayingTaskPlanExecutor(Node):
                     'waiting': 'wait_positioning_navigation_complete',
                     'stop': 'stop_navigation',
                     'plan_invalid': 'stop_navigation',
+                    'soft_failure': 'retry_positioning_navigation',
                     'failure': 'failure',
+                }
+            )
+            StateMachine.add(
+                label='retry_positioning_navigation',
+                state=CallbackState(self.retry_positioning_navigation_sm_cb, class_instance=self), transitions={
+                    'retry': 'start_planning_positioning_approach',
+                    'give_up': 'failure',
                 }
             )
             StateMachine.add(
@@ -659,7 +668,7 @@ class SprayingTaskPlanExecutor(Node):
         self.navigation_manager.start_straightening_approach(self.current_item)
         return 'success'
 
-    @cb_interface(outcomes=['success', 'waiting', 'stop', 'plan_invalid', 'failure'])
+    @cb_interface(outcomes=['success', 'waiting', 'stop', 'plan_invalid', 'soft_failure', 'failure'])
     def wait_positioning_navigation_complete_sm_cb(self) -> str:
         self.do_loop_operations_and_sleep(current_item=self.current_item)
 
@@ -677,7 +686,12 @@ class SprayingTaskPlanExecutor(Node):
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             self.positioning_navigation_complete_pause_chrono = Chronometer()
+            self.failed_positioning_navigation_attempts = 0
             return 'success'
+
+        if self.navigation_manager.navigation_action_status == NavigationActionStatus.SOFT_FAILED:
+            self.get_logger().info(f"navigation soft-failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            return 'soft_failure'
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
             self.get_logger().error(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
@@ -687,6 +701,20 @@ class SprayingTaskPlanExecutor(Node):
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['retry', 'give_up'])
+    def retry_positioning_navigation_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        self.failed_positioning_navigation_attempts += 1
+
+        if self.failed_positioning_navigation_attempts < self.task_plan.max_positioning_navigation_attempts:
+            self.get_logger().info(f"retrying positioning navigation ({self.failed_positioning_navigation_attempts} / {self.task_plan.max_positioning_navigation_attempts}) for item {self.current_item.get_item_id()}")
+            return 'retry'
+
+        self.get_logger().error(f"positioning navigation failed {self.failed_positioning_navigation_attempts} times (max positioning navigation attempts: {self.task_plan.max_positioning_navigation_attempts}) for item {self.current_item.get_item_id()}. Giving up.")
+        self.failed_positioning_navigation_attempts = 0
+        return 'give_up'
 
     @cb_interface(outcomes=['success', 'waiting'])
     def positioning_navigation_complete_pause_sm_cb(self) -> str:
@@ -715,7 +743,7 @@ class SprayingTaskPlanExecutor(Node):
             self.failed_straightening_navigation_attempts = 0
             return 'success'
 
-        if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
+        if self.navigation_manager.navigation_action_status in [NavigationActionStatus.SOFT_FAILED, NavigationActionStatus.FAILED]:
             self.get_logger().info(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             return 'failure'
 
@@ -812,7 +840,7 @@ class SprayingTaskPlanExecutor(Node):
             self.inter_row_navigation_complete_pause_chrono = Chronometer()
             return 'success'
 
-        if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
+        if self.navigation_manager.navigation_action_status in [NavigationActionStatus.SOFT_FAILED, NavigationActionStatus.FAILED]:
             self.get_logger().error(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             return 'failure'
 
