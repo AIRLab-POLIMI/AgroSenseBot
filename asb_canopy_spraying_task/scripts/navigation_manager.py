@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
+
 import numpy as np
 
 import rclpy
+from nav2_msgs.action._follow_path import FollowPath_Result, FollowPath_Goal
 from rclpy import Future
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from rclpy.client import Client
@@ -585,11 +588,33 @@ class NavigationManager:
     """
     def _follow_path_result_callback(self, future: Future) -> None:
         navigation_result_status = future.result().status
+        goal_result: FollowPath_Result = future.result().result
+        error_code_string = defaultdict(str, {
+            FollowPath_Goal.NONE: "NONE",
+            FollowPath_Goal.UNKNOWN: "UNKNOWN",
+            FollowPath_Goal.INVALID_CONTROLLER: "INVALID_CONTROLLER",
+            FollowPath_Goal.TF_ERROR: "TF_ERROR",
+            FollowPath_Goal.INVALID_PATH: "INVALID_PATH",
+            FollowPath_Goal.PATIENCE_EXCEEDED: "PATIENCE_EXCEEDED",
+            FollowPath_Goal.FAILED_TO_MAKE_PROGRESS: "FAILED_TO_MAKE_PROGRESS",
+            FollowPath_Goal.NO_VALID_CONTROL: "NO_VALID_CONTROL",
+        })
+
+        error_status_string = defaultdict(str, {
+            GoalStatus.STATUS_UNKNOWN: "STATUS_UNKNOWN",
+            GoalStatus.STATUS_ACCEPTED: "STATUS_ACCEPTED",
+            GoalStatus.STATUS_EXECUTING: "STATUS_EXECUTING",
+            GoalStatus.STATUS_CANCELING: "STATUS_CANCELING",
+            GoalStatus.STATUS_SUCCEEDED: "STATUS_SUCCEEDED",
+            GoalStatus.STATUS_CANCELED: "STATUS_CANCELED",
+            GoalStatus.STATUS_ABORTED: "STATUS_ABORTED",
+        })
+
         if navigation_result_status == GoalStatus.STATUS_SUCCEEDED:
-            self._node.get_logger().debug('follow_path action succeeded')
+            self._node.get_logger().debug("follow_path action succeeded")
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
-            self._node.get_logger().debug(f'follow_path action failed with status code: {navigation_result_status}')
+            self._node.get_logger().info(f"follow_path action failed with status: {error_status_string[navigation_result_status]} error: {error_code_string[goal_result.error_code]}")
             self.navigation_action_status = NavigationActionStatus.FAILED
 
     """
@@ -597,11 +622,11 @@ class NavigationManager:
     """
     def cancel_navigation_action(self) -> None:
         if self._navigation_goal_handle is not None:
-            self._node.get_logger().info('canceling current navigation action')
+            self._node.get_logger().info("canceling current navigation action")
             cancel_navigation_action_future: Future = self._navigation_goal_handle.cancel_goal_async()
             cancel_navigation_action_future.add_done_callback(self._cancel_navigation_action_response_callback)
         else:
-            self._node.get_logger().info('no navigation actions in progress')
+            self._node.get_logger().info("no navigation actions in progress")
 
     """
      Receive the action cancel result.
