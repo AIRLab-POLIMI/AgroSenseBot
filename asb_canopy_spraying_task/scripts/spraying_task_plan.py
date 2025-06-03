@@ -289,6 +289,7 @@ class SprayingTaskPlan:
         self.straight_approach_controller_id: str = "None"
         self.straight_approach_goal_checker_id: str = "None"
         self.straight_approach_progress_checker_id: str = "None"
+        self.max_straightening_navigation_attempts: int = 0
 
         self.row_path_controller_id: str = "None"
         self.row_path_goal_checker_id: str = "None"
@@ -328,6 +329,7 @@ class SprayingTaskPlan:
         t.straight_approach_controller_id = d['straight_approach_controller_id']
         t.straight_approach_goal_checker_id = d['straight_approach_goal_checker_id']
         t.straight_approach_progress_checker_id = d['straight_approach_progress_checker_id']
+        t.max_straightening_navigation_attempts = d['max_straightening_navigation_attempts']
 
         t.row_path_controller_id = d['row_path_controller_id']
         t.row_path_goal_checker_id = d['row_path_goal_checker_id']
@@ -367,6 +369,7 @@ class SprayingTaskPlan:
             'straight_approach_controller_id': self.straight_approach_controller_id,
             'straight_approach_goal_checker_id': self.straight_approach_goal_checker_id,
             'straight_approach_progress_checker_id': self.straight_approach_progress_checker_id,
+            'max_straightening_navigation_attempts': self.max_straightening_navigation_attempts,
 
             'row_path_controller_id': self.row_path_controller_id,
             'row_path_goal_checker_id': self.row_path_goal_checker_id,

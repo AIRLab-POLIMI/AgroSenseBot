@@ -165,6 +165,7 @@ class SprayingTaskPlanExecutor(Node):
         self.start_spray_regulator_chrono: Chronometer | None = None
         self.inter_row_navigation_complete_pause_chrono: Chronometer | None = None
         self.straightening_navigation_complete_pause_chrono: Chronometer | None = None
+        self.failed_straightening_navigation_attempts: int = 0
         self.positioning_navigation_complete_pause_chrono: Chronometer | None = None
         self.positioning_navigation_complete_pause_duration: float = 0.0
         self.heartbeat_alive_bit: bool = False
@@ -307,7 +308,14 @@ class SprayingTaskPlanExecutor(Node):
                     'success': 'success',
                     'waiting': 'wait_straightening_navigation_complete',
                     'stop': 'stop_navigation',
-                    'failure': 'failure',
+                    'failure': 'retry_straightening_navigation',
+                }
+            )
+            StateMachine.add(
+                label='retry_straightening_navigation',
+                state=CallbackState(self.retry_straightening_navigation_sm_cb, class_instance=self), transitions={
+                    'retry': 'start_straightening_approach',
+                    'give_up': 'failure',
                 }
             )
             StateMachine.add(
@@ -588,7 +596,7 @@ class SprayingTaskPlanExecutor(Node):
             return 'success'
 
         if self.navigation_manager.planning_action_status == NavigationActionStatus.FAILED:
-            self.get_logger().error(f"planning failed after {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.get_logger().warn(f"planning failed after {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             return 'cannot_plan'
 
         return 'waiting'
@@ -599,7 +607,7 @@ class SprayingTaskPlanExecutor(Node):
         self.clear_global_costmap_for_replanning_chrono = Chronometer()
 
         if self.clear_global_costmap_for_replanning_count >= self.clear_global_costmap_for_replanning_max_retries:
-            self.get_logger().warn(f"max attempts reached for clearing global costmap for replanning [{self.clear_global_costmap_for_replanning_max_retries}] for item {self.current_item.get_item_id()}")
+            self.get_logger().error(f"max attempts reached for clearing global costmap for replanning [{self.clear_global_costmap_for_replanning_max_retries}] for item {self.current_item.get_item_id()}")
             self.clear_global_costmap_for_replanning_count = 0
             return 'give_up'
         else:
@@ -704,16 +712,31 @@ class SprayingTaskPlanExecutor(Node):
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             self.straightening_navigation_complete_pause_chrono = Chronometer()
+            self.failed_straightening_navigation_attempts = 0
             return 'success'
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
-            self.get_logger().error(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.get_logger().info(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             return 'failure'
 
         if not self.get_control_mode() == ControlMode.AUTO:
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['retry', 'give_up'])
+    def retry_straightening_navigation_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        self.failed_straightening_navigation_attempts += 1
+
+        if self.failed_straightening_navigation_attempts < self.task_plan.max_straightening_navigation_attempts:
+            self.get_logger().info(f"retrying straightening navigation ({self.failed_straightening_navigation_attempts} / {self.task_plan.max_straightening_navigation_attempts}) for item {self.current_item.get_item_id()}")
+            return 'retry'
+
+        self.get_logger().error(f"straightening navigation failed {self.failed_straightening_navigation_attempts} times (max straightening navigation attempts: {self.task_plan.max_straightening_navigation_attempts}) for item {self.current_item.get_item_id()}. Giving up.")
+        self.failed_straightening_navigation_attempts = 0
+        return 'give_up'
 
     @cb_interface(outcomes=['success', 'waiting'])
     def straightening_navigation_complete_pause_sm_cb(self) -> str:

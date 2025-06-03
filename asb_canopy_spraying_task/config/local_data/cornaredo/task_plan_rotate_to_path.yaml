@@ -8,6 +8,7 @@ positioning_approach_progress_checker_id: simple_progress_checker
 straight_approach_controller_id: RotateToPath
 straight_approach_goal_checker_id: asb_rotate_to_path_goal_checker
 straight_approach_progress_checker_id: simple_progress_checker
+max_straightening_navigation_attempts: 1
 
 row_path_controller_id: FollowStraightPath
 row_path_goal_checker_id: asb_goal_checker
