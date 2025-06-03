@@ -217,7 +217,7 @@ complete -F _complete_alias gq
 alias ts='rl asb_canopy_spraying_task execute_task_sm.launch.xml'
 complete -F _complete_alias ts
 
-alias ts-dr='ts dry_run:=true'
+alias ts-dr='ts record:=false dry_run:=true'
 alias ts-l='ts loop:=true'
 alias ts-nr='ts record:=false'
 alias ts-nrs='ts record:=true record_sensors:=false'
