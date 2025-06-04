@@ -73,6 +73,8 @@ void RegulatedPurePursuitController::configure(const rclcpp_lifecycle::Lifecycle
     goal_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/goal_pose", 1);
     stop_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/stop_pose", 1);
     lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/lookahead_circle", 1);
+    constraint_intersection_poses_pub_ = node->create_publisher<geometry_msgs::msg::PoseArray>("~/constraint_intersection_poses", 1);
+    constraints_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/constraints", 1);
     lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/lookahead_arc", 1);
     path_lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/path_lookahead_arc", 1);
     angle_priority_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/angle_lookahead_arc", 1);
@@ -92,6 +94,8 @@ void RegulatedPurePursuitController::cleanup() {
     goal_pose_pub_.reset();
     stop_pose_pub_.reset();
     lookahead_circle_pub_.reset();
+    constraint_intersection_poses_pub_.reset();
+    constraints_pub_.reset();
     lookahead_arc_pub_.reset();
     path_lookahead_arc_pub_.reset();
     angle_priority_arc_pub_.reset();
@@ -109,6 +113,8 @@ void RegulatedPurePursuitController::activate() {
     goal_pose_pub_->on_activate();
     stop_pose_pub_->on_activate();
     lookahead_circle_pub_->on_activate();
+    constraint_intersection_poses_pub_->on_activate();
+    constraints_pub_->on_activate();
     lookahead_arc_pub_->on_activate();
     path_lookahead_arc_pub_->on_activate();
     angle_priority_arc_pub_->on_activate();
@@ -126,6 +132,8 @@ void RegulatedPurePursuitController::deactivate() {
     goal_pose_pub_->on_deactivate();
     stop_pose_pub_->on_deactivate();
     lookahead_circle_pub_->on_deactivate();
+    constraint_intersection_poses_pub_->on_deactivate();
+    constraints_pub_->on_deactivate();
     lookahead_arc_pub_->on_deactivate();
     path_lookahead_arc_pub_->on_deactivate();
     angle_priority_arc_pub_->on_deactivate();
@@ -212,6 +220,9 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
 
     auto goal_pose = transformed_plan.poses.back();
     goal_pose_pub_->publish(goal_pose);
+
+    geometry_msgs::msg::Pose goal_pose_fixed_frame = path_handler_->getGoalInFixedFrame();
+    goal_checker_isGoalReached(pose, pose.pose, goal_pose_fixed_frame, Twist());
 
     if(!params_->use_angular_approach && transformed_plan.poses.size() == 1) {
         double theta = tf2::getYaw(goal_pose.pose.orientation);  // goal angle in robot frame, -PI < theta < PI
@@ -423,8 +434,8 @@ geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getLookAheadPoin
 }
 
 geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getExtendedLookaheadPose(const geometry_msgs::msg::PoseStamped &next_stop_pose, const double lookahead_dist) {
-    // Find the pose which is at a distance from the origin (robot pose) and lies on the projection of next_stop_pose
-    // by solving the quadratic equation a * D_e^2 + b * D_e + c = 0; where D_e is the extension distance from next_stop_pose.
+    // Find the pose which is at a lookahead_dist distance from the origin (robot pose) and lies on the projection of next_stop_pose
+    // by solving the quadratic equation a * D_e^2 + b * D_e + c = 0; where D_e (extension distance) is the distance of the found pose from next_stop_pose.
     // Note that the quadratic formula variable a is 1.
 
     double x_p = next_stop_pose.pose.position.x;
@@ -530,6 +541,363 @@ geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::findStopPose(con
     // If there is no cusp in the path return the last pose (goal pose)
     return transformed_plan.poses.back();
 }
+
+bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_msgs::msg::PoseStamped &robot_pose, const Pose &query_pose, const Pose &goal_pose, const Twist &) {
+    double path_constraint_x_ = 1.0, path_constraint_y_ = 0.05;
+
+    // compute the goal pose in the robot frame (the frame of reference defined by query_pose)
+    tf2::Transform tf_r_to_g = goal_checker_getRobotToGoalTransform(goal_pose, query_pose);
+    Pose g_in_r;
+    toMsg(tf_r_to_g, g_in_r);
+//    RCLCPP_INFO(logger_, "query in fixed frame  x: %+.3f  y: %+.3f  theta: %+.3f", query_pose.position.x, query_pose.position.y, tf2::getYaw(query_pose.orientation));
+//    RCLCPP_INFO(logger_, "goal in fixed frame   x: %+.3f  y: %+.3f  theta: %+.3f", goal_pose.position.x, goal_pose.position.y, tf2::getYaw(goal_pose.orientation));
+//    RCLCPP_INFO(logger_, "goal in robot frame   x: %+.3f  y: %+.3f  theta: %+.3f", g_in_r.position.x, g_in_r.position.y, tf2::getYaw(g_in_r.orientation));
+
+    if (std::hypot(g_in_r.position.x, g_in_r.position.y) > goal_dist_tol_) {
+        nav_msgs::msg::Path empty_path;
+        empty_path.header.stamp = robot_pose.header.stamp;
+        empty_path.header.frame_id = "base_footprint";
+        angle_priority_arc_pub_->publish(empty_path);
+
+        geometry_msgs::msg::PolygonStamped polygon_msg;
+        polygon_msg.header.stamp = robot_pose.header.stamp;
+        polygon_msg.header.frame_id = "base_footprint";
+        constraints_pub_->publish(polygon_msg);
+
+        geometry_msgs::msg::PoseArray constraint_intersections_msg;
+        constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
+        constraint_intersections_msg.header.frame_id = "base_footprint";
+        constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+
+//        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
+        return false;
+    }
+
+    // get the lookahead point for the lookahead distance and the straight path defined by the goal (same as carrot point in RPP)
+    bool valid_solution;
+    Point lookahead_point = goal_checker_getExtendedLookaheadPoint(g_in_r, valid_solution);
+    if (!valid_solution) {
+        nav_msgs::msg::Path empty_path;
+        empty_path.header.stamp = robot_pose.header.stamp;
+        empty_path.header.frame_id = "base_footprint";
+        angle_priority_arc_pub_->publish(empty_path);
+
+        geometry_msgs::msg::PolygonStamped polygon_msg;
+        polygon_msg.header.stamp = robot_pose.header.stamp;
+        polygon_msg.header.frame_id = "base_footprint";
+        constraints_pub_->publish(polygon_msg);
+
+        geometry_msgs::msg::PoseArray constraint_intersections_msg;
+        constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
+        constraint_intersections_msg.header.frame_id = "base_footprint";
+        constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+
+//        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
+        return false;
+    }
+
+    double c = goal_checker_getLookaheadCurvature(lookahead_point);
+
+    angle_priority_arc_pub_->publish(createLookAheadArcMsgFromCurvature(robot_pose, c, std::hypot(lookahead_point.x, lookahead_point.y), 1));
+
+//    RCLCPP_INFO(logger_, "curvature   c: %+.3f  ", c);
+
+    tf2::Transform tf_g_to_clx(tf2::Quaternion(tf2::Vector3(0, 0, 1), 0), tf2::Vector3(path_constraint_x_, path_constraint_y_, 0));
+    tf2::Transform tf_g_to_cly(tf2::Quaternion(tf2::Vector3(0, 0, 1), M_PI / 2), tf2::Vector3(path_constraint_x_, path_constraint_y_, 0));
+    tf2::Transform tf_g_to_crx(tf2::Quaternion(tf2::Vector3(0, 0, 1), 0), tf2::Vector3(path_constraint_x_, -path_constraint_y_, 0));
+    tf2::Transform tf_g_to_cry(tf2::Quaternion(tf2::Vector3(0, 0, 1), -M_PI / 2), tf2::Vector3(path_constraint_x_, -path_constraint_y_, 0));
+
+    tf2::Transform tf_g_to_clw(tf2::Quaternion(tf2::Vector3(0, 0, 1), 0), tf2::Vector3(path_constraint_x_, path_constraint_y_ * 10, 0));
+    tf2::Transform tf_g_to_crw(tf2::Quaternion(tf2::Vector3(0, 0, 1), -M_PI / 2), tf2::Vector3(path_constraint_x_, -path_constraint_y_ * 10, 0));
+    tf2::Transform tf_g_to_clf(tf2::Quaternion(tf2::Vector3(0, 0, 1), 0), tf2::Vector3(path_constraint_x_ * 4, path_constraint_y_, 0));
+    tf2::Transform tf_g_to_crf(tf2::Quaternion(tf2::Vector3(0, 0, 1), -M_PI / 2), tf2::Vector3(path_constraint_x_ * 4, -path_constraint_y_, 0));
+
+    Pose p_clx_in_r, p_cly_in_r, p_crx_in_r, p_cry_in_r, p_clw_in_r, p_crw_in_r, p_clf_in_r, p_crf_in_r;  // constraint poses in robot frame
+    tf2::Transform tf_r_to_clx = tf_r_to_g * tf_g_to_clx;
+    tf2::Transform tf_r_to_cly = tf_r_to_g * tf_g_to_cly;
+    tf2::Transform tf_r_to_crx = tf_r_to_g * tf_g_to_crx;
+    tf2::Transform tf_r_to_cry = tf_r_to_g * tf_g_to_cry;
+
+    tf2::Transform tf_r_to_clw = tf_r_to_g * tf_g_to_clw;
+    tf2::Transform tf_r_to_crw = tf_r_to_g * tf_g_to_crw;
+    tf2::Transform tf_r_to_clf = tf_r_to_g * tf_g_to_clf;
+    tf2::Transform tf_r_to_crf = tf_r_to_g * tf_g_to_crf;
+
+    toMsg(tf_r_to_clx, p_clx_in_r);
+    toMsg(tf_r_to_cly, p_cly_in_r);
+    toMsg(tf_r_to_crx, p_crx_in_r);
+    toMsg(tf_r_to_cry, p_cry_in_r);
+
+    toMsg(tf_r_to_clw, p_clw_in_r);
+    toMsg(tf_r_to_crw, p_crw_in_r);
+    toMsg(tf_r_to_clf, p_clf_in_r);
+    toMsg(tf_r_to_crf, p_crf_in_r);
+
+    geometry_msgs::msg::PolygonStamped polygon_msg;
+    polygon_msg.header.stamp = robot_pose.header.stamp;
+    polygon_msg.header.frame_id = "base_footprint";
+    polygon_msg.polygon.points.resize(6);
+    polygon_msg.polygon.points[0].x = (float) p_clw_in_r.position.x;
+    polygon_msg.polygon.points[0].y = (float) p_clw_in_r.position.y;
+
+    polygon_msg.polygon.points[1].x = (float) p_cly_in_r.position.x;
+    polygon_msg.polygon.points[1].y = (float) p_cly_in_r.position.y;
+
+    polygon_msg.polygon.points[2].x = (float) p_clf_in_r.position.x;
+    polygon_msg.polygon.points[2].y = (float) p_clf_in_r.position.y;
+
+    polygon_msg.polygon.points[3].x = (float) p_crf_in_r.position.x;
+    polygon_msg.polygon.points[3].y = (float) p_crf_in_r.position.y;
+
+    polygon_msg.polygon.points[4].x = (float) p_cry_in_r.position.x;
+    polygon_msg.polygon.points[4].y = (float) p_cry_in_r.position.y;
+
+    polygon_msg.polygon.points[5].x = (float) p_crw_in_r.position.x;
+    polygon_msg.polygon.points[5].y = (float) p_crw_in_r.position.y;
+
+    polygon_msg.polygon.points.insert(polygon_msg.polygon.points.end(), polygon_msg.polygon.points.rbegin(), polygon_msg.polygon.points.rend());
+    constraints_pub_->publish(polygon_msg);
+
+    Pose p_c_in_r;  // center of rotation in robot frame
+    p_c_in_r.position.y = 1 / c;
+    p_c_in_r.orientation.w = 1;
+    tf2::Transform tf_r_to_c;
+    tf2::fromMsg(p_c_in_r, tf_r_to_c);
+    tf2::Transform tf_c_to_r = tf_r_to_c.inverse();  // transform from center of rotation to the robot frame
+
+    Pose p_l_in_r;  // lookahead pose in robot frame
+    p_l_in_r.position = lookahead_point;
+    p_l_in_r.orientation.w = 1;
+    Pose p_l_in_c;  // lookahead pose in center of rotation frame
+    tf2::Transform tf_r_to_l;
+    tf2::fromMsg(p_l_in_r, tf_r_to_l);
+    tf2::Transform tf_c_to_l = tf_c_to_r * tf_r_to_l;
+    toMsg(tf_c_to_l, p_l_in_c);
+
+    if (c == 0.0) {
+//        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
+        return false;  // in the extremely rare case in which the curvature is exactly 0, return
+    }
+
+    double r = std::fabs(1 / c);  // curvature radius
+    if (r > 100) {
+//        RCLCPP_WARN(logger_, "radius: %+.3f", r);
+    } else {
+//        RCLCPP_INFO(logger_, "radius: %+.3f", r);
+    }
+
+
+    Pose p_clx_in_c, p_cly_in_c, p_crx_in_c, p_cry_in_c;  // constraint poses in center of rotation frame
+    tf2::Transform tf_c_to_clx = tf_c_to_r * tf_r_to_g * tf_g_to_clx;
+    tf2::Transform tf_c_to_cly = tf_c_to_r * tf_r_to_g * tf_g_to_cly;
+    tf2::Transform tf_c_to_crx = tf_c_to_r * tf_r_to_g * tf_g_to_crx;
+    tf2::Transform tf_c_to_cry = tf_c_to_r * tf_r_to_g * tf_g_to_cry;
+    toMsg(tf_c_to_clx, p_clx_in_c);
+    toMsg(tf_c_to_cly, p_cly_in_c);
+    toMsg(tf_c_to_crx, p_crx_in_c);
+    toMsg(tf_c_to_cry, p_cry_in_c);
+
+    geometry_msgs::msg::PoseArray constraint_intersections_msg;
+    constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
+    constraint_intersections_msg.header.frame_id = "base_footprint";
+    constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_l_in_c.position, tf_r_to_c));
+
+    double theta_1, theta_2;
+    double theta_o = c > 0 ? -M_PI/2 : M_PI/2;
+    double theta_l = std::atan2(p_l_in_c.position.y, p_l_in_c.position.x);
+    if (c > 0) {
+        theta_1 = theta_o;
+        theta_2 = theta_l;
+    } else {
+        theta_1 = theta_l;
+        theta_2 = theta_o;
+    }
+//    RCLCPP_INFO(logger_, "int angles   theta_1: %+.3f    theta_2: %+.3f\n", theta_1, theta_2);
+
+    // find the intersection points of the curvature arc with the constraint segments (in the center of rotation frame)
+    Point p_clx_int_in_c;
+    if (goal_checker_findRadiusPoseIntersection(p_clx_in_c, r, p_clx_int_in_c)) {
+        // find intersection angle
+        double theta_int = std::atan2(p_clx_int_in_c.y, p_clx_int_in_c.x);
+        if (theta_1 < theta_int && theta_int < theta_2) {
+//            RCLCPP_INFO(logger_, "int   clx   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_clx_int_in_c.x, p_clx_int_in_c.y);
+            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_clx_int_in_c, tf_r_to_c));
+            constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+//            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
+            return false;
+        } else {
+//            RCLCPP_INFO(logger_, "int   clx");
+        }
+    } else {
+//        RCLCPP_INFO(logger_, "int   clx");
+    }
+
+    Point p_cly_int_in_c;
+    if (goal_checker_findRadiusPoseIntersection(p_cly_in_c, r, p_cly_int_in_c)) {
+        // find intersection angle
+        double theta_int = std::atan2(p_cly_int_in_c.y, p_cly_int_in_c.x);
+        if (theta_1 < theta_int && theta_int < theta_2) {
+//            RCLCPP_INFO(logger_, "int   cly   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_cly_int_in_c.x, p_cly_int_in_c.y);
+            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_cly_int_in_c, tf_r_to_c));
+            constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+//            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
+            return false;
+        } else {
+//            RCLCPP_INFO(logger_, "int   cly");
+        }
+    } else {
+//        RCLCPP_INFO(logger_, "int   cly");
+    }
+
+    Point p_crx_int_in_c;
+    if (goal_checker_findRadiusPoseIntersection(p_crx_in_c, r, p_crx_int_in_c)) {
+        // find intersection angle
+        double theta_int = std::atan2(p_crx_int_in_c.y, p_crx_int_in_c.x);
+        if (theta_1 < theta_int && theta_int < theta_2) {
+//            RCLCPP_INFO(logger_, "int   crx   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_crx_int_in_c.x, p_crx_int_in_c.y);
+            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_crx_int_in_c, tf_r_to_c));
+            constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+//            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
+            return false;
+        } else {
+//            RCLCPP_INFO(logger_, "int   crx");
+        }
+    } else {
+//        RCLCPP_INFO(logger_, "int   crx");
+    }
+
+    Point p_cry_int_in_c;
+    if (goal_checker_findRadiusPoseIntersection(p_cry_in_c, r, p_cry_int_in_c)) {
+        // find intersection angle
+        double theta_int = std::atan2(p_cry_int_in_c.y, p_cry_int_in_c.x);
+        if (theta_1 < theta_int && theta_int < theta_2) {
+//            RCLCPP_INFO(logger_, "int   cry   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_cry_int_in_c.x, p_cry_int_in_c.y);
+            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_cry_int_in_c, tf_r_to_c));
+            constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+//            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
+            return false;
+        } else {
+//            RCLCPP_INFO(logger_, "int   cry");
+        }
+    } else {
+//        RCLCPP_INFO(logger_, "int   cry");
+    }
+
+    constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+
+//    RCLCPP_INFO(logger_, "*********************  GOAL REACHED  *********************");
+//    RCLCPP_INFO(logger_, "\n");
+    return true;
+}
+
+Pose RegulatedPurePursuitController::goal_checker_get_pose_c_to_r(const Point &point_in_c, const tf2::Transform &tf_r_to_c) {
+
+    Pose p_in_c;
+    p_in_c.position = point_in_c;
+    p_in_c.orientation.w = 1;
+    tf2::Transform tf_c_to_p;
+    tf2::fromMsg(p_in_c, tf_c_to_p);
+    tf2::Transform tf_r_to_p = tf_r_to_c * tf_c_to_p;
+
+    Pose p_in_r;
+    toMsg(tf_r_to_p, p_in_r);
+    return p_in_r;
+}
+
+tf2::Transform RegulatedPurePursuitController::goal_checker_getRobotToGoalTransform(const Pose &goal_pose, const Pose &robot_pose) {
+    // Convert both poses to tf2::Transform
+    tf2::Transform tf_robot;
+    tf2::fromMsg(robot_pose, tf_robot);
+    tf2::Transform tf_goal;
+    tf2::fromMsg(goal_pose, tf_goal);
+
+    // Transform goal_pose into the robot_pose frame
+    tf2::Transform tf_result = tf_robot.inverse() * tf_goal;
+    return tf_result;
+}
+
+bool RegulatedPurePursuitController::goal_checker_findRadiusPoseIntersection(const Pose &p, const double &r, Point &p_int) {
+    // Find the intersection points by solving the quadratic equation a * D_e^2 + b * D_e + c = 0; where D_e (extension distance) is the distance of the intersection points from p.
+    // Note that the quadratic formula variable a is 1.
+
+    double x_p = p.position.x;
+    double y_p = p.position.y;
+    double theta_p = tf2::getYaw(p.orientation);
+
+    double b = 2 * (x_p * std::cos(theta_p) + y_p * std::sin(theta_p));
+    double c = std::pow(x_p, 2) + std::pow(y_p, 2) - std::pow(r, 2);
+
+    double discriminant = std::pow(b, 2) - 4 * c;
+    if (discriminant < 0) {  // No intersection
+        return false;
+    }
+
+    double sqrt_discriminant = std::sqrt(discriminant);
+    double d_1 = (-b + sqrt_discriminant) / 2;
+    double d_2 = (-b - sqrt_discriminant) / 2;
+
+    double d_min = std::min(d_1, d_2);
+    double d_max = std::max(d_1, d_2);
+
+    if (d_max < 0) {  // both solutions are negative
+        return false;
+    } else {
+        if(d_min > 0) {  // both solutions are positive, return the smallest
+            p_int.x = x_p + d_min * std::cos(theta_p);
+            p_int.y = y_p + d_min * std::sin(theta_p);
+            return true;
+        } else {  // one solution is negative and the other is positive, return the positive one
+            p_int.x = x_p + d_max * std::cos(theta_p);
+            p_int.y = y_p + d_max * std::sin(theta_p);
+            return true;
+        }
+    }
+
+}
+
+Point RegulatedPurePursuitController::goal_checker_getExtendedLookaheadPoint(const Pose &path_pose, bool &valid_solution) const {
+    // Find the pose which is at a lookahead_dist distance from the origin (robot pose) and lies on the projection of next_stop_pose
+    // by solving the quadratic equation a * D_e^2 + b * D_e + c = 0; where D_e (extension distance) is the distance of the found pose from next_stop_pose.
+    // Note that the quadratic formula variable a is 1.
+
+    double lookahead_dist_ = 2.8;
+
+    double x_p = path_pose.position.x;
+    double y_p = path_pose.position.y;
+    double theta_p = tf2::getYaw(path_pose.orientation);
+
+    double b = 2 * (x_p * std::cos(theta_p) + y_p * std::sin(theta_p));
+    double c = std::pow(x_p, 2) + std::pow(y_p, 2) - std::pow(lookahead_dist_, 2);
+
+    double discriminant = std::pow(b, 2) - 4 * c;
+
+    if (discriminant < 0) {
+        // No real solution, this happens when the path's closest point to the robot position is higher than lookahead_dist_
+        valid_solution = false;
+        return Point();
+    }
+
+    double sqrt_discriminant = std::sqrt(discriminant);
+    double D_e1 = (-b + sqrt_discriminant) / 2;
+    double D_e2 = (-b - sqrt_discriminant) / 2;
+
+    // Choose the maximum extension distance (the one that produces the point furthest along on the forward direction of the path defined by the goal pose)
+    double D_e = std::max(D_e1, D_e2);
+
+    Point lookahead_point;
+    lookahead_point.x = x_p + D_e * std::cos(theta_p);
+    lookahead_point.y = y_p + D_e * std::sin(theta_p);
+    valid_solution = true;
+    return lookahead_point;
+}
+
+double RegulatedPurePursuitController::goal_checker_getLookaheadCurvature(Point lookahead_point) const {
+    double lookahead_dist_ = 2.8;
+    return 2 * lookahead_point.y / std::pow(lookahead_dist_, 2);
+}
+
+
+
 
 }  // namespace asb_regulated_pure_pursuit_controller
 

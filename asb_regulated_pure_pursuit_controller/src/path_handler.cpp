@@ -36,6 +36,10 @@ double PathHandler::getCostmapMaxExtent() const {
     return max_costmap_dim_meters / 2.0;
 }
 
+geometry_msgs::msg::Pose PathHandler::getGoalInFixedFrame() {
+    return global_plan_.poses.back().pose;
+}
+
 nav_msgs::msg::Path PathHandler::transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist, bool prune) {
     if (global_plan_.poses.empty()) {
         throw nav2_core::InvalidPath("Received plan with zero length");

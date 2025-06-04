@@ -28,11 +28,16 @@
 #include "pluginlib/class_loader.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 #include "std_msgs/msg/float64.hpp"
 #include "asb_regulated_pure_pursuit_controller/path_handler.hpp"
 #include "asb_regulated_pure_pursuit_controller/collision_checker.hpp"
 #include "asb_regulated_pure_pursuit_controller/parameter_handler.hpp"
 #include "asb_regulated_pure_pursuit_controller/regulation_functions.hpp"
+
+using geometry_msgs::msg::Point;
+using geometry_msgs::msg::Pose;
+using geometry_msgs::msg::Twist;
 
 namespace asb_regulated_pure_pursuit_controller {
 
@@ -197,6 +202,13 @@ protected:
      */
     static geometry_msgs::msg::PoseStamped findStopPose(const nav_msgs::msg::Path &transformed_plan);
 
+    bool goal_checker_isGoalReached(const geometry_msgs::msg::PoseStamped &robot_pose, const Pose &query_pose, const Pose &goal_pose, const Twist &);
+    tf2::Transform goal_checker_getRobotToGoalTransform(const Pose &goal_pose, const Pose &robot_pose);
+    bool goal_checker_findRadiusPoseIntersection(const Pose &p, const double &r, Point &p_int);
+    Point goal_checker_getExtendedLookaheadPoint(const Pose &path_pose, bool &valid_solution) const;
+    double goal_checker_getLookaheadCurvature(Point lookahead_point) const;
+    Pose goal_checker_get_pose_c_to_r(const Point &point_in_c, const tf2::Transform &tf_r_to_c);
+
     rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
     std::shared_ptr<tf2_ros::Buffer> tf_;
     std::string plugin_name_;
@@ -214,7 +226,9 @@ protected:
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> angle_lookahead_pose_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> goal_pose_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> stop_pose_pub_;
+    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseArray>> constraint_intersection_poses_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>> lookahead_circle_pub_;
+    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>> constraints_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> lookahead_arc_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> path_lookahead_arc_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> angle_priority_arc_pub_;

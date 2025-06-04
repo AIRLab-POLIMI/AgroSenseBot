@@ -71,6 +71,8 @@ public:
 
     nav_msgs::msg::Path getPlan() { return global_plan_; }
 
+    geometry_msgs::msg::Pose getGoalInFixedFrame();
+
 protected:
     /**
      * Get the greatest extent of the costmap in meters from the center.
