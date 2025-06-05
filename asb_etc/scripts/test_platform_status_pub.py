@@ -2,7 +2,7 @@
 
 import rclpy
 from asb_msgs.msg import PlatformState
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from rclpy.node import Node
 from datetime import datetime
 
@@ -14,10 +14,16 @@ class PlatformStatePublisher(Node):
 
         publish_rate: float = 100.0
 
+        qos_reliable_volatile_depth_1 = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1,
+        )
         self.pub = self.create_publisher(
             PlatformState,
             '/asb_platform_controller/platform_state',
-            qos_profile=qos_profile_sensor_data
+            qos_profile=qos_reliable_volatile_depth_1,
         )
         self.create_timer(1.0/publish_rate, self.timer_callback)
         self.t_0 = datetime.now()

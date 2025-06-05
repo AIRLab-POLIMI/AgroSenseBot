@@ -127,23 +127,23 @@ controller_interface::CallbackReturn ASBPlatformController::on_configure(const r
   reset();
 
   heartbeat_subscriber_ = get_node()->create_subscription<asb_msgs::msg::Heartbeat>(
-          "~/heartbeat", rclcpp::SystemDefaultsQoS(),
+          "~/heartbeat", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
           std::bind(&ASBPlatformController::heartbeat_callback, this, _1));
 
   emergency_stop_cmd_subscriber_ = get_node()->create_subscription<asb_msgs::msg::EmergencyStopCmd>(
-          "~/emergency_stop_cmd", rclcpp::SystemDefaultsQoS(),
+          "~/emergency_stop_cmd", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
           std::bind(&ASBPlatformController::emergency_stop_cmd_callback, this, _1));
 
   pump_cmd_subscriber_ = get_node()->create_subscription<asb_msgs::msg::PumpCmd>(
-          "~/pump_cmd", rclcpp::SystemDefaultsQoS(),
+          "~/pump_cmd", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
           std::bind(&ASBPlatformController::pump_cmd_callback, this, _1));
 
   fan_cmd_subscriber_ = get_node()->create_subscription<asb_msgs::msg::FanCmd>(
-          "~/fan_cmd", rclcpp::SystemDefaultsQoS(),
+          "~/fan_cmd", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
           std::bind(&ASBPlatformController::fan_cmd_callback, this, _1));
 
   platform_state_publisher_ = get_node()->create_publisher<asb_msgs::msg::PlatformState>(
-          "~/platform_state", rclcpp::SystemDefaultsQoS());
+          "~/platform_state", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1));
 
   return controller_interface::CallbackReturn::SUCCESS;
 }

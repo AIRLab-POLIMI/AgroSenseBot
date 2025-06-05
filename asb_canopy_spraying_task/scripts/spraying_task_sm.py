@@ -197,9 +197,9 @@ class SprayingTaskPlanExecutor(Node):
             history=HistoryPolicy.KEEP_LAST,
             depth=1,
         )
-        self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
+        self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', qos_reliable_volatile_depth_1)
         self.current_item_pub = self.create_publisher(String, '~/current_item', qos_reliable_transient_local_depth_10)
-        self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
+        self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, qos_reliable_volatile_depth_1)
         self.scan_heartbeat_front_sub = self.create_subscription(Header, '/scan_heartbeat_front', self.scan_heartbeat_front_callback, qos_reliable_volatile_depth_1)
         self.scan_heartbeat_rear_sub = self.create_subscription(Header, '/scan_heartbeat_rear', self.scan_heartbeat_rear_callback, qos_reliable_volatile_depth_1)
         self.gnss_1_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_1/fix_info', self.gnss_1_fix_status_callback, qos_reliable_volatile_depth_1)
