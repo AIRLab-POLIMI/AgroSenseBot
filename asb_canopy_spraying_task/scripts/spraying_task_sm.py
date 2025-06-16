@@ -204,7 +204,7 @@ class SprayingTaskPlanExecutor(Node):
         self.scan_heartbeat_rear_sub = self.create_subscription(Header, '/scan_heartbeat_rear', self.scan_heartbeat_rear_callback, qos_reliable_volatile_depth_1)
         self.gnss_1_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_1/fix_info', self.gnss_1_fix_status_callback, qos_reliable_volatile_depth_1)
         self.gnss_2_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_2/fix_info', self.gnss_2_fix_status_callback, qos_reliable_volatile_depth_1)
-        self.gnss_dual_antenna_fix_status_sub = self.create_subscription(MipFilterGnssDualAntennaStatus, '/mip/filter/gnss_dual_antenna_status', self.gnss_dual_antenna_fix_status_callback, qos_reliable_volatile_depth_1)
+        self.gnss_dual_antenna_fix_status_sub = self.create_subscription(MipFilterGnssDualAntennaStatus, '/mip/ekf/gnss_dual_antenna_status', self.gnss_dual_antenna_fix_status_callback, qos_reliable_volatile_depth_1)
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         positioning_approach_sm = StateMachine(outcomes=['success', 'failure'])
@@ -959,15 +959,20 @@ class SprayingTaskPlanExecutor(Node):
         :return: True if *all* required topics are not timed out and their value is acceptable for continuing the execution of the task
         """
         if self.last_scan_heartbeat_front_msg is None:
+            self.get_logger().info(f"waiting for scan_heartbeat_front (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_scan_heartbeat_rear_msg is None:
+            self.get_logger().info(f"waiting for scan_heartbeat_rear (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
 
         if self.last_gnss_1_fix_status_msg is None:
+            self.get_logger().info(f"waiting for gnss_1_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_gnss_2_fix_status_msg is None:
+            self.get_logger().info(f"waiting for gnss_2_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_gnss_dual_antenna_fix_status_msg is None:
+            self.get_logger().info(f"waiting for gnss_dual_antenna_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
 
         def is_msg_timed_out(msg_name: str, stamp: Time, timeout: Duration) -> bool:
