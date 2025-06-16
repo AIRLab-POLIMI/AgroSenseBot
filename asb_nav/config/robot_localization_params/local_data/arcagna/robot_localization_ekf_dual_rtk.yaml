@@ -89,7 +89,7 @@ navsat_transform_1:
     publish_filtered_gps: false
     use_odometry_yaw: true
     wait_for_datum: true
-    datum: [45.502924, 9.016230, 0.0]
+    datum: [45.3381911, 9.4515854, 0.0]
 
 # For parameter descriptions, see https://github.com/cra-ros-pkg/robot_localization/blob/ros2/params/navsat_transform.yaml
 navsat_transform_2:
@@ -103,4 +103,4 @@ navsat_transform_2:
     publish_filtered_gps: false
     use_odometry_yaw: true
     wait_for_datum: true
-    datum: [45.502924, 9.016230, 0.0]
+    datum: [45.3381911, 9.4515854, 0.0]

@@ -11,12 +11,12 @@ EXTERNPROTO "OusterOS0.proto"
 WorldInfo {
   title "AgroSenseBot"
   info [
-    "ASB in simple vineyard."
+    "ASB in simple apple orchard."
   ]
 
   coordinateSystem "ENU"
   gpsCoordinateSystem "WGS84"
-  gpsReference 45.502924 9.016230 0.0
+  gpsReference 45.3381911 9.4515854 0.0
   basicTimeStep 8
   contactProperties [
     ContactProperties {

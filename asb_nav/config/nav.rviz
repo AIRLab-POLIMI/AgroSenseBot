@@ -23,10 +23,9 @@ Panels:
         - /Localization1/gnss 2 history1/Covariance1/Position1
         - /Task1/canopy_depth1/Namespaces1
         - /Interactive1/circle text1/Namespaces1
-        - /goal checker1
         - /goal checker1/angle_lookahead_arc1
       Splitter Ratio: 0.5896103978157043
-    Tree Height: 570
+    Tree Height: 683
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -82,19 +81,118 @@ Visualization Manager:
           Use Timestamp: false
           Value: false
         - Class: rviz_default_plugins/TF
-          Enabled: false
+          Enabled: true
           Frame Timeout: 15
           Frames:
             All Enabled: false
-          Marker Scale: 1
+            accelerometer_link:
+              Value: false
+            apple_orchard:
+              Value: true
+            apple_orchard_view:
+              Value: true
+            base_footprint:
+              Value: true
+            base_link:
+              Value: false
+            base_scan_front_multilayer:
+              Value: false
+            base_scan_front_multilayer_imu:
+              Value: false
+            base_scan_front_multilayer_lidar:
+              Value: false
+            base_scan_front_multilayer_sim:
+              Value: false
+            base_scan_rear_multilayer:
+              Value: false
+            base_scan_rear_multilayer_imu:
+              Value: false
+            base_scan_rear_multilayer_lidar:
+              Value: false
+            base_scan_rear_multilayer_sim:
+              Value: false
+            gnss_1_link:
+              Value: false
+            gnss_2_link:
+              Value: false
+            gq7_gnss_1_antenna_link:
+              Value: false
+            gq7_gnss_2_antenna_link:
+              Value: false
+            gq7_odometer_link:
+              Value: false
+            gyro_link:
+              Value: false
+            imu_link:
+              Value: false
+            inertial_link:
+              Value: false
+            left_track:
+              Value: false
+            map:
+              Value: true
+            odom:
+              Value: false
+            right_track:
+              Value: false
+            sat_map:
+              Value: false
+            sprayer_link:
+              Value: false
+          Marker Scale: 5
           Name: tf
           Show Arrows: false
           Show Axes: true
-          Show Names: false
+          Show Names: true
           Tree:
-            {}
+            map:
+              apple_orchard:
+                apple_orchard_view:
+                  {}
+              odom:
+                base_footprint:
+                  base_link:
+                    base_scan_front_multilayer:
+                      base_scan_front_multilayer_imu:
+                        {}
+                      base_scan_front_multilayer_lidar:
+                        {}
+                    base_scan_front_multilayer_sim:
+                      {}
+                    base_scan_rear_multilayer:
+                      base_scan_rear_multilayer_imu:
+                        {}
+                      base_scan_rear_multilayer_lidar:
+                        {}
+                    base_scan_rear_multilayer_sim:
+                      {}
+                    gnss_1_link:
+                      {}
+                    gnss_2_link:
+                      {}
+                    imu_link:
+                      accelerometer_link:
+                        {}
+                      gq7_gnss_1_antenna_link:
+                        {}
+                      gq7_gnss_2_antenna_link:
+                        {}
+                      gq7_odometer_link:
+                        {}
+                      gyro_link:
+                        {}
+                    inertial_link:
+                      {}
+                    left_track:
+                      {}
+                    right_track:
+                      {}
+                    sprayer_link:
+                      {}
+              sat_map:
+                {}
           Update Interval: 0
-          Value: false
+          Value: true
         - Alpha: 0.10000000149011612
           Class: rviz_default_plugins/RobotModel
           Collision Enabled: false
@@ -1763,7 +1861,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: vineyard
+    Fixed Frame: apple_orchard
     Frame Rate: 30
   Name: root
   Tools:
@@ -1799,7 +1897,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.5709999799728394
+      Angle: 1.6589988470077515
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -1809,11 +1907,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 153.29632568359375
+      Scale: 77.15220642089844
       Target Frame: base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0
-      Y: 0
+      X: 2.346163272857666
+      Y: 1.159965991973877
     Saved: ~
 Window Geometry:
   AgroSenseBot:
@@ -1822,14 +1920,14 @@ Window Geometry:
     collapsed: true
   Displays:
     collapsed: true
-  Height: 1366
+  Height: 1523
   Help:
     collapsed: false
   Hide Left Dock: true
   Hide Right Dock: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000196000004bdfc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e7000002bd000000c900fffffffb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c0065007300000003aa000001500000015000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000001c1000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d000004bd0000044800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d0065010000000000000450000000000000000000000339000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001960000055afc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e70000032e000000c900fffffffb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c00650073000000041b0000017c0000015000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000001c10000055afc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d0000055a0000044800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d00650100000000000004500000000000000000000003390000055a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -1840,4 +1938,4 @@ Window Geometry:
     collapsed: true
   Width: 1280
   X: 1280
-  Y: 0
+  Y: 40

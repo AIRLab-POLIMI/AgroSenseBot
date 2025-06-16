@@ -1,7 +1,7 @@
 <launch>
 
   <node pkg="asb_nav" exec="geofence_maker.py" name="geofence_maker">
-    <param name="fixed_frame" value="vineyard" />
+    <param name="fixed_frame" value="apple_orchard" />
     <param name="geofence_file_path" value="$(find-pkg-share asb_nav)/config/local_data/arcagna/geofence.yaml" />
   </node>
 

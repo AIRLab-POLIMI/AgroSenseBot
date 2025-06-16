@@ -56,7 +56,7 @@ microstrain_inertial_driver:
     filter_relative_position_config: True
     filter_relative_position_frame: 2
     filter_relative_position_source: 1
-    filter_relative_position_ref: [45.502924, 9.016230, 0.0]
+    filter_relative_position_ref: [45.3381911, 9.4515854, 0.0]
 
 
     # Antenna #1 lever arm offset source
