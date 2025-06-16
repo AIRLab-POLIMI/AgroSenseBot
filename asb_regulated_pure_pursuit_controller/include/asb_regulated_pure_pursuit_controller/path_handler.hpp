@@ -30,77 +30,70 @@
 #include "nav2_core/controller_exceptions.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 
-namespace asb_regulated_pure_pursuit_controller
-{
+namespace asb_regulated_pure_pursuit_controller {
 
 /**
  * @class asb_regulated_pure_pursuit_controller::PathHandler
  * @brief Handles input paths to transform them to local frames required
  */
-class PathHandler
-{
+class PathHandler {
 public:
-  /**
-   * @brief Constructor for asb_regulated_pure_pursuit_controller::PathHandler
-   */
-  PathHandler(
-    tf2::Duration transform_tolerance,
-    std::shared_ptr<tf2_ros::Buffer> tf,
-    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros);
+    /**
+     * @brief Constructor for asb_regulated_pure_pursuit_controller::PathHandler
+     */
+    PathHandler(tf2::Duration transform_tolerance, std::shared_ptr<tf2_ros::Buffer> tf, std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros);
 
-  /**
-   * @brief Destructor for asb_regulated_pure_pursuit_controller::PathHandler
-   */
-  ~PathHandler() = default;
+    /**
+     * @brief Destructor for asb_regulated_pure_pursuit_controller::PathHandler
+     */
+    ~PathHandler() = default;
 
-  /**
-   * @brief Transforms global plan into same frame as pose and clips poses ineligible for lookaheadPoint
-   * Points ineligible to be selected as a lookahead point if they are any of the following:
-   * - Outside the local_costmap (collision avoidance cannot be assured)
-   * @param pose pose to transform
-   * @param max_robot_pose_search_dist Distance to search for matching nearest path point
-   * @return Path in new frame
-   */
-  nav_msgs::msg::Path transformGlobalPlan(
-    const geometry_msgs::msg::PoseStamped & pose,
-    double max_robot_pose_search_dist);
+    /**
+     * @brief Transforms global plan into same frame as pose and clips poses ineligible for lookaheadPoint
+     * Points ineligible to be selected as a lookahead point if they are any of the following:
+     * - Outside the local_costmap (collision avoidance cannot be assured)
+     * @param pose pose to transform
+     * @param max_robot_pose_search_dist Distance to search for matching nearest path point
+     * @return Path in new frame
+     */
+    nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist, bool prune);
 
-  /**
-   * @brief Transform a pose to another frame.
-   * @param frame Frame ID to transform to
-   * @param in_pose Pose input to transform
-   * @param out_pose transformed output
-   * @return bool if successful
-   */
-  bool transformPose(
-    const std::string frame,
-    const geometry_msgs::msg::PoseStamped & in_pose,
-    geometry_msgs::msg::PoseStamped & out_pose) const;
+    /**
+     * @brief Transform a pose to another frame.
+     * @param frame Frame ID to transform to
+     * @param in_pose Pose input to transform
+     * @param out_pose transformed output
+     * @return bool if successful
+     */
+    bool transformPose(const std::string frame, const geometry_msgs::msg::PoseStamped &in_pose, geometry_msgs::msg::PoseStamped &out_pose) const;
 
-  void setPlan(const nav_msgs::msg::Path & path) {global_plan_ = path;}
+    void setPlan(const nav_msgs::msg::Path &path) { global_plan_ = path; }
 
-  nav_msgs::msg::Path getPlan() {return global_plan_;}
+    nav_msgs::msg::Path getPlan() { return global_plan_; }
+
+    geometry_msgs::msg::Pose getGoalInFixedFrame();
 
 protected:
-  /**
-   * Get the greatest extent of the costmap in meters from the center.
-   * @return max of distance from center in meters to edge of costmap
-   */
-  double getCostmapMaxExtent() const;
+    /**
+     * Get the greatest extent of the costmap in meters from the center.
+     * @return max of distance from center in meters to edge of costmap
+     */
+    double getCostmapMaxExtent() const;
 
-  /**
-   * Find a cusp in the path between begin and end.
-   * @param begin begin iterator of the path
-   * @param end end iterator of the path
-   * @return the iterator past the pose where there is a cusp, or the end iterator if there is no cusp
-   */
-  template<typename Iter> Iter findCusp(Iter begin, Iter end);
+    /**
+     * Find a cusp in the path between begin and end.
+     * @param begin begin iterator of the path
+     * @param end end iterator of the path
+     * @return the iterator past the pose where there is a cusp, or the end iterator if there is no cusp
+     */
+    template<typename Iter>
+    Iter findCusp(Iter begin, Iter end);
 
-  rclcpp::Logger logger_ {rclcpp::get_logger("RPPPathHandler")};
-  tf2::Duration transform_tolerance_;
-  std::shared_ptr<tf2_ros::Buffer> tf_;
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
-  nav_msgs::msg::Path global_plan_;
+    rclcpp::Logger logger_{rclcpp::get_logger("RPPPathHandler")};
+    tf2::Duration transform_tolerance_;
+    std::shared_ptr<tf2_ros::Buffer> tf_;
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
+    nav_msgs::msg::Path global_plan_;
 };
 
 }  // namespace asb_regulated_pure_pursuit_controller

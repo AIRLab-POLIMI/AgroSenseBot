@@ -13,6 +13,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPo
 from rclpy.time import Time
 from rclpy.node import Node
 from rclpy.duration import Duration
+from microstrain_inertial_msgs.msg import MipGnssFixInfo, MipFilterGnssDualAntennaStatus
 from asb_msgs.msg import Heartbeat, PlatformState
 from std_msgs.msg import String, Header
 
@@ -120,6 +121,9 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('scan_heartbeat_timeout', rclpy.Parameter.Type.DOUBLE)
         self.scan_heartbeat_timeout = Duration(seconds=self.get_parameter('scan_heartbeat_timeout').get_parameter_value().double_value)
 
+        self.declare_parameter('gnss_status_timeout', rclpy.Parameter.Type.DOUBLE)
+        self.gnss_status_timeout = Duration(seconds=self.get_parameter('gnss_status_timeout').get_parameter_value().double_value)
+
         self.declare_parameter('start_spray_regulator_timeout', rclpy.Parameter.Type.DOUBLE)
         self.start_spray_regulator_timeout = self.get_parameter('start_spray_regulator_timeout').get_parameter_value().double_value
 
@@ -159,10 +163,19 @@ class SprayingTaskPlanExecutor(Node):
         self.start_navigation_action_chrono: Chronometer | None = None
         self.nav_chrono: Chronometer | None = None
         self.start_spray_regulator_chrono: Chronometer | None = None
+        self.inter_row_navigation_complete_pause_chrono: Chronometer | None = None
+        self.straightening_navigation_complete_pause_chrono: Chronometer | None = None
+        self.failed_straightening_navigation_attempts: int = 0
+        self.positioning_navigation_complete_pause_chrono: Chronometer | None = None
+        self.positioning_navigation_complete_pause_duration: float = 0.0
+        self.failed_positioning_navigation_attempts: int = 0
         self.heartbeat_alive_bit: bool = False
         self.last_platform_status_msg: PlatformState | None = None
         self.last_scan_heartbeat_front_msg: PlatformState | None = None
         self.last_scan_heartbeat_rear_msg: PlatformState | None = None
+        self.last_gnss_1_fix_status_msg: MipGnssFixInfo | None = None
+        self.last_gnss_2_fix_status_msg: MipGnssFixInfo | None = None
+        self.last_gnss_dual_antenna_fix_status_msg: MipFilterGnssDualAntennaStatus | None = None
         self.stop_platform: bool = True
 
         # managers
@@ -176,19 +189,22 @@ class SprayingTaskPlanExecutor(Node):
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
             history=HistoryPolicy.KEEP_LAST,
-            depth=10
+            depth=10,
         )
         qos_reliable_volatile_depth_1 = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.VOLATILE,
             history=HistoryPolicy.KEEP_LAST,
-            depth=10
+            depth=1,
         )
-        self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', rclpy.qos.qos_profile_sensor_data)
+        self.heartbeat_pub = self.create_publisher(Heartbeat, '/asb_platform_controller/heartbeat', qos_reliable_volatile_depth_1)
         self.current_item_pub = self.create_publisher(String, '~/current_item', qos_reliable_transient_local_depth_10)
-        self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, 10)
+        self.platform_status_sub = self.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self.platform_status_callback, qos_reliable_volatile_depth_1)
         self.scan_heartbeat_front_sub = self.create_subscription(Header, '/scan_heartbeat_front', self.scan_heartbeat_front_callback, qos_reliable_volatile_depth_1)
         self.scan_heartbeat_rear_sub = self.create_subscription(Header, '/scan_heartbeat_rear', self.scan_heartbeat_rear_callback, qos_reliable_volatile_depth_1)
+        self.gnss_1_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_1/fix_info', self.gnss_1_fix_status_callback, qos_reliable_volatile_depth_1)
+        self.gnss_2_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_2/fix_info', self.gnss_2_fix_status_callback, qos_reliable_volatile_depth_1)
+        self.gnss_dual_antenna_fix_status_sub = self.create_subscription(MipFilterGnssDualAntennaStatus, '/mip/ekf/gnss_dual_antenna_status', self.gnss_dual_antenna_fix_status_callback, qos_reliable_volatile_depth_1)
         self.loop_rate = self.create_rate(self.target_loop_rate)
 
         positioning_approach_sm = StateMachine(outcomes=['success', 'failure'])
@@ -249,11 +265,26 @@ class SprayingTaskPlanExecutor(Node):
             StateMachine.add(
                 label='wait_positioning_navigation_complete',
                 state=CallbackState(self.wait_positioning_navigation_complete_sm_cb, class_instance=self), transitions={
-                    'success': 'success',
+                    'success': 'positioning_navigation_complete_pause',
                     'waiting': 'wait_positioning_navigation_complete',
                     'stop': 'stop_navigation',
                     'plan_invalid': 'stop_navigation',
+                    'soft_failure': 'retry_positioning_navigation',
                     'failure': 'failure',
+                }
+            )
+            StateMachine.add(
+                label='retry_positioning_navigation',
+                state=CallbackState(self.retry_positioning_navigation_sm_cb, class_instance=self), transitions={
+                    'retry': 'start_planning_positioning_approach',
+                    'give_up': 'failure',
+                }
+            )
+            StateMachine.add(
+                label='positioning_navigation_complete_pause',
+                state=CallbackState(self.positioning_navigation_complete_pause_sm_cb, class_instance=self), transitions={
+                    'success': 'success',
+                    'waiting': 'positioning_navigation_complete_pause',
                 }
             )
             StateMachine.add(
@@ -286,7 +317,21 @@ class SprayingTaskPlanExecutor(Node):
                     'success': 'success',
                     'waiting': 'wait_straightening_navigation_complete',
                     'stop': 'stop_navigation',
-                    'failure': 'failure',
+                    'failure': 'retry_straightening_navigation',
+                }
+            )
+            StateMachine.add(
+                label='retry_straightening_navigation',
+                state=CallbackState(self.retry_straightening_navigation_sm_cb, class_instance=self), transitions={
+                    'retry': 'start_straightening_approach',
+                    'give_up': 'failure',
+                }
+            )
+            StateMachine.add(
+                label='straightening_navigation_complete_pause',
+                state=CallbackState(self.straightening_navigation_complete_pause_sm_cb, class_instance=self), transitions={
+                    'success': 'success',
+                    'waiting': 'straightening_navigation_complete_pause',
                 }
             )
             StateMachine.add(
@@ -345,6 +390,13 @@ class SprayingTaskPlanExecutor(Node):
                     'spraying_failure': 'stop_navigation',
                     'stop': 'stop_navigation',
                     'failure': 'failure',
+                }
+            )
+            StateMachine.add(
+                label='inter_row_navigation_complete_pause',
+                state=CallbackState(self.inter_row_navigation_complete_pause_sm_cb, class_instance=self), transitions={
+                    'success': 'success',
+                    'waiting': 'inter_row_navigation_complete_pause',
                 }
             )
             StateMachine.add(
@@ -515,6 +567,7 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_planning_positioning_approach_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nPOSITIONING")
         self.start_planning_action_chrono = Chronometer()
         self.planning_chrono = Chronometer()
         self.navigation_manager.plan_positioning_approach(self.current_item)
@@ -552,7 +605,7 @@ class SprayingTaskPlanExecutor(Node):
             return 'success'
 
         if self.navigation_manager.planning_action_status == NavigationActionStatus.FAILED:
-            self.get_logger().error(f"planning failed after {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.get_logger().warn(f"planning failed after {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             return 'cannot_plan'
 
         return 'waiting'
@@ -563,7 +616,7 @@ class SprayingTaskPlanExecutor(Node):
         self.clear_global_costmap_for_replanning_chrono = Chronometer()
 
         if self.clear_global_costmap_for_replanning_count >= self.clear_global_costmap_for_replanning_max_retries:
-            self.get_logger().warn(f"max attempts reached for clearing global costmap for replanning [{self.clear_global_costmap_for_replanning_max_retries}] for item {self.current_item.get_item_id()}")
+            self.get_logger().error(f"max attempts reached for clearing global costmap for replanning [{self.clear_global_costmap_for_replanning_max_retries}] for item {self.current_item.get_item_id()}")
             self.clear_global_costmap_for_replanning_count = 0
             return 'give_up'
         else:
@@ -608,13 +661,14 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_straightening_approach_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nSTRAIGHTENING")
         self.start_navigation_action_chrono = Chronometer()
         self.nav_chrono = Chronometer()
 
         self.navigation_manager.start_straightening_approach(self.current_item)
         return 'success'
 
-    @cb_interface(outcomes=['success', 'waiting', 'stop', 'plan_invalid', 'failure'])
+    @cb_interface(outcomes=['success', 'waiting', 'stop', 'plan_invalid', 'soft_failure', 'failure'])
     def wait_positioning_navigation_complete_sm_cb(self) -> str:
         self.do_loop_operations_and_sleep(current_item=self.current_item)
 
@@ -631,7 +685,13 @@ class SprayingTaskPlanExecutor(Node):
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.positioning_navigation_complete_pause_chrono = Chronometer()
+            self.failed_positioning_navigation_attempts = 0
             return 'success'
+
+        if self.navigation_manager.navigation_action_status == NavigationActionStatus.SOFT_FAILED:
+            self.get_logger().info(f"navigation soft-failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            return 'soft_failure'
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
             self.get_logger().error(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
@@ -641,6 +701,33 @@ class SprayingTaskPlanExecutor(Node):
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['retry', 'give_up'])
+    def retry_positioning_navigation_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        self.failed_positioning_navigation_attempts += 1
+
+        if self.failed_positioning_navigation_attempts < self.task_plan.max_positioning_navigation_attempts:
+            self.get_logger().info(f"retrying positioning navigation ({self.failed_positioning_navigation_attempts} / {self.task_plan.max_positioning_navigation_attempts}) for item {self.current_item.get_item_id()}")
+            return 'retry'
+
+        self.get_logger().error(f"positioning navigation failed {self.failed_positioning_navigation_attempts} times (max positioning navigation attempts: {self.task_plan.max_positioning_navigation_attempts}) for item {self.current_item.get_item_id()}. Giving up.")
+        self.failed_positioning_navigation_attempts = 0
+        return 'give_up'
+
+    @cb_interface(outcomes=['success', 'waiting'])
+    def positioning_navigation_complete_pause_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        if self.dry_run:
+            return 'success'
+
+        if self.positioning_navigation_complete_pause_chrono.total() > self.positioning_navigation_complete_pause_duration:
+            return 'success'
+        else:
+            self.get_logger().info(f"**** WAITING ****", throttle_duration_sec=0.1)
+            return 'waiting'
 
     @cb_interface(outcomes=['success', 'waiting', 'stop', 'failure'])
     def wait_straightening_navigation_complete_sm_cb(self) -> str:
@@ -652,16 +739,45 @@ class SprayingTaskPlanExecutor(Node):
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.straightening_navigation_complete_pause_chrono = Chronometer()
+            self.failed_straightening_navigation_attempts = 0
             return 'success'
 
-        if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
-            self.get_logger().error(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+        if self.navigation_manager.navigation_action_status in [NavigationActionStatus.SOFT_FAILED, NavigationActionStatus.FAILED]:
+            self.get_logger().info(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             return 'failure'
 
         if not self.get_control_mode() == ControlMode.AUTO:
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['retry', 'give_up'])
+    def retry_straightening_navigation_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        self.failed_straightening_navigation_attempts += 1
+
+        if self.failed_straightening_navigation_attempts < self.task_plan.max_straightening_navigation_attempts:
+            self.get_logger().info(f"retrying straightening navigation ({self.failed_straightening_navigation_attempts} / {self.task_plan.max_straightening_navigation_attempts}) for item {self.current_item.get_item_id()}")
+            return 'retry'
+
+        self.get_logger().error(f"straightening navigation failed {self.failed_straightening_navigation_attempts} times (max straightening navigation attempts: {self.task_plan.max_straightening_navigation_attempts}) for item {self.current_item.get_item_id()}. Giving up.")
+        self.failed_straightening_navigation_attempts = 0
+        return 'give_up'
+
+    @cb_interface(outcomes=['success', 'waiting'])
+    def straightening_navigation_complete_pause_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        if self.dry_run:
+            return 'success'
+
+        if self.straightening_navigation_complete_pause_chrono.total() > 5:
+            return 'success'
+        else:
+            self.get_logger().info(f"**** WAITING ****", throttle_duration_sec=0.1)
+            return 'waiting'
 
     @cb_interface(outcomes=['success'])
     def stop_navigation_sm_cb(self) -> str:
@@ -675,6 +791,7 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_spray_regulator_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nSPRAYING")
         self.start_spray_regulator_chrono = Chronometer()
         self.spraying_manager.start_spray_regulator(self.current_item)
         return 'success'
@@ -704,6 +821,7 @@ class SprayingTaskPlanExecutor(Node):
 
     @cb_interface(outcomes=['success', 'failure'])
     def start_inter_row_navigation_sm_cb(self) -> str:
+        self.get_logger().info(f"\n***\nINTER-ROW NAVIGATION")
         self.start_navigation_action_chrono = Chronometer()
         self.nav_chrono = Chronometer()
         self.navigation_manager.start_inter_row_navigation(self.current_item)
@@ -719,9 +837,10 @@ class SprayingTaskPlanExecutor(Node):
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation succeeded in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+            self.inter_row_navigation_complete_pause_chrono = Chronometer()
             return 'success'
 
-        if self.navigation_manager.navigation_action_status == NavigationActionStatus.FAILED:
+        if self.navigation_manager.navigation_action_status in [NavigationActionStatus.SOFT_FAILED, NavigationActionStatus.FAILED]:
             self.get_logger().error(f"navigation failed after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
             return 'failure'
 
@@ -733,6 +852,19 @@ class SprayingTaskPlanExecutor(Node):
             return 'stop'
 
         return 'waiting'
+
+    @cb_interface(outcomes=['success', 'waiting'])
+    def inter_row_navigation_complete_pause_sm_cb(self) -> str:
+        self.do_loop_operations_and_sleep(current_item=self.current_item)
+
+        if self.dry_run:
+            return 'success'
+
+        if self.inter_row_navigation_complete_pause_chrono.total() > 5:
+            return 'success'
+        else:
+            self.get_logger().info(f"**** WAITING ****", throttle_duration_sec=0.1)
+            return 'waiting'
 
     def run(self):
         self.main_sm.execute()
@@ -789,13 +921,22 @@ class SprayingTaskPlanExecutor(Node):
     def platform_status_callback(self, platform_status: PlatformState):
         self.last_platform_status_msg = platform_status
 
+    def gnss_1_fix_status_callback(self, msg: MipGnssFixInfo):
+        self.last_gnss_1_fix_status_msg = msg
+
+    def gnss_2_fix_status_callback(self, msg: MipGnssFixInfo):
+        self.last_gnss_2_fix_status_msg = msg
+
+    def gnss_dual_antenna_fix_status_callback(self, msg: MipFilterGnssDualAntennaStatus):
+        self.last_gnss_dual_antenna_fix_status_msg = msg
+
     def scan_heartbeat_front_callback(self, scan_heartbeat: Header):
         self.last_scan_heartbeat_front_msg = scan_heartbeat
 
     def scan_heartbeat_rear_callback(self, scan_heartbeat: Header):
         self.last_scan_heartbeat_rear_msg = scan_heartbeat
 
-    def get_control_mode(self):
+    def get_control_mode(self) -> ControlMode:
         platform_status_age = self.get_clock().now() - Time.from_msg(self.last_platform_status_msg.stamp)
         if platform_status_age > self.platform_status_timeout:
             self.get_logger().error(f"platform_status_age [{platform_status_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.platform_status_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
@@ -813,20 +954,57 @@ class SprayingTaskPlanExecutor(Node):
         return True
 
     def check_system_condition(self) -> bool:
-        if self.last_scan_heartbeat_front_msg is None or self.last_scan_heartbeat_rear_msg is None:
+        """
+        Check system condition is ok
+        :return: True if *all* required topics are not timed out and their value is acceptable for continuing the execution of the task
+        """
+        if self.last_scan_heartbeat_front_msg is None:
+            self.get_logger().info(f"waiting for scan_heartbeat_front (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+        if self.last_scan_heartbeat_rear_msg is None:
+            self.get_logger().info(f"waiting for scan_heartbeat_rear (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
 
-        scan_front_age = self.get_clock().now() - Time.from_msg(self.last_scan_heartbeat_front_msg.stamp)
-        scan_front_age_too_old = scan_front_age > self.scan_heartbeat_timeout
-        if scan_front_age_too_old:
-            self.get_logger().error(f"scan_front_age [{scan_front_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.scan_heartbeat_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+        if self.last_gnss_1_fix_status_msg is None:
+            self.get_logger().info(f"waiting for gnss_1_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+        if self.last_gnss_2_fix_status_msg is None:
+            self.get_logger().info(f"waiting for gnss_2_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+        if self.last_gnss_dual_antenna_fix_status_msg is None:
+            self.get_logger().info(f"waiting for gnss_dual_antenna_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
 
-        scan_rear_age = self.get_clock().now() - Time.from_msg(self.last_scan_heartbeat_rear_msg.stamp)
-        scan_rear_age_too_old = scan_rear_age > self.scan_heartbeat_timeout
-        if scan_rear_age_too_old:
-            self.get_logger().error(f"scan_rear_age [{scan_rear_age.nanoseconds/1e9:.3f} s] higher than timeout [{self.scan_heartbeat_timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+        def is_msg_timed_out(msg_name: str, stamp: Time, timeout: Duration) -> bool:
+            msg_age = self.get_clock().now() - stamp
+            msg_age_too_old = msg_age > timeout
+            if msg_age_too_old:
+                self.get_logger().error(f"{msg_name} age [{msg_age.nanoseconds/1e9:.3f} s] higher than timeout [{timeout.nanoseconds/1e9} s] (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return msg_age_too_old
 
-        return not scan_front_age_too_old and not scan_rear_age_too_old
+        if is_msg_timed_out(msg_name="scan_front", stamp=Time.from_msg(self.last_scan_heartbeat_front_msg.stamp), timeout=self.scan_heartbeat_timeout):
+            return False
+        if is_msg_timed_out(msg_name="scan_rear", stamp=Time.from_msg(self.last_scan_heartbeat_rear_msg.stamp), timeout=self.scan_heartbeat_timeout):
+            return False
+
+        if is_msg_timed_out(msg_name="gnss_1_fix_status", stamp=Time.from_msg(self.last_gnss_1_fix_status_msg.header.header.stamp), timeout=self.gnss_status_timeout):
+            return False
+        if is_msg_timed_out(msg_name="gnss_2_fix_status", stamp=Time.from_msg(self.last_gnss_2_fix_status_msg.header.header.stamp), timeout=self.gnss_status_timeout):
+            return False
+        if is_msg_timed_out(msg_name="gnss_dual_antenna_fix_status", stamp=Time.from_msg(self.last_gnss_dual_antenna_fix_status_msg.header.header.stamp), timeout=self.gnss_status_timeout):
+            return False
+
+        if self.last_gnss_1_fix_status_msg.fix_type != MipGnssFixInfo.FIX_TYPE_FIX_RTK_FIXED:
+            self.get_logger().error(f"gnss_1_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED (RTK fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+        if self.last_gnss_2_fix_status_msg.fix_type != MipGnssFixInfo.FIX_TYPE_FIX_RTK_FIXED:
+            self.get_logger().error(f"gnss_2_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED (RTK fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+        if self.last_gnss_dual_antenna_fix_status_msg.fix_type != MipFilterGnssDualAntennaStatus.FIX_TYPE_FIX_DA_FIXED:
+            self.get_logger().error(f"gnss_2_fix_status fix type is not FIX_TYPE_FIX_DA_FIXED (dual antenna fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+            return False
+
+        return True
 
     def stop_platform_and_wait_control_mode_manual_to_auto(self) -> None:
         if self.dry_run:

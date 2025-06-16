@@ -1,0 +1,54 @@
+map_frame: vineyard
+
+positioning_approach_planner_id: GridBased
+positioning_approach_controller_id: FollowPath
+positioning_approach_goal_checker_id: asb_goal_checker
+positioning_approach_progress_checker_id: simple_progress_checker
+max_positioning_navigation_attempts: 3
+
+straight_approach_controller_id: FollowPath
+straight_approach_goal_checker_id: asb_curvature_arc_goal_checker
+straight_approach_progress_checker_id: simple_progress_checker
+max_straightening_navigation_attempts: 3
+
+row_path_controller_id: FollowStraightPath
+row_path_goal_checker_id: asb_goal_checker
+row_path_progress_checker_id: simple_progress_checker
+
+path_pose_distance: 0.1
+
+alternate_rows: True
+switch_direction: True
+row_path_external_dist: 1.25  # distance of inter-row path from row when navigating on the outside (as opposed to between two rows)
+row_path_margin: 2.0  # distance of the positioning pose to the beginning of the rows
+row_approach_margin: 1.0  # distance between the straightening and positioning approach pose
+
+fan_velocity_target_rpm: 1200
+fan_velocity_threshold_rpm: 800
+max_canopy_width: 2.0
+canopy_roi_x_1: -0.25
+canopy_roi_x_2: 0.25
+
+hectare_ref_volume: 268.8  # [L] amount of liquid to spray per hectare for a vineyard of given inter_row and with a uniform canopy depth equal to canopy_ref_depth
+inter_row: 2.5
+canopy_ref_depth: 0.4
+
+canopy_layer_bounds: [0.35, 0.65, 0.95, 1.25, 1.55, 1.85, 2.15]
+
+rows:
+  - row_id: row_0
+    frame_id: vineyard
+    start_point:
+      x: 7.0
+      y: 0.0
+    end_point:
+      x: 14.0
+      y: 0.0
+  - row_id: row_1
+    frame_id: vineyard
+    start_point:
+      x: 7.0
+      y: -2.5
+    end_point:
+      x: 14.0
+      y: -2.5

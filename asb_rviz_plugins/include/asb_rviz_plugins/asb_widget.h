@@ -83,10 +83,15 @@ namespace asb_rviz_plugins
     ASBThermo* fan_controller_temperature_ = nullptr;
 
   private:
-    std::vector<QString> control_mode_string = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};
-    QString yel_bg = "QLabel {background-color: yellow;}";
     QString red_bg = "QLabel {background-color: red;}";
+    QString yel_bg = "QLabel {background-color: yellow;}";
+    QString blue_bg = "QLabel {background-color: cyan;}";
     QString no_bg = "QLabel {}";
+
+    std::vector<QString> control_mode_string_ = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};
+    std::vector<QString> control_mode_color_ = {no_bg, no_bg, blue_bg, red_bg};
+
+    std::vector<QString> alarm_descriptions_;
 
   };
 }

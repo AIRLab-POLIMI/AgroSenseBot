@@ -191,6 +191,12 @@ class SprayingManager:
         self._service_call_max_attempts: int = 3
 
         # publishers, subscribers and services
+        qos_reliable_volatile_depth_1 = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1,
+        )
         qos_reliable_transient_local = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
@@ -204,12 +210,12 @@ class SprayingManager:
             depth=10
         )
         self._tf_static_broadcaster = StaticTransformBroadcaster(node)
-        self._platform_state_sub = self._node.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self._platform_state_callback, qos_profile=rclpy.qos.qos_profile_sensor_data)
+        self._platform_state_sub = self._node.create_subscription(PlatformState, '/asb_platform_controller/platform_state', self._platform_state_callback, qos_profile=qos_reliable_volatile_depth_1)
         self._velocity_odom_sub = self._node.create_subscription(Odometry, 'velocity_odom', self._velocity_odom_callback, 1)
         self._canopy_data_sub = self._node.create_subscription(CanopyDataArray, 'canopy_data', self._canopy_data_callback, qos_reliable_transient_local_10)
         self._canopy_region_of_interest_pub = self._node.create_publisher(CanopyRegionOfInterest, 'canopy_region_of_interest', qos_profile=qos_reliable_transient_local)
-        self._fan_command_pub = self._node.create_publisher(FanCmd, '/asb_platform_controller/fan_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
-        self._pump_command_pub = self._node.create_publisher(PumpCmd, '/asb_platform_controller/pump_cmd', qos_profile=rclpy.qos.qos_profile_sensor_data)
+        self._fan_command_pub = self._node.create_publisher(FanCmd, '/asb_platform_controller/fan_cmd', qos_profile=qos_reliable_volatile_depth_1)
+        self._pump_command_pub = self._node.create_publisher(PumpCmd, '/asb_platform_controller/pump_cmd', qos_profile=qos_reliable_volatile_depth_1)
         self._canopy_depth_pub = self._node.create_publisher(CanopyLayerDepthArray, '/canopy_layer_depth', qos_profile=rclpy.qos.qos_profile_sensor_data)
         self._nozzles_command_pub = self._node.create_publisher(NozzleCommandArray, '/nozzles_command', qos_profile=rclpy.qos.qos_profile_sensor_data)
 

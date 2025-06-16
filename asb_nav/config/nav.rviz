@@ -4,13 +4,15 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Sensors1/front multilayer1/Autocompute Value Bounds1
         - /Sensors1/filtered front multilayer1/Topic1
         - /Sensors1/filtered front multilayer1/Autocompute Value Bounds1
         - /Sensors1/filtered rear multilayer1/Topic1
         - /Sensors1/filtered rear multilayer1/Autocompute Value Bounds1
         - /Global Planner1/expansions1/Namespaces1
-        - /Controller1/footprint1/Topic1
+        - /Controller1/overextended_goal_pose1/Topic1
+        - /Localization1/Odometry position1
         - /Localization1/Odometry position1/Shape1
         - /Localization1/gnss 11/Covariance1
         - /Localization1/gnss 11/Covariance1/Position1
@@ -21,8 +23,10 @@ Panels:
         - /Localization1/gnss 2 history1/Covariance1/Position1
         - /Task1/canopy_depth1/Namespaces1
         - /Interactive1/circle text1/Namespaces1
-      Splitter Ratio: 0.564039409160614
-    Tree Height: 647
+        - /goal checker1
+        - /goal checker1/angle_lookahead_arc1
+      Splitter Ratio: 0.5896103978157043
+    Tree Height: 570
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -42,7 +46,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: front
+    SyncSource: ""
   - Class: asb_rviz_plugins/AgroSenseBot
     Name: AgroSenseBot
   - Class: rviz_common/Help
@@ -78,116 +82,19 @@ Visualization Manager:
           Use Timestamp: false
           Value: false
         - Class: rviz_default_plugins/TF
-          Enabled: true
+          Enabled: false
           Frame Timeout: 15
           Frames:
             All Enabled: false
-            accelerometer_link:
-              Value: false
-            base_footprint:
-              Value: false
-            base_link:
-              Value: false
-            base_scan_front_multilayer:
-              Value: false
-            base_scan_front_multilayer_sim:
-              Value: false
-            base_scan_rear_multilayer:
-              Value: false
-            base_scan_rear_multilayer_sim:
-              Value: false
-            gnss_1_link:
-              Value: false
-            gnss_2_link:
-              Value: false
-            gyro_link:
-              Value: false
-            hedge:
-              Value: false
-            imu_link:
-              Value: false
-            inertial_link:
-              Value: false
-            inter_row_0:
-              Value: true
-            inter_row_0_row_1:
-              Value: true
-            inter_row_1:
-              Value: true
-            left_track:
-              Value: false
-            map:
-              Value: true
-            odom:
-              Value: false
-            right_track:
-              Value: false
-            row_0:
-              Value: true
-            row_1:
-              Value: true
-            sat_map:
-              Value: false
-            sprayer_link:
-              Value: false
-            vineyard:
-              Value: true
-            vineyard_view:
-              Value: false
           Marker Scale: 1
           Name: tf
           Show Arrows: false
           Show Axes: true
-          Show Names: true
+          Show Names: false
           Tree:
-            map:
-              hedge:
-                {}
-              odom:
-                base_footprint:
-                  base_link:
-                    base_scan_front_multilayer:
-                      {}
-                    base_scan_front_multilayer_sim:
-                      {}
-                    base_scan_rear_multilayer:
-                      {}
-                    base_scan_rear_multilayer_sim:
-                      {}
-                    gnss_1_link:
-                      {}
-                    gnss_2_link:
-                      {}
-                    imu_link:
-                      accelerometer_link:
-                        {}
-                      gyro_link:
-                        {}
-                    inertial_link:
-                      {}
-                    left_track:
-                      {}
-                    right_track:
-                      {}
-                    sprayer_link:
-                      {}
-              sat_map:
-                {}
-              vineyard:
-                inter_row_0:
-                  {}
-                inter_row_0_row_1:
-                  {}
-                inter_row_1:
-                  {}
-                row_0:
-                  {}
-                row_1:
-                  {}
-                vineyard_view:
-                  {}
+            {}
           Update Interval: 0
-          Value: true
+          Value: false
         - Alpha: 0.10000000149011612
           Class: rviz_default_plugins/RobotModel
           Collision Enabled: false
@@ -298,7 +205,7 @@ Visualization Manager:
           Reference Frame: <Fixed Frame>
           Value: true
         - Alpha: 0.05000000074505806
-          Cell Size: 0.05000000074505806
+          Cell Size: 0.10000000149011612
           Class: rviz_default_plugins/Grid
           Color: 160; 160; 164
           Enabled: true
@@ -673,7 +580,7 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: true
           Value: false
-      Enabled: true
+      Enabled: false
       Name: Sensors
     - Class: rviz_common/Group
       Displays:
@@ -703,14 +610,14 @@ Visualization Manager:
         - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 255; 0; 255
-          Enabled: true
+          Color: 255; 0; 0
+          Enabled: false
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
           Line Style: Billboards
-          Line Width: 0.019999999552965164
-          Name: Path
+          Line Width: 0.009999999776482582
+          Name: raw_plan
           Offset:
             X: 0
             Y: 0
@@ -726,19 +633,47 @@ Visualization Manager:
             Filter size: 10
             History Policy: Keep Last
             Reliability Policy: Reliable
-            Value: /plan
-          Value: true
+            Value: /unsmoothed_plan
+          Value: false
         - Alpha: 1
-          Buffer Length: 20
+          Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 255; 100; 255
+          Color: 255; 255; 0
           Enabled: true
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
           Line Style: Billboards
           Line Width: 0.009999999776482582
-          Name: Path history
+          Name: plan
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0.009999999776482582
+          Pose Color: 100; 100; 255
+          Pose Style: Arrows
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.009999999776482582
+          Shaft Length: 0
+          Topic:
+            Depth: 10
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /plan
+          Value: true
+        - Alpha: 1
+          Buffer Length: 10
+          Class: rviz_default_plugins/Path
+          Color: 255; 255; 255
+          Enabled: true
+          Head Diameter: 0.009999999776482582
+          Head Length: 0.009999999776482582
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.009999999776482582
+          Name: plan history
           Offset:
             X: 0
             Y: 0
@@ -793,8 +728,8 @@ Visualization Manager:
         - Alpha: 0.25
           Class: rviz_default_plugins/Polygon
           Color: 25; 255; 0
-          Enabled: true
-          Name: Polygon
+          Enabled: false
+          Name: footprint
           Topic:
             Depth: 5
             Durability Policy: Volatile
@@ -802,7 +737,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /global_costmap/published_footprint
-          Value: true
+          Value: false
         - Alpha: 0.009999999776482582
           Binary representation: false
           Binary threshold: 100
@@ -913,6 +848,34 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /local_costmap/published_footprint
           Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz_default_plugins/Path
+          Color: 255; 255; 0
+          Enabled: false
+          Head Diameter: 0.009999999776482582
+          Head Length: 0.009999999776482582
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.009999999776482582
+          Name: Path
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0.004999999888241291
+          Pose Color: 100; 100; 255
+          Pose Style: Arrows
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.009999999776482582
+          Shaft Length: 0
+          Topic:
+            Depth: 10
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/received_global_plan
+          Value: false
         - Alpha: 0.10000000149011612
           Buffer Length: 1
           Class: rviz_default_plugins/Path
@@ -941,41 +904,21 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /controller_server/received_global_plan
           Value: false
-        - Alpha: 0.5
-          Axes Length: 1
-          Axes Radius: 0.10000000149011612
-          Class: rviz_default_plugins/Pose
-          Color: 255; 0; 255
-          Enabled: true
-          Head Length: 0.05000000074505806
-          Head Radius: 0.10000000149011612
-          Name: rpp lookahead pose
-          Shaft Length: 0.10000000149011612
-          Shaft Radius: 0.05000000074505806
-          Shape: Arrow
-          Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            Filter size: 10
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /controller_server/lookahead_pose
-          Value: true
         - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 255; 0; 0
-          Enabled: true
+          Color: 255; 255; 0
+          Enabled: false
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
           Length: 0.30000001192092896
           Line Style: Billboards
-          Line Width: 0.03999999910593033
+          Line Width: 0.004999999888241291
           Name: lookahead arc
           Offset:
             X: 0
             Y: 0
-            Z: 0.10000000149011612
+            Z: 0.019999999552965164
           Pose Color: 255; 85; 255
           Pose Style: None
           Radius: 0.029999999329447746
@@ -988,11 +931,67 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /controller_server/lookahead_arc
-          Value: true
+          Value: false
+        - Alpha: 0.8999999761581421
+          Buffer Length: 1
+          Class: rviz_default_plugins/Path
+          Color: 200; 200; 255
+          Enabled: false
+          Head Diameter: 0.009999999776482582
+          Head Length: 0.009999999776482582
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.004999999888241291
+          Name: angle_lookahead_arc
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0.05000000074505806
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.004999999888241291
+          Shaft Length: 0.009999999776482582
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/angle_lookahead_arc
+          Value: false
+        - Alpha: 0.8999999761581421
+          Buffer Length: 1
+          Class: rviz_default_plugins/Path
+          Color: 255; 0; 0
+          Enabled: false
+          Head Diameter: 0.009999999776482582
+          Head Length: 0.009999999776482582
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.009999999776482582
+          Name: path_lookahead_arc
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0.05000000074505806
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.004999999888241291
+          Shaft Length: 0.009999999776482582
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/path_lookahead_arc
+          Value: false
         - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 0; 0; 255
+          Color: 255; 0; 255
           Enabled: true
           Head Diameter: 0.009999999776482582
           Head Length: 0.009999999776482582
@@ -1045,17 +1044,17 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /controller_server/lookahead_collision_arc
           Value: false
-        - Alpha: 0.5
+        - Alpha: 1
           Axes Length: 1
           Axes Radius: 0.10000000149011612
           Class: rviz_default_plugins/Pose
-          Color: 255; 25; 0
+          Color: 255; 0; 255
           Enabled: true
           Head Length: 0.05000000074505806
-          Head Radius: 0.10000000149011612
-          Name: goal pose
-          Shaft Length: 0.10000000149011612
-          Shaft Radius: 0.05000000074505806
+          Head Radius: 0.05000000074505806
+          Name: goal_pose
+          Shaft Length: 0.05000000074505806
+          Shaft Radius: 0.019999999552965164
           Shape: Arrow
           Topic:
             Depth: 5
@@ -1069,13 +1068,73 @@ Visualization Manager:
           Axes Length: 1
           Axes Radius: 0.10000000149011612
           Class: rviz_default_plugins/Pose
-          Color: 0; 255; 200
-          Enabled: true
+          Color: 255; 0; 255
+          Enabled: false
           Head Length: 0.05000000074505806
-          Head Radius: 0.10000000149011612
+          Head Radius: 0.05000000074505806
+          Name: stop_pose
+          Shaft Length: 0.05000000074505806
+          Shaft Radius: 0.019999999552965164
+          Shape: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/stop_pose
+          Value: false
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 0.10000000149011612
+          Class: rviz_default_plugins/Pose
+          Color: 255; 255; 0
+          Enabled: false
+          Head Length: 0.05000000074505806
+          Head Radius: 0.05000000074505806
+          Name: lookahead_pose
+          Shaft Length: 0.05000000074505806
+          Shaft Radius: 0.019999999552965164
+          Shape: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/lookahead_pose
+          Value: false
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 0.10000000149011612
+          Class: rviz_default_plugins/Pose
+          Color: 200; 200; 255
+          Enabled: false
+          Head Length: 0.05000000074505806
+          Head Radius: 0.05000000074505806
+          Name: angle_lookahead_pose
+          Shaft Length: 0.05000000074505806
+          Shaft Radius: 0.019999999552965164
+          Shape: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/angle_lookahead_pose
+          Value: false
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 0.10000000149011612
+          Class: rviz_default_plugins/Pose
+          Color: 255; 255; 0
+          Enabled: false
+          Head Length: 0.05000000074505806
+          Head Radius: 0.05000000074505806
           Name: angle goal pose
-          Shaft Length: 0.10000000149011612
-          Shaft Radius: 0.05000000074505806
+          Shaft Length: 0.05000000074505806
+          Shaft Radius: 0.019999999552965164
           Shape: Arrow
           Topic:
             Depth: 5
@@ -1084,7 +1143,27 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /controller_server/angle_goal_pose
-          Value: true
+          Value: false
+        - Alpha: 1
+          Axes Length: 1
+          Axes Radius: 0.10000000149011612
+          Class: rviz_default_plugins/Pose
+          Color: 255; 0; 0
+          Enabled: false
+          Head Length: 0.05000000074505806
+          Head Radius: 0.05000000074505806
+          Name: overextended_goal_pose
+          Shaft Length: 0.05000000074505806
+          Shaft Radius: 0.019999999552965164
+          Shape: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/overextended_goal_pose
+          Value: false
         - Alpha: 1
           Class: rviz_default_plugins/Polygon
           Color: 25; 255; 0
@@ -1119,7 +1198,7 @@ Visualization Manager:
               Scale: 1
               Value: true
             Value: false
-          Enabled: false
+          Enabled: true
           Keep: 1000
           Name: Odometry position
           Position Tolerance: 0.10000000149011612
@@ -1127,7 +1206,7 @@ Visualization Manager:
             Alpha: 1
             Axes Length: 0.10000000149011612
             Axes Radius: 0.009999999776482582
-            Color: 0; 0; 255
+            Color: 0; 255; 0
             Head Length: 0.02500000037252903
             Head Radius: 0.02500000037252903
             Shaft Length: 0
@@ -1140,7 +1219,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /odom
-          Value: false
+          Value: true
         - Angle Tolerance: 0.05000000074505806
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1275,7 +1354,7 @@ Visualization Manager:
               Scale: 0.05000000074505806
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: gnss 1 history
           Position Tolerance: 0.20000000298023224
@@ -1296,7 +1375,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_1/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1353,7 +1432,7 @@ Visualization Manager:
               Scale: 0.05000000074505806
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1000
           Name: gnss 2 history
           Position Tolerance: 0.20000000298023224
@@ -1374,7 +1453,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_2/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1423,7 +1502,7 @@ Visualization Manager:
           Axes Length: 0.30000001192092896
           Axes Radius: 0.009999999776482582
           Class: rviz_default_plugins/PoseArray
-          Color: 255; 25; 0
+          Color: 255; 255; 0
           Enabled: true
           Head Length: 0.10000000149011612
           Head Radius: 0.10000000149011612
@@ -1469,8 +1548,7 @@ Visualization Manager:
           Enabled: true
           Name: canopy_depth
           Namespaces:
-            row_0: true
-            row_1: true
+            {}
           Topic:
             Depth: 5
             Durability Policy: Transient Local
@@ -1478,35 +1556,7 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /canopy_visualization_markers
           Value: true
-        - Class: rviz_default_plugins/Image
-          Enabled: false
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: row_0 depth
-          Normalize Range: true
-          Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /canopy_data_viz/row_0
-          Value: false
-        - Class: rviz_default_plugins/Image
-          Enabled: false
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: row_1 depth
-          Normalize Range: true
-          Topic:
-            Depth: 5
-            Durability Policy: Volatile
-            History Policy: Keep Last
-            Reliability Policy: Reliable
-            Value: /canopy_data_viz/row_1
-          Value: false
-      Enabled: true
+      Enabled: false
       Name: Task
     - Class: rviz_common/Group
       Displays:
@@ -1644,6 +1694,72 @@ Visualization Manager:
           Value: true
       Enabled: true
       Name: Interactive
+    - Class: rviz_common/Group
+      Displays:
+        - Alpha: 1
+          Arrow Length: 0.30000001192092896
+          Axes Length: 0.30000001192092896
+          Axes Radius: 0.009999999776482582
+          Class: rviz_default_plugins/PoseArray
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.07000000029802322
+          Head Radius: 0.029999999329447746
+          Name: PoseArray
+          Shaft Length: 0.23000000417232513
+          Shaft Radius: 0.009999999776482582
+          Shape: Axes
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/constraint_intersection_poses
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/Polygon
+          Color: 25; 255; 0
+          Enabled: true
+          Name: Polygon
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/constraints
+          Value: true
+        - Alpha: 0.20000000298023224
+          Buffer Length: 100
+          Class: rviz_default_plugins/Path
+          Color: 200; 200; 255
+          Enabled: true
+          Head Diameter: 0.009999999776482582
+          Head Length: 0.009999999776482582
+          Length: 0.30000001192092896
+          Line Style: Billboards
+          Line Width: 0.004999999888241291
+          Name: angle_lookahead_arc
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0.05000000074505806
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.004999999888241291
+          Shaft Length: 0.009999999776482582
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/angle_lookahead_arc
+          Value: true
+      Enabled: true
+      Name: goal checker
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1683,7 +1799,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.5599991083145142
+      Angle: -1.5709999799728394
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -1693,27 +1809,27 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 34.90496826171875
-      Target Frame: <Fixed Frame>
+      Scale: 153.29632568359375
+      Target Frame: base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 8.24793815612793
-      Y: -1.8191567659378052
+      X: 0
+      Y: 0
     Saved: ~
 Window Geometry:
   AgroSenseBot:
-    collapsed: true
+    collapsed: false
   AgroSenseBotNozzles:
     collapsed: true
   Displays:
-    collapsed: false
+    collapsed: true
   Height: 1366
   Help:
     collapsed: false
-  Hide Left Dock: false
-  Hide Right Dock: true
+  Hide Left Dock: true
+  Hide Right Dock: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000156000004bdfc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000002800fffffffb000000160072006f0077005f003000200064006500700074006800000000b8000000880000002800fffffffb0000000a00560069006500770073010000003d000001ad000000a400fffffffb000000100044006900730070006c00610079007301000001f00000030a000000c900fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000001c1000004bdfc0200000003fc0000003d000004bd0000000000fffffffaffffffff0100000002fb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c006500730000000000ffffffff0000019600fffffffb00000018004100670072006f00530065006e007300650042006f0074000000033f000001c1000001c100fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d00650100000000000004500000000000000000000003a4000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000196000004bdfc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e7000002bd000000c900fffffffb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c0065007300000003aa000001500000015000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00ffffff00000001000001c1000004bdfc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d000004bd0000044800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000075fc0100000003fb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d0065010000000000000450000000000000000000000339000004bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -1721,11 +1837,7 @@ Window Geometry:
   Tool Properties:
     collapsed: false
   Views:
-    collapsed: false
+    collapsed: true
   Width: 1280
   X: 1280
   Y: 0
-  row_0 depth:
-    collapsed: false
-  row_1 depth:
-    collapsed: false

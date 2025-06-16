@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
+
 import numpy as np
 
 import rclpy
+from nav2_msgs.action._follow_path import FollowPath_Result, FollowPath_Goal
 from rclpy import Future
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 from rclpy.client import Client
@@ -42,7 +45,8 @@ class NavigationActionStatus(Enum):
     FAILED_TO_START = 2
     IN_PROGRESS = 3
     SUCCEEDED = 4
-    FAILED = 5
+    SOFT_FAILED = 5
+    FAILED = 6
 
 
 class NavigationPlanValidity(Enum):
@@ -84,6 +88,9 @@ class NavigationManager:
         self._node.declare_parameter('check_plan_validity_rate', rclpy.Parameter.Type.DOUBLE)
         self._check_plan_validity_rate = self._node.get_parameter('check_plan_validity_rate').get_parameter_value().double_value
 
+        self._node.declare_parameter('print_navigation_feedback', rclpy.Parameter.Type.BOOL)
+        self._print_navigation_feedback = self._node.get_parameter('print_navigation_feedback').get_parameter_value().bool_value
+
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self._node)
 
@@ -93,8 +100,7 @@ class NavigationManager:
         self.plan_validity: NavigationPlanValidity = NavigationPlanValidity.UNKNOWN
         self._planned_path: Path | None = None
         self._plan_is_valid_request_chrono: Chronometer = Chronometer()
-        self._approach_poses_viz = PoseArray(header=Header(frame_id=self._node.task_plan.map_frame))
-        self._last_robot_pose_stamped: PoseStamped | None = None
+        self._approach_poses_viz = PoseArray()
 
         # publishers, subscribers, timers and loop rate
         qos_reliable_transient_local_depth_10 = QoSProfile(
@@ -107,6 +113,7 @@ class NavigationManager:
         # viz publishers
         self._approach_poses_viz_pub = self._node.create_publisher(PoseArray, '/approach_poses', qos_reliable_transient_local_depth_10)
         self._path_viz_pub = self._node.create_publisher(Path, '/plan', qos_reliable_transient_local_depth_10)
+        self._approach_path_viz_pub = self._node.create_publisher(Path, '/approach_plan', qos_reliable_transient_local_depth_10)
         self._row_left_viz_pub = self._node.create_publisher(PolygonStamped, '/row_left_viz', qos_reliable_transient_local_depth_10)
         self._row_right_viz_pub = self._node.create_publisher(PolygonStamped, '/row_right_viz', qos_reliable_transient_local_depth_10)
 
@@ -162,13 +169,13 @@ class NavigationManager:
             )
         )
 
-        self._approach_poses_viz.poses.append(positioning_approach_pose_stamped.pose)
+        self._approach_poses_viz.poses = [positioning_approach_pose_stamped.pose]
+        self._approach_poses_viz.header.frame_id = positioning_approach_pose_stamped.header.frame_id
         self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
         if self._node.dry_run:
             self.planning_action_status = NavigationActionStatus.SUCCEEDED
-            self._last_robot_pose_stamped = positioning_approach_pose_stamped
         else:
             self._execute_compute_path_to_pose_action(
                 goal_pose=positioning_approach_pose_stamped,
@@ -206,44 +213,46 @@ class NavigationManager:
         if item.get_type() != TaskPlanItemType.ROW:
             self._node.get_logger().error(f"only ROW items should be used with state machine task executor")
 
-        self._node.get_logger().info(f"STARTING straightening approach navigation for {item.get_item_id()}")
+        def make_pose_stamped(x: float):
+            return PoseStamped(
+                header=Header(
+                    frame_id=approach_frame_id,
+                    stamp=self._node.get_clock().now().to_msg(),
+                ),
+                pose=Pose(
+                    position=Point(x=x, y=0.0),
+                    orientation=Quaternion(w=1.0),
+                )
+            )
 
         approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
-        straightening_approach_pose_stamped = PoseStamped(
-            header=Header(
-                frame_id=approach_frame_id,
-                stamp=self._node.get_clock().now().to_msg(),
-            ),
-            pose=Pose(
-                position=Point(x=-self._node.task_plan.row_approach_margin, y=0.0),
-                orientation=Quaternion(w=1.0),
-            )
-        )
 
-        self._approach_poses_viz.poses.append(straightening_approach_pose_stamped.pose)
+        if self._node.task_plan.straight_approach_controller_id == "FollowPath":  # repeated straight path alignment
+            start_pose_stamped = make_pose_stamped(0.0)
+            mid_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+            goal_pose_stamped = make_pose_stamped(0.0)
+            straight_approach_path = self._make_path([start_pose_stamped, mid_pose_stamped, goal_pose_stamped])
+        elif self._node.task_plan.straight_approach_controller_id == "RotateToPath":  # rotate to path
+            start_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+            goal_pose_stamped = make_pose_stamped(self._node.task_plan.row_approach_margin)
+            straight_approach_path = self._make_path([start_pose_stamped, goal_pose_stamped])
+        else:
+            start_pose_stamped = make_pose_stamped(0.0)
+            goal_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+            straight_approach_path = self._make_path([start_pose_stamped, goal_pose_stamped])
+
+        self._approach_poses_viz.poses = [goal_pose_stamped.pose]
+        self._approach_poses_viz.header.frame_id = goal_pose_stamped.header.frame_id
         self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
-        if self._node.dry_run:
-            if self._last_robot_pose_stamped is not None:
-                start_pose = self._transform_pose_stamped(self._last_robot_pose_stamped, frame_id=approach_frame_id, timeout=0.1)
-            else:
-                start_pose = straightening_approach_pose_stamped
-            self._last_robot_pose_stamped = straightening_approach_pose_stamped
-        else:
-            start_pose = self.get_robot_pose(timeout=0.1, frame_id=approach_frame_id)
-            if start_pose is None:
-                self._node.get_logger().error(f"could not get robot pose for straight approach item {item.get_item_id()}")
-                self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
-                return
-
-        straight_approach_path = self._make_path([start_pose, straightening_approach_pose_stamped])
         if straight_approach_path is None:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
 
         self._path_viz_pub.publish(straight_approach_path)
 
+        self._node.get_logger().info(f"starting straightening approach navigation for {item.get_item_id()} using controller_id={self._node.task_plan.straight_approach_controller_id} goal_checker_id={self._node.task_plan.straight_approach_goal_checker_id}")
         if self._node.dry_run:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
@@ -304,25 +313,7 @@ class NavigationManager:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
 
-        if self._node.dry_run:
-            if self._last_robot_pose_stamped is not None:
-                start_pose = self._transform_pose_stamped(self._last_robot_pose_stamped, frame_id=row_waypoints[0].header.frame_id, timeout=0.1)
-            else:
-                start_pose = None
-            self._last_robot_pose_stamped = row_waypoints[-1]
-        else:
-            start_pose = self.get_robot_pose(timeout=0.1)
-            if start_pose is None:
-                self._node.get_logger().error(f"could not get robot pose for row item {item.get_item_id()}")
-                self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
-                return
-
-        if start_pose is not None:
-            row_poses = [start_pose] + row_waypoints
-        else:
-            row_poses = row_waypoints
-
-        row_path = self._make_path(row_poses)
+        row_path = self._make_path(row_waypoints)
         if row_path is None:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
@@ -333,7 +324,8 @@ class NavigationManager:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
             self._execute_follow_path_action(
-                path=row_path, controller_id=self._node.task_plan.row_path_controller_id,
+                path=row_path,
+                controller_id=self._node.task_plan.row_path_controller_id,
                 goal_checker_id=self._node.task_plan.row_path_goal_checker_id,
                 progress_checker_id=self._node.task_plan.row_path_progress_checker_id,
             )
@@ -403,7 +395,7 @@ class NavigationManager:
             int_points = list(np.linspace(
                 p1_array,
                 p2_array,
-                num=int(np.ceil(np.linalg.norm(p2_array - p1_array) / self._node.task_plan.row_path_pose_distance)),
+                num=int(np.ceil(np.linalg.norm(p2_array - p1_array) / self._node.task_plan.path_pose_distance)),
                 endpoint=i == len(poses_list) - 2
             ))
             interpolated_poses = list(map(
@@ -584,35 +576,61 @@ class NavigationManager:
     """
     def _follow_path_feedback_callback(self, msg) -> None:
         self._follow_path_feedback = msg.feedback
-        self._node.get_logger().info(
-            f"follow_path_feedback:\n"
-            f"    distance_to_goal:         {msg.feedback.distance_to_goal:.1f} m\n"
-            f"    speed:                    {msg.feedback.speed:.3f} m/s\n",
-            throttle_duration_sec=5.0
-        )
+        if self._print_navigation_feedback:
+            self._node.get_logger().info(
+                f"follow_path_feedback:\n"
+                f"    distance_to_goal:         {msg.feedback.distance_to_goal:.1f} m\n"
+                f"    speed:                    {msg.feedback.speed:.3f} m/s\n",
+                throttle_duration_sec=5.0
+            )
 
     """
      Receive the FollowPath action result.
     """
     def _follow_path_result_callback(self, future: Future) -> None:
         navigation_result_status = future.result().status
+        goal_result: FollowPath_Result = future.result().result
+        error_code_string = defaultdict(str, {
+            FollowPath_Goal.NONE: "NONE",
+            FollowPath_Goal.UNKNOWN: "UNKNOWN",
+            FollowPath_Goal.INVALID_CONTROLLER: "INVALID_CONTROLLER",
+            FollowPath_Goal.TF_ERROR: "TF_ERROR",
+            FollowPath_Goal.INVALID_PATH: "INVALID_PATH",
+            FollowPath_Goal.PATIENCE_EXCEEDED: "PATIENCE_EXCEEDED",
+            FollowPath_Goal.FAILED_TO_MAKE_PROGRESS: "FAILED_TO_MAKE_PROGRESS",
+            FollowPath_Goal.NO_VALID_CONTROL: "NO_VALID_CONTROL",
+        })
+
+        error_status_string = defaultdict(str, {
+            GoalStatus.STATUS_UNKNOWN: "STATUS_UNKNOWN",
+            GoalStatus.STATUS_ACCEPTED: "STATUS_ACCEPTED",
+            GoalStatus.STATUS_EXECUTING: "STATUS_EXECUTING",
+            GoalStatus.STATUS_CANCELING: "STATUS_CANCELING",
+            GoalStatus.STATUS_SUCCEEDED: "STATUS_SUCCEEDED",
+            GoalStatus.STATUS_CANCELED: "STATUS_CANCELED",
+            GoalStatus.STATUS_ABORTED: "STATUS_ABORTED",
+        })
+
         if navigation_result_status == GoalStatus.STATUS_SUCCEEDED:
-            self._node.get_logger().debug('follow_path action succeeded')
+            self._node.get_logger().debug("follow_path action succeeded")
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
-            self._node.get_logger().debug(f'follow_path action failed with status code: {navigation_result_status}')
-            self.navigation_action_status = NavigationActionStatus.FAILED
+            self._node.get_logger().info(f"follow_path action failed with status: {error_status_string[navigation_result_status]} error: {error_code_string[goal_result.error_code]}")
+            if goal_result.error_code == FollowPath_Goal.FAILED_TO_MAKE_PROGRESS:
+                self.navigation_action_status = NavigationActionStatus.SOFT_FAILED
+            else:
+                self.navigation_action_status = NavigationActionStatus.FAILED
 
     """
      Request to cancel the current navigation action, if there is one in progress.
     """
     def cancel_navigation_action(self) -> None:
         if self._navigation_goal_handle is not None:
-            self._node.get_logger().info('canceling current navigation action')
+            self._node.get_logger().info("canceling current navigation action")
             cancel_navigation_action_future: Future = self._navigation_goal_handle.cancel_goal_async()
             cancel_navigation_action_future.add_done_callback(self._cancel_navigation_action_response_callback)
         else:
-            self._node.get_logger().info('no navigation actions in progress')
+            self._node.get_logger().info("no navigation actions in progress")
 
     """
      Receive the action cancel result.

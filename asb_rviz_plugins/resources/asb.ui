@@ -12,8 +12,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
-    <height>1053</height>
+    <width>436</width>
+    <height>1062</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -96,190 +96,6 @@
             <number>10</number>
            </property>
            <item row="0" column="0">
-            <widget class="QLabel" name="sw_emergency_stop_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>SW E-STOP</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="sw_emergency_stop_disp">
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: rgb(255, 255, 0);</string>
-             </property>
-             <property name="text">
-              <string>UNKNOWN</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="gcu_comm_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>GCU COMM</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="gcu_comm_disp">
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: rgb(255, 255, 0);</string>
-             </property>
-             <property name="text">
-              <string>UNKNOWN</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="vcu_comm_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>VCU COMM</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="vcu_comm_disp">
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: rgb(255, 255, 0);</string>
-             </property>
-             <property name="text">
-              <string>UNKNOWN</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="vcu_safety_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>VCU SAFETY</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLabel" name="vcu_safety_disp">
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: rgb(255, 255, 0);</string>
-             </property>
-             <property name="text">
-              <string>UNKNOWN</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="vcu_error_label">
-             <property name="font">
-              <font>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>VCU ERROR</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QLabel" name="vcu_error_disp">
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <pointsize>8</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: rgb(255, 255, 0);</string>
-             </property>
-             <property name="text">
-              <string>UNKNOWN</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
             <widget class="QLabel" name="control_mode_label">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -299,7 +115,7 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
+           <item row="0" column="1">
             <widget class="QLabel" name="control_mode_disp">
              <property name="font">
               <font>
@@ -315,9 +131,12 @@
              <property name="text">
               <string>UNKNOWN</string>
              </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
             </widget>
            </item>
-           <item row="6" column="0">
+           <item row="1" column="0">
             <widget class="QLabel" name="pump_label">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -337,7 +156,7 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="1">
+           <item row="1" column="1">
             <widget class="QLabel" name="pump_disp">
              <property name="font">
               <font>
@@ -353,9 +172,250 @@
              <property name="text">
               <string>UNKNOWN</string>
              </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="sw_emergency_stop_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>SW E-STOP</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="sw_emergency_stop_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(255, 255, 0);</string>
+             </property>
+             <property name="text">
+              <string>UNKNOWN</string>
+             </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="gcu_comm_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>GCU COMM</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLabel" name="gcu_comm_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(255, 255, 0);</string>
+             </property>
+             <property name="text">
+              <string>UNKNOWN</string>
+             </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="vcu_comm_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>VCU COMM</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLabel" name="vcu_comm_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(255, 255, 0);</string>
+             </property>
+             <property name="text">
+              <string>UNKNOWN</string>
+             </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="vcu_safety_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>VCU SAFETY</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLabel" name="vcu_safety_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(255, 255, 0);</string>
+             </property>
+             <property name="text">
+              <string>UNKNOWN</string>
+             </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="vcu_error_label">
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>VCU ERROR</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QLabel" name="vcu_error_code_disp">
+             <property name="font">
+              <font>
+               <family>Ubuntu</family>
+               <pointsize>8</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(255, 255, 0);</string>
+             </property>
+             <property name="text">
+              <string>UNKNOWN</string>
+             </property>
+             <property name="margin">
+              <number>2</number>
+             </property>
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="vcu_error_description_disp">
+           <property name="minimumSize">
+            <size>
+             <width>170</width>
+             <height>28</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>193</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Ubuntu Mono</family>
+             <pointsize>8</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(255, 255, 0);</string>
+           </property>
+           <property name="text">
+            <string>UNKNOWN</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="margin">
+            <number>2</number>
+           </property>
+          </widget>
          </item>
          <item>
           <layout class="QVBoxLayout" name="rtk_status_v_layout">

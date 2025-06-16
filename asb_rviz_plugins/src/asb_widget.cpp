@@ -9,6 +9,31 @@ namespace asb_rviz_plugins {
     locale.setNumberOptions(QLocale::OmitGroupSeparator);
     QLocale::setDefault(locale);
 
+    alarm_descriptions_.resize(100, "UNKNOWN ERROR CODE");
+    alarm_descriptions_[0] =  "";  // Caricabatterie connesso, macchina immobilizzata
+    alarm_descriptions_[1] =  "Charger connected, vehicle locked";  // Caricabatterie connesso, macchina immobilizzata
+    alarm_descriptions_[2] =  "Charger disconnected";  // Caricabatterie disconnesso
+    alarm_descriptions_[3] =  "Battery critical: fan disabled, traction limited";  // Livello batteria molto basso: ventilatore spento e trazione limitata
+    alarm_descriptions_[4] =  "Right motor temperature";  // Temperatura motore Dx
+    alarm_descriptions_[5] =  "Left motor temperature";  // Temperatura motore Sx
+    alarm_descriptions_[6] =  "Sprayer motor temperature";  // Temperatura motore Sprayer
+    alarm_descriptions_[7] =  "Traction drive temperature";  // Temperatura drive Trazione
+    alarm_descriptions_[8] =  "Sprayer drive temperature";  // Temperatura drive Sprayer
+    alarm_descriptions_[9] =  "VCU temperature";  // Temperatura VCU
+    alarm_descriptions_[11] = "GCU control revoked: override timeout";  // Controllo remoto disattivato per override prolungato
+    alarm_descriptions_[12] = "GCU non-zero signal on init";  // Controllo remoto non possibile per riferimenti di velocità non nulli in avvio
+    alarm_descriptions_[13] = "GCU comms interrupted";  // Controllo remoto ma comunicazione interrotta
+    alarm_descriptions_[14] = "RCU comms interrupted (restart vehicle)";  // Controllo manuale ma RCU non disponibile, riavviare la macchina
+    alarm_descriptions_[15] = "Battery low: fan disabled";  // Livello batteria basso: ventilatore spento
+    alarm_descriptions_[92] = "RCU analog/digital mismatch";  // Errore di coerenza tra analogici e digitali RCU, necessario riavvio
+    alarm_descriptions_[93] = "Traction contactor stuck";  // Teleruttore drive Trazione incollato
+    alarm_descriptions_[94] = "Sprayer contactor stuck";  // Teleruttore drive Sprayer incollato
+    alarm_descriptions_[95] = "GCU comms error";  // Errore comunicazione con PC
+    alarm_descriptions_[96] = "RCU comms error";  // Errore comunicazione con RCU
+    alarm_descriptions_[97] = "Sprayer drive comms error";  // Errore comunicazione con drive Sprayer
+    alarm_descriptions_[98] = "Left motor drive comms error";  // Errore comunicazione con drive Sx
+    alarm_descriptions_[99] = "Right motor drive comms error";  // Errore comunicazione con drive Dx
+
     ui_->setupUi(this);
 
 //  Battery
@@ -129,18 +154,22 @@ namespace asb_rviz_plugins {
         ui_->vcu_safety_disp->setText(QString(platform_state->vcu_safety_status ? "OK":"LOCK"));
         ui_->vcu_safety_disp->setStyleSheet(platform_state->vcu_safety_status ? no_bg:yel_bg);
 
-        ui_->control_mode_disp->setText(control_mode_string[platform_state->control_mode]);
-        ui_->control_mode_disp->setStyleSheet(no_bg);
+        ui_->control_mode_disp->setText(control_mode_string_[platform_state->control_mode]);
+        ui_->control_mode_disp->setStyleSheet(control_mode_color_[platform_state->control_mode]);
 
         ui_->pump_disp->setText(QString(platform_state->pump_state ? "ON":"OFF"));
-        ui_->pump_disp->setStyleSheet(no_bg);
+        ui_->pump_disp->setStyleSheet(platform_state->pump_state ? blue_bg:no_bg);
 
         if((platform_state->more_recent_active_alarm_id == 92) || (platform_state->more_recent_active_alarm_id == 0)) {
-          ui_->vcu_error_disp->setText(QString("OK (%1)").arg(platform_state->more_recent_active_alarm_id));
-          ui_->vcu_error_disp->setStyleSheet(no_bg);
+          ui_->vcu_error_code_disp->setText(QString("OK (CODE %1)").arg(platform_state->more_recent_active_alarm_id));
+          ui_->vcu_error_code_disp->setStyleSheet(no_bg);
+          ui_->vcu_error_description_disp->setText(alarm_descriptions_[platform_state->more_recent_active_alarm_id]);
+          ui_->vcu_error_description_disp->setStyleSheet(no_bg);
         } else {
-          ui_->vcu_error_disp->setText(QString("CODE %1").arg(platform_state->more_recent_active_alarm_id));
-          ui_->vcu_error_disp->setStyleSheet(yel_bg);
+          ui_->vcu_error_code_disp->setText(QString("CODE %1").arg(platform_state->more_recent_active_alarm_id));
+          ui_->vcu_error_code_disp->setStyleSheet(yel_bg);
+          ui_->vcu_error_description_disp->setText(alarm_descriptions_[platform_state->more_recent_active_alarm_id]);
+          ui_->vcu_error_description_disp->setStyleSheet(yel_bg);
         }
       } else {
         ui_->vcu_comm_disp->setText(QString("DOWN"));
@@ -155,8 +184,10 @@ namespace asb_rviz_plugins {
         ui_->pump_disp->setText(QString("UNKNOWN"));
         ui_->pump_disp->setStyleSheet(no_bg);
 
-        ui_->vcu_error_disp->setText(QString("UNKNOWN"));
-        ui_->vcu_error_disp->setStyleSheet(no_bg);
+        ui_->vcu_error_code_disp->setText(QString("UNKNOWN"));
+        ui_->vcu_error_code_disp->setStyleSheet(no_bg);
+        ui_->vcu_error_description_disp->setText(QString("UNKNOWN"));
+        ui_->vcu_error_description_disp->setStyleSheet(no_bg);
       }
     } else {
       ui_->vcu_comm_disp->setText(QString("WAITING"));
@@ -171,8 +202,10 @@ namespace asb_rviz_plugins {
       ui_->pump_disp->setText(QString("UNKNOWN"));
       ui_->pump_disp->setStyleSheet(no_bg);
 
-      ui_->vcu_error_disp->setText(QString("UNKNOWN"));
-      ui_->vcu_error_disp->setStyleSheet(no_bg);
+      ui_->vcu_error_code_disp->setText(QString("UNKNOWN"));
+      ui_->vcu_error_code_disp->setStyleSheet(no_bg);
+      ui_->vcu_error_description_disp->setText(QString("UNKNOWN"));
+      ui_->vcu_error_description_disp->setStyleSheet(no_bg);
     }
 
 //    Battery
@@ -272,8 +305,10 @@ namespace asb_rviz_plugins {
     ui_->vcu_safety_disp->setText(QString("UNKNOWN"));
     ui_->vcu_safety_disp->setStyleSheet(no_bg);
 
-    ui_->vcu_error_disp->setText(QString("UNKNOWN"));
-    ui_->vcu_error_disp->setStyleSheet(no_bg);
+    ui_->vcu_error_code_disp->setText(QString("UNKNOWN"));
+    ui_->vcu_error_code_disp->setStyleSheet(no_bg);
+    ui_->vcu_error_description_disp->setText(QString("UNKNOWN"));
+    ui_->vcu_error_description_disp->setStyleSheet(no_bg);
 
     ui_->control_mode_disp->setText(QString("UNKNOWN"));
     ui_->control_mode_disp->setStyleSheet(no_bg);

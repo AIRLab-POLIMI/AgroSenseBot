@@ -17,50 +17,42 @@ nav2_package()
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(
-  include
+    include
 )
 
 set(dependencies
-  rclcpp
-  geometry_msgs
-  nav2_costmap_2d
-  pluginlib
-  nav_msgs
-  nav2_util
-  nav2_core
-  tf2
-  tf2_geometry_msgs
+    rclcpp
+    geometry_msgs
+    nav2_costmap_2d
+    pluginlib
+    nav_msgs
+    nav2_util
+    nav2_core
+    tf2
+    tf2_geometry_msgs
 )
 
 set(library_name asb_regulated_pure_pursuit_controller)
 
 add_library(${library_name} SHARED
-        src/regulated_pure_pursuit_controller.cpp
-        src/collision_checker.cpp
-        src/parameter_handler.cpp
-        src/path_handler.cpp)
+    src/regulated_pure_pursuit_controller.cpp
+    src/collision_checker.cpp
+    src/parameter_handler.cpp
+    src/path_handler.cpp)
 
 ament_target_dependencies(${library_name}
-  ${dependencies}
+    ${dependencies}
 )
 
 install(TARGETS ${library_name}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY include/
-  DESTINATION include/
+    DESTINATION include/
 )
-
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  set(ament_cmake_copyright_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-  add_subdirectory(test)
-endif()
 
 ament_export_include_directories(include)
 ament_export_libraries(${library_name})

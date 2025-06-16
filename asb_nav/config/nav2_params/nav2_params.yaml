@@ -29,7 +29,7 @@ local_costmap:
       height: 9
       resolution: 0.05
 
-      footprint: "[[0.9, 0.81], [0.9, -0.81], [-1.1, -0.81], [-1.1, 0.81]]"
+      footprint: "[[1.0, 0.81], [1.0, -0.81], [-1.2, -0.81], [-1.2, 0.81]]"
       footprint_padding: 0.0
 
       plugins: ["static_layer_geofence", "obstacle_layer", "denoise_layer", "inflation_layer"]
@@ -86,7 +86,7 @@ global_costmap:
       global_frame: vineyard
       robot_base_frame: base_footprint
 
-      footprint: "[[0.9, 0.81], [0.9, -0.81], [-1.1, -0.81], [-1.1, 0.81]]"
+      footprint: "[[1.0, 0.81], [1.0, -0.81], [-1.2, -0.81], [-1.2, 0.81]]"
       footprint_padding: 0.1
 
       resolution: 0.1

@@ -33,8 +33,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ASB_NAV2_PLUGINS__PLUGINS__ASB_GOAL_CHECKER_HPP_
-#define ASB_NAV2_PLUGINS__PLUGINS__ASB_GOAL_CHECKER_HPP_
+#ifndef ASB_NAV2_PLUGINS__PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_
+#define ASB_NAV2_PLUGINS__PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_
 
 #include <memory>
 #include <string>
@@ -48,13 +48,13 @@
 namespace asb_nav2_plugins {
 
 /**
- * @class ASBGoalChecker
+ * @class ASBRotateToPathGoalChecker
  * @brief Goal Checker plugin that only checks the position difference, similar to SimpleGoalChecker,
  * except the goal is only considers reached when the robot gets as close as possible assuming a straight trajectory.
  */
-class ASBGoalChecker : public nav2_core::GoalChecker {
+class ASBRotateToPathGoalChecker : public nav2_core::GoalChecker {
 public:
-    ASBGoalChecker();
+    ASBRotateToPathGoalChecker();
 
     // Standard GoalChecker Interface
     void initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent, const std::string &plugin_name, const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
@@ -83,4 +83,4 @@ protected:
 
 }  // namespace asb_nav2_plugins
 
-#endif  // ASB_NAV2_PLUGINS__PLUGINS__ASB_GOAL_CHECKER_HPP_
+#endif  // ASB_NAV2_PLUGINS__PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_

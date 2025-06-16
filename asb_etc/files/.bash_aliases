@@ -153,7 +153,7 @@ alias cap='pygmentize -g' # replacement of cat with python-pygments to cat with 
 alias ipy='ipython3'
 complete -F _complete_alias ipy
 
-alias cb='cd $ROS_WS && colcon build --continue-on-error --symlink-install ; cd -'
+alias cb='cd $ROS_WS && colcon build --continue-on-error --symlink-install && cd -'
 complete -F _complete_alias cb
 
 alias rt='ros2 topic'
@@ -195,7 +195,7 @@ alias vf='rr rqt_tf_tree rqt_tf_tree'
 fk='start_in_control_mode_GCU:=true fake_heartbeat:=true'
 
 # launch sim
-alias sim='clr; cb; rl asb_sim nav_dual_rtk_sim.launch.py'
+alias sim='clr; cb && rl asb_sim nav_dual_rtk_sim.launch.py'
 complete -F _complete_alias sim
 
 alias sim-fk='sim $fk'
@@ -204,7 +204,7 @@ alias ma='rr asb_sim set_control_mode_manual_to_auto.py'
 alias m='rr asb_sim set_control_mode_manual.py'
 
 # launch real
-alias r='clr; cb; rl asb_real nav_dual_rtk_real.launch.py'
+alias r='clr; cb && rl asb_real nav_dual_rtk_real.launch.py'
 complete -F _complete_alias r
 
 alias r-fk='r $fk'
@@ -217,7 +217,7 @@ complete -F _complete_alias gq
 alias ts='rl asb_canopy_spraying_task execute_task_sm.launch.xml'
 complete -F _complete_alias ts
 
-alias ts-dr='ts dry_run:=true'
+alias ts-dr='ts record:=false dry_run:=true'
 alias ts-l='ts loop:=true'
 alias ts-nr='ts record:=false'
 alias ts-nrs='ts record:=true record_sensors:=false'

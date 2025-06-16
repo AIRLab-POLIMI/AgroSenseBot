@@ -38,7 +38,7 @@
 #include <limits>
 #include <vector>
 #include <cmath>
-#include "asb_nav2_plugins/plugins/asb_goal_checker.hpp"
+#include "asb_nav2_plugins/plugins/asb_rotate_to_path_goal_checker.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "angles/angles.h"
 #include "nav2_util/node_utils.hpp"
@@ -56,10 +56,10 @@ using std::placeholders::_1;
 
 namespace asb_nav2_plugins {
 
-ASBGoalChecker::ASBGoalChecker() : xy_goal_tolerance_(0.25), yaw_goal_tolerance_(0.25), forward_(true), in_goal_proximity_(false), xy_goal_tolerance_sq_(0.0625) {
+ASBRotateToPathGoalChecker::ASBRotateToPathGoalChecker() : xy_goal_tolerance_(0.25), yaw_goal_tolerance_(0.25), forward_(true), in_goal_proximity_(false), xy_goal_tolerance_sq_(0.0625) {
 }
 
-void ASBGoalChecker::initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent, const std::string &plugin_name, const std::shared_ptr<nav2_costmap_2d::Costmap2DROS>/*costmap_ros*/) {
+void ASBRotateToPathGoalChecker::initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent, const std::string &plugin_name, const std::shared_ptr<nav2_costmap_2d::Costmap2DROS>/*costmap_ros*/) {
     plugin_name_ = plugin_name;
     auto node = parent.lock();
 
@@ -72,43 +72,60 @@ void ASBGoalChecker::initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr &
     xy_goal_tolerance_sq_ = xy_goal_tolerance_ * xy_goal_tolerance_;
 
     // Add callback for dynamic parameters
-    dyn_params_handler_ = node->add_on_set_parameters_callback(std::bind(&ASBGoalChecker::dynamicParametersCallback, this, _1));
+    dyn_params_handler_ = node->add_on_set_parameters_callback(std::bind(&ASBRotateToPathGoalChecker::dynamicParametersCallback, this, _1));
 
-    RCLCPP_INFO(node->get_logger(), "ASBGoalChecker initialized");
+    RCLCPP_INFO(node->get_logger(), "ASBRotateToPathGoalChecker initialized");
 }
 
-void ASBGoalChecker::reset() {
+void ASBRotateToPathGoalChecker::reset() {
     in_goal_proximity_ = false;
 }
 
-bool ASBGoalChecker::isGoalReached(const geometry_msgs::msg::Pose &query_pose, const geometry_msgs::msg::Pose &goal_pose, const geometry_msgs::msg::Twist &) {
-    double dx = goal_pose.position.x - query_pose.position.x;
-    double dy = goal_pose.position.y - query_pose.position.y;
-    double dyaw = angles::shortest_angular_distance(tf2::getYaw(query_pose.orientation), tf2::getYaw(goal_pose.orientation));
+bool ASBRotateToPathGoalChecker::isGoalReached(const geometry_msgs::msg::Pose &query_pose, const geometry_msgs::msg::Pose &goal_pose, const geometry_msgs::msg::Twist &) {
+    // Extract goal pose orientation and compute forward x-axis unit vector
+    tf2::Quaternion goal_q(goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w);
 
-    if ((dx * dx + dy * dy > xy_goal_tolerance_sq_) || (fabs(dyaw) > yaw_goal_tolerance_)) {
-        // We are outside the window
-        in_goal_proximity_ = false;
+    tf2::Vector3 goal_x_axis = tf2::quatRotate(goal_q, tf2::Vector3(1, 0, 0));
+
+    // Compute start of goal segment (goal_pose position - xy_goal_tolerance_ * x-axis)
+    tf2::Vector3 goal_position(goal_pose.position.x, goal_pose.position.y, 0);
+    tf2::Vector3 start_position = goal_position - xy_goal_tolerance_ * goal_x_axis;
+
+    // Get query_pose x-axis vector (from orientation)
+    tf2::Quaternion query_q(query_pose.orientation.x, query_pose.orientation.y, query_pose.orientation.z, query_pose.orientation.w);
+
+    tf2::Vector3 query_x_axis = tf2::quatRotate(query_q, tf2::Vector3(1, 0, 0));
+    tf2::Vector3 query_position(query_pose.position.x, query_pose.position.y, 0);
+
+    // Check if query_x_axis intersects the segment [start_position, goal_position]
+    // We treat query_pose's x-axis as a ray: p = query_position + t * query_x_axis
+
+    // Let the segment be from A to B:
+    tf2::Vector3 A = start_position;
+    tf2::Vector3 B = goal_position;
+
+    tf2::Vector3 v = query_x_axis;         // direction of the ray
+    tf2::Vector3 w = B - A;                // direction of the segment
+    tf2::Vector3 u = A - query_position;   // vector from ray origin to segment start
+
+    double denom = v.x() * w.y() - v.y() * w.x();
+
+    // Check if they are parallel
+    if (std::abs(denom) < 1e-6)
         return false;
-    }
 
-    // compute the goal x coordinate in the robot frame
-    double theta = tf2::getYaw(query_pose.orientation);
-    double gx = dx * cos(-theta) - dy * sin(-theta);
+    // Compute intersection parameters
+    double s = (u.x() * w.y() - u.y() * w.x()) / denom;
+    double t = (u.x() * v.y() - u.y() * v.x()) / denom;
 
-    if (!in_goal_proximity_) {
-        // We just entered the window
-        in_goal_proximity_ = true;
-        // If the goal is in front, we must move forward to reach the goal
-        forward_ = gx >= 0;
-    }
+    // Ray (s >= 0), segment (0 <= t <= 1)
+    if (s >= 0.0 && t >= 0.0 && t <= 1.0)
+        return true;
 
-    // From now on, as soon as we pass the goal (disregarding the y coordinate),
-    // we are as close to the goal as we are going to be
-    return forward_ ? gx <= 0 : gx >= 0;
+    return false;
 }
 
-bool ASBGoalChecker::getTolerances(geometry_msgs::msg::Pose &pose_tolerance, geometry_msgs::msg::Twist &vel_tolerance) {
+bool ASBRotateToPathGoalChecker::getTolerances(geometry_msgs::msg::Pose &pose_tolerance, geometry_msgs::msg::Twist &vel_tolerance) {
     double invalid_field = std::numeric_limits<double>::lowest();
 
     pose_tolerance.position.x = xy_goal_tolerance_;
@@ -127,7 +144,7 @@ bool ASBGoalChecker::getTolerances(geometry_msgs::msg::Pose &pose_tolerance, geo
     return true;
 }
 
-rcl_interfaces::msg::SetParametersResult ASBGoalChecker::dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters) {
+rcl_interfaces::msg::SetParametersResult ASBRotateToPathGoalChecker::dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters) {
     rcl_interfaces::msg::SetParametersResult result;
     for (auto &parameter: parameters) {
         const auto &type = parameter.get_type();
@@ -148,4 +165,4 @@ rcl_interfaces::msg::SetParametersResult ASBGoalChecker::dynamicParametersCallba
 
 }  // namespace asb_nav2_plugins
 
-PLUGINLIB_EXPORT_CLASS(asb_nav2_plugins::ASBGoalChecker, nav2_core::GoalChecker)
+PLUGINLIB_EXPORT_CLASS(asb_nav2_plugins::ASBRotateToPathGoalChecker, nav2_core::GoalChecker)

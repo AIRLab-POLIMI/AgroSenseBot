@@ -31,7 +31,8 @@ namespace asb_rviz_plugins
   void ASBPanel::onInitialize() {
     auto node = getDisplayContext()->getRosNodeAbstraction().lock()->get_raw_node();
     platform_state_subscriber_ = node->create_subscription<asb_msgs::msg::PlatformState>(
-      "/asb_platform_controller/platform_state", rclcpp::SensorDataQoS(),
+      "/asb_platform_controller/platform_state",
+      rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
       std::bind(&ASBWidget::platform_state_callback, widget_, _1));
 
     std::chrono::duration platform_state_msg_timeout = 100ms;

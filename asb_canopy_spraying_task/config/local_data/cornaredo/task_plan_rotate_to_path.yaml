@@ -4,16 +4,18 @@ positioning_approach_planner_id: GridBased
 positioning_approach_controller_id: FollowPath
 positioning_approach_goal_checker_id: asb_goal_checker
 positioning_approach_progress_checker_id: simple_progress_checker
+max_positioning_navigation_attempts: 3
 
-straight_approach_controller_id: FollowPath
-straight_approach_goal_checker_id: asb_goal_checker
+straight_approach_controller_id: RotateToPath
+straight_approach_goal_checker_id: asb_curvature_arc_goal_checker
 straight_approach_progress_checker_id: simple_progress_checker
-straight_approach_path_pose_distance: 0.1
+max_straightening_navigation_attempts: 1
 
 row_path_controller_id: FollowStraightPath
 row_path_goal_checker_id: asb_goal_checker
 row_path_progress_checker_id: simple_progress_checker
-row_path_pose_distance: 0.1
+
+path_pose_distance: 0.1
 
 alternate_rows: True
 switch_direction: True
