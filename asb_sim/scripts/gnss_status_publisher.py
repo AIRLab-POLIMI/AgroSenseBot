@@ -33,7 +33,7 @@ class GnssStatusPublisher(Node):
 
         self.gnss_dual_antenna_fix_status_pub = self.create_publisher(
             MipFilterGnssDualAntennaStatus,
-            '/mip/filter/gnss_dual_antenna_status',
+            '/mip/ekf/gnss_dual_antenna_status',
             qos_profile=qos_reliable_volatile_depth_1
         )
 

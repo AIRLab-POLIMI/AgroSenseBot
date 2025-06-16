@@ -20,7 +20,7 @@ def generate_launch_description():
             launch_arguments={
                 'configure': 'true',
                 'activate': 'true',
-                'params_file': os.path.join(pkg('asb_real'), 'config', 'gq7.yml'),
+                'params_file': os.path.join(pkg('asb_real'), 'config', 'local_data', 'arcagna', 'gq7.yml'),
                 'namespace': '/',
             }.items()
         ),

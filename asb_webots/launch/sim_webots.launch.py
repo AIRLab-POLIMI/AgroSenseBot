@@ -13,7 +13,7 @@ def generate_launch_description():
 
     webots_launcher = WebotsLauncher(
         gui=False,
-        world=os.path.join(pkg('asb_webots'), 'worlds', 'asb_gnss_world.wbt')
+        world=os.path.join(pkg('asb_webots'), 'worlds', 'local_data', 'arcagna', 'asb_gnss_world.wbt')
     )
 
     webots_controller = WebotsController(

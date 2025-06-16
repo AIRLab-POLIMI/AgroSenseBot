@@ -1,0 +1,9 @@
+# nozzle valve rate command [0...1] (dictionary value) in function of the desired nozzle flow rate [L/s] (dictionary key)
+# the format is [desired nozzle flow rate]: [nozzle valve rate command]
+0.001: 0.01
+0.00335: 0.01
+0.00342: 0.1
+0.003774: 0.25
+0.004724: 0.5
+0.005594: 0.75
+0.005896: 1

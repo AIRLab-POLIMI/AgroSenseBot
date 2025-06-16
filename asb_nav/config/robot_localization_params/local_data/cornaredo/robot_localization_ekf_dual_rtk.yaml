@@ -1,0 +1,106 @@
+# For parameter descriptions, see https://github.com/cra-ros-pkg/robot_localization/blob/ros2/params/ekf.yaml
+ekf_filter_map_odom:
+  ros__parameters:
+    frequency: 30.0
+    two_d_mode: false  # Recommended to use 2d mode for nav2 in mostly planar environments
+    print_diagnostics: false
+    debug: false
+    publish_tf: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: map  # publish the map->odom transform
+
+    # odometry from asb_track_controller obtained from the track odometry kinematic function and from the yaw measured by the IMU gyroscope
+    odom0: odom
+    odom0_config: [
+      false, false, false,  # x, y, z
+      false, false, false,  # roll, pitch, yaw
+      true,  true,  true,   # v_x,  v_y,  v_z
+      false, false, true,   # v_roll, v_pitch, v_yaw
+      false, false, false,  # a_x,  a_y,  a_z
+    ]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
+
+    # heading measurement obtained by the GNSS dual antenna compassing
+    # TODO rename topic, it's not really an odometry
+    odom1: /ekf/odometry_map
+    odom1_config: [
+      false, false, false,  # x, y, z
+      true,  true,  true,   # roll, pitch, yaw
+      false, false, false,  # v_x, v_y, v_z
+      false, false, false,  # v_roll, v_pitch, v_yaw
+      false, false, false,  # a_x, a_y, a_z
+    ]
+    odom1_queue_size: 10
+    odom1_differential: false
+    odom1_relative: false
+
+    # position measurement obtained by GNSS on antenna 2, translated from LLH to local coordinates by the navsat_transform node (configured below)
+    # TODO rename topic, it's not really an odometry
+    odom2: /gnss_2/navsat_odometry
+    odom2_config: [
+      true,  true,  true,   # x, y, z
+      false, false, false,  # roll, pitch, yaw
+      false, false, false,  # v_x, v_y, v_z
+      false, false, false,  # v_roll, v_pitch, v_yaw
+      false, false, false,  # a_x, a_y, a_z
+    ]
+    odom2_queue_size: 10
+    odom2_differential: false
+    odom2_relative: false
+
+#    # position measurement obtained by GNSS on antenna 1, translated from LLH to local coordinates by the navsat_transform node (configured below)
+#    # TODO rename topic, it's not really an odometry
+#    odom3: /gnss_1/navsat_odometry
+#    odom3_config: [
+#      true,  true,  true,   # x, y, z
+#      false, false, false,  # roll, pitch, yaw
+#      false, false, false,  # v_x, v_y, v_z
+#      false, false, false,  # v_roll, v_pitch, v_yaw
+#      false, false, false,  # a_x, a_y, a_z
+#    ]
+#    odom3_queue_size: 10
+#    odom3_differential: false
+#    odom3_relative: false
+
+    use_control: false
+
+    process_noise_covariance: [  # diagonal of the process noise covariance matrix
+      0.2, 0.2, 1e-3,  # x, y, z
+      0.3, 0.3, 0.1,   # roll, pitch, yaw
+      0.5, 0.5, 0.1,   # v_x, v_y, v_z
+      0.3, 0.3, 0.3,   # v_roll, v_pitch, v_yaw
+      0.3, 0.3, 0.3    # a_x, a_y, a_z
+    ]
+
+# For parameter descriptions, see https://github.com/cra-ros-pkg/robot_localization/blob/ros2/params/navsat_transform.yaml
+navsat_transform_1:
+  ros__parameters:
+    frequency: 30.0
+    delay: 3.0
+    magnetic_declination_radians: 0.0
+    yaw_offset: 0.0
+    zero_altitude: true
+    broadcast_cartesian_transform: false
+    publish_filtered_gps: false
+    use_odometry_yaw: true
+    wait_for_datum: true
+    datum: [45.502924, 9.016230, 0.0]
+
+# For parameter descriptions, see https://github.com/cra-ros-pkg/robot_localization/blob/ros2/params/navsat_transform.yaml
+navsat_transform_2:
+  ros__parameters:
+    frequency: 30.0
+    delay: 3.0
+    magnetic_declination_radians: 0.0
+    yaw_offset: 0.0
+    zero_altitude: true
+    broadcast_cartesian_transform: false
+    publish_filtered_gps: false
+    use_odometry_yaw: true
+    wait_for_datum: true
+    datum: [45.502924, 9.016230, 0.0]
