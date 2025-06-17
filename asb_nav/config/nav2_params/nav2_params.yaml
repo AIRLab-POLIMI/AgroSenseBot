@@ -90,7 +90,7 @@ global_costmap:
       footprint_padding: 0.1
 
       resolution: 0.1
-      rolling_window: True
+      rolling_window: False
       width: 200
       height: 200
       track_unknown_space: true
