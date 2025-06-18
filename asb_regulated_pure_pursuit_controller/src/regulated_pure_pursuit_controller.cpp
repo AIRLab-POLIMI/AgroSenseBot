@@ -73,11 +73,13 @@ void RegulatedPurePursuitController::configure(const rclcpp_lifecycle::Lifecycle
     goal_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/goal_pose", 1);
     stop_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/stop_pose", 1);
     lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/lookahead_circle", 1);
-    constraint_intersection_poses_pub_ = node->create_publisher<geometry_msgs::msg::PoseArray>("~/constraint_intersection_poses", 1);
+    constraint_intersection_poses_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("~/constraint_intersection_poses", 1);
     constraints_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/constraints", 1);
     lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/lookahead_arc", 1);
     path_lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/path_lookahead_arc", 1);
     angle_priority_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/angle_lookahead_arc", 1);
+    goal_checker_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/goal_checker_arc", 1);
+    goal_checker_intersection_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/goal_checker_intersection_arc", 1);
     lookahead_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("lookahead_curvature", 1);
     min_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("min_curvature", 1);
     max_curvature_pub_ = node->create_publisher<std_msgs::msg::Float64>("max_curvature", 1);
@@ -99,6 +101,8 @@ void RegulatedPurePursuitController::cleanup() {
     lookahead_arc_pub_.reset();
     path_lookahead_arc_pub_.reset();
     angle_priority_arc_pub_.reset();
+    goal_checker_arc_pub_.reset();
+    goal_checker_intersection_arc_pub_.reset();
     lookahead_curvature_pub_.reset();
     min_curvature_pub_.reset();
     max_curvature_pub_.reset();
@@ -118,6 +122,8 @@ void RegulatedPurePursuitController::activate() {
     lookahead_arc_pub_->on_activate();
     path_lookahead_arc_pub_->on_activate();
     angle_priority_arc_pub_->on_activate();
+    goal_checker_arc_pub_->on_activate();
+    goal_checker_intersection_arc_pub_->on_activate();
     lookahead_curvature_pub_->on_activate();
     min_curvature_pub_->on_activate();
     max_curvature_pub_->on_activate();
@@ -137,6 +143,8 @@ void RegulatedPurePursuitController::deactivate() {
     lookahead_arc_pub_->on_deactivate();
     path_lookahead_arc_pub_->on_deactivate();
     angle_priority_arc_pub_->on_deactivate();
+    goal_checker_arc_pub_->on_deactivate();
+    goal_checker_intersection_arc_pub_->on_deactivate();
     lookahead_curvature_pub_->on_deactivate();
     min_curvature_pub_->on_deactivate();
     max_curvature_pub_->on_deactivate();
@@ -501,6 +509,7 @@ void RegulatedPurePursuitController::applyLinearVelocityConstraints(const double
 }
 
 void RegulatedPurePursuitController::setPlan(const nav_msgs::msg::Path &path) {
+    RCLCPP_INFO(logger_, "*** setPlan \n\n");
     path_handler_->setPlan(path);
 }
 
@@ -554,20 +563,20 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
 //    RCLCPP_INFO(logger_, "goal in robot frame   x: %+.3f  y: %+.3f  theta: %+.3f", g_in_r.position.x, g_in_r.position.y, tf2::getYaw(g_in_r.orientation));
 
     if (std::hypot(g_in_r.position.x, g_in_r.position.y) > goal_dist_tol_) {
-        nav_msgs::msg::Path empty_path;
-        empty_path.header.stamp = robot_pose.header.stamp;
-        empty_path.header.frame_id = "base_footprint";
-        angle_priority_arc_pub_->publish(empty_path);
+//        nav_msgs::msg::Path empty_path;
+//        empty_path.header.stamp = robot_pose.header.stamp;
+//        empty_path.header.frame_id = "base_footprint";
+//        angle_priority_arc_pub_->publish(empty_path);
 
-        geometry_msgs::msg::PolygonStamped polygon_msg;
-        polygon_msg.header.stamp = robot_pose.header.stamp;
-        polygon_msg.header.frame_id = "base_footprint";
-        constraints_pub_->publish(polygon_msg);
+//        geometry_msgs::msg::PolygonStamped polygon_msg;
+//        polygon_msg.header.stamp = robot_pose.header.stamp;
+//        polygon_msg.header.frame_id = "base_footprint";
+//        constraints_pub_->publish(polygon_msg);
 
-        geometry_msgs::msg::PoseArray constraint_intersections_msg;
-        constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
-        constraint_intersections_msg.header.frame_id = "base_footprint";
-        constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+//        geometry_msgs::msg::PoseArray constraint_intersections_msg;
+//        constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
+//        constraint_intersections_msg.header.frame_id = "base_footprint";
+//        constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
 
 //        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
         return false;
@@ -577,28 +586,26 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
     bool valid_solution;
     Point lookahead_point = goal_checker_getExtendedLookaheadPoint(g_in_r, valid_solution);
     if (!valid_solution) {
-        nav_msgs::msg::Path empty_path;
-        empty_path.header.stamp = robot_pose.header.stamp;
-        empty_path.header.frame_id = "base_footprint";
-        angle_priority_arc_pub_->publish(empty_path);
+//        nav_msgs::msg::Path empty_path;
+//        empty_path.header.stamp = robot_pose.header.stamp;
+//        empty_path.header.frame_id = "base_footprint";
+//        angle_priority_arc_pub_->publish(empty_path);
 
-        geometry_msgs::msg::PolygonStamped polygon_msg;
-        polygon_msg.header.stamp = robot_pose.header.stamp;
-        polygon_msg.header.frame_id = "base_footprint";
-        constraints_pub_->publish(polygon_msg);
+//        geometry_msgs::msg::PolygonStamped polygon_msg;
+//        polygon_msg.header.stamp = robot_pose.header.stamp;
+//        polygon_msg.header.frame_id = "base_footprint";
+//        constraints_pub_->publish(polygon_msg);
 
-        geometry_msgs::msg::PoseArray constraint_intersections_msg;
-        constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
-        constraint_intersections_msg.header.frame_id = "base_footprint";
-        constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+//        geometry_msgs::msg::PoseArray constraint_intersections_msg;
+//        constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
+//        constraint_intersections_msg.header.frame_id = "base_footprint";
+//        constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
 
 //        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
         return false;
     }
 
     double c = goal_checker_getLookaheadCurvature(lookahead_point);
-
-    angle_priority_arc_pub_->publish(createLookAheadArcMsgFromCurvature(robot_pose, c, std::hypot(lookahead_point.x, lookahead_point.y), 1));
 
 //    RCLCPP_INFO(logger_, "curvature   c: %+.3f  ", c);
 
@@ -680,12 +687,6 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
     }
 
     double r = std::fabs(1 / c);  // curvature radius
-    if (r > 100) {
-//        RCLCPP_WARN(logger_, "radius: %+.3f", r);
-    } else {
-//        RCLCPP_INFO(logger_, "radius: %+.3f", r);
-    }
-
 
     Pose p_clx_in_c, p_cly_in_c, p_crx_in_c, p_cry_in_c;  // constraint poses in center of rotation frame
     tf2::Transform tf_c_to_clx = tf_c_to_r * tf_r_to_g * tf_g_to_clx;
@@ -697,10 +698,10 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
     toMsg(tf_c_to_crx, p_crx_in_c);
     toMsg(tf_c_to_cry, p_cry_in_c);
 
-    geometry_msgs::msg::PoseArray constraint_intersections_msg;
+    PointStamped constraint_intersections_msg;
     constraint_intersections_msg.header.stamp = robot_pose.header.stamp;
     constraint_intersections_msg.header.frame_id = "base_footprint";
-    constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_l_in_c.position, tf_r_to_c));
+//    constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_l_in_c.position, tf_r_to_c));
 
     double theta_1, theta_2;
     double theta_o = c > 0 ? -M_PI/2 : M_PI/2;
@@ -721,8 +722,9 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
         double theta_int = std::atan2(p_clx_int_in_c.y, p_clx_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
 //            RCLCPP_INFO(logger_, "int   clx   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_clx_int_in_c.x, p_clx_int_in_c.y);
-            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_clx_int_in_c, tf_r_to_c));
+            constraint_intersections_msg.point = goal_checker_get_pose_c_to_r(p_clx_int_in_c, tf_r_to_c).position;
             constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+            goal_checker_intersection_arc_pub_->publish(createLookAheadArcMsgFromCurvature(robot_pose, c, std::hypot(lookahead_point.x, lookahead_point.y), 1));
 //            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
         } else {
@@ -738,8 +740,9 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
         double theta_int = std::atan2(p_cly_int_in_c.y, p_cly_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
 //            RCLCPP_INFO(logger_, "int   cly   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_cly_int_in_c.x, p_cly_int_in_c.y);
-            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_cly_int_in_c, tf_r_to_c));
+            constraint_intersections_msg.point = goal_checker_get_pose_c_to_r(p_cly_int_in_c, tf_r_to_c).position;
             constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+            goal_checker_intersection_arc_pub_->publish(createLookAheadArcMsgFromCurvature(robot_pose, c, std::hypot(lookahead_point.x, lookahead_point.y), 1));
 //            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
         } else {
@@ -755,8 +758,9 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
         double theta_int = std::atan2(p_crx_int_in_c.y, p_crx_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
 //            RCLCPP_INFO(logger_, "int   crx   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_crx_int_in_c.x, p_crx_int_in_c.y);
-            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_crx_int_in_c, tf_r_to_c));
+            constraint_intersections_msg.point = goal_checker_get_pose_c_to_r(p_crx_int_in_c, tf_r_to_c).position;
             constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+            goal_checker_intersection_arc_pub_->publish(createLookAheadArcMsgFromCurvature(robot_pose, c, std::hypot(lookahead_point.x, lookahead_point.y), 1));
 //            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
         } else {
@@ -772,8 +776,9 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
         double theta_int = std::atan2(p_cry_int_in_c.y, p_cry_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
 //            RCLCPP_INFO(logger_, "int   cry   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_cry_int_in_c.x, p_cry_int_in_c.y);
-            constraint_intersections_msg.poses.push_back(goal_checker_get_pose_c_to_r(p_cry_int_in_c, tf_r_to_c));
+            constraint_intersections_msg.point = goal_checker_get_pose_c_to_r(p_cry_int_in_c, tf_r_to_c).position;
             constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+            goal_checker_intersection_arc_pub_->publish(createLookAheadArcMsgFromCurvature(robot_pose, c, std::hypot(lookahead_point.x, lookahead_point.y), 1));
 //            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
         } else {
@@ -783,10 +788,11 @@ bool RegulatedPurePursuitController::goal_checker_isGoalReached(const geometry_m
 //        RCLCPP_INFO(logger_, "int   cry");
     }
 
-    constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
+//    constraint_intersection_poses_pub_->publish(constraint_intersections_msg);
 
 //    RCLCPP_INFO(logger_, "*********************  GOAL REACHED  *********************");
 //    RCLCPP_INFO(logger_, "\n");
+    goal_checker_arc_pub_->publish(createLookAheadArcMsgFromCurvature(robot_pose, c, std::hypot(lookahead_point.x, lookahead_point.y), 1));
     return true;
 }
 
