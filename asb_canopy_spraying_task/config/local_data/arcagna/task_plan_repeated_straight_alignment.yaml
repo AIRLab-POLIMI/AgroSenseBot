@@ -109,19 +109,19 @@ rows:
     end_point:
       x: 108.08
       y: -34.11
-  - row_id: row_10
-    frame_id: apple_orchard
-    start_point:
-      x: -1.63
-      y: -37.8
-    end_point:
-      x: 108.52
-      y: -38.0
-  - row_id: row_11
-    frame_id: apple_orchard
-    start_point:
-      x: -1.83
-      y: -41.78
-    end_point:
-      x: 108.88
-      y: -41.94
+#  - row_id: row_10
+#    frame_id: apple_orchard
+#    start_point:
+#      x: -1.63
+#      y: -37.8
+#    end_point:
+#      x: 108.52
+#      y: -38.0
+#  - row_id: row_11
+#    frame_id: apple_orchard
+#    start_point:
+#      x: -1.83
+#      y: -41.78
+#    end_point:
+#      x: 108.88
+#      y: -41.94
