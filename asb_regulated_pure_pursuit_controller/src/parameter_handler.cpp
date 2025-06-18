@@ -44,8 +44,10 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_adaptive_lookahead_dist", rclcpp::ParameterValue(false));
     declare_parameter_if_not_declared(node, plugin_name_ + ".adaptive_lookahead_path_distance_margin", rclcpp::ParameterValue(0.3));
     declare_parameter_if_not_declared(node, plugin_name_ + ".min_approach_linear_velocity", rclcpp::ParameterValue(0.05));
+    declare_parameter_if_not_declared(node, plugin_name_ + ".min_departure_linear_velocity", rclcpp::ParameterValue(0.05));
     declare_parameter_if_not_declared(node, plugin_name_ + ".angular_approach_dist", rclcpp::ParameterValue(1.0));
     declare_parameter_if_not_declared(node, plugin_name_ + ".approach_velocity_scaling_dist", rclcpp::ParameterValue(0.6));
+    declare_parameter_if_not_declared(node, plugin_name_ + ".departure_velocity_scaling_dist", rclcpp::ParameterValue(0.6));
     declare_parameter_if_not_declared(node, plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", rclcpp::ParameterValue(1.0));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_cost_regulated_linear_velocity_scaling", rclcpp::ParameterValue(true));
@@ -79,10 +81,15 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     node->get_parameter(plugin_name_ + ".use_adaptive_lookahead_dist", params_.use_adaptive_lookahead_dist);
     node->get_parameter(plugin_name_ + ".adaptive_lookahead_path_distance_margin", params_.adaptive_lookahead_path_distance_margin);
     node->get_parameter(plugin_name_ + ".min_approach_linear_velocity", params_.min_approach_linear_velocity);
+    node->get_parameter(plugin_name_ + ".min_departure_linear_velocity", params_.min_departure_linear_velocity);
     node->get_parameter(plugin_name_ + ".angular_approach_dist", params_.angular_approach_dist);
     node->get_parameter(plugin_name_ + ".approach_velocity_scaling_dist", params_.approach_velocity_scaling_dist);
     if (params_.approach_velocity_scaling_dist > costmap_size_x / 2.0) {
         RCLCPP_WARN(logger_, "approach_velocity_scaling_dist is larger than forward costmap extent, leading to permanent slowdown");
+    }
+    node->get_parameter(plugin_name_ + ".departure_velocity_scaling_dist", params_.departure_velocity_scaling_dist);
+    if (params_.departure_velocity_scaling_dist > costmap_size_x / 2.0) {
+        RCLCPP_WARN(logger_, "departure_velocity_scaling_dist is larger than forward costmap extent, leading to permanent slowdown");
     }
     node->get_parameter(plugin_name_ + ".max_allowed_time_to_collision_up_to_carrot", params_.max_allowed_time_to_collision_up_to_carrot);
     node->get_parameter(plugin_name_ + ".use_regulated_linear_velocity_scaling", params_.use_regulated_linear_velocity_scaling);
@@ -162,6 +169,8 @@ rcl_interfaces::msg::SetParametersResult ParameterHandler::dynamicParametersCall
                 params_.adaptive_lookahead_path_distance_margin = parameter.as_double();
             } else if (name == plugin_name_ + ".min_approach_linear_velocity") {
                 params_.min_approach_linear_velocity = parameter.as_double();
+            } else if (name == plugin_name_ + ".min_departure_linear_velocity") {
+                params_.min_departure_linear_velocity = parameter.as_double();
             } else if (name == plugin_name_ + ".angular_approach_dist") {
                 params_.angular_approach_dist = parameter.as_double();
             } else if (name == plugin_name_ + ".curvature_lookahead_dist") {

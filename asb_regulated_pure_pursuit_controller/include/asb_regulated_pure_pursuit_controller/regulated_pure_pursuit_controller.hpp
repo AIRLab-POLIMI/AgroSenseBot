@@ -222,6 +222,8 @@ protected:
     double goal_dist_tol_, goal_yaw_tol_;
     bool in_goal_proximity_, forward_;
     double control_duration_;
+    double travelled_distance_;
+    rclcpp::Time last_call_time_;
 
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> carrot_pose_pub_;

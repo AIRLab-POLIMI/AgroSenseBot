@@ -41,6 +41,7 @@ void RegulatedPurePursuitController::configure(const rclcpp_lifecycle::Lifecycle
     if (!node) {
         throw nav2_core::ControllerException("Unable to lock node!");
     }
+    last_call_time_ = node->now();  // Initialize with current time
 
     costmap_ros_ = costmap_ros;
     costmap_ = costmap_ros_->getCostmap();
@@ -206,6 +207,36 @@ double calculateCurvature(geometry_msgs::msg::Point lookahead_point) {
     }
 }
 
+void RegulatedPurePursuitController::setPlan(const nav_msgs::msg::Path &path) {
+    RCLCPP_INFO(logger_, "setPlan");
+    path_handler_->setPlan(path);
+
+    auto node = node_.lock();
+    if (!node) {
+        throw nav2_core::ControllerException("Unable to lock node!");
+    }
+    rclcpp::Time now = node->now();
+    last_call_time_ = now;
+    travelled_distance_ = 0.0;
+}
+
+void RegulatedPurePursuitController::setSpeedLimit(const double &speed_limit, const bool &percentage) {
+    std::lock_guard<std::mutex> lock_reinit(param_handler_->getMutex());
+
+    if (speed_limit == nav2_costmap_2d::NO_SPEED_LIMIT) {
+        // Restore default value
+        params_->desired_linear_vel = params_->base_desired_linear_vel;
+    } else {
+        if (percentage) {
+            // Speed limit is expressed in % from maximum speed of robot
+            params_->desired_linear_vel = params_->base_desired_linear_vel * speed_limit / 100.0;
+        } else {
+            // Speed limit is expressed in absolute value
+            params_->desired_linear_vel = speed_limit;
+        }
+    }
+}
+
 geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocityCommands(const geometry_msgs::msg::PoseStamped &pose, const geometry_msgs::msg::Twist &speed, nav2_core::GoalChecker *goal_checker) {
     std::lock_guard<std::mutex> lock_reinit(param_handler_->getMutex());
 
@@ -221,6 +252,15 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
         goal_dist_tol_ = pose_tolerance.position.x;
         goal_yaw_tol_ = tf2::getYaw(pose_tolerance.orientation);
     }
+
+    auto node = node_.lock();
+    if (!node) {
+        throw nav2_core::ControllerException("Unable to lock node!");
+    }
+    rclcpp::Time now = node->now();
+    double dt = (now - last_call_time_).seconds();
+    travelled_distance_ += speed.linear.x * dt;
+    last_call_time_ = now;
 
     // Transform path to robot base frame
     auto transformed_plan = path_handler_->transformGlobalPlan(pose, params_->max_robot_pose_search_dist, !params_->use_angular_approach);
@@ -498,36 +538,21 @@ void RegulatedPurePursuitController::applyLinearVelocityConstraints(const double
     linear_vel = std::min(cost_vel, curvature_vel);
     linear_vel = std::max(linear_vel, params_->regulated_linear_scaling_min_speed);  // TODO only apply if some param is true?
 
+    // Apply constraint to reduce speed on departure
+    double departure_scaling_factor = std::clamp(travelled_distance_ / params_->departure_velocity_scaling_dist, 0.0, 1.0);
+    double departure_vel = std::max(linear_vel * departure_scaling_factor, params_->min_departure_linear_velocity);
+
     // Apply constraint to reduce speed on approach to the final goal pose and to the next cusp
     double approach_scaling_factor = std::clamp(stop_dist / params_->approach_velocity_scaling_dist, 0.0, 1.0);
     double approach_vel = std::max(linear_vel * approach_scaling_factor, params_->min_approach_linear_velocity);
+
+    // Use the lowest between departure and approach velocity constraints
+    linear_vel = std::min(linear_vel, departure_vel);
     linear_vel = std::min(linear_vel, approach_vel);
 
     // Limit linear velocities to be valid
     linear_vel = std::clamp(fabs(linear_vel), 0.0, params_->desired_linear_vel);
     linear_vel = sign * linear_vel;
-}
-
-void RegulatedPurePursuitController::setPlan(const nav_msgs::msg::Path &path) {
-    RCLCPP_INFO(logger_, "*** setPlan \n\n");
-    path_handler_->setPlan(path);
-}
-
-void RegulatedPurePursuitController::setSpeedLimit(const double &speed_limit, const bool &percentage) {
-    std::lock_guard<std::mutex> lock_reinit(param_handler_->getMutex());
-
-    if (speed_limit == nav2_costmap_2d::NO_SPEED_LIMIT) {
-        // Restore default value
-        params_->desired_linear_vel = params_->base_desired_linear_vel;
-    } else {
-        if (percentage) {
-            // Speed limit is expressed in % from maximum speed of robot
-            params_->desired_linear_vel = params_->base_desired_linear_vel * speed_limit / 100.0;
-        } else {
-            // Speed limit is expressed in absolute value
-            params_->desired_linear_vel = speed_limit;
-        }
-    }
 }
 
 geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::findStopPose(const nav_msgs::msg::Path &transformed_plan) {
