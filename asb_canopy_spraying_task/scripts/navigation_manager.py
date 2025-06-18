@@ -39,6 +39,9 @@ if TYPE_CHECKING:
     from spraying_task_sm import SprayingTaskPlanExecutor
 
 
+BLUE = "\033[94m"
+
+
 class NavigationActionStatus(Enum):
     NOT_STARTED = 0
     REQUESTED = 1
@@ -430,7 +433,7 @@ class NavigationManager:
         return True
 
     def _wait_for_service(self, service: Client, timeout: float) -> bool:
-        self._node.get_logger().info(f"waiting for {service.srv_name} service")
+        self._node.get_logger().info(BLUE+f"waiting for {service.srv_name} service")
         timeout_chrono = Chronometer()
         while rclpy.ok() and not service.wait_for_service(timeout_sec=0.05):
             self._node.get_logger().info(f"{service.srv_name} service not available, waiting", throttle_duration_sec=1.0)
@@ -439,7 +442,7 @@ class NavigationManager:
         return True
 
     def _wait_node_is_active(self, node_name, timeout: float) -> bool:
-        self._node.get_logger().info(f"waiting for {node_name}")
+        self._node.get_logger().info(BLUE+f"waiting for {node_name}")
         state_client = self._node.create_client(GetState, f"{node_name}/get_state")
         timeout_chrono = Chronometer()
         while rclpy.ok() and not state_client.wait_for_service(timeout_sec=0.05):
@@ -470,7 +473,7 @@ class NavigationManager:
         return False
 
     def _wait_action_server(self, action_client: ActionClient, action_client_name: str, timeout: float) -> bool:
-        self._node.get_logger().info(f"waiting for {action_client_name} action server")
+        self._node.get_logger().info(BLUE+f"waiting for {action_client_name} action server")
         timeout_chrono = Chronometer()
         while rclpy.ok() and not action_client.wait_for_server(timeout_sec=0.05):
             self._node.get_logger().info(f"{action_client_name} action server not available, waiting", throttle_duration_sec=1.0)

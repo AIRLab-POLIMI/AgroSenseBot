@@ -27,6 +27,9 @@ from spraying_manager import SprayingManager, SprayingStatus
 from spraying_task_plan import SprayingTaskPlan, TaskPlanItem
 
 
+BLUE = "\033[94m"
+
+
 class ControlMode(Enum):
     STOP = 0
     MANUAL = 1
@@ -491,7 +494,7 @@ class SprayingTaskPlanExecutor(Node):
     @cb_interface(outcomes=['success', 'failure'])
     def setup_sm_cb(self) -> str:
         # wait for sensor data and system conditions to be ok
-        self.get_logger().info(f"waiting for sensors and system conditions...")
+        self.get_logger().info(BLUE+f"waiting for sensors and system conditions...")
         system_condition_chrono = Chronometer()
         system_condition_ok = self.wait_for_system_condition_ok(timeout=self.start_up_timeout)
         if system_condition_ok:
@@ -502,7 +505,7 @@ class SprayingTaskPlanExecutor(Node):
 
         if not self.dry_run:
             # wait for localization
-            self.get_logger().info(f"waiting for robot pose...")
+            self.get_logger().info(BLUE+f"waiting for robot pose...")
             robot_pose_chrono = Chronometer()
             robot_pose = self.navigation_manager.get_robot_pose(timeout=self.start_up_timeout)
             if robot_pose is not None:
@@ -512,7 +515,7 @@ class SprayingTaskPlanExecutor(Node):
                 return 'failure'
 
             # wait for navigation stack
-            self.get_logger().info(f"waiting for navigation stack...")
+            self.get_logger().info(BLUE+f"waiting for navigation stack...")
             nav_stack_chrono = Chronometer()
             nav_stack_ready = self.navigation_manager.wait_navigation_stack_is_ready(timeout=self.start_up_timeout)
             if nav_stack_ready:
@@ -947,7 +950,7 @@ class SprayingTaskPlanExecutor(Node):
     def wait_for_system_condition_ok(self, timeout: float) -> bool:
         timeout_chrono = Chronometer()
         while rclpy.ok() and not self.check_system_condition():
-            self.get_logger().info(f"waiting for system condition to be ok", throttle_duration_sec=1.0)
+            self.get_logger().info(BLUE+f"waiting for system condition to be ok", throttle_duration_sec=5.0)
             if timeout_chrono.total() > timeout:
                 return False
             self.loop_rate.sleep()
@@ -959,20 +962,20 @@ class SprayingTaskPlanExecutor(Node):
         :return: True if *all* required topics are not timed out and their value is acceptable for continuing the execution of the task
         """
         if self.last_scan_heartbeat_front_msg is None:
-            self.get_logger().info(f"waiting for scan_heartbeat_front (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for scan_heartbeat_front (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_scan_heartbeat_rear_msg is None:
-            self.get_logger().info(f"waiting for scan_heartbeat_rear (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for scan_heartbeat_rear (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
 
         if self.last_gnss_1_fix_status_msg is None:
-            self.get_logger().info(f"waiting for gnss_1_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for gnss_1_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_gnss_2_fix_status_msg is None:
-            self.get_logger().info(f"waiting for gnss_2_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for gnss_2_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_gnss_dual_antenna_fix_status_msg is None:
-            self.get_logger().info(f"waiting for gnss_dual_antenna_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for gnss_dual_antenna_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
 
         def is_msg_timed_out(msg_name: str, stamp: Time, timeout: Duration) -> bool:
@@ -1017,13 +1020,13 @@ class SprayingTaskPlanExecutor(Node):
 
         while rclpy.ok() and self.get_control_mode() != ControlMode.MANUAL:
             self.do_loop_operations_and_sleep()
-            self.get_logger().info(f"WAITING control mode switch to MANUAL", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"WAITING control mode switch to MANUAL", throttle_duration_sec=10.0)
 
         self.stop_platform = False
 
         while rclpy.ok() and self.get_control_mode() != ControlMode.AUTO:
             self.do_loop_operations_and_sleep()
-            self.get_logger().info(f"WAITING control mode switch to AUTO", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"WAITING control mode switch to AUTO", throttle_duration_sec=10.0)
 
             if self.auto_set_control_mode:
                 self.control_mode_manager.set_control_mode_auto()  # only has effect in simulator
