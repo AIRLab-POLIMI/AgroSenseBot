@@ -13,7 +13,9 @@ Panels:
         - /Sensors1/filtered front multilayer1/Autocompute Value Bounds1
         - /Sensors1/filtered rear multilayer1/Autocompute Value Bounds1
         - /Global Planner1/expansions1/Namespaces1
+        - /Controller1
         - /Controller1/overextended_goal_pose1/Topic1
+        - /Controller1/PoseArray1/Topic1
         - /Localization1/Odometry position1
         - /Localization1/Odometry position1/Shape1
         - /Localization1/gnss 11/Covariance1
@@ -102,17 +104,9 @@ Visualization Manager:
               Value: false
             base_scan_front_multilayer:
               Value: false
-            base_scan_front_multilayer_imu:
-              Value: false
-            base_scan_front_multilayer_lidar:
-              Value: false
             base_scan_front_multilayer_sim:
               Value: false
             base_scan_rear_multilayer:
-              Value: false
-            base_scan_rear_multilayer_imu:
-              Value: false
-            base_scan_rear_multilayer_lidar:
               Value: false
             base_scan_rear_multilayer_sim:
               Value: false
@@ -120,18 +114,16 @@ Visualization Manager:
               Value: false
             gnss_2_link:
               Value: false
-            gq7_gnss_1_antenna_link:
-              Value: false
-            gq7_gnss_2_antenna_link:
-              Value: false
-            gq7_odometer_link:
-              Value: false
             gyro_link:
               Value: false
             imu_link:
               Value: false
             inertial_link:
               Value: false
+            inter_row_10_b:
+              Value: true
+            inter_row_10_c:
+              Value: true
             left_track:
               Value: false
             map:
@@ -140,6 +132,8 @@ Visualization Manager:
               Value: false
             right_track:
               Value: false
+            row_10:
+              Value: true
             sat_map:
               Value: false
             sprayer_link:
@@ -154,21 +148,21 @@ Visualization Manager:
               apple_orchard:
                 apple_orchard_view:
                   {}
+                inter_row_10_b:
+                  {}
+                inter_row_10_c:
+                  {}
+                row_10:
+                  {}
               odom:
                 base_footprint:
                   base_link:
                     base_scan_front_multilayer:
-                      base_scan_front_multilayer_imu:
-                        {}
-                      base_scan_front_multilayer_lidar:
-                        {}
+                      {}
                     base_scan_front_multilayer_sim:
                       {}
                     base_scan_rear_multilayer:
-                      base_scan_rear_multilayer_imu:
-                        {}
-                      base_scan_rear_multilayer_lidar:
-                        {}
+                      {}
                     base_scan_rear_multilayer_sim:
                       {}
                     gnss_1_link:
@@ -177,12 +171,6 @@ Visualization Manager:
                       {}
                     imu_link:
                       accelerometer_link:
-                        {}
-                      gq7_gnss_1_antenna_link:
-                        {}
-                      gq7_gnss_2_antenna_link:
-                        {}
-                      gq7_odometer_link:
                         {}
                       gyro_link:
                         {}
@@ -1279,6 +1267,27 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Best Effort
             Value: /controller_server/lookahead_circle
+          Value: true
+        - Alpha: 1
+          Arrow Length: 0.10000000149011612
+          Axes Length: 0.30000001192092896
+          Axes Radius: 0.009999999776482582
+          Class: rviz_default_plugins/PoseArray
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.07000000029802322
+          Head Radius: 0.029999999329447746
+          Name: PoseArray
+          Shaft Length: 0.23000000417232513
+          Shaft Radius: 0.009999999776482582
+          Shape: Arrow (Flat)
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /controller_server/cost_gradient_descent_poses
           Value: true
       Enabled: true
       Name: Controller

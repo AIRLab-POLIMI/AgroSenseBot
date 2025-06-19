@@ -4,7 +4,7 @@ controller_server:
     min_x_velocity_threshold: 0.01
     min_y_velocity_threshold: 0.0
     min_theta_velocity_threshold: 0.01
-    failure_tolerance: 0.3
+    failure_tolerance: 0.1
     progress_checker_plugins: [
       "simple_progress_checker",
     ]
@@ -144,6 +144,7 @@ controller_server:
       inflation_cost_scaling_factor: 3.0
       use_collision_detection: true
       use_interpolation: true
+      use_cost_gradient_descent: true
 
       use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles TODO set true
 
