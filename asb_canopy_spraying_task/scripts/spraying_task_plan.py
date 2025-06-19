@@ -498,14 +498,14 @@ class SprayingTaskPlan:
                     theta, _, r_2_t = transform_rows(r_1, r_2)
                     path_start = un_transform(theta, Point(x=r_2_t.e.x + self.row_path_margin, y=r_2_t.e.y + self.row_path_external_dist))
                     path_end = un_transform(theta, Point(x=r_2_t.s.x - self.row_path_margin, y=r_2_t.s.y + self.row_path_external_dist))
-                    inter_row.set_item_id(f"inter_{r_2.get_row_id()}")
+                    inter_row.set_item_id(f"inter_{r_2.get_row_id()}_a")
                     inter_row.set_left_row_id(r_2.get_row_id())
 
                 elif r_2 is None:  # last row pair (discordant direction)
                     theta, r_1_t, _ = transform_rows(r_1, r_2)
                     path_start = un_transform(theta, Point(x=r_1_t.e.x + self.row_path_margin, y=r_1_t.e.y - self.row_path_external_dist))
                     path_end = un_transform(theta, Point(x=r_1_t.s.x - self.row_path_margin, y=r_1_t.s.y - self.row_path_external_dist))
-                    inter_row.set_item_id(f"inter_{r_1.get_row_id()}")
+                    inter_row.set_item_id(f"inter_{r_1.get_row_id()}_b")
                     inter_row.set_right_row_id(r_1.get_row_id())
 
                 inter_row.set_row_waypoints([
@@ -525,13 +525,13 @@ class SprayingTaskPlan:
                 elif r_1 is None:  # first row pair (concordant direction)
                     path_start = un_transform(theta, Point(x=r_2_t.s.x - self.row_path_margin, y=r_2_t.s.y + self.row_path_external_dist))
                     path_end = un_transform(theta, Point(x=r_2_t.e.x + self.row_path_margin, y=r_2_t.e.y + self.row_path_external_dist))
-                    inter_row.set_item_id(f"inter_{r_2.get_row_id()}")
+                    inter_row.set_item_id(f"inter_{r_2.get_row_id()}_c")
                     inter_row.set_right_row_id(r_2.get_row_id())
 
                 elif r_2 is None:  # last row pair (concordant direction)
                     path_start = un_transform(theta, Point(x=r_1_t.s.x - self.row_path_margin, y=r_1_t.s.y - self.row_path_external_dist))
                     path_end = un_transform(theta, Point(x=r_1_t.e.x + self.row_path_margin, y=r_1_t.e.y - self.row_path_external_dist))
-                    inter_row.set_item_id(f"inter_{r_1.get_row_id()}")
+                    inter_row.set_item_id(f"inter_{r_1.get_row_id()}_d")
                     inter_row.set_left_row_id(r_1.get_row_id())
 
                 inter_row.set_row_waypoints([

@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="enable_pump" default="true" />
+  <arg name="enable_pump" default="false" />
   <arg name="auto_set_control_mode" default="false" />
   <arg name="dry_run" default="false" />
   <arg name="loop" default="false" />

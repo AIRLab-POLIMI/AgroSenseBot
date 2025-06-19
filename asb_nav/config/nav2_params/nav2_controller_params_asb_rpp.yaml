@@ -51,7 +51,7 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 1.0
+      min_turning_radius: 1.5
       desired_linear_vel: 0.1
       lookahead_dist: 1.0
       use_angular_approach: true
@@ -86,7 +86,7 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 1.0
+      min_turning_radius: 1.5
       desired_linear_vel: 0.6
       lookahead_dist: 1.0
       max_robot_path_dist: 0.5
