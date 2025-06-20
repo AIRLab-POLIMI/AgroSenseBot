@@ -225,7 +225,7 @@ alias ts-l-nr='ts loop:=true record:=false'
 alias ts-l-nrs='ts loop:=true record:=true record_sensors:=false'
 
 # launch sim and task
-alias st='rl asb_canopy_spraying_task all.launch.xml auto_set_control_mode_once:=true'
+alias st='clr; cb && rl asb_canopy_spraying_task all.launch.xml auto_set_control_mode_once:=true'
 complete -F _complete_alias st
 
 alias st-l='st loop:=true'
