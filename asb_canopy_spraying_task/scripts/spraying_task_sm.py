@@ -483,15 +483,15 @@ class SprayingTaskPlanExecutor(Node):
             StateMachine.add(
                 label='stop_spray_regulator_2',
                 state=CallbackState(self.stop_spray_regulator_sm_cb, class_instance=self), transitions={
-                    'success': 'stop_platform_and_wait_operator_3',
+                    'success': 'stop_platform_and_wait_operator_2',  # restarts inter-row navigation in place after a failure in inter-row navigation. To go to straightening navigation after a failure in inter-row navigation, use stop_platform_and_wait_operator_3
                 }
             )
-            StateMachine.add(
-                label='stop_platform_and_wait_operator_3',
-                state=CallbackState(self.stop_platform_and_wait_operator_sm_cb, class_instance=self), transitions={
-                    'success': 'straightening_approach',
-                }
-            )
+            # StateMachine.add(
+            #     label='stop_platform_and_wait_operator_3',
+            #     state=CallbackState(self.stop_platform_and_wait_operator_sm_cb, class_instance=self), transitions={
+            #         'success': 'straightening_approach',
+            #     }
+            # )
             StateMachine.add(
                 label='select_next_item',
                 state=CallbackState(self.select_next_item_sm_cb, class_instance=self), transitions={
@@ -913,6 +913,9 @@ class SprayingTaskPlanExecutor(Node):
             self.current_item_pub.publish(String(data=current_item.get_item_id()))
         else:
             self.current_item_pub.publish(String())
+
+        if self.spraying_manager.spraying_status == SprayingStatus.FAILURE:
+            self.get_logger().warn(f"spraying status: {self.spraying_manager.spraying_status.name}")
 
         if not self.stop_platform and self.check_system_condition():
             # publish heartbeat message
