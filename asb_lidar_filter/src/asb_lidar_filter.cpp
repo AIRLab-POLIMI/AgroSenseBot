@@ -66,6 +66,9 @@ ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
   points_out_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
     "points_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
+  points_out_no_ground_ceiling_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+    "points_out_no_ground_ceiling", rclcpp::SensorDataQoS().durability_volatile().reliable());
+
   heartbeat_publisher_ = this->create_publisher<std_msgs::msg::Header>(
     "heartbeat_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
@@ -77,13 +80,16 @@ ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
 void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg) {
   typedef pcl::PointXYZ PointType;
 
+  std::string sensor_frame = points_in_msg->header.frame_id;
+
   auto points_out = std::make_shared<pcl::PointCloud<PointType>>();
+  auto points_out_no_ground_ceiling = std::make_shared<pcl::PointCloud<PointType>>();
   pcl::fromROSMsg(*points_in_msg, *points_out);
 
   geometry_msgs::msg::TransformStamped sensor_to_base_transform_stamped;
   try {
-    tf_buffer_->canTransform(base_frame_id_, points_in_msg->header.frame_id, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
-    sensor_to_base_transform_stamped = tf_buffer_->lookupTransform(base_frame_id_, points_in_msg->header.frame_id, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+    tf_buffer_->canTransform(base_frame_id_, sensor_frame, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+    sensor_to_base_transform_stamped = tf_buffer_->lookupTransform(base_frame_id_, sensor_frame, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
   } catch (const tf2::TransformException & ex) {
     RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
   }
@@ -122,6 +128,8 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
       }
     }
 
+    *points_out_no_ground_ceiling = *points_out;
+
     // remove masked points by setting them as NaN (to keep the pointcloud organized)
     for(int i = 0; i < (int)points_out->height; i++) {
       for(int j = 0; j < (int)points_out->width; j++) {
@@ -129,6 +137,16 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
           points_out->at(j,i).x = std::numeric_limits<float>::quiet_NaN();
           points_out->at(j,i).y = std::numeric_limits<float>::quiet_NaN();
           points_out->at(j,i).z = std::numeric_limits<float>::quiet_NaN();
+
+          points_out_no_ground_ceiling->at(j,i).x = std::numeric_limits<float>::quiet_NaN();
+          points_out_no_ground_ceiling->at(j,i).y = std::numeric_limits<float>::quiet_NaN();
+          points_out_no_ground_ceiling->at(j,i).z = std::numeric_limits<float>::quiet_NaN();
+        }
+
+        if(points_out->at(j,i).z > scan_max_height_ || points_out->at(j,i).z < scan_min_height_){
+          points_out_no_ground_ceiling->at(j,i).x = std::numeric_limits<float>::quiet_NaN();
+          points_out_no_ground_ceiling->at(j,i).y = std::numeric_limits<float>::quiet_NaN();
+          points_out_no_ground_ceiling->at(j,i).z = std::numeric_limits<float>::quiet_NaN();
         }
       }
     }
@@ -152,14 +170,28 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
         1.0
     ));
     crop_box_filter.filter(*points_out);
+
+    *points_out_no_ground_ceiling = *points_out;
+    pcl::ConditionAnd<PointType>::Ptr no_ground_ceiling_cond (new pcl::ConditionAnd<PointType> ());
+    no_ground_ceiling_cond->addComparison(pcl::FieldComparison<PointType>::Ptr (new pcl::FieldComparison<PointType>("z", pcl::ComparisonOps::LT, scan_max_height_)));
+    no_ground_ceiling_cond->addComparison(pcl::FieldComparison<PointType>::Ptr (new pcl::FieldComparison<PointType>("z", pcl::ComparisonOps::GT, scan_min_height_)));
+    pcl::ConditionalRemoval<PointType> no_ground_ceiling_filter;
+    no_ground_ceiling_filter.setCondition(no_ground_ceiling_cond);
+    no_ground_ceiling_filter.setInputCloud(points_out_no_ground_ceiling);
+    no_ground_ceiling_filter.filter(*points_out_no_ground_ceiling);
+
   }
 
-  sensor_msgs::msg::PointCloud2::SharedPtr points_out_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
-  points_out_msg->header = points_in_msg->header;
-  pcl::toROSMsg(*points_out, *points_out_msg);
-  points_out_publisher_->publish(*points_out_msg);
+  sensor_msgs::msg::PointCloud2::SharedPtr points_out_no_ground_ceiling_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+  points_out_no_ground_ceiling_msg->header.stamp = points_in_msg->header.stamp;
+  pcl::toROSMsg(*points_out_no_ground_ceiling, *points_out_no_ground_ceiling_msg);
+  points_out_no_ground_ceiling_publisher_->publish(*points_out_no_ground_ceiling_msg);
 
-  // Create LaserScan message
+  sensor_msgs::msg::PointCloud2::SharedPtr points_out_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+  points_out_msg->header.stamp = points_in_msg->header.stamp;
+  pcl::toROSMsg(*points_out, *points_out_msg);
+
+  // Create and publish the LaserScan message from the pointcloud in the base frame
   auto scan_msg = std::make_unique<sensor_msgs::msg::LaserScan>();
   scan_msg->header = points_out_msg->header;
 
@@ -185,7 +217,27 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
     if (range < scan_msg->ranges[i]) scan_msg->ranges[i] = range;
   }
 
-  heartbeat_publisher_->publish(scan_msg->header);
   scan_publisher_->publish(std::move(scan_msg));
+
+  // re-transform the pointcloud in its original frame and publish the point cloud
+  geometry_msgs::msg::TransformStamped base_to_sensor_transform_stamped;
+  try {
+    tf_buffer_->canTransform(sensor_frame, base_frame_id_, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+    base_to_sensor_transform_stamped = tf_buffer_->lookupTransform(sensor_frame, base_frame_id_, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+  } catch (const tf2::TransformException & ex) {
+    RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
+  }
+
+  auto points_out_in_sensor_frame = std::make_shared<pcl::PointCloud<PointType>>();
+  pcl_ros::transformPointCloud(*points_out, *points_out_in_sensor_frame, base_to_sensor_transform_stamped);
+  points_out_in_sensor_frame->header.frame_id = sensor_frame;
+
+  sensor_msgs::msg::PointCloud2::SharedPtr points_out_in_sensor_frame_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+  pcl::toROSMsg(*points_out_in_sensor_frame, *points_out_in_sensor_frame_msg);
+  points_out_in_sensor_frame_msg->header.stamp = points_in_msg->header.stamp;
+  points_out_publisher_->publish(*points_out_in_sensor_frame_msg);
+
+  // if we got to this point, publish the heartbeat
+  heartbeat_publisher_->publish(points_out_in_sensor_frame_msg->header);
 
 }

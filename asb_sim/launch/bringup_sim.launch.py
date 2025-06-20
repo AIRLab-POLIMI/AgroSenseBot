@@ -57,6 +57,7 @@ def generate_launch_description():
         remappings={
             "points_in": "/scan_front_multilayer/points",
             "points_out": "/scan_front_multilayer/points_filtered",
+            "points_out_no_ground_ceiling": "/scan_front_multilayer/points_filtered_no_ground_ceiling",
             "scan_out": "/scan_front",
             "heartbeat_out": "/scan_heartbeat_front",
         }.items(),
@@ -73,6 +74,7 @@ def generate_launch_description():
         remappings={
             "points_in": "/scan_rear_multilayer/points",
             "points_out": "/scan_rear_multilayer/points_filtered",
+            "points_out_no_ground_ceiling": "/scan_rear_multilayer/points_filtered_no_ground_ceiling",
             "scan_out": "/scan_rear",
             "heartbeat_out": "/scan_heartbeat_rear",
         }.items(),
