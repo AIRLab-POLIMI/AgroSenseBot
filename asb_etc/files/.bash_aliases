@@ -224,6 +224,16 @@ alias ts-nrs='ts record:=true record_sensors:=false'
 alias ts-l-nr='ts loop:=true record:=false'
 alias ts-l-nrs='ts loop:=true record:=true record_sensors:=false'
 
+# launch sim and task
+alias st='rl asb_canopy_spraying_task all.launch.xml auto_set_control_mode_once:=true'
+complete -F _complete_alias st
+
+alias st-l='st loop:=true'
+alias st-nr='st record:=false'
+alias st-nrs='st record:=true record_sensors:=false'
+alias st-l-nr='st loop:=true record:=false'
+alias st-l-nrs='st loop:=true record:=true record_sensors:=false'
+
 # launch rviz
 alias rv='rl asb_nav rviz.launch.py'
 complete -F _complete_alias rv

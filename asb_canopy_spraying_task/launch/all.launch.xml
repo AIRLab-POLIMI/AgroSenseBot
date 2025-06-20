@@ -1,0 +1,6 @@
+<launch>
+
+  <include file="$(find-pkg-share asb_canopy_spraying_task)/launch/execute_task_sm.launch.xml"/>
+  <include file="$(find-pkg-share asb_sim)/launch/nav_dual_rtk_sim.launch.py"/>
+
+</launch>
