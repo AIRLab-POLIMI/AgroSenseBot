@@ -1,6 +1,7 @@
 <launch>
 
   <arg name="enable_pump" default="false" />
+  <arg name="auto_set_control_mode_once" default="false" />
   <arg name="auto_set_control_mode" default="false" />
   <arg name="dry_run" default="false" />
   <arg name="loop" default="false" />
@@ -25,6 +26,7 @@
     <!-- task execution params -->
     <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/arcagna/task_plan_$(var task_plan).yaml"/>
     <param name="log_dir_path" value="~/asb_logs/" />
+    <param name="auto_set_control_mode_once" value="$(var auto_set_control_mode_once)" />
     <param name="auto_set_control_mode" value="$(var auto_set_control_mode)" />
     <param name="dry_run" value="$(var dry_run)" />
     <param name="loop" value="$(var loop)" />

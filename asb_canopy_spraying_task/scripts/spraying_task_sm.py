@@ -82,9 +82,18 @@ class SprayingTaskPlanExecutor(Node):
 
         self.task_result_filename = datetime.now().strftime("%Y-%m-%d__%H-%M-%S__spraying_task_plan_result.yaml")
 
+        self.declare_parameter('auto_set_control_mode_once', rclpy.Parameter.Type.BOOL)
+        self.auto_set_control_mode_once = self.get_parameter('auto_set_control_mode_once').get_parameter_value().bool_value
         self.declare_parameter('auto_set_control_mode', rclpy.Parameter.Type.BOOL)
         self.auto_set_control_mode = self.get_parameter('auto_set_control_mode').get_parameter_value().bool_value
-        if self.auto_set_control_mode:
+        if self.auto_set_control_mode_once:  # auto_set_control_mode_once has higher priority than auto_set_control_mode
+            self.get_logger().info(
+                f"\n"
+                f"**************************\n"
+                f"* AUTO CONTROL MODE ONCE *\n"
+                f"**************************\n"
+            )
+        elif self.auto_set_control_mode:
             self.get_logger().info(
                 f"\n"
                 f"*********************\n"
@@ -1015,7 +1024,7 @@ class SprayingTaskPlanExecutor(Node):
 
         self.stop_platform = True
 
-        if self.auto_set_control_mode:
+        if self.auto_set_control_mode or self.auto_set_control_mode_once:
             self.control_mode_manager.set_control_mode_manual()  # only has effect in simulator
 
         while rclpy.ok() and self.get_control_mode() != ControlMode.MANUAL:
@@ -1028,8 +1037,12 @@ class SprayingTaskPlanExecutor(Node):
             self.do_loop_operations_and_sleep()
             self.get_logger().info(BLUE+f"WAITING control mode switch to AUTO", throttle_duration_sec=10.0)
 
-            if self.auto_set_control_mode:
+            if self.auto_set_control_mode or self.auto_set_control_mode_once:
                 self.control_mode_manager.set_control_mode_auto()  # only has effect in simulator
+
+                if self.auto_set_control_mode_once:
+                    self.auto_set_control_mode = False
+                    self.auto_set_control_mode_once = False
 
 
 class CallbackState(State):
