@@ -40,7 +40,6 @@ struct Parameters {
     double lookahead_time;
     bool use_velocity_scaled_lookahead_dist;
     bool use_angular_approach;
-    bool use_cost_gradient_descent;
     bool use_adaptive_lookahead_dist;
     double adaptive_lookahead_path_distance_margin;
     double min_approach_linear_velocity;

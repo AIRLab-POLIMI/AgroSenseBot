@@ -74,7 +74,6 @@ void RegulatedPurePursuitController::configure(const rclcpp_lifecycle::Lifecycle
     goal_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/goal_pose", 1);
     stop_pose_pub_ = node->create_publisher<geometry_msgs::msg::PoseStamped>("~/stop_pose", 1);
     lookahead_circle_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/lookahead_circle", 1);
-    cost_gradient_descent_poses_pub_ = node->create_publisher<geometry_msgs::msg::PoseArray>("~/cost_gradient_descent_poses", 1);
     constraint_intersection_poses_pub_ = node->create_publisher<geometry_msgs::msg::PointStamped>("~/constraint_intersection_poses", 1);
     constraints_pub_ = node->create_publisher<geometry_msgs::msg::PolygonStamped>("~/constraints", 1);
     lookahead_arc_pub_ = node->create_publisher<nav_msgs::msg::Path>("~/lookahead_arc", 1);
@@ -99,7 +98,6 @@ void RegulatedPurePursuitController::cleanup() {
     stop_pose_pub_.reset();
     lookahead_circle_pub_.reset();
     constraint_intersection_poses_pub_.reset();
-    cost_gradient_descent_poses_pub_.reset();
     constraints_pub_.reset();
     lookahead_arc_pub_.reset();
     path_lookahead_arc_pub_.reset();
@@ -121,7 +119,6 @@ void RegulatedPurePursuitController::activate() {
     stop_pose_pub_->on_activate();
     lookahead_circle_pub_->on_activate();
     constraint_intersection_poses_pub_->on_activate();
-    cost_gradient_descent_poses_pub_->on_activate();
     constraints_pub_->on_activate();
     lookahead_arc_pub_->on_activate();
     path_lookahead_arc_pub_->on_activate();
@@ -143,7 +140,6 @@ void RegulatedPurePursuitController::deactivate() {
     stop_pose_pub_->on_deactivate();
     lookahead_circle_pub_->on_deactivate();
     constraint_intersection_poses_pub_->on_deactivate();
-    cost_gradient_descent_poses_pub_->on_deactivate();
     constraints_pub_->on_deactivate();
     lookahead_arc_pub_->on_deactivate();
     path_lookahead_arc_pub_->on_deactivate();
@@ -339,58 +335,6 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
         sign = carrot_pose.pose.position.x >= 0.0 ? 1.0 : -1.0;
     }
 
-    if(params_->use_cost_gradient_descent) {
-
-        std::string global_frame_id = costmap_ros_->getGlobalFrameID();
-
-        geometry_msgs::msg::PoseArray cost_gradient_descent_poses;
-        cost_gradient_descent_poses.header = carrot_pose.header;
-//        cost_gradient_descent_poses.header.stamp = carrot_pose.header.stamp;
-//        cost_gradient_descent_poses.header.frame_id = global_frame_id;
-        double res = costmap->getResolution();
-
-        // find the pose shifting the lookahead pose that minimizes the cost within a window, among the poses that minimize the cost, pick the one closest to the lookahead pose
-        int min_d = std::numeric_limits<int>::max();
-//        uint8_t min_c = std::numeric_limits<uint8_t>::max();
-        geometry_msgs::msg::PoseStamped min_p = carrot_pose;
-
-        RCLCPP_INFO(logger_, "costmap res: %f, costmap frame_id: %s", res, costmap_ros_->getGlobalFrameID().c_str());
-        for (int i=-10; i<11; i++){
-            geometry_msgs::msg::PoseStamped shifted_carrot_pose = carrot_pose;
-            shifted_carrot_pose.pose.position.y += i*res;
-
-//            geometry_msgs::msg::PoseStamped p;
-//            if (!path_handler_->transformPose(global_frame_id, shifted_carrot_pose, p)) {
-//                throw nav2_core::ControllerTFError("Unable to transform robot pose into global plan's frame");
-//            }
-            cost_gradient_descent_poses.poses.emplace_back(shifted_carrot_pose.pose);
-
-            double shifted_carrot_pose_dist = std::hypot(shifted_carrot_pose.pose.position.x, shifted_carrot_pose.pose.position.y);
-            double lc = calculateCurvature(shifted_carrot_pose.pose.position);
-            double angular_vel = params_->desired_linear_vel * lc;
-            bool collision = collision_checker_->isCollisionImminent(pose, params_->desired_linear_vel, angular_vel, shifted_carrot_pose_dist, false);
-//            unsigned int mx, my;
-//            costmap->worldToMap(p.pose.position.x, p.pose.position.y, mx, my);
-//            uint8_t c = costmap->getCost(mx, my);
-            int d = std::abs(i);
-
-            if (collision){
-                RCLCPP_INFO(logger_, "i: %+i  COLLISION ****************", i);
-            } else {
-                RCLCPP_INFO(logger_, "i: %+i  no collision", i);
-            }
-
-            if(!collision && d < min_d) {
-                min_d = d;
-                min_p = shifted_carrot_pose;
-            }
-
-        }
-        cost_gradient_descent_poses_pub_->publish(cost_gradient_descent_poses);
-        RCLCPP_INFO(logger_, "min_d: %i, min_p x: %+0.2f, min_p y: %+0.2f", min_d, min_p.pose.position.x, min_p.pose.position.y);
-        carrot_pose = min_p;
-    }
-
     double lookahead_curvature = calculateCurvature(carrot_pose.pose.position);
     if (params_->use_angular_approach) {
         sign = -1.0;
@@ -442,7 +386,7 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     }
 
     // Collision checking on this velocity heading
-    if (params_->use_collision_detection && collision_checker_->isCollisionImminent(pose, linear_vel, angular_vel, carrot_dist, true)) {
+    if (params_->use_collision_detection && collision_checker_->isCollisionImminent(pose, linear_vel, angular_vel, carrot_dist)) {
         throw nav2_core::NoValidControl("RegulatedPurePursuitController detected collision ahead!");
     }
 

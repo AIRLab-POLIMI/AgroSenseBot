@@ -39,7 +39,7 @@ CollisionChecker::CollisionChecker(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     carrot_arc_pub_->on_activate();
 }
 
-bool CollisionChecker::isCollisionImminent(const geometry_msgs::msg::PoseStamped &robot_pose, const double &linear_vel, const double &angular_vel, const double &carrot_dist, bool publish_arc) {
+bool CollisionChecker::isCollisionImminent(const geometry_msgs::msg::PoseStamped &robot_pose, const double &linear_vel, const double &angular_vel, const double &carrot_dist) {
     // Note(stevemacenski): This may be a bit unusual, but the robot_pose is in
     // odom frame and the carrot_pose is in robot base frame. Just how the data comes to us
 
@@ -111,9 +111,7 @@ bool CollisionChecker::isCollisionImminent(const geometry_msgs::msg::PoseStamped
         }
     }
 
-    if (publish_arc) {
-        carrot_arc_pub_->publish(arc_pts_msg);
-    }
+    carrot_arc_pub_->publish(arc_pts_msg);
 
     return false;
 }

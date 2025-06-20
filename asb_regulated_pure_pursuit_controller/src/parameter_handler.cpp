@@ -41,7 +41,6 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     declare_parameter_if_not_declared(node, plugin_name_ + ".transform_tolerance", rclcpp::ParameterValue(0.1));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_velocity_scaled_lookahead_dist", rclcpp::ParameterValue(false));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_angular_approach", rclcpp::ParameterValue(false));
-    declare_parameter_if_not_declared(node, plugin_name_ + ".use_cost_gradient_descent", rclcpp::ParameterValue(false));
     declare_parameter_if_not_declared(node, plugin_name_ + ".use_adaptive_lookahead_dist", rclcpp::ParameterValue(false));
     declare_parameter_if_not_declared(node, plugin_name_ + ".adaptive_lookahead_path_distance_margin", rclcpp::ParameterValue(0.3));
     declare_parameter_if_not_declared(node, plugin_name_ + ".min_approach_linear_velocity", rclcpp::ParameterValue(0.05));
@@ -79,7 +78,6 @@ ParameterHandler::ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr no
     node->get_parameter(plugin_name_ + ".transform_tolerance", params_.transform_tolerance);
     node->get_parameter(plugin_name_ + ".use_velocity_scaled_lookahead_dist", params_.use_velocity_scaled_lookahead_dist);
     node->get_parameter(plugin_name_ + ".use_angular_approach", params_.use_angular_approach);
-    node->get_parameter(plugin_name_ + ".use_cost_gradient_descent", params_.use_cost_gradient_descent);
     node->get_parameter(plugin_name_ + ".use_adaptive_lookahead_dist", params_.use_adaptive_lookahead_dist);
     node->get_parameter(plugin_name_ + ".adaptive_lookahead_path_distance_margin", params_.adaptive_lookahead_path_distance_margin);
     node->get_parameter(plugin_name_ + ".min_approach_linear_velocity", params_.min_approach_linear_velocity);
@@ -197,8 +195,6 @@ rcl_interfaces::msg::SetParametersResult ParameterHandler::dynamicParametersCall
         } else if (type == ParameterType::PARAMETER_BOOL) {
             if (name == plugin_name_ + ".use_velocity_scaled_lookahead_dist") {
                 params_.use_velocity_scaled_lookahead_dist = parameter.as_bool();
-            } else if (name == plugin_name_ + ".use_cost_gradient_descent") {
-                params_.use_cost_gradient_descent = parameter.as_bool();
             } else if (name == plugin_name_ + ".use_angular_approach") {
                 params_.use_angular_approach = parameter.as_bool();
             } else if (name == plugin_name_ + ".use_adaptive_lookahead_dist") {

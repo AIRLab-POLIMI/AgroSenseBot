@@ -60,7 +60,7 @@ public:
      * @param carrot_dist Distance to the carrot for PP
      * @return Whether collision is imminent
      */
-    bool isCollisionImminent(const geometry_msgs::msg::PoseStamped &, const double &, const double &, const double &, bool);
+    bool isCollisionImminent(const geometry_msgs::msg::PoseStamped &, const double &, const double &, const double &);
 
     /**
      * @brief checks for collision at projected pose
