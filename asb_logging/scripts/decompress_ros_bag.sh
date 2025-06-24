@@ -12,7 +12,7 @@ MAX_PARALLEL="${3:-4}"
 
 # Output directory
 BASE_NAME="$(basename "$INPUT_DIR")"
-OUTPUT_DIR="$(dirname "$INPUT_DIR")/${BASE_NAME}_decompressed"
+OUTPUT_DIR="$(dirname "$INPUT_DIR")/d_${BASE_NAME}"
 mkdir -p "$OUTPUT_DIR"
 
 echo "Using $ZSTD_THREADS threads per file, max $MAX_PARALLEL parallel jobs."
