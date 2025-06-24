@@ -6,8 +6,10 @@ from rcl_interfaces.msg import Log
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 
+
 def level_bytes_to_int(l: bytes):
     return int.from_bytes(l, byteorder='big')
+
 
 color_codes_name = {
     level_bytes_to_int(Log.DEBUG): "DEBUG",
@@ -25,6 +27,7 @@ color_codes = {
     level_bytes_to_int(Log.FATAL): "\033[95m",   # Magenta
 }
 
+
 def print_colored(log: Log) -> None:
     if isinstance(log.level, bytes):
         level_int = level_bytes_to_int(log.level)
@@ -36,6 +39,7 @@ def print_colored(log: Log) -> None:
 
     print(f"{color_code}[{log.name:<30} {color_codes_name[level_int]}] {log.msg}{reset_code}")
 
+
 def test(level, level_name):
     # Create and print a log message for each level
     log_msg = Log()
@@ -46,10 +50,12 @@ def test(level, level_name):
     log_msg.stamp.nanosec = 0
     print_colored(log_msg)
 
+
 test(Log.INFO, "INFO")
 test(Log.WARN, "WARN")
 test(Log.ERROR, "ERROR")
 test(Log.FATAL, "FATAL")
+
 
 class PrintRosOut(Node):
 

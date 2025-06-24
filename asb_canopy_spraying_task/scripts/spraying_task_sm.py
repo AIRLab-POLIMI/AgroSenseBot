@@ -78,7 +78,7 @@ class SprayingTaskPlanExecutor(Node):
 
         date_stamp = datetime.now().strftime("%Y-%m-%d")
         self.declare_parameter('log_dir_path', rclpy.Parameter.Type.STRING)
-        self.task_log_dir_path = os.path.join(os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value), date_stamp)
+        self.task_log_dir_path = os.path.join(os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value), date_stamp, "task_logs")
 
         self.task_result_filename = datetime.now().strftime("%Y-%m-%d__%H-%M-%S__spraying_task_plan_result.yaml")
 

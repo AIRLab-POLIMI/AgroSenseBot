@@ -2,7 +2,7 @@ from os import path
 
 import pandas as pd
 
-from bag_to_dataframe import bag_to_dataframe
+from asb_logging.scripts.bag_to_dataframe import bag_to_dataframe
 import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = [10, 10]
 

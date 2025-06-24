@@ -134,6 +134,9 @@ complete -F _complete_alias s
 alias d='git diff'
 complete -F _complete_alias d
 
+alias ds='git diff --staged'
+complete -F _complete_alias ds
+
 alias a='git add'
 complete -F _complete_alias a
 
@@ -182,6 +185,12 @@ complete -F _complete_alias rb
 
 alias rbp='ros2 bag play --clock --read-ahead-queue-size 100000'
 complete -F _complete_alias rbp
+
+alias rbd='rr asb_logging decompress_ros_bag.sh'
+complete -F _complete_alias rbd
+
+alias rbpr='rr asb_logging print_rosout.py'
+complete -F _complete_alias rbpr
 
 alias rp='ros2 param'
 complete -F _complete_alias rp
