@@ -39,6 +39,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     msg/SprayRegulatorStatus.msg
     msg/NozzleCommand.msg
     msg/NozzleCommandArray.msg
+    msg/ProcessCpuUsage.msg
+    msg/SystemUsage.msg
 
     srv/InitializeCanopyRegion.srv
     srv/SuspendCanopyRegion.srv
