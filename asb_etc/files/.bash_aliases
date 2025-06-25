@@ -183,7 +183,7 @@ complete -F _complete_alias rr
 alias rb='ros2 bag'
 complete -F _complete_alias rb
 
-alias rbp='ros2 bag play --clock --read-ahead-queue-size 100000  --remap /rosout:=/rosout_replay'
+alias rbp='ros2 bag play --clock --read-ahead-queue-size 100000'
 complete -F _complete_alias rbp
 
 alias rbd='rr asb_logging decompress_ros_bag.sh'

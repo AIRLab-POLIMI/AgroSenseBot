@@ -68,7 +68,7 @@ class PrintRosOut(Node):
             history=HistoryPolicy.KEEP_LAST,
             depth=1,
         )
-        self.sub_ = self.create_subscription(Log, '/rosout_replay', self.callback, qos_reliable_volatile_depth_1)
+        self.sub_ = self.create_subscription(Log, '/rosout', self.callback, qos_reliable_volatile_depth_1)
 
     def callback(self, log: Log):
         if log.name in [self.get_name(), "rviz", "rosbag2_player"]:
