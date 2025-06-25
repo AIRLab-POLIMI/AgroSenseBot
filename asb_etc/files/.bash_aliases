@@ -125,6 +125,9 @@ alias S='source ~/.bashrc'
 
 alias cda='cd $ROS_WS/src/AgroSenseBot/'
 
+alias cds='cd ~/asb_logs/'
+complete -F _complete_alias cds
+
 alias sai='sudo apt install'
 complete -F _complete_alias sai
 
