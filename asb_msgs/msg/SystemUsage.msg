@@ -1,3 +1,4 @@
+builtin_interfaces/Time stamp
 float32[] cpu_core_usage_percent  # [%] per core usage
 float64 mem_total  # [MiB] total physical memory (exclusive swap)
 float64 mem_available  # [MiB] the memory that can be given instantly to processes without the system going into swap

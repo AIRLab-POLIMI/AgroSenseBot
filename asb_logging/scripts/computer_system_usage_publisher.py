@@ -12,13 +12,12 @@ class ComputerSystemUsagePublisher(Node):
     def __init__(self):
         super().__init__('computer_system_usage_publisher')
 
-        qos_profile = QoSProfile(
+        qos_reliable_transient_local_depth_10 = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
             depth=10
         )
-
-        self.publisher_ = self.create_publisher(SystemUsage, '/asb_computer_system_usage', qos_profile)
+        self.publisher_ = self.create_publisher(SystemUsage, '/asb_computer_system_usage', qos_reliable_transient_local_depth_10)
         self.timer = self.create_timer(1.0, self.timer_callback)
 
         # Prime cpu_percent() for accuracy
@@ -33,6 +32,7 @@ class ComputerSystemUsagePublisher(Node):
         mem = psutil.virtual_memory()
 
         msg = SystemUsage()
+        msg.stamp = self.get_clock().now().to_msg()
         msg.cpu_core_usage_percent = cpu_percents
         msg.mem_total = float(mem.total) / 2**20
         msg.mem_available = float(mem.available) / 2**20
