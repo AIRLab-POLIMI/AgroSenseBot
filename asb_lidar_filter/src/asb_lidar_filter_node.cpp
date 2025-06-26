@@ -14,10 +14,9 @@
 
 #include "asb_lidar_filter/asb_lidar_filter.h"
 
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<ASBLidarFilter>());
-  rclcpp::shutdown();
-  return 0;
+int main(int argc, char *argv[]) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<ASBLidarFilter>());
+    rclcpp::shutdown();
+    return 0;
 }

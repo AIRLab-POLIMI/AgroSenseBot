@@ -30,214 +30,194 @@ using std::placeholders::_1;
 
 ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
 
-  this->declare_parameter("base_frame_id", "base_footprint");
-  base_frame_id_ = this->get_parameter("base_frame_id").as_string();
+    this->declare_parameter("base_frame_id", "base_footprint");
+    base_frame_id_ = this->get_parameter("base_frame_id").as_string();
 
-  this->declare_parameter("mask_filter_size", 2);
-  mask_filter_size_ = (int)this->get_parameter("mask_filter_size").as_int();
+    this->declare_parameter("mask_filter_size", 2);
+    mask_filter_size_ = (int) this->get_parameter("mask_filter_size").as_int();
 
-  // pointcloud filter params
-  this->declare_parameter("x_min", 0.0);
-  this->declare_parameter("x_max", 0.0);
-  this->declare_parameter("y_min", 0.0);
-  this->declare_parameter("y_max", 0.0);
-  this->declare_parameter("z_min", 0.0);
-  this->declare_parameter("z_max", 0.0);
-  x_min_ = this->get_parameter("x_min").as_double();
-  x_max_ = this->get_parameter("x_max").as_double();
-  y_min_ = this->get_parameter("y_min").as_double();
-  y_max_ = this->get_parameter("y_max").as_double();
-  z_min_ = this->get_parameter("z_min").as_double();
-  z_max_ = this->get_parameter("z_max").as_double();
+    // pointcloud filter params
+    this->declare_parameter("x_min", 0.0);
+    this->declare_parameter("x_max", 0.0);
+    this->declare_parameter("y_min", 0.0);
+    this->declare_parameter("y_max", 0.0);
+    this->declare_parameter("z_min", 0.0);
+    this->declare_parameter("z_max", 0.0);
+    x_min_ = this->get_parameter("x_min").as_double();
+    x_max_ = this->get_parameter("x_max").as_double();
+    y_min_ = this->get_parameter("y_min").as_double();
+    y_max_ = this->get_parameter("y_max").as_double();
+    z_min_ = this->get_parameter("z_min").as_double();
+    z_max_ = this->get_parameter("z_max").as_double();
 
-  // scan filter params
-  this->declare_parameter("scan_min_height", 0.0);
-  scan_min_height_ = this->get_parameter("scan_min_height").as_double();
-  this->declare_parameter("scan_max_height", 0.0);
-  scan_max_height_ = this->get_parameter("scan_max_height").as_double();
+    // scan filter params
+    this->declare_parameter("scan_min_height", 0.0);
+    scan_min_height_ = this->get_parameter("scan_min_height").as_double();
+    this->declare_parameter("scan_max_height", 0.0);
+    scan_max_height_ = this->get_parameter("scan_max_height").as_double();
 
-  tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-  points_in_subscriber_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-    "points_in", rclcpp::SensorDataQoS().durability_volatile().reliable(),
-    std::bind(&ASBLidarFilter::points_in_callback, this, _1));
+    points_in_subscriber_ = this->create_subscription<sensor_msgs::msg::PointCloud2>("points_in", rclcpp::SensorDataQoS().durability_volatile().reliable(), std::bind(&ASBLidarFilter::points_in_callback, this, _1));
 
-  points_out_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
-    "points_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
+    points_out_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("points_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
-  points_out_no_ground_ceiling_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
-    "points_out_no_ground_ceiling", rclcpp::SensorDataQoS().durability_volatile().reliable());
+    points_out_no_ground_ceiling_publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("points_out_no_ground_ceiling", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
-  heartbeat_publisher_ = this->create_publisher<std_msgs::msg::Header>(
-    "heartbeat_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
+    heartbeat_publisher_ = this->create_publisher<std_msgs::msg::Header>("heartbeat_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
-  scan_publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>(
-    "scan_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
+    scan_publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
 }
 
 void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg) {
-  typedef pcl::PointXYZ PointType;
+    typedef pcl::PointXYZ PointType;
 
-  std::string sensor_frame = points_in_msg->header.frame_id;
+    std::string sensor_frame = points_in_msg->header.frame_id;
 
-  auto points_out = std::make_shared<pcl::PointCloud<PointType>>();
-  auto points_out_no_ground_ceiling = std::make_shared<pcl::PointCloud<PointType>>();
-  pcl::fromROSMsg(*points_in_msg, *points_out);
+    auto points_out = std::make_shared<pcl::PointCloud<PointType>>();
+    auto points_out_no_ground_ceiling = std::make_shared<pcl::PointCloud<PointType>>();
+    pcl::fromROSMsg(*points_in_msg, *points_out);
 
-  geometry_msgs::msg::TransformStamped sensor_to_base_transform_stamped;
-  try {
-    tf_buffer_->canTransform(base_frame_id_, sensor_frame, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
-    sensor_to_base_transform_stamped = tf_buffer_->lookupTransform(base_frame_id_, sensor_frame, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
-  } catch (const tf2::TransformException & ex) {
-    RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
-  }
-  pcl_ros::transformPointCloud(*points_out, *points_out, sensor_to_base_transform_stamped);
-  points_out->header.frame_id = base_frame_id_;
+    geometry_msgs::msg::TransformStamped sensor_to_base_transform_stamped;
+    try {
+        tf_buffer_->canTransform(base_frame_id_, sensor_frame, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+        sensor_to_base_transform_stamped = tf_buffer_->lookupTransform(base_frame_id_, sensor_frame, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+    } catch (const tf2::TransformException &ex) {
+        RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
+    }
+    pcl_ros::transformPointCloud(*points_out, *points_out, sensor_to_base_transform_stamped);
+    points_out->header.frame_id = base_frame_id_;
 
-  if(points_out->isOrganized()) {
-    // if the pointcloud is organized (it was generated from the real sensor), filter the input pointcloud with a box modelling the space
-    // occupied by the robot (remove points inside the box) and also the points adjacent to the ones inside the box, which are likely to be
-    // reflections on tangent surfaces
-    float x_min = (float)std::min(x_min_, x_max_);
-    float x_max = (float)std::max(x_min_, x_max_);
-    float y_min = (float)std::min(y_min_, y_max_);
-    float y_max = (float)std::max(y_min_, y_max_);
-    float z_min = (float)std::min(z_min_, z_max_);
-    float z_max = (float)std::max(z_min_, z_max_);
-    std::vector<bool> mask(points_out->height * points_out->width, false);
+    if (points_out->isOrganized()) {
+        // if the pointcloud is organized (it was generated from the real sensor), filter the input pointcloud with a box modelling the space
+        // occupied by the robot (remove points inside the box) and also the points adjacent to the ones inside the box, which are likely to be
+        // reflections on tangent surfaces
+        float x_min = (float) std::min(x_min_, x_max_);
+        float x_max = (float) std::max(x_min_, x_max_);
+        float y_min = (float) std::min(y_min_, y_max_);
+        float y_max = (float) std::max(y_min_, y_max_);
+        float z_min = (float) std::min(z_min_, z_max_);
+        float z_max = (float) std::max(z_min_, z_max_);
+        std::vector<bool> mask(points_out->height * points_out->width, false);
 
-    for(int i = 0; i < (int)points_out->height; i++) {
-      for(int j = 0; j < (int)points_out->width; j++) {
-        if(
-            points_out->at(j,i).x >= x_min && points_out->at(j,i).x <= x_max &&
-            points_out->at(j,i).y >= y_min && points_out->at(j,i).y <= y_max &&
-            points_out->at(j,i).z >= z_min && points_out->at(j,i).z <= z_max
-            ) {
+        for (int i = 0; i < (int) points_out->height; i++) {
+            for (int j = 0; j < (int) points_out->width; j++) {
+                if (points_out->at(j, i).x >= x_min && points_out->at(j, i).x <= x_max && points_out->at(j, i).y >= y_min && points_out->at(j, i).y <= y_max && points_out->at(j, i).z >= z_min && points_out->at(j, i).z <= z_max) {
 
-          // insert in the mask the points adjacent to the ones in the box
-          for(int d_i = -mask_filter_size_; d_i < mask_filter_size_ + 1; d_i++) {
-            for (int d_j = -mask_filter_size_; d_j < mask_filter_size_ + 1; d_j++) {
-              if (i + d_i >= 0 && i + d_i < (int)points_out->height && j + d_j >= 0 && j + d_j < (int)points_out->width) {
-                mask[(i + d_i) * (int)points_out->width + (j + d_j)] = true; // using flat index
-              }
+                    // insert in the mask the points adjacent to the ones in the box
+                    for (int d_i = -mask_filter_size_; d_i < mask_filter_size_ + 1; d_i++) {
+                        for (int d_j = -mask_filter_size_; d_j < mask_filter_size_ + 1; d_j++) {
+                            if (i + d_i >= 0 && i + d_i < (int) points_out->height && j + d_j >= 0 && j + d_j < (int) points_out->width) {
+                                mask[(i + d_i) * (int) points_out->width + (j + d_j)] = true; // using flat index
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
+
+        *points_out_no_ground_ceiling = *points_out;
+
+        // remove masked points by setting them as NaN (to keep the pointcloud organized)
+        for (int i = 0; i < (int) points_out->height; i++) {
+            for (int j = 0; j < (int) points_out->width; j++) {
+                if (mask[i * (int) points_out->width + j]) {
+                    points_out->at(j, i).x = std::numeric_limits<float>::quiet_NaN();
+                    points_out->at(j, i).y = std::numeric_limits<float>::quiet_NaN();
+                    points_out->at(j, i).z = std::numeric_limits<float>::quiet_NaN();
+
+                    points_out_no_ground_ceiling->at(j, i).x = std::numeric_limits<float>::quiet_NaN();
+                    points_out_no_ground_ceiling->at(j, i).y = std::numeric_limits<float>::quiet_NaN();
+                    points_out_no_ground_ceiling->at(j, i).z = std::numeric_limits<float>::quiet_NaN();
+                }
+
+                if (points_out->at(j, i).z > scan_max_height_ || points_out->at(j, i).z < scan_min_height_) {
+                    points_out_no_ground_ceiling->at(j, i).x = std::numeric_limits<float>::quiet_NaN();
+                    points_out_no_ground_ceiling->at(j, i).y = std::numeric_limits<float>::quiet_NaN();
+                    points_out_no_ground_ceiling->at(j, i).z = std::numeric_limits<float>::quiet_NaN();
+                }
+            }
+        }
+
+    } else {
+        // if the pointcloud is NOT organized (from sim sensor), filter the input pointcloud with a box modelling the space occupied by the
+        // robot (remove points inside the box)
+        pcl::CropBox<PointType> crop_box_filter;
+        crop_box_filter.setNegative(true);
+        crop_box_filter.setInputCloud(points_out);
+        crop_box_filter.setMin(Eigen::Vector4f((float) std::min(x_min_, x_max_), (float) std::min(y_min_, y_max_), (float) std::min(z_min_, z_max_), 1.0));
+        crop_box_filter.setMax(Eigen::Vector4f((float) std::max(x_min_, x_max_), (float) std::max(y_min_, y_max_), (float) std::max(z_min_, z_max_), 1.0));
+        crop_box_filter.filter(*points_out);
+
+        *points_out_no_ground_ceiling = *points_out;
+        pcl::ConditionAnd<PointType>::Ptr no_ground_ceiling_cond(new pcl::ConditionAnd<PointType>());
+        no_ground_ceiling_cond->addComparison(pcl::FieldComparison<PointType>::Ptr(new pcl::FieldComparison<PointType>("z", pcl::ComparisonOps::LT, scan_max_height_)));
+        no_ground_ceiling_cond->addComparison(pcl::FieldComparison<PointType>::Ptr(new pcl::FieldComparison<PointType>("z", pcl::ComparisonOps::GT, scan_min_height_)));
+        pcl::ConditionalRemoval<PointType> no_ground_ceiling_filter;
+        no_ground_ceiling_filter.setCondition(no_ground_ceiling_cond);
+        no_ground_ceiling_filter.setInputCloud(points_out_no_ground_ceiling);
+        no_ground_ceiling_filter.filter(*points_out_no_ground_ceiling);
+
     }
 
-    *points_out_no_ground_ceiling = *points_out;
+    sensor_msgs::msg::PointCloud2::SharedPtr points_out_no_ground_ceiling_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+    points_out_no_ground_ceiling_msg->header.stamp = points_in_msg->header.stamp;
+    pcl::toROSMsg(*points_out_no_ground_ceiling, *points_out_no_ground_ceiling_msg);
+    points_out_no_ground_ceiling_publisher_->publish(*points_out_no_ground_ceiling_msg);
 
-    // remove masked points by setting them as NaN (to keep the pointcloud organized)
-    for(int i = 0; i < (int)points_out->height; i++) {
-      for(int j = 0; j < (int)points_out->width; j++) {
-        if(mask[i * (int)points_out->width + j]){
-          points_out->at(j,i).x = std::numeric_limits<float>::quiet_NaN();
-          points_out->at(j,i).y = std::numeric_limits<float>::quiet_NaN();
-          points_out->at(j,i).z = std::numeric_limits<float>::quiet_NaN();
+    sensor_msgs::msg::PointCloud2::SharedPtr points_out_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+    points_out_msg->header.stamp = points_in_msg->header.stamp;
+    pcl::toROSMsg(*points_out, *points_out_msg);
 
-          points_out_no_ground_ceiling->at(j,i).x = std::numeric_limits<float>::quiet_NaN();
-          points_out_no_ground_ceiling->at(j,i).y = std::numeric_limits<float>::quiet_NaN();
-          points_out_no_ground_ceiling->at(j,i).z = std::numeric_limits<float>::quiet_NaN();
-        }
+    // Create and publish the LaserScan message from the pointcloud in the base frame
+    auto scan_msg = std::make_unique<sensor_msgs::msg::LaserScan>();
+    scan_msg->header = points_out_msg->header;
 
-        if(points_out->at(j,i).z > scan_max_height_ || points_out->at(j,i).z < scan_min_height_){
-          points_out_no_ground_ceiling->at(j,i).x = std::numeric_limits<float>::quiet_NaN();
-          points_out_no_ground_ceiling->at(j,i).y = std::numeric_limits<float>::quiet_NaN();
-          points_out_no_ground_ceiling->at(j,i).z = std::numeric_limits<float>::quiet_NaN();
-        }
-      }
+    scan_msg->angle_min = -M_PI;
+    scan_msg->angle_max = M_PI;
+    scan_msg->angle_increment = M_PI / (5 * 180.0);
+    scan_msg->time_increment = 0.0;
+    scan_msg->scan_time = 1.0 / 30.0;
+    scan_msg->range_min = 0.0;
+    scan_msg->range_max = 30.0;
+
+    uint32_t ranges_size = std::ceil((scan_msg->angle_max - scan_msg->angle_min) / scan_msg->angle_increment);
+    scan_msg->ranges.assign(ranges_size, std::numeric_limits<float>::infinity());
+
+    for (sensor_msgs::PointCloud2ConstIterator<float> iter_x(*points_out_msg, "x"), iter_y(*points_out_msg, "y"), iter_z(*points_out_msg, "z"); iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
+        if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z)) continue;
+        if (*iter_z > scan_max_height_ || *iter_z < scan_min_height_) continue;
+
+        float range = hypot(*iter_x, *iter_y);
+        double angle = atan2(*iter_y, *iter_x);
+        int i = (int) std::round((angle - scan_msg->angle_min) / scan_msg->angle_increment);
+
+        if (range < scan_msg->ranges[i]) scan_msg->ranges[i] = range;
     }
 
-  } else {
-    // if the pointcloud is NOT organized (from sim sensor), filter the input pointcloud with a box modelling the space occupied by the
-    // robot (remove points inside the box)
-    pcl::CropBox<PointType> crop_box_filter;
-    crop_box_filter.setNegative(true);
-    crop_box_filter.setInputCloud(points_out);
-    crop_box_filter.setMin(Eigen::Vector4f(
-        (float)std::min(x_min_, x_max_),
-        (float)std::min(y_min_, y_max_),
-        (float)std::min(z_min_, z_max_),
-        1.0
-    ));
-    crop_box_filter.setMax(Eigen::Vector4f(
-        (float)std::max(x_min_, x_max_),
-        (float)std::max(y_min_, y_max_),
-        (float)std::max(z_min_, z_max_),
-        1.0
-    ));
-    crop_box_filter.filter(*points_out);
+    scan_publisher_->publish(std::move(scan_msg));
 
-    *points_out_no_ground_ceiling = *points_out;
-    pcl::ConditionAnd<PointType>::Ptr no_ground_ceiling_cond (new pcl::ConditionAnd<PointType> ());
-    no_ground_ceiling_cond->addComparison(pcl::FieldComparison<PointType>::Ptr (new pcl::FieldComparison<PointType>("z", pcl::ComparisonOps::LT, scan_max_height_)));
-    no_ground_ceiling_cond->addComparison(pcl::FieldComparison<PointType>::Ptr (new pcl::FieldComparison<PointType>("z", pcl::ComparisonOps::GT, scan_min_height_)));
-    pcl::ConditionalRemoval<PointType> no_ground_ceiling_filter;
-    no_ground_ceiling_filter.setCondition(no_ground_ceiling_cond);
-    no_ground_ceiling_filter.setInputCloud(points_out_no_ground_ceiling);
-    no_ground_ceiling_filter.filter(*points_out_no_ground_ceiling);
+    // re-transform the pointcloud in its original frame and publish the point cloud
+    geometry_msgs::msg::TransformStamped base_to_sensor_transform_stamped;
+    try {
+        tf_buffer_->canTransform(sensor_frame, base_frame_id_, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+        base_to_sensor_transform_stamped = tf_buffer_->lookupTransform(sensor_frame, base_frame_id_, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+    } catch (const tf2::TransformException &ex) {
+        RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
+    }
 
-  }
+    auto points_out_in_sensor_frame = std::make_shared<pcl::PointCloud<PointType>>();
+    pcl_ros::transformPointCloud(*points_out, *points_out_in_sensor_frame, base_to_sensor_transform_stamped);
+    points_out_in_sensor_frame->header.frame_id = sensor_frame;
 
-  sensor_msgs::msg::PointCloud2::SharedPtr points_out_no_ground_ceiling_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
-  points_out_no_ground_ceiling_msg->header.stamp = points_in_msg->header.stamp;
-  pcl::toROSMsg(*points_out_no_ground_ceiling, *points_out_no_ground_ceiling_msg);
-  points_out_no_ground_ceiling_publisher_->publish(*points_out_no_ground_ceiling_msg);
+    sensor_msgs::msg::PointCloud2::SharedPtr points_out_in_sensor_frame_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+    pcl::toROSMsg(*points_out_in_sensor_frame, *points_out_in_sensor_frame_msg);
+    points_out_in_sensor_frame_msg->header.stamp = points_in_msg->header.stamp;
+    points_out_publisher_->publish(*points_out_in_sensor_frame_msg);
 
-  sensor_msgs::msg::PointCloud2::SharedPtr points_out_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
-  points_out_msg->header.stamp = points_in_msg->header.stamp;
-  pcl::toROSMsg(*points_out, *points_out_msg);
-
-  // Create and publish the LaserScan message from the pointcloud in the base frame
-  auto scan_msg = std::make_unique<sensor_msgs::msg::LaserScan>();
-  scan_msg->header = points_out_msg->header;
-
-  scan_msg->angle_min = -M_PI;
-  scan_msg->angle_max = M_PI;
-  scan_msg->angle_increment = M_PI / (5 * 180.0);
-  scan_msg->time_increment = 0.0;
-  scan_msg->scan_time = 1.0 / 30.0;
-  scan_msg->range_min = 0.0;
-  scan_msg->range_max = 30.0;
-
-  uint32_t ranges_size = std::ceil((scan_msg->angle_max - scan_msg->angle_min) / scan_msg->angle_increment);
-  scan_msg->ranges.assign(ranges_size, std::numeric_limits<float>::infinity());
-
-  for (sensor_msgs::PointCloud2ConstIterator<float> iter_x(*points_out_msg, "x"), iter_y(*points_out_msg, "y"), iter_z(*points_out_msg, "z"); iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
-    if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z)) continue;
-    if (*iter_z > scan_max_height_ || *iter_z < scan_min_height_) continue;
-
-    float range = hypot(*iter_x, *iter_y);
-    double angle = atan2(*iter_y, *iter_x);
-    int i = (int)std::round((angle - scan_msg->angle_min) / scan_msg->angle_increment);
-
-    if (range < scan_msg->ranges[i]) scan_msg->ranges[i] = range;
-  }
-
-  scan_publisher_->publish(std::move(scan_msg));
-
-  // re-transform the pointcloud in its original frame and publish the point cloud
-  geometry_msgs::msg::TransformStamped base_to_sensor_transform_stamped;
-  try {
-    tf_buffer_->canTransform(sensor_frame, base_frame_id_, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
-    base_to_sensor_transform_stamped = tf_buffer_->lookupTransform(sensor_frame, base_frame_id_, points_in_msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
-  } catch (const tf2::TransformException & ex) {
-    RCLCPP_WARN(this->get_logger(), "Transform Exception: %s", ex.what());
-  }
-
-  auto points_out_in_sensor_frame = std::make_shared<pcl::PointCloud<PointType>>();
-  pcl_ros::transformPointCloud(*points_out, *points_out_in_sensor_frame, base_to_sensor_transform_stamped);
-  points_out_in_sensor_frame->header.frame_id = sensor_frame;
-
-  sensor_msgs::msg::PointCloud2::SharedPtr points_out_in_sensor_frame_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
-  pcl::toROSMsg(*points_out_in_sensor_frame, *points_out_in_sensor_frame_msg);
-  points_out_in_sensor_frame_msg->header.stamp = points_in_msg->header.stamp;
-  points_out_publisher_->publish(*points_out_in_sensor_frame_msg);
-
-  // if we got to this point, publish the heartbeat
-  heartbeat_publisher_->publish(points_out_in_sensor_frame_msg->header);
+    // if we got to this point, publish the heartbeat
+    heartbeat_publisher_->publish(points_out_in_sensor_frame_msg->header);
 
 }

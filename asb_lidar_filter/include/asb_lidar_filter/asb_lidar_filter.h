@@ -30,29 +30,28 @@
 
 using namespace std::chrono_literals;
 
-class ASBLidarFilter : public rclcpp::Node
-{
+class ASBLidarFilter : public rclcpp::Node {
 public:
-  ASBLidarFilter();
+    ASBLidarFilter();
 
 private:
 
-  void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
+    void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
 
-  std::string base_frame_id_;
+    std::string base_frame_id_;
 
-  int mask_filter_size_;
+    int mask_filter_size_;
 
-  double x_min_, x_max_, y_min_, y_max_, z_min_, z_max_; // pointcloud filter params
-  double scan_min_height_, scan_max_height_; // scan filter params
+    double x_min_, x_max_, y_min_, y_max_, z_min_, z_max_; // pointcloud filter params
+    double scan_min_height_, scan_max_height_; // scan filter params
 
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr points_in_subscriber_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_publisher_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_no_ground_ceiling_publisher_;
-  rclcpp::Publisher<std_msgs::msg::Header>::SharedPtr heartbeat_publisher_;
-  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_publisher_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr points_in_subscriber_;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_publisher_;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_no_ground_ceiling_publisher_;
+    rclcpp::Publisher<std_msgs::msg::Header>::SharedPtr heartbeat_publisher_;
+    rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_publisher_;
 };
 
 
