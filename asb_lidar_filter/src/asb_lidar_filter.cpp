@@ -96,11 +96,15 @@ ASBLidarFilter::ASBLidarFilter() : Node("asb_lidar_filter") {
 
     scan_publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan_out", rclcpp::SensorDataQoS().durability_volatile().reliable());
 
+    benchmarking_execution_duration_publisher_ = this->create_publisher<asb_msgs::msg::DurationStamped>("~/benchmarking/execution_duration", rclcpp::SensorDataQoS().transient_local().reliable().keep_last(10));
+
     create_mask_service_ = this->create_service<std_srvs::srv::Empty>("~/create_mask", std::bind(&ASBLidarFilter::create_mask_service_callback, this, std::placeholders::_1, std::placeholders::_2));
 
 }
 
 void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg) {
+    auto execution_start = std::chrono::high_resolution_clock::now();
+
     typedef pcl::PointXYZ PointType;
 
     std::string sensor_frame = points_in_msg->header.frame_id;
@@ -321,6 +325,11 @@ void ASBLidarFilter::points_in_callback(const sensor_msgs::msg::PointCloud2::Sha
     // if we got to this point, publish the heartbeat
     heartbeat_publisher_->publish(points_out_in_sensor_frame_msg->header);
 
+    std::chrono::duration<double> execution_duration_s = std::chrono::high_resolution_clock::now() - execution_start;
+    asb_msgs::msg::DurationStamped execution_duration;
+    execution_duration.stamp = this->get_clock()->now();
+    execution_duration.duration = rclcpp::Duration::from_seconds((execution_duration_s).count());
+    benchmarking_execution_duration_publisher_->publish(execution_duration);
 }
 
 void ASBLidarFilter::create_mask_service_callback(const std::shared_ptr<Empty::Request> /*request*/, std::shared_ptr<Empty::Response> /*response*/) {

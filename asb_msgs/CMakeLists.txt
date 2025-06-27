@@ -41,6 +41,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     msg/NozzleCommandArray.msg
     msg/ProcessCpuUsage.msg
     msg/SystemUsage.msg
+    msg/DurationStamped.msg
 
     srv/InitializeCanopyRegion.srv
     srv/SuspendCanopyRegion.srv
