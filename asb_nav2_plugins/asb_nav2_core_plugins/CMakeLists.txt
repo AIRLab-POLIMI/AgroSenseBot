@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(asb_nav2_plugins)
+project(asb_nav2_core_plugins)
 
 find_package(ament_cmake REQUIRED)
 find_package(nav2_core REQUIRED)
@@ -59,6 +59,6 @@ ament_export_libraries(
     asb_goal_checker
 )
 ament_export_dependencies(${dependencies})
-pluginlib_export_plugin_description_file(nav2_core plugins.xml)
+pluginlib_export_plugin_description_file(nav2_core nav2_core_plugins.xml)
 
 ament_package()

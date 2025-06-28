@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>asb_nav2_plugins</name>
+  <name>asb_nav2_core_plugins</name>
   <version>0.0.1</version>
-  <description>Package with nav2 plugins for AgroSenseBot.</description>
+  <description>Package with nav2_core plugins for AgroSenseBot.</description>
 
   <author email="enrico.piazza@unimi.it">Enrico Piazza</author>
   <author email="enrico.piazza@polimi.it">Enrico Piazza</author>
   <maintainer email="enrico.piazza@polimi.it">Enrico Piazza</maintainer>
 
-  <license>Apache-2.0, BSD</license>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>nav2_common</build_depend>
@@ -26,6 +26,6 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <nav2_core plugin="${prefix}/plugins.xml" />
+    <nav2_core plugin="${prefix}/nav2_core_plugins.xml" />
   </export>
 </package>

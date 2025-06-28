@@ -33,8 +33,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ASB_NAV2_PLUGINS__PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_
-#define ASB_NAV2_PLUGINS__PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_
+#ifndef ASB_NAV2_CORE_PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_
+#define ASB_NAV2_CORE_PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_
 
 #include <memory>
 #include <string>
@@ -45,7 +45,7 @@
 #include "nav2_core/goal_checker.hpp"
 #include "rcl_interfaces/msg/set_parameters_result.hpp"
 
-namespace asb_nav2_plugins {
+namespace asb_nav2_core_plugins {
 
 /**
  * @class ASBRotateToPathGoalChecker
@@ -81,6 +81,6 @@ protected:
     rcl_interfaces::msg::SetParametersResult dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters);
 };
 
-}  // namespace asb_nav2_plugins
+}  // namespace asb_nav2_core_plugins
 
-#endif  // ASB_NAV2_PLUGINS__PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_
+#endif  // ASB_NAV2_CORE_PLUGINS__ASB_ROTATE_TO_PATH_GOAL_CHECKER_HPP_

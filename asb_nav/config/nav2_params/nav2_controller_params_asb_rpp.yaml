@@ -26,24 +26,24 @@ controller_server:
       movement_time_allowance: 30.0
 
     asb_goal_checker:
-      plugin: "asb_nav2_plugins::ASBGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBGoalChecker"
       xy_goal_tolerance: 0.3
       yaw_goal_tolerance: 0.2
 
     asb_strict_goal_checker:
-      plugin: "asb_nav2_plugins::ASBGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBGoalChecker"
       xy_goal_tolerance: 0.15
       yaw_goal_tolerance: 0.05
 
     asb_curvature_arc_goal_checker:
-      plugin: "asb_nav2_plugins::ASBCurvatureArcGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBCurvatureArcGoalChecker"
       xy_goal_tolerance: 1.0
       lookahead_dist: 2.8
       path_constraint_x: 1.0
       path_constraint_y: 0.05
 
     asb_rotate_to_path_goal_checker:
-      plugin: "asb_nav2_plugins::ASBRotateToPathGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBRotateToPathGoalChecker"
       xy_goal_tolerance: 1.0
       yaw_goal_tolerance: 0.01
 

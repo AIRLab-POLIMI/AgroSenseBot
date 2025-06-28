@@ -38,7 +38,7 @@
 #include <limits>
 #include <vector>
 #include <cmath>
-#include "asb_nav2_plugins/plugins/asb_curvature_arc_goal_checker.hpp"
+#include "asb_nav2_core_plugins/asb_curvature_arc_goal_checker.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "angles/angles.h"
 #include "nav2_util/node_utils.hpp"
@@ -54,7 +54,7 @@
 using rcl_interfaces::msg::ParameterType;
 using std::placeholders::_1;
 
-namespace asb_nav2_plugins {
+namespace asb_nav2_core_plugins {
 
 ASBCurvatureArcGoalChecker::ASBCurvatureArcGoalChecker() : xy_goal_tolerance_(0.25), lookahead_dist_(2.0), path_constraint_x_(1.0), path_constraint_y_(0.1) {
 }
@@ -383,6 +383,6 @@ rcl_interfaces::msg::SetParametersResult ASBCurvatureArcGoalChecker::dynamicPara
     return result;
 }
 
-}  // namespace asb_nav2_plugins
+}  // namespace asb_nav2_core_plugins
 
-PLUGINLIB_EXPORT_CLASS(asb_nav2_plugins::ASBCurvatureArcGoalChecker, nav2_core::GoalChecker)
+PLUGINLIB_EXPORT_CLASS(asb_nav2_core_plugins::ASBCurvatureArcGoalChecker, nav2_core::GoalChecker)

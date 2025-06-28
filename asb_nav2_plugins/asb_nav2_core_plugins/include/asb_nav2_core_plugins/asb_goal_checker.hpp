@@ -33,8 +33,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ASB_NAV2_PLUGINS__PLUGINS__ASB_CURVATURE_ARC_GOAL_CHECKER_HPP_
-#define ASB_NAV2_PLUGINS__PLUGINS__ASB_CURVATURE_ARC_GOAL_CHECKER_HPP_
+#ifndef ASB_NAV2_CORE_PLUGINS__ASB_GOAL_CHECKER_HPP_
+#define ASB_NAV2_CORE_PLUGINS__ASB_GOAL_CHECKER_HPP_
 
 #include <memory>
 #include <string>
@@ -45,52 +45,34 @@
 #include "nav2_core/goal_checker.hpp"
 #include "rcl_interfaces/msg/set_parameters_result.hpp"
 
-using geometry_msgs::msg::Point;
-using geometry_msgs::msg::Pose;
-using geometry_msgs::msg::Twist;
-
-namespace asb_nav2_plugins {
+namespace asb_nav2_core_plugins {
 
 /**
- * @class ASBCurvatureArcGoalChecker
- * @brief Goal Checker plugin that considers the goal reached if the robot pose is such that the robot can follow a target straight path
- * starting the goal pose's x-axis with a minimum turning radius without straying from the target path more than a tolerance.
+ * @class ASBGoalChecker
+ * @brief Goal Checker plugin that only checks the position difference, similar to SimpleGoalChecker,
+ * except the goal is only considers reached when the robot gets as close as possible assuming a straight trajectory.
  */
-class ASBCurvatureArcGoalChecker : public nav2_core::GoalChecker {
+class ASBGoalChecker : public nav2_core::GoalChecker {
 public:
-    ASBCurvatureArcGoalChecker();
+    ASBGoalChecker();
 
     // Standard GoalChecker Interface
     void initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent, const std::string &plugin_name, const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
     void reset() override;
 
-    bool isGoalReached(const Pose &query_pose, const Pose &goal_pose, const Twist &velocity) override;
+    bool isGoalReached(const geometry_msgs::msg::Pose &query_pose, const geometry_msgs::msg::Pose &goal_pose, const geometry_msgs::msg::Twist &velocity) override;
 
-    bool getTolerances(Pose &pose_tolerance, Twist &vel_tolerance) override;
+    bool getTolerances(geometry_msgs::msg::Pose &pose_tolerance, geometry_msgs::msg::Twist &vel_tolerance) override;
 
 protected:
-    double xy_goal_tolerance_, lookahead_dist_, path_constraint_x_, path_constraint_y_;
-
-    rclcpp::Logger logger_{rclcpp::get_logger("ASBCurvatureArcGoalChecker")};
-
+    double xy_goal_tolerance_, yaw_goal_tolerance_;
+    bool forward_, in_goal_proximity_;
+    // Cached squared xy_goal_tolerance_
+    double xy_goal_tolerance_sq_;
     // Dynamic parameters handler
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
     std::string plugin_name_;
-
-    static tf2::Transform getRobotToGoalTransform(const Pose &goal_pose, const Pose &robot_pose);
-
-    /**
-     * @brief Find the intersection points between a circle with center in the origin and radius r, and a line that projects from the pose p (only forward)
-     * @return true if an intersection exists, false otherwise
-     */
-    static bool findRadiusPoseIntersection(const Pose &p, const double &r, Point &p_int);
-
-    Point getExtendedLookaheadPoint(const Pose &path_pose, bool &valid_solution) const;
-
-    double getLookaheadCurvature(Point lookahead_point) const;
-
-    static Pose get_pose_c_to_r(const Point &point_in_c, const tf2::Transform &tf_r_to_c);
 
     /**
      * @brief Callback executed when a parameter change is detected
@@ -99,6 +81,6 @@ protected:
     rcl_interfaces::msg::SetParametersResult dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters);
 };
 
-}  // namespace asb_nav2_plugins
+}  // namespace asb_nav2_core_plugins
 
-#endif  // ASB_NAV2_PLUGINS__PLUGINS__ASB_CURVATURE_ARC_GOAL_CHECKER_HPP_
+#endif  // ASB_NAV2_CORE_PLUGINS__ASB_GOAL_CHECKER_HPP_
