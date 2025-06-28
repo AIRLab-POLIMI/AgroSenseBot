@@ -33,7 +33,6 @@ local_costmap:
       footprint_padding: 0.0
 
       plugins: ["static_layer_geofence", "voxel_layer", "denoise_layer", "inflation_layer"]
-#      plugins: ["static_layer_geofence", "obstacle_layer", "denoise_layer", "inflation_layer"]
       static_layer_geofence:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_topic: /geofence_map
@@ -76,35 +75,6 @@ local_costmap:
           obstacle_max_range: 4.0  # much lower than the raytrace max range, to avoid including false positive obstacles
           obstacle_min_range: 0.2
 
-#      obstacle_layer:
-#        plugin: "nav2_costmap_2d::ObstacleLayer"
-#        enabled: True
-#        footprint_clearing_enabled: False
-#        observation_sources: "scan_front scan_rear"
-#        scan_front:
-#          topic: /scan_front
-#          min_obstacle_height: -0.1  # needs to include the frame of the laser scan message
-#          max_obstacle_height: 2.5  # needs to include the frame of the laser scan message
-#          inf_is_valid: True
-#          clearing: True
-#          marking: True
-#          data_type: "LaserScan"
-#          raytrace_max_range: 4.5  # more than the ASB RPP lookahead dist to clear false positive obstacles
-#          raytrace_min_range: 0.2
-#          obstacle_max_range: 4.0  # much lower than the raytrace max range, to avoid including false positive obstacles
-#          obstacle_min_range: 0.2
-#        scan_rear:
-#          topic: /scan_rear
-#          min_obstacle_height: -0.1  # needs to include the frame of the laser scan message
-#          max_obstacle_height: 2.5  # needs to include the frame of the laser scan message
-#          inf_is_valid: True
-#          clearing: True
-#          marking: True
-#          data_type: "LaserScan"
-#          raytrace_max_range: 4.5  # more than the ASB RPP lookahead dist to clear false positive obstacles
-#          raytrace_min_range: 0.2
-#          obstacle_max_range: 4.0  # much lower than the raytrace max range, to avoid including false positive obstacles
-#          obstacle_min_range: 0.2
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
