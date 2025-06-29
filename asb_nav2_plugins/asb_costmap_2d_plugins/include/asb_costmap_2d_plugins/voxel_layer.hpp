@@ -54,6 +54,7 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
 #include <nav2_msgs/msg/voxel_grid.hpp>
+#include "asb_msgs/msg/execution_duration_stamped.hpp"
 
 #include <nav2_costmap_2d/layer.hpp>
 #include <nav2_costmap_2d/layered_costmap.hpp>
@@ -138,7 +139,7 @@ protected:
     virtual void resetMaps();
 
     /**
-     * @brief Use raycasting between 2 points to clear freespace
+     * @brief Use ray casting between 2 points to clear freespace
      */
     virtual void raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y);
 
@@ -148,6 +149,7 @@ protected:
     double z_resolution_, origin_z_;
     int unknown_threshold_, mark_threshold_, size_z_;
     rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr clearing_endpoints_pub_;
+    rclcpp_lifecycle::LifecyclePublisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
 
     /**
      * @brief Covert world coordinates into map coordinates

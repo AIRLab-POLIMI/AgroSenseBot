@@ -15,6 +15,7 @@
 
   <depend>nav2_costmap_2d</depend>
   <depend>pluginlib</depend>
+  <depend>asb_msgs</depend>
   <depend>rclcpp</depend>
 
   <export>

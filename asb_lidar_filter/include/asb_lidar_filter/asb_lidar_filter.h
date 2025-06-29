@@ -27,7 +27,7 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
-#include "asb_msgs/msg/duration_stamped.hpp"
+#include "asb_msgs/msg/execution_duration_stamped.hpp"
 
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 
@@ -99,7 +99,7 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr points_out_no_ground_ceiling_publisher_;
     rclcpp::Publisher<std_msgs::msg::Header>::SharedPtr heartbeat_publisher_;
     rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_publisher_;
-    rclcpp::Publisher<asb_msgs::msg::DurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
+    rclcpp::Publisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
     rclcpp::Service<std_srvs::srv::Empty>::SharedPtr create_mask_service_;
 };
 

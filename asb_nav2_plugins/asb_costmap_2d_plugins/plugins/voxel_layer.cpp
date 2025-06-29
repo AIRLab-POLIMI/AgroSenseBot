@@ -89,6 +89,9 @@ void VoxelLayer::onInitialize() {
     clearing_endpoints_pub_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("clearing_endpoints", custom_qos);
     clearing_endpoints_pub_->on_activate();
 
+    benchmarking_execution_duration_publisher_ = node->create_publisher<asb_msgs::msg::ExecutionDurationStamped>("~/benchmarking/execution_duration", custom_qos);
+    benchmarking_execution_duration_publisher_->on_activate();
+
     unknown_threshold_ += (VOXEL_BITS - size_z_);
     matchSize();
 
@@ -127,6 +130,7 @@ void VoxelLayer::resetMaps() {
 
 void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y) {
     std::lock_guard<Costmap2D::mutex_t> guard(*getMutex());
+    auto execution_start = std::chrono::high_resolution_clock::now();
 
     if (rolling_window_) {
         updateOrigin(robot_x - getSizeInMetersX() / 2, robot_y - getSizeInMetersY() / 2);
@@ -228,6 +232,17 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     }
 
     updateFootprint(robot_x, robot_y, robot_yaw, min_x, min_y, max_x, max_y);
+
+    std::chrono::duration<double> execution_duration_s = std::chrono::high_resolution_clock::now() - execution_start;
+    auto node = node_.lock();
+    if (!node) {
+        throw std::runtime_error{"Failed to lock node"};
+    }
+    asb_msgs::msg::ExecutionDurationStamped execution_duration;
+    execution_duration.stamp = node->get_clock()->now();
+    execution_duration.execution_duration = rclcpp::Duration::from_seconds((execution_duration_s).count());
+    execution_duration.label = "updateBounds";
+    benchmarking_execution_duration_publisher_->publish(execution_duration);
 }
 
 void VoxelLayer::raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y) {
