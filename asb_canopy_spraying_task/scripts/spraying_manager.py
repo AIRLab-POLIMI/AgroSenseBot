@@ -474,6 +474,8 @@ class SprayingManager:
             self._active_spraying_requests.pop(row_id)
             self._suspend_canopy_volume_estimation(row_id)
 
+        self.spraying_status = SprayingStatus.NOT_SPRAYING
+
     def _suspend_canopy_volume_estimation(self, row_id):
         self._suspend_canopy_region_timeout_counter[row_id] = 0
         if row_id in self._suspend_canopy_region_timeout_timer:
