@@ -14,6 +14,7 @@ In terminal 2, as soon as the time is right, record the test data rosbag with:
 cd ~/asb_logs/test_data
 rb record -o scan_multilayer_test_data --regex /update_timestamp/scan_front_multilayer/points\|/update_timestamp/scan_rear_multilayer/points
 ```
+This bag must be long enough to allow the performance measurement (13 s plus some margin by default)
 
 
 # Benchmarking the nodes
@@ -36,7 +37,7 @@ rb play ~/asb_logs/test_data/scan_multilayer_test_data  --start-paused
 
 In terminal 4:
 ```bash
-rr asb_logging node_computer_system_usage_logger.py
+rr asb_logging node_performance_logger.py
 ```
 
-After a few seconds: play the bag by pressing space in terminal 3. After around 13 seconds, the average CPU usage of the nodes is saved to `~/asb_logs/test_data/`
+After a few seconds: play the bag by pressing space in terminal 3. After around 13 seconds, the computed metrics are saved to `~/asb_logs/performance_measurements/`
