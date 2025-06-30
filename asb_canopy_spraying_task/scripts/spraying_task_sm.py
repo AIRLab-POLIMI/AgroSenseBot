@@ -76,11 +76,11 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('task_plan_file_path', rclpy.Parameter.Type.STRING)
         self.task_plan_file_path = os.path.expanduser(self.get_parameter('task_plan_file_path').get_parameter_value().string_value)
 
-        date_stamp = datetime.now().strftime("%Y-%m-%d")
-        self.declare_parameter('log_dir_path', rclpy.Parameter.Type.STRING)
-        self.task_log_dir_path = os.path.join(os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value), date_stamp, "task_logs")
-
-        self.task_result_filename = datetime.now().strftime("%Y-%m-%d__%H-%M-%S__spraying_task_plan_result.yaml")
+        # Do not log task results for now (already logged by workspace packages share logger)
+        # date_stamp = datetime.now().strftime("%Y-%m-%d")
+        # self.declare_parameter('log_dir_path', rclpy.Parameter.Type.STRING)
+        # self.task_log_dir_path = os.path.join(os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value), date_stamp, "task_logs")
+        # self.task_result_filename = datetime.now().strftime("%Y-%m-%d__%H-%M-%S__spraying_task_plan_result.yaml")
 
         self.declare_parameter('auto_set_control_mode_once', rclpy.Parameter.Type.BOOL)
         self.auto_set_control_mode_once = self.get_parameter('auto_set_control_mode_once').get_parameter_value().bool_value
@@ -533,7 +533,7 @@ class SprayingTaskPlanExecutor(Node):
                 self.get_logger().fatal(f"navigation stack timeout (took {nav_stack_chrono.total():.4f} s), aborting task")
                 return 'failure'
 
-        self.prepare_task_log()
+        # self.prepare_task_log()  # Do not log task results for now (already logged by workspace packages share logger)
 
         self.plan_manager.setup()
         self.spraying_manager.setup()
@@ -896,17 +896,19 @@ class SprayingTaskPlanExecutor(Node):
         self.get_logger().info(f"doing end work")
         self.get_logger().info(f"requesting to cancel navigation action")
         self.navigation_manager.cancel_navigation_action()
-        self.get_logger().info(f"writing task results")
-        self.log_task_results()
+        # self.get_logger().info(f"writing task results")
+        # self.log_task_results() # Do not log task results for now (already logged by workspace packages share logger)
 
-    def prepare_task_log(self) -> None:
-        if not os.path.isdir(self.task_log_dir_path):
-            os.makedirs(self.task_log_dir_path)
+    # Do not log task results for now (already logged by workspace packages share logger)
+    # def prepare_task_log(self) -> None:
+    #     if not os.path.isdir(self.task_log_dir_path):
+    #         os.makedirs(self.task_log_dir_path)
 
-    def log_task_results(self) -> None:
-        chrono = Chronometer()
-        self.task_plan.write(os.path.expanduser(os.path.join(self.task_log_dir_path, self.task_result_filename)))
-        self.get_logger().info(f"wrote task results, it took {chrono.total():.3f} s")
+    # Do not log task results for now (already logged by workspace packages share logger)
+    # def log_task_results(self) -> None:
+    #     chrono = Chronometer()
+    #     self.task_plan.write(os.path.expanduser(os.path.join(self.task_log_dir_path, self.task_result_filename)))
+    #     self.get_logger().info(f"wrote task results, it took {chrono.total():.3f} s")
 
     def do_loop_operations_and_sleep(self, current_item: TaskPlanItem = None) -> None:
         if current_item is not None:

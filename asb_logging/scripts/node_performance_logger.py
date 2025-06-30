@@ -265,7 +265,7 @@ class PerformanceLogger(Node):
 
         workspace_install_dir = os.path.expanduser("~/w/agrosensebot_ws/install")
         workspace_share_copy_dir = os.path.expanduser(f"{out_file_dir}/{stamp}_workspace_share_copy/")
-        log_workspace_packages_share(root_dir=workspace_install_dir, output_dir=workspace_share_copy_dir)
+        log_workspace_packages_share(workspace_install_dir=workspace_install_dir, output_dir=workspace_share_copy_dir)
 
         self.timer = self.create_timer(0.01, self.timer_callback)
 

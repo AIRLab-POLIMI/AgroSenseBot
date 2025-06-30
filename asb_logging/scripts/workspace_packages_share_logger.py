@@ -2,9 +2,10 @@
 
 import os
 import shutil
-import glob
-from datetime import datetime
 from pathlib import Path
+
+import rclpy
+from rclpy.node import Node
 
 # Patterns to ignore (full glob patterns relative to share/{pkg}/)
 IGNORE_PATTERNS = [
@@ -64,9 +65,9 @@ def copy_follow_symlink(src: Path, dst: Path, verbose: bool) -> None:
         shutil.copy2(src, dst)
 
 
-def log_workspace_packages_share(root_dir: str, output_dir: str, verbose: bool = False) -> None:
+def log_workspace_packages_share(workspace_install_dir: str, output_dir: str, verbose: bool = False) -> None:
     # Iterate over each package directory in the install directory
-    for pkg_dir in Path(root_dir).iterdir():
+    for pkg_dir in Path(workspace_install_dir).iterdir():
         share_path = pkg_dir / "share" / pkg_dir.name
         if not share_path.exists():
             continue
@@ -91,9 +92,27 @@ def log_workspace_packages_share(root_dir: str, output_dir: str, verbose: bool =
                 print(f"Failed to copy {src_path} -> {dst_path}: {e}")
 
 
-if __name__ == '__main__':
-    filename_stamp = datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
+class WorkspacePackagesShareLogger(Node):
+    def __init__(self):
+        super().__init__('workspace_packages_share_logger')
 
-    test_root_dir = os.path.expanduser("~/w/agrosensebot_ws/install")
-    test_output_dir = os.path.expanduser(f"~/tmp/log_workspace_packages_share/{filename_stamp}/")
-    log_workspace_packages_share(root_dir=test_root_dir, output_dir=test_output_dir)
+        self.declare_parameter('workspace_install_dir_path', rclpy.Parameter.Type.STRING)
+        workspace_install_dir_path = os.path.expanduser(self.get_parameter('workspace_install_dir_path').get_parameter_value().string_value)
+
+        self.declare_parameter('log_dir_path', rclpy.Parameter.Type.STRING)
+        log_dir_path = os.path.join(os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value), "workspace_packages_share")
+
+        log_workspace_packages_share(workspace_install_dir=workspace_install_dir_path, output_dir=log_dir_path)
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = WorkspacePackagesShareLogger()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__ == '__main__':
+    main()
