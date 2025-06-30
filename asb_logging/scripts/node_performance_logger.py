@@ -13,6 +13,8 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from std_msgs.msg import Header
 from asb_msgs.msg import SystemUsage, ProcessCpuUsage, ExecutionDurationStamped
 
+from workspace_packages_share_logger import log_workspace_packages_share
+
 BLUE = "\033[94m"
 
 
@@ -255,11 +257,15 @@ class PerformanceLogger(Node):
 
         self.measurement_in_progress: bool = False
 
-        out_file_dir = os.path.expanduser("~/asb_logs/test_data/")
-        filename_stamp = datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
-        self.out_file_path = os.path.join(out_file_dir, f"nodes_cpu_average_{filename_stamp}.csv")
+        stamp = datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
+        out_file_dir = os.path.expanduser(f"~/asb_logs/performance_measurements/")
+        self.out_file_path = os.path.join(out_file_dir, f"{stamp}_metrics.csv")
         if not os.path.exists(out_file_dir):
             os.makedirs(out_file_dir)
+
+        workspace_install_dir = os.path.expanduser("~/w/agrosensebot_ws/install")
+        workspace_share_copy_dir = os.path.expanduser(f"{out_file_dir}/{stamp}_workspace_share_copy/")
+        log_workspace_packages_share(root_dir=workspace_install_dir, output_dir=workspace_share_copy_dir)
 
         self.timer = self.create_timer(0.01, self.timer_callback)
 
