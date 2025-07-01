@@ -159,7 +159,7 @@ alias cap='pygmentize -g' # replacement of cat with python-pygments to cat with 
 alias ipy='ipython3'
 complete -F _complete_alias ipy
 
-alias cb='cd $ROS_WS && colcon build --continue-on-error --symlink-install && cd -'
+alias cb='cd $ROS_WS && colcon build --continue-on-error --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release && cd -'
 complete -F _complete_alias cb
 
 alias rt='ros2 topic'
