@@ -16,7 +16,12 @@ set(dependencies
 
 include_directories(include)
 
-add_library(asb_voxel_layer SHARED plugins/voxel_layer.cpp include/asb_costmap_2d_plugins/voxel_layer.hpp)
+add_library(asb_voxel_layer SHARED
+    plugins/voxel_layer.cpp
+    include/asb_costmap_2d_plugins/voxel_layer.hpp
+    plugins/voxel_grid.cpp
+    include/asb_voxel_grid/voxel_grid.hpp
+)
 ament_target_dependencies(asb_voxel_layer ${dependencies})
 install(TARGETS asb_voxel_layer DESTINATION lib)
 

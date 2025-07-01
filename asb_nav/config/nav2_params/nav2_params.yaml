@@ -28,7 +28,6 @@ local_costmap:
       width: 10
       height: 10
       resolution: 0.05
-
       footprint: "[[1.0, 0.81], [1.0, -0.81], [-1.2, -0.81], [-1.2, 0.81]]"
       footprint_padding: 0.0
 
@@ -60,9 +59,9 @@ local_costmap:
           clearing: True
           marking: True
           raytrace_max_range: 5.0  # more than ASB RPP lookahead dist to clear false positive obstacles
-          raytrace_min_range: 0.2
+          raytrace_min_range: 0.0
           obstacle_max_range: 5.0  # more than ASB RPP lookahead dist to detect obstacles as soon as possible
-          obstacle_min_range: 0.2
+          obstacle_min_range: 0.0
         scan_rear_multilayer:
           topic: /scan_rear_multilayer/points_filtered
           data_type: PointCloud2
@@ -71,9 +70,9 @@ local_costmap:
           clearing: True
           marking: True
           raytrace_max_range: 5.0  # more than ASB RPP lookahead dist to clear false positive obstacles
-          raytrace_min_range: 0.2
+          raytrace_min_range: 0.0
           obstacle_max_range: 5.0  # more than ASB RPP lookahead dist to detect obstacles as soon as possible
-          obstacle_min_range: 0.2
+          obstacle_min_range: 0.0
 
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"

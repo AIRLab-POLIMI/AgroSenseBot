@@ -50,6 +50,7 @@ using rcl_interfaces::msg::ParameterType;
 namespace asb_costmap_2d_plugins {
 
 void VoxelLayer::onInitialize() {
+
     nav2_costmap_2d::ObstacleLayer::onInitialize();
 
     declareParameter("enabled", rclcpp::ParameterValue(true));
@@ -99,15 +100,17 @@ void VoxelLayer::onInitialize() {
     // Add callback for dynamic parameters
     dyn_params_handler_ = node->add_on_set_parameters_callback(std::bind(&VoxelLayer::dynamicParametersCallback, this, std::placeholders::_1));
 
-    RCLCPP_INFO(logger_, "ASB obstacle_layer initialized");
+    RCLCPP_INFO(logger_, "ASB voxel_layer initialized");
 
 }
 
 VoxelLayer::~VoxelLayer() {
+
     dyn_params_handler_.reset();
 }
 
 void VoxelLayer::matchSize() {
+
     std::lock_guard<Costmap2D::mutex_t> guard(*getMutex());
     nav2_costmap_2d::ObstacleLayer::matchSize();
     voxel_grid_.resize(size_x_, size_y_, size_z_);
@@ -130,6 +133,7 @@ void VoxelLayer::resetMaps() {
 }
 
 void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y) {
+
     std::lock_guard<Costmap2D::mutex_t> guard(*getMutex());
     auto execution_start = std::chrono::high_resolution_clock::now();
 
@@ -153,14 +157,8 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     // update the global current status
     current_ = current;
 
-    // raytrace freespace
-    auto execution_raytracing_start = std::chrono::high_resolution_clock::now();
-    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
-        raytraceFreespace(clearing_observations[i], min_x, min_y, max_x, max_y);
-    }
-    std::chrono::duration<double> execution_raytracing_duration_s = std::chrono::high_resolution_clock::now() - execution_raytracing_start;
+    voxel_grid_.reset();
 
-    // place the new obstacles into a priority queue... each with a priority of zero to begin with
     for (std::vector<nav2_costmap_2d::Observation>::const_iterator it = observations.begin(); it != observations.end(); ++it) {
         const nav2_costmap_2d::Observation &obs = *it;
 
@@ -212,6 +210,15 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
         }
     }
 
+    // raytrace freespace
+    auto execution_raytracing_start = std::chrono::high_resolution_clock::now();
+    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
+        raytraceFreespace(clearing_observations[i], min_x, min_y, max_x, max_y);
+    }
+    std::chrono::duration<double> execution_raytracing_duration_s = std::chrono::high_resolution_clock::now() - execution_raytracing_start;
+
+    voxel_grid_.transferToCostmap(LETHAL_OBSTACLE, FREE_SPACE, NO_INFORMATION, unknown_threshold_, mark_threshold_, costmap_);
+
     if (publish_voxel_) {
         auto grid_msg = std::make_unique<nav2_msgs::msg::VoxelGrid>();
         unsigned int size = voxel_grid_.sizeX() * voxel_grid_.sizeY();
@@ -243,20 +250,21 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     }
     auto now = node->get_clock()->now();
 
-    asb_msgs::msg::ExecutionDurationStamped execution_duration_raytracing;
-    execution_duration_raytracing.stamp = now;
-    execution_duration_raytracing.execution_duration = rclcpp::Duration::from_seconds((execution_raytracing_duration_s).count());
-    execution_duration_raytracing.label = "raytracing";
-    benchmarking_execution_duration_publisher_->publish(execution_duration_raytracing);
+    asb_msgs::msg::ExecutionDurationStamped execution_duration_raytracing_msg;
+    execution_duration_raytracing_msg.stamp = now;
+    execution_duration_raytracing_msg.execution_duration = rclcpp::Duration::from_seconds((execution_raytracing_duration_s).count());
+    execution_duration_raytracing_msg.label = "raytracing";
+    benchmarking_execution_duration_publisher_->publish(execution_duration_raytracing_msg);
 
-    asb_msgs::msg::ExecutionDurationStamped execution_duration;
-    execution_duration.stamp = node->get_clock()->now();
-    execution_duration.execution_duration = rclcpp::Duration::from_seconds((execution_duration_s).count());
-    execution_duration.label = "updateBounds";
-    benchmarking_execution_duration_publisher_->publish(execution_duration);
+    asb_msgs::msg::ExecutionDurationStamped execution_duration_msg;
+    execution_duration_msg.stamp = node->get_clock()->now();
+    execution_duration_msg.execution_duration = rclcpp::Duration::from_seconds((execution_duration_s).count());
+    execution_duration_msg.label = "update_bounds";
+    benchmarking_execution_duration_publisher_->publish(execution_duration_msg);
 }
 
 void VoxelLayer::raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y) {
+
     auto clearing_endpoints_ = std::make_unique<sensor_msgs::msg::PointCloud2>();
 
     if (clearing_observation.cloud_->height == 0 || clearing_observation.cloud_->width == 0) {
@@ -325,49 +333,44 @@ void VoxelLayer::raytraceFreespace(const nav2_costmap_2d::Observation &clearing_
         double c = wpz - oz;
         double t = 1.0;
 
-        // we can only raytrace to a maximum z height
-        if (wpz > map_end_z) {
-            // we know we want the vector's z value to be max_z
-            t = std::max(0.0, std::min(t, (map_end_z - 0.01 - oz) / c));
-        } else if (wpz < origin_z_) {
-            // and we can only raytrace down to the floor
-            // we know we want the vector's z value to be 0.0
+        // rescale the endpoint if z is outside of map boundaries
+        if (wpz < origin_z_) {
             t = std::min(t, (origin_z_ - oz) / c);
+        } else if (wpz > map_end_z) {
+            t = std::max(0.0, std::min(t, (map_end_z - 0.01 - oz) / c));
         }
 
-        // the minimum value to raytrace from is the origin
+        // rescale the endpoint if x is outside of map boundaries
         if (wpx < origin_x_) {
             t = std::min(t, (origin_x_ - ox) / a);
-        }
-        if (wpy < origin_y_) {
-            t = std::min(t, (origin_y_ - oy) / b);
-        }
-
-        // the maximum value to raytrace to is the end of the map
-        if (wpx > map_end_x) {
+        } else if (wpx > map_end_x) {
             t = std::min(t, (map_end_x - ox) / a);
         }
-        if (wpy > map_end_y) {
+
+        // rescale the endpoint if y is outside of map boundaries
+        if (wpy < origin_y_) {
+            t = std::min(t, (origin_y_ - oy) / b);
+        } else if (wpy > map_end_y) {
             t = std::min(t, (map_end_y - oy) / b);
         }
 
-        wpx = ox + a * t;
-        wpy = oy + b * t;
-        wpz = oz + c * t;
+        double wpx_scaled = ox + a * t;
+        double wpy_scaled = oy + b * t;
+        double wpz_scaled = oz + c * t;
 
         double point_x, point_y, point_z;
-        if (worldToMap3DFloat(wpx, wpy, wpz, point_x, point_y, point_z)) {
+        if (worldToMap3DFloat(wpx_scaled, wpy_scaled, wpz_scaled, point_x, point_y, point_z)) {
             unsigned int cell_raytrace_max_range = cellDistance(clearing_observation.raytrace_max_range_);
             unsigned int cell_raytrace_min_range = cellDistance(clearing_observation.raytrace_min_range_);
 
-            voxel_grid_.clearVoxelLineInMap(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, costmap_, unknown_threshold_, mark_threshold_, FREE_SPACE, NO_INFORMATION, cell_raytrace_max_range, cell_raytrace_min_range);
+            voxel_grid_.clearVoxelLine(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, cell_raytrace_max_range, cell_raytrace_min_range);
 
-            updateRaytraceBounds(ox, oy, wpx, wpy, clearing_observation.raytrace_max_range_, clearing_observation.raytrace_min_range_, min_x, min_y, max_x, max_y);
+            updateRaytraceBounds(ox, oy, wpx_scaled, wpy_scaled, clearing_observation.raytrace_max_range_, clearing_observation.raytrace_min_range_, min_x, min_y, max_x, max_y);
 
             if (publish_clearing_points) {
-                *clearing_endpoints_iter_x = wpx;
-                *clearing_endpoints_iter_y = wpy;
-                *clearing_endpoints_iter_z = wpz;
+                *clearing_endpoints_iter_x = wpx_scaled;
+                *clearing_endpoints_iter_y = wpy_scaled;
+                *clearing_endpoints_iter_z = wpz_scaled;
 
                 ++clearing_endpoints_iter_x;
                 ++clearing_endpoints_iter_y;
@@ -444,6 +447,7 @@ void VoxelLayer::updateOrigin(double new_origin_x, double new_origin_y) {
   * @param event ParameterEvent message
   */
 rcl_interfaces::msg::SetParametersResult VoxelLayer::dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters) {
+
     std::lock_guard<Costmap2D::mutex_t> guard(*getMutex());
     rcl_interfaces::msg::SetParametersResult result;
     bool resize_map_needed = false;

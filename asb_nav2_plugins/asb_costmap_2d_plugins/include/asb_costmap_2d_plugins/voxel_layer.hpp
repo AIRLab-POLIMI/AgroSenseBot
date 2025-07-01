@@ -60,7 +60,7 @@
 #include <nav2_costmap_2d/layered_costmap.hpp>
 #include <nav2_costmap_2d/obstacle_layer.hpp>
 #include <nav2_costmap_2d/observation_buffer.hpp>
-#include <nav2_voxel_grid/voxel_grid.hpp>
+#include <asb_voxel_grid/voxel_grid.hpp>
 
 #include "pluginlib/class_list_macros.hpp"
 
@@ -145,7 +145,7 @@ protected:
 
     bool publish_voxel_;
     rclcpp_lifecycle::LifecyclePublisher<nav2_msgs::msg::VoxelGrid>::SharedPtr voxel_pub_;
-    nav2_voxel_grid::VoxelGrid voxel_grid_;
+    asb_voxel_grid::VoxelGrid voxel_grid_;
     double z_resolution_, origin_z_;
     int unknown_threshold_, mark_threshold_, size_z_;
     rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr clearing_endpoints_pub_;
@@ -161,6 +161,7 @@ protected:
         mx = ((wx - origin_x_) / resolution_);
         my = ((wy - origin_y_) / resolution_);
         mz = ((wz - origin_z_) / z_resolution_);
+
         if (mx < size_x_ && my < size_y_ && mz < size_z_) {
             return true;
         }

@@ -250,7 +250,7 @@ class PerformanceLogger(Node):
         ]
 
         self.counters += [
-            NodeExecutionTimeCounter(self, alias="local_costmap", node_name="/local_costmap/local_costmap", label="updateBounds"),
+            NodeExecutionTimeCounter(self, alias="local_costmap", node_name="/local_costmap/local_costmap", label="update_bounds"),
             NodeExecutionTimeCounter(self, alias="local_costmap", node_name="/local_costmap/local_costmap", label="raytracing"),
             NodeExecutionTimeCounter(self, alias="lidar_filter_front", node_name="lidar_filter_front", label=""),
             NodeExecutionTimeCounter(self, alias="lidar_filter_rear", node_name="lidar_filter_rear", label=""),
@@ -259,7 +259,7 @@ class PerformanceLogger(Node):
         self.measurement_in_progress: bool = False
 
         stamp = datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
-        out_file_dir = os.path.expanduser(f"~/asb_logs/performance_measurements/")
+        out_file_dir = os.path.expanduser(f"~/asb_logs/performance_measurements/current")
         self.out_file_path = os.path.join(out_file_dir, f"{stamp}_metrics.csv")
         if not os.path.exists(out_file_dir):
             os.makedirs(out_file_dir)
