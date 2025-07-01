@@ -27,6 +27,9 @@ from spraying_manager import SprayingManager, SprayingStatus
 from spraying_task_plan import SprayingTaskPlan, TaskPlanItem
 
 
+BLUE = "\033[94m"
+
+
 class ControlMode(Enum):
     STOP = 0
     MANUAL = 1
@@ -73,15 +76,24 @@ class SprayingTaskPlanExecutor(Node):
         self.declare_parameter('task_plan_file_path', rclpy.Parameter.Type.STRING)
         self.task_plan_file_path = os.path.expanduser(self.get_parameter('task_plan_file_path').get_parameter_value().string_value)
 
-        date_stamp = datetime.now().strftime("%Y-%m-%d")
-        self.declare_parameter('log_dir_path', rclpy.Parameter.Type.STRING)
-        self.task_log_dir_path = os.path.join(os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value), date_stamp)
+        # Do not log task results for now (already logged by workspace packages share logger)
+        # date_stamp = datetime.now().strftime("%Y-%m-%d")
+        # self.declare_parameter('log_dir_path', rclpy.Parameter.Type.STRING)
+        # self.task_log_dir_path = os.path.join(os.path.expanduser(self.get_parameter('log_dir_path').get_parameter_value().string_value), date_stamp, "task_logs")
+        # self.task_result_filename = datetime.now().strftime("%Y-%m-%d__%H-%M-%S__spraying_task_plan_result.yaml")
 
-        self.task_result_filename = datetime.now().strftime("%Y-%m-%d__%H-%M-%S__spraying_task_plan_result.yaml")
-
+        self.declare_parameter('auto_set_control_mode_once', rclpy.Parameter.Type.BOOL)
+        self.auto_set_control_mode_once = self.get_parameter('auto_set_control_mode_once').get_parameter_value().bool_value
         self.declare_parameter('auto_set_control_mode', rclpy.Parameter.Type.BOOL)
         self.auto_set_control_mode = self.get_parameter('auto_set_control_mode').get_parameter_value().bool_value
-        if self.auto_set_control_mode:
+        if self.auto_set_control_mode_once:  # auto_set_control_mode_once has higher priority than auto_set_control_mode
+            self.get_logger().info(
+                f"\n"
+                f"**************************\n"
+                f"* AUTO CONTROL MODE ONCE *\n"
+                f"**************************\n"
+            )
+        elif self.auto_set_control_mode:
             self.get_logger().info(
                 f"\n"
                 f"*********************\n"
@@ -471,15 +483,15 @@ class SprayingTaskPlanExecutor(Node):
             StateMachine.add(
                 label='stop_spray_regulator_2',
                 state=CallbackState(self.stop_spray_regulator_sm_cb, class_instance=self), transitions={
-                    'success': 'stop_platform_and_wait_operator_3',
+                    'success': 'stop_platform_and_wait_operator_2',  # restarts inter-row navigation in place after a failure in inter-row navigation. To go to straightening navigation after a failure in inter-row navigation, use stop_platform_and_wait_operator_3
                 }
             )
-            StateMachine.add(
-                label='stop_platform_and_wait_operator_3',
-                state=CallbackState(self.stop_platform_and_wait_operator_sm_cb, class_instance=self), transitions={
-                    'success': 'straightening_approach',
-                }
-            )
+            # StateMachine.add(
+            #     label='stop_platform_and_wait_operator_3',
+            #     state=CallbackState(self.stop_platform_and_wait_operator_sm_cb, class_instance=self), transitions={
+            #         'success': 'straightening_approach',
+            #     }
+            # )
             StateMachine.add(
                 label='select_next_item',
                 state=CallbackState(self.select_next_item_sm_cb, class_instance=self), transitions={
@@ -491,7 +503,7 @@ class SprayingTaskPlanExecutor(Node):
     @cb_interface(outcomes=['success', 'failure'])
     def setup_sm_cb(self) -> str:
         # wait for sensor data and system conditions to be ok
-        self.get_logger().info(f"waiting for sensors and system conditions...")
+        self.get_logger().info(BLUE+f"waiting for sensors and system conditions...")
         system_condition_chrono = Chronometer()
         system_condition_ok = self.wait_for_system_condition_ok(timeout=self.start_up_timeout)
         if system_condition_ok:
@@ -502,7 +514,7 @@ class SprayingTaskPlanExecutor(Node):
 
         if not self.dry_run:
             # wait for localization
-            self.get_logger().info(f"waiting for robot pose...")
+            self.get_logger().info(BLUE+f"waiting for robot pose...")
             robot_pose_chrono = Chronometer()
             robot_pose = self.navigation_manager.get_robot_pose(timeout=self.start_up_timeout)
             if robot_pose is not None:
@@ -512,7 +524,7 @@ class SprayingTaskPlanExecutor(Node):
                 return 'failure'
 
             # wait for navigation stack
-            self.get_logger().info(f"waiting for navigation stack...")
+            self.get_logger().info(BLUE+f"waiting for navigation stack...")
             nav_stack_chrono = Chronometer()
             nav_stack_ready = self.navigation_manager.wait_navigation_stack_is_ready(timeout=self.start_up_timeout)
             if nav_stack_ready:
@@ -521,7 +533,7 @@ class SprayingTaskPlanExecutor(Node):
                 self.get_logger().fatal(f"navigation stack timeout (took {nav_stack_chrono.total():.4f} s), aborting task")
                 return 'failure'
 
-        self.prepare_task_log()
+        # self.prepare_task_log()  # Do not log task results for now (already logged by workspace packages share logger)
 
         self.plan_manager.setup()
         self.spraying_manager.setup()
@@ -884,23 +896,28 @@ class SprayingTaskPlanExecutor(Node):
         self.get_logger().info(f"doing end work")
         self.get_logger().info(f"requesting to cancel navigation action")
         self.navigation_manager.cancel_navigation_action()
-        self.get_logger().info(f"writing task results")
-        self.log_task_results()
+        # self.get_logger().info(f"writing task results")
+        # self.log_task_results() # Do not log task results for now (already logged by workspace packages share logger)
 
-    def prepare_task_log(self) -> None:
-        if not os.path.isdir(self.task_log_dir_path):
-            os.makedirs(self.task_log_dir_path)
+    # Do not log task results for now (already logged by workspace packages share logger)
+    # def prepare_task_log(self) -> None:
+    #     if not os.path.isdir(self.task_log_dir_path):
+    #         os.makedirs(self.task_log_dir_path)
 
-    def log_task_results(self) -> None:
-        chrono = Chronometer()
-        self.task_plan.write(os.path.expanduser(os.path.join(self.task_log_dir_path, self.task_result_filename)))
-        self.get_logger().info(f"wrote task results, it took {chrono.total():.3f} s")
+    # Do not log task results for now (already logged by workspace packages share logger)
+    # def log_task_results(self) -> None:
+    #     chrono = Chronometer()
+    #     self.task_plan.write(os.path.expanduser(os.path.join(self.task_log_dir_path, self.task_result_filename)))
+    #     self.get_logger().info(f"wrote task results, it took {chrono.total():.3f} s")
 
     def do_loop_operations_and_sleep(self, current_item: TaskPlanItem = None) -> None:
         if current_item is not None:
             self.current_item_pub.publish(String(data=current_item.get_item_id()))
         else:
             self.current_item_pub.publish(String())
+
+        if self.spraying_manager.spraying_status == SprayingStatus.FAILURE:
+            self.get_logger().warn(f"spraying status: {self.spraying_manager.spraying_status.name}")
 
         if not self.stop_platform and self.check_system_condition():
             # publish heartbeat message
@@ -947,7 +964,7 @@ class SprayingTaskPlanExecutor(Node):
     def wait_for_system_condition_ok(self, timeout: float) -> bool:
         timeout_chrono = Chronometer()
         while rclpy.ok() and not self.check_system_condition():
-            self.get_logger().info(f"waiting for system condition to be ok", throttle_duration_sec=1.0)
+            self.get_logger().info(BLUE+f"waiting for system condition to be ok", throttle_duration_sec=5.0)
             if timeout_chrono.total() > timeout:
                 return False
             self.loop_rate.sleep()
@@ -959,20 +976,20 @@ class SprayingTaskPlanExecutor(Node):
         :return: True if *all* required topics are not timed out and their value is acceptable for continuing the execution of the task
         """
         if self.last_scan_heartbeat_front_msg is None:
-            self.get_logger().info(f"waiting for scan_heartbeat_front (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for scan_heartbeat_front (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_scan_heartbeat_rear_msg is None:
-            self.get_logger().info(f"waiting for scan_heartbeat_rear (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for scan_heartbeat_rear (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
 
         if self.last_gnss_1_fix_status_msg is None:
-            self.get_logger().info(f"waiting for gnss_1_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for gnss_1_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_gnss_2_fix_status_msg is None:
-            self.get_logger().info(f"waiting for gnss_2_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for gnss_2_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
         if self.last_gnss_dual_antenna_fix_status_msg is None:
-            self.get_logger().info(f"waiting for gnss_dual_antenna_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"waiting for gnss_dual_antenna_fix_status (message throttled to 10 s)", throttle_duration_sec=10.0)
             return False
 
         def is_msg_timed_out(msg_name: str, stamp: Time, timeout: Duration) -> bool:
@@ -1012,21 +1029,25 @@ class SprayingTaskPlanExecutor(Node):
 
         self.stop_platform = True
 
-        if self.auto_set_control_mode:
+        if self.auto_set_control_mode or self.auto_set_control_mode_once:
             self.control_mode_manager.set_control_mode_manual()  # only has effect in simulator
 
         while rclpy.ok() and self.get_control_mode() != ControlMode.MANUAL:
             self.do_loop_operations_and_sleep()
-            self.get_logger().info(f"WAITING control mode switch to MANUAL", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"WAITING control mode switch to MANUAL", throttle_duration_sec=10.0)
 
         self.stop_platform = False
 
         while rclpy.ok() and self.get_control_mode() != ControlMode.AUTO:
             self.do_loop_operations_and_sleep()
-            self.get_logger().info(f"WAITING control mode switch to AUTO", throttle_duration_sec=10.0)
+            self.get_logger().info(BLUE+f"WAITING control mode switch to AUTO", throttle_duration_sec=10.0)
 
-            if self.auto_set_control_mode:
+            if self.auto_set_control_mode or self.auto_set_control_mode_once:
                 self.control_mode_manager.set_control_mode_auto()  # only has effect in simulator
+
+                if self.auto_set_control_mode_once:
+                    self.auto_set_control_mode = False
+                    self.auto_set_control_mode_once = False
 
 
 class CallbackState(State):

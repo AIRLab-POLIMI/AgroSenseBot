@@ -3,7 +3,7 @@
 	<arg name="simulate_nozzle_valves" default="false" />
 
   <node pkg="asb_canopy_spraying_task" exec="pwm_nozzles_driver.py" name="pwm_nozzles_driver">
-    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/cornaredo/nozzles_configuration.yaml" />
+    <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/arcagna/nozzles_configuration.yaml" />
     <param name="simulate_nozzle_valves" value="$(var simulate_nozzle_valves)" />
     <param name="nozzle_valves_can_channel" value="can3" />
     <param name="nozzle_valves_virtual_can_channel" value="vcan1" />

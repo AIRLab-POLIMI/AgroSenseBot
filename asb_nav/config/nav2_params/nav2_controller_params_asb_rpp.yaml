@@ -4,7 +4,7 @@ controller_server:
     min_x_velocity_threshold: 0.01
     min_y_velocity_threshold: 0.0
     min_theta_velocity_threshold: 0.01
-    failure_tolerance: 0.3
+    failure_tolerance: 0.1
     progress_checker_plugins: [
       "simple_progress_checker",
     ]
@@ -26,24 +26,24 @@ controller_server:
       movement_time_allowance: 30.0
 
     asb_goal_checker:
-      plugin: "asb_nav2_plugins::ASBGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBGoalChecker"
       xy_goal_tolerance: 0.3
       yaw_goal_tolerance: 0.2
 
     asb_strict_goal_checker:
-      plugin: "asb_nav2_plugins::ASBGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBGoalChecker"
       xy_goal_tolerance: 0.15
       yaw_goal_tolerance: 0.05
 
     asb_curvature_arc_goal_checker:
-      plugin: "asb_nav2_plugins::ASBCurvatureArcGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBCurvatureArcGoalChecker"
       xy_goal_tolerance: 1.0
       lookahead_dist: 2.8
       path_constraint_x: 1.0
       path_constraint_y: 0.05
 
     asb_rotate_to_path_goal_checker:
-      plugin: "asb_nav2_plugins::ASBRotateToPathGoalChecker"
+      plugin: "asb_nav2_core_plugins::ASBRotateToPathGoalChecker"
       xy_goal_tolerance: 1.0
       yaw_goal_tolerance: 0.01
 
@@ -51,7 +51,7 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 1.0
+      min_turning_radius: 1.5
       desired_linear_vel: 0.1
       lookahead_dist: 1.0
       use_angular_approach: true
@@ -60,6 +60,8 @@ controller_server:
       max_robot_pose_search_dist: 10.0
       min_approach_linear_velocity: 0.1
       approach_velocity_scaling_dist: 2.0
+      min_departure_linear_velocity: 0.1
+      departure_velocity_scaling_dist: 2.0
       max_allowed_time_to_collision_up_to_carrot: 2.0
       regulated_linear_scaling_min_speed: 0.1
       cost_scaling_dist: 0.3
@@ -84,13 +86,15 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 1.0
+      min_turning_radius: 1.5
       desired_linear_vel: 0.6
       lookahead_dist: 1.0
       max_robot_path_dist: 0.5
       max_robot_pose_search_dist: 10.0
       min_approach_linear_velocity: 0.2
       approach_velocity_scaling_dist: 2.0
+      min_departure_linear_velocity: 0.2
+      departure_velocity_scaling_dist: 1.0
       max_allowed_time_to_collision_up_to_carrot: 2.0
       regulated_linear_scaling_min_speed: 0.2
       cost_scaling_dist: 0.3
@@ -131,15 +135,18 @@ controller_server:
       max_robot_pose_search_dist: 10.0
       min_approach_linear_velocity: 0.2
       approach_velocity_scaling_dist: 2.0
-      max_allowed_time_to_collision_up_to_carrot: 2.5
+      min_departure_linear_velocity: 0.2
+      departure_velocity_scaling_dist: 2.0
+      max_allowed_time_to_collision_up_to_carrot: 4.0
       regulated_linear_scaling_min_speed: 0.2
       cost_scaling_dist: 0.3
       cost_scaling_gain: 1.0
       inflation_cost_scaling_factor: 3.0
       use_collision_detection: true
       use_interpolation: true
+      use_cost_gradient_descent: true
 
-      use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles TODO set true
+      use_cost_regulated_linear_velocity_scaling: false  # Reduces velocity near obstacles
 
       use_regulated_linear_velocity_scaling: false  # Reduces velocity based on curvature from desired_linear_vel when the current turning radius is regulated_linear_scaling_min_radius or above, to 0 when the current turning radius is 0 (linearly)
       regulated_linear_scaling_min_radius: 3.0

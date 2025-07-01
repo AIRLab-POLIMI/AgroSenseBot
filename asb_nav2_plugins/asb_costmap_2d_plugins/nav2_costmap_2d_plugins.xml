@@ -1,0 +1,10 @@
+<class_libraries>
+
+  <library path="asb_voxel_layer">
+    <class type="asb_costmap_2d_plugins::VoxelLayer" base_class_type="nav2_costmap_2d::Layer">
+      <description>Listens to point cloud messages and marks and clears grid cells in a voxel grid.</description>
+    </class>
+  </library>
+
+</class_libraries>
+

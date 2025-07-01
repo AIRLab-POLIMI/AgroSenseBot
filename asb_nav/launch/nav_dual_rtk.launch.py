@@ -1,16 +1,3 @@
-# Copyright (c) 2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import os
 
@@ -47,7 +34,7 @@ def generate_launch_description():
         name="ekf_filter_map_odom",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -62,7 +49,7 @@ def generate_launch_description():
         name="navsat_transform_1",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -80,7 +67,7 @@ def generate_launch_description():
         name="navsat_transform_2",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -98,7 +85,7 @@ def generate_launch_description():
         name="asb_static_transform_broadcaster",
         output="screen",
         parameters=[
-            {"transform_list_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "cornaredo", "static_transforms.yaml")},
+            {"transform_list_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "arcagna", "static_transforms.yaml")},
         ],
     )
 
@@ -123,19 +110,8 @@ def generate_launch_description():
         output="screen",
     )
 
-    geofence_map_server_node = Node(
-        package="asb_nav",
-        executable="geofence_map_server.py",
-        name="geofence_map_server",
-        output="screen",
-        parameters=[
-            {"geofence_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "cornaredo", "geofence.yaml")},
-            os.path.join(pkg("asb_nav"), "config", "geofence_map_publisher_params", "geofence_map_publisher_params.yaml"),
-        ],
-        remappings=[
-            ("polygons_in", "/geofence_polygons"),
-            ("map", "/geofence_map"),
-        ],
+    geofence_map_server_include = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "geofence_map_server.launch.py")),
     )
 
     nav2_bringup_include = IncludeLaunchDescription(
@@ -171,7 +147,7 @@ def generate_launch_description():
     ld.add_action(zero_publisher_node)
 
     # navigation
-    ld.add_action(geofence_map_server_node)
+    ld.add_action(geofence_map_server_include)
     ld.add_action(nav2_bringup_include)
     ld.add_action(global_path_distance_publisher_node)
 

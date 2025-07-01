@@ -1,6 +1,7 @@
 # For some reason, the costmap obstacle layers do not work correctly when publishing the laser scan messages
 # in the base_footprint frame, so we need to publish them in base_link.
 # base_link is 0.2 m above base_footprint (defined in asb_ros2_control/description/urdf/asb_description.urdf.xacro)
+# base_footprint defines the height of the ground plane
 
 lidar_filter_front:
   ros__parameters:
@@ -9,10 +10,15 @@ lidar_filter_front:
     x_max: +0.9
     y_min: -0.85
     y_max: +0.85
-    z_min: -0.3
-    z_max: +2.2
+    z_min: -0.35
+    z_max: +2.0
+    min_range: 0.1  # ignore any point with a range less than min_range
+    min_layer: 0  # only consider points in layers higher or equal to min_layer (the bottom layer is layer 0)
+    max_layer: 127  # only consider points in layers less or equal to max_layer (the bottom layer is layer 0)
+    mask_filter_count: 400  # number of point clouds used to define the mask
+    mask_filter_size: 2  # mask points adjacent to the points within the box defined by x_min/max, y_min/max, z_min/max in base_frame_id
     scan_min_height: 0.3  # 0.5 m from ground plane
-    scan_max_height: 2.5
+    scan_max_height: 2.0  # 2.2 m from ground plane
 
 lidar_filter_rear:
   ros__parameters:
@@ -21,7 +27,12 @@ lidar_filter_rear:
     x_max: +0.9
     y_min: -0.85
     y_max: +0.85
-    z_min: -0.3
-    z_max: +2.2
+    z_min: -0.35
+    z_max: +2.0
+    min_range: 0.1  # ignore any point with a range less than min_range
+    min_layer: 16  # only consider points in layers higher or equal to min_layer (the bottom layer is layer 0)
+    max_layer: 96  # only consider points in layers less or equal to max_layer (the bottom layer is layer 0)
+    mask_filter_count: 400  # number of point clouds used to define the mask
+    mask_filter_size: 2  # mask points adjacent to the points within the box defined by x_min/max, y_min/max, z_min/max in base_frame_id
     scan_min_height: 0.3  # 0.5 m from ground plane
-    scan_max_height: 2.5
+    scan_max_height: 2.0  # 2.2 m from ground plane

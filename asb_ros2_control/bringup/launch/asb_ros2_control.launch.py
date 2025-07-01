@@ -118,6 +118,13 @@ def generate_launch_description():
         condition=IfCondition(fake_heartbeat_launch_configuration),
     )
 
+    computer_system_usage_publisher_node = Node(
+        package="asb_logging",
+        executable="computer_system_usage_publisher.py",
+        name="computer_system_usage_publisher",
+        output="screen",
+    )
+
     # Create the launch description and populate
     ld = LaunchDescription()
 
@@ -131,5 +138,6 @@ def generate_launch_description():
     ld.add_action(delay_platform_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(delay_robot_controller_spawner_after_joint_state_broadcaster_spawner)
     ld.add_action(fake_heartbeat_publisher_node)
+    ld.add_action(computer_system_usage_publisher_node)
 
     return ld

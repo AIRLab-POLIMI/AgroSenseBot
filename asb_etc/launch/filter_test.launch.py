@@ -19,12 +19,14 @@ def generate_launch_description():
         parameters=[
             os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
             {
+                "mask_file_path": os.path.join(pkg("asb_lidar_filter"), "config", "front_filter_mask.pbm"),
                 "use_sim_time": True,
             },
         ],
         remappings={
             "points_in": "/scan_front_multilayer/points",
             "points_out": "/scan_front_multilayer/points_filtered_2",
+            "points_out_no_ground_ceiling": "/scan_front_multilayer/points_filtered_no_ground_ceiling",
             "scan_out": "/scan_front_2",
             "heartbeat_out": "/scan_heartbeat_front_2",
         }.items(),
@@ -38,12 +40,14 @@ def generate_launch_description():
         parameters=[
             os.path.join(pkg("asb_lidar_filter"), "config", "lidar_filter.yaml"),
             {
+                "mask_file_path": os.path.join(pkg("asb_lidar_filter"), "config", "rear_filter_mask.pbm"),
                 "use_sim_time": True,
             },
         ],
         remappings={
             "points_in": "/scan_rear_multilayer/points",
             "points_out": "/scan_rear_multilayer/points_filtered_2",
+            "points_out_no_ground_ceiling": "/scan_rear_multilayer/points_filtered_no_ground_ceiling",
             "scan_out": "/scan_rear_2",
             "heartbeat_out": "/scan_heartbeat_rear_2",
         }.items(),

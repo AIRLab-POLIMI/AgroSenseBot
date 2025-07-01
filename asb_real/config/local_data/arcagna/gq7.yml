@@ -1,0 +1,164 @@
+microstrain_inertial_driver:
+  ros__parameters:
+    # You should change this section of config to match your setup
+    port: '/dev/microstrain_main'
+    baudrate: 115200
+    aux_port: "/dev/microstrain_aux"
+    aux_baudrate: 115200
+
+    # This will cause the node to convert any NED measurements to ENU
+    # This will also cause the node to convert any vehicle frame measurements to the ROS definition of a vehicle frame
+    use_enu_frame: True
+
+    # Configure some frame IDs  TODO make a gq7_link for both gnss and imu messages
+    frame_id: 'imu_link'  # Frame ID of all the filter messages. Represents the location of the GQ7 in the tf tree
+    map_frame_id: "map"  # Frame ID of the local tangent plane.
+    earth_frame_id: "earth"  # Frame ID of the global frame
+    gnss1_frame_id: "gq7_gnss_1_antenna_link"
+    gnss2_frame_id: "gq7_gnss_2_antenna_link"
+    odometer_frame_id: "gq7_odometer_link"
+    target_frame_id: "base_link"  # Frame ID that we will publish a transform to.
+
+    # Disable the transform from the mount to frame id transform as it will be handled in the launch file
+    publish_mount_to_frame_id_transform: False
+
+    # The mode in which we will publish transforms to the below frame IDs
+    #     0 - No transforms will be published between any of the non-static frame ids. (if publish_mount_to_frame_id_transform is true, it will still be published, and so will the antenna and odometer transforms)
+    #     1 - Global mode:
+    #             Transform will be published from earth_frame_id to target_frame_id containing global position
+    #     2 - Relative mode:
+    #             Note: In order to use relative mode, you must configure filter_relative_position
+    #             Transform will be published from earth_frame_id to map_frame_id using relative position configuration
+    #             Transform between map_frame_id and target_frame_id will be published using position information reported by the device
+    # for more information, see: https://wiki.ros.org/microstrain_inertial_driver/transforms
+    tf_mode: 0
+
+    # (GQ7 Only) Allow the node to receive RTCM messages on the /rtcm topic and publish NMEA sentences from the aux port on /nmea.
+    #            It is suggested to use https://github.com/LORD-MicroStrain/ntrip_client with this interface
+    # Note: This will require the aux_port configuration to be valid and pointing to a valid aux port
+    rtk_dongle_enable: False
+    ntrip_interface_enable: True
+
+    # (GQ7 only) Relative Position Configuration
+    #     Reference frame =
+    #         1 - Relative ECEF position
+    #         2 - Relative LLH position
+    #
+    #     Source =
+    #         0 - Position will be reported relative to the base station. filter_relative_position_ref will be ignored
+    #         1 - Position will be reported relative to filter_relative_position_ref
+    #         2 - Position will be reported relative to the first position reported by the device after it enters full nav. filter_relative_position_ref will be ignored
+    #         3 - We will wait for a transform to be made available between earth_frame_id and map_frame_id and use that as the relative position reference. filter_relative_position_ref will be ignored
+    #
+    #     Reference position - Units provided by reference frame (ECEF - meters, LLH - deg, deg, meters)
+    # Note: The source selected here will determine the transform published between earth_frame_id and map_frame_id when running in relative transform mode
+    # For more information, see: https://wiki.ros.org/microstrain_inertial_driver/relative_position_configuration
+    filter_relative_position_config: True
+    filter_relative_position_frame: 2
+    filter_relative_position_source: 1
+    filter_relative_position_ref: [45.3381911, 9.4515854, 0.0]
+
+
+    # Antenna #1 lever arm offset source
+    #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
+    #     1 - Manual:    We will use the provided vector to configure the device, and publish it as the transform between frame_id and gnss1_frame_id
+    #     2 - Transform: We will look up the transform between frame_id and gnss1_frame_id and use it to configure the device. We will ignore gns1_antenna_offset
+    # Antenna #1 lever arm offset vector
+    #     For GQ7 - in the vehicle frame wrt IMU origin (meters)
+    #     For all other models - in the IMU frame wrt IMU origin (meters)
+    # Note: Make this as accurate as possible for good performance
+    gnss1_antenna_offset_source: 1
+    gnss1_antenna_offset: [0.408, -0.027, -0.63363]  # -0.652 + 0.007+0.004+0.00737
+
+    # Antenna #2 lever arm offset source
+    #     0 - Disabled:  We will not configure the antenna offset, or publish it as a transform
+    #     1 - Manual:    We will use the provided vector to configure the device, and publish it as the transform between frame_id and gnss2_frame_id
+    #     2 - Transform: We will look up the transform between frame_id and gnss2_frame_id and use it to configure the device. We will ignore gns2_antenna_offset
+    # Antenna #2 lever arm offset vector
+    #     For GQ7 - in the vehicle frame wrt IMU origin (meters)
+    #     For all other models - in the IMU frame wrt IMU origin (meters)
+    # Note: Make this as accurate as possible for good performance
+    gnss2_antenna_offset_source: 1
+    gnss2_antenna_offset: [0.408, -1.352, -0.63363]
+
+    # This will set the heading alignment to be dual antenna
+    filter_auto_heading_alignment_selector: 1
+
+    # This will contain the raw IMU data, NOT the filtered IMU data
+    imu_data_rate: 100
+
+    # The default is to publish LLH position and velocity, but rviz has a hard time displaying that.
+    # Instead, we will publish the position in the ECEF frame
+    gnss1_llh_position_data_rate: 1
+    gnss1_velocity_data_rate: 0
+    gnss1_odometry_earth_data_rate: 1
+    gnss2_llh_position_data_rate: 1
+    gnss2_velocity_data_rate: 0
+    gnss2_odometry_earth_data_rate: 1
+
+    # We will only publish the odometry messages from the filter in this example.
+    # Also publish the human-readable message which can be echoed from the command line
+    filter_human_readable_status_data_rate: 1
+    filter_odometry_earth_data_rate: 10
+    filter_odometry_map_data_rate: 10
+    filter_dual_antenna_heading_data_rate: 0
+
+    # Sensor2vehicle frame transformation selector
+    #     0 = None
+    #     1 = Euler Angles
+    #     2 = matrix
+    #     3 = quaternion
+    # Note: These are different ways of setting the same parameter in the device.
+    #       The different options are provided as a convenience.
+    #       Support for matrix and quaternion options is firmware version dependent (GQ7 supports Quaternion as of firmware 1.0.07)
+    #       Quaternion order is [i, j, k, w]
+    # Note: This can cause strange behavior when also using the ROS transform tree.
+    #       It is recommended to not use this if you want to use the ROS transform tree unless you really know what you are doing
+    filter_sensor2vehicle_frame_selector : 0
+#    filter_sensor2vehicle_frame_transformation_euler      : [0.0, 0.0, 0.0]
+#    filter_sensor2vehicle_frame_transformation_matrix     : [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+#    filter_sensor2vehicle_frame_transformation_quaternion : [0.0, 0.0, 0.0, 1.0]
+
+
+    # Turning this on will cause the transform between gq7_link and gnss_1_antenna_link/gnss_2_antenna_link to be updated from the filter
+    mip_filter_multi_antenna_offset_correction_data_rate: 2
+    mip_gnss1_fix_info_data_rate: 1  # Rate of mip/gnss_1/fix_info topic
+    mip_gnss2_fix_info_data_rate: 1  # Rate of mip/gnss_1/fix_info topic
+    mip_filter_gnss_dual_antenna_status_data_rate: 1  # Rate of mip/filter/gnss_dual_antenna_status
+    mip_filter_status_data_rate: 1  # Rate of mip/filter/status topic
+
+    #################################################################################################################
+    # Optional odometer config. Useful if using a wheeled vehicle with a wheel encoder connected to the GQ7 over GPIO
+    # This configuration will not cause any issues if you do not have an odometer connected
+    #################################################################################################################
+
+#    subscribe_ext_vel_body: True  # TODO only CV7-INS?
+
+#    # Enable the hardware odometer
+#    enable_hardware_odometer: True  # TODO try False
+#    odometer_scaling: 1.0
+#    odometer_uncertainty: 0.15
+#
+#    # Allow the filter to use the hardware odometer in its estimates
+#    filter_enable_odometer_aiding: True  # TODO try True
+#
+#    # For this example, we will assume that we are in a wheeled vehicle such as a car.
+#    # Setting this option will give us better heading performance especially in GNSS outages
+#    # If you are operating in a non-wheeled vehicle make sure to disable this
+#    filter_enable_wheeled_vehicle_constraint: True  # TODO try True
+#
+#    # Set the location of the odometer
+#    # Note: These should be changed for your setup
+#    filter_speed_lever_arm: [0.0, 0.0, 0.0]
+#
+#    # This GPIO config is specific to this setup, and requires that you use GPIO pins 1 and 2 for encoder A and B respectively.
+#    # You should update for your setup appropriately
+#    gpio_config: True
+#
+#    gpio1_feature: 3  # ENCODER feature
+#    gpio1_behavior: 1  # ENCODER_A behavior
+#    gpio1_pin_mode: 0  # NONE pin_mode
+#
+#    gpio2_feature: 3  # ENCODER feature
+#    gpio2_behavior: 2  # ENCODER_B behavior
+#    gpio2_pin_mode: 0  # NONE pin_mode
