@@ -152,7 +152,7 @@ protected:
     rclcpp_lifecycle::LifecyclePublisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
 
     /**
-     * @brief Covert world coordinates into map coordinates
+     * @brief Convert world coordinates into map coordinates
      */
     inline bool worldToMap3DFloat(double wx, double wy, double wz, double &mx, double &my, double &mz) {
         if (wx < origin_x_ || wy < origin_y_ || wz < origin_z_) {
@@ -169,7 +169,7 @@ protected:
     }
 
     /**
-     * @brief Covert world coordinates into map coordinates
+     * @brief Convert world coordinates into map coordinates
      */
     inline bool worldToMap3D(double wx, double wy, double wz, unsigned int &mx, unsigned int &my, unsigned int &mz) {
         if (wx < origin_x_ || wy < origin_y_ || wz < origin_z_) {
@@ -188,7 +188,7 @@ protected:
     }
 
     /**
-     * @brief Covert map coordinates into world coordinates
+     * @brief Convert map coordinates into world coordinates
      */
     inline void mapToWorld3D(unsigned int mx, unsigned int my, unsigned int mz, double &wx, double &wy, double &wz) {
         // returns the center point of the cell

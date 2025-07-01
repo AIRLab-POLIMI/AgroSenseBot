@@ -360,7 +360,6 @@ void VoxelLayer::raytraceFreespace(const nav2_costmap_2d::Observation &clearing_
             unsigned int cell_raytrace_max_range = cellDistance(clearing_observation.raytrace_max_range_);
             unsigned int cell_raytrace_min_range = cellDistance(clearing_observation.raytrace_min_range_);
 
-            // voxel_grid_.markVoxelLine(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z);
             voxel_grid_.clearVoxelLineInMap(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, costmap_, unknown_threshold_, mark_threshold_, FREE_SPACE, NO_INFORMATION, cell_raytrace_max_range, cell_raytrace_min_range);
 
             updateRaytraceBounds(ox, oy, wpx, wpy, clearing_observation.raytrace_max_range_, clearing_observation.raytrace_min_range_, min_x, min_y, max_x, max_y);
