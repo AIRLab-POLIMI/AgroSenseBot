@@ -79,17 +79,18 @@ void VoxelLayer::onInitialize() {
     node->get_parameter(name_ + "." + "combination_method", combination_method_);
     node->get_parameter(name_ + "." + "publish_voxel_map", publish_voxel_);
 
-    auto custom_qos = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
+    auto qos_reliable_transient_local_depth_1 = rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable();
+    auto qos_reliable_transient_local_depth_10 = rclcpp::QoS(rclcpp::KeepLast(10)).transient_local().reliable();
 
     if (publish_voxel_) {
-        voxel_pub_ = node->create_publisher<nav2_msgs::msg::VoxelGrid>("voxel_grid", custom_qos);
+        voxel_pub_ = node->create_publisher<nav2_msgs::msg::VoxelGrid>("voxel_grid", qos_reliable_transient_local_depth_1);
         voxel_pub_->on_activate();
     }
 
-    clearing_endpoints_pub_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("clearing_endpoints", custom_qos);
+    clearing_endpoints_pub_ = node->create_publisher<sensor_msgs::msg::PointCloud2>("clearing_endpoints", qos_reliable_transient_local_depth_1);
     clearing_endpoints_pub_->on_activate();
 
-    benchmarking_execution_duration_publisher_ = node->create_publisher<asb_msgs::msg::ExecutionDurationStamped>("~/benchmarking/execution_duration", custom_qos);
+    benchmarking_execution_duration_publisher_ = node->create_publisher<asb_msgs::msg::ExecutionDurationStamped>("~/benchmarking/execution_duration", qos_reliable_transient_local_depth_10);
     benchmarking_execution_duration_publisher_->on_activate();
 
     unknown_threshold_ += (VOXEL_BITS - size_z_);
@@ -153,9 +154,11 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     current_ = current;
 
     // raytrace freespace
+    auto execution_raytracing_start = std::chrono::high_resolution_clock::now();
     for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
         raytraceFreespace(clearing_observations[i], min_x, min_y, max_x, max_y);
     }
+    std::chrono::duration<double> execution_raytracing_duration_s = std::chrono::high_resolution_clock::now() - execution_raytracing_start;
 
     // place the new obstacles into a priority queue... each with a priority of zero to begin with
     for (std::vector<nav2_costmap_2d::Observation>::const_iterator it = observations.begin(); it != observations.end(); ++it) {
@@ -238,6 +241,14 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     if (!node) {
         throw std::runtime_error{"Failed to lock node"};
     }
+    auto now = node->get_clock()->now();
+
+    asb_msgs::msg::ExecutionDurationStamped execution_duration_raytracing;
+    execution_duration_raytracing.stamp = now;
+    execution_duration_raytracing.execution_duration = rclcpp::Duration::from_seconds((execution_raytracing_duration_s).count());
+    execution_duration_raytracing.label = "raytracing";
+    benchmarking_execution_duration_publisher_->publish(execution_duration_raytracing);
+
     asb_msgs::msg::ExecutionDurationStamped execution_duration;
     execution_duration.stamp = node->get_clock()->now();
     execution_duration.execution_duration = rclcpp::Duration::from_seconds((execution_duration_s).count());

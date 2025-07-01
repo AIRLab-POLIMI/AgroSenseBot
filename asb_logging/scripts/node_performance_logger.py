@@ -243,17 +243,18 @@ class PerformanceLogger(Node):
         self.start_delay: float = 2.0
         self.measurement_duration: float = 11
 
-        self.counters: list[PerformanceCounter] = [NodeComputerSystemUsageCounter(self, node_name=node_name) for node_name in [
-            "controller_server",
-            "lidar_filter_front",
-            "lidar_filter_rear"
-        ]]
+        self.counters: list[PerformanceCounter] = [
+            NodeComputerSystemUsageCounter(self, node_name="controller_server"),
+            NodeComputerSystemUsageCounter(self, node_name="lidar_filter_front"),
+            NodeComputerSystemUsageCounter(self, node_name="lidar_filter_rear"),
+        ]
 
-        self.counters += [NodeExecutionTimeCounter(self, alias=alias, node_name=node_name, label=label) for (alias, node_name, label) in [
-            ("local_costmap", "/local_costmap/local_costmap", "updateBounds"),
-            ("lidar_filter_front", "lidar_filter_front", ""),
-            ("lidar_filter_rear", "lidar_filter_rear", ""),
-        ]]
+        self.counters += [
+            NodeExecutionTimeCounter(self, alias="local_costmap", node_name="/local_costmap/local_costmap", label="updateBounds"),
+            NodeExecutionTimeCounter(self, alias="local_costmap", node_name="/local_costmap/local_costmap", label="raytracing"),
+            NodeExecutionTimeCounter(self, alias="lidar_filter_front", node_name="lidar_filter_front", label=""),
+            NodeExecutionTimeCounter(self, alias="lidar_filter_rear", node_name="lidar_filter_rear", label=""),
+        ]
 
         self.measurement_in_progress: bool = False
 
