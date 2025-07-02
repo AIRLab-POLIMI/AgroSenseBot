@@ -138,11 +138,6 @@ protected:
      */
     virtual void resetMaps();
 
-    /**
-     * @brief Use ray casting between 2 points to clear freespace
-     */
-//    virtual void raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y);
-
     bool publish_voxel_;
     rclcpp_lifecycle::LifecyclePublisher<nav2_msgs::msg::VoxelGrid>::SharedPtr voxel_pub_;
     asb_voxel_grid::VoxelGrid voxel_grid_;

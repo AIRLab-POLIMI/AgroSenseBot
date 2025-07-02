@@ -100,18 +100,6 @@ void VoxelGrid::reset() {
     }
 }
 
-void VoxelGrid::markVoxelLine(double x0, double y0, double z0, double x1, double y1, double z1, unsigned int max_length) {
-
-    if (x0 >= size_x_ || y0 >= size_y_ || z0 >= size_z_ || x1 >= size_x_ || y1 >= size_y_ || z1 >= size_z_) {
-        RCLCPP_DEBUG(logger, "Error, line endpoint out of bounds. "
-                             "(%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f),  size: (%d, %d, %d)", x0, y0, z0, x1, y1, z1, size_x_, size_y_, size_z_);
-        return;
-    }
-
-    MarkVoxel mv(data_);
-    raytraceLine(mv, x0, y0, z0, x1, y1, z1, max_length);
-}
-
 void VoxelGrid::clearVoxelLine(double x0, double y0, double z0, double x1, double y1, double z1, unsigned int max_length, unsigned int min_length) {
 
     if (x0 >= size_x_ || y0 >= size_y_ || z0 >= size_z_ || x1 >= size_x_ || y1 >= size_y_ || z1 >= size_z_) {
@@ -122,46 +110,6 @@ void VoxelGrid::clearVoxelLine(double x0, double y0, double z0, double x1, doubl
 
     ClearVoxel cv(data_);
     raytraceLine(cv, x0, y0, z0, x1, y1, z1, max_length, min_length);
-}
-
-void VoxelGrid::clearVoxelLineInMap(double x0, double y0, double z0, double x1, double y1, double z1, unsigned char *map_2d, unsigned int unknown_threshold, unsigned int mark_threshold, unsigned char free_cost, unsigned char unknown_cost, unsigned int max_length, unsigned int min_length) {
-
-    costmap = map_2d;
-    if (map_2d == NULL) {
-        clearVoxelLine(x0, y0, z0, x1, y1, z1, max_length, min_length);
-        return;
-    }
-
-    if (x0 >= size_x_ || y0 >= size_y_ || z0 >= size_z_ || x1 >= size_x_ || y1 >= size_y_ || z1 >= size_z_) {
-        RCLCPP_DEBUG(logger, "Error, line endpoint out of bounds. "
-                             "(%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f),  size: (%d, %d, %d)", x0, y0, z0, x1, y1, z1, size_x_, size_y_, size_z_);
-        return;
-    }
-
-    ClearVoxelInMap cvm(data_, costmap, unknown_threshold, mark_threshold, free_cost, unknown_cost);
-    raytraceLine(cvm, x0, y0, z0, x1, y1, z1, max_length, min_length);
-}
-
-VoxelStatus VoxelGrid::getVoxel(unsigned int x, unsigned int y, unsigned int z) {
-
-    if (x >= size_x_ || y >= size_y_ || z >= size_z_) {
-        RCLCPP_DEBUG(logger, "Error, voxel out of bounds. (%d, %d, %d)\n", x, y, z);
-        return UNKNOWN;
-    }
-    uint32_t full_mask = ((uint32_t) 1 << z << 16) | (1 << z);
-    uint32_t result = data_[y * size_x_ + x] & full_mask;
-    unsigned int bits = numBits(result);
-
-    // known marked: 11 = 2 bits, unknown: 01 = 1 bit, known free: 00 = 0 bits
-    if (bits < 2) {
-        if (bits < 1) {
-            return FREE;
-        }
-
-        return UNKNOWN;
-    }
-
-    return MARKED;
 }
 
 VoxelStatus VoxelGrid::getVoxelColumn(unsigned int x, unsigned int y, unsigned int unknown_threshold, unsigned int marked_threshold) {
@@ -189,23 +137,6 @@ VoxelStatus VoxelGrid::getVoxelColumn(unsigned int x, unsigned int y, unsigned i
     return FREE;
 }
 
-//void VoxelGrid::transferTo(VoxelGrid & other) {
-//
-//    for (unsigned int offset = 0; offset < size_x_ * size_y_; ++offset) {
-//        for (unsigned int z = 0; z < size_z_; z++) {
-//
-//            auto this_column = getVoxel(x, y, unknown_threshold, marked_threshold);
-//
-//            if (this_column == asb_voxel_grid::MARKED) {
-//                costmap__[offset] = lethal_cost;
-//            } else if (this_column == asb_voxel_grid::FREE) {
-//                costmap__[offset] = free_cost;
-//            }
-//
-//        }
-//    }
-//}
-
 void VoxelGrid::transferToCostmap(const unsigned char & lethal_cost, const unsigned char & free_cost, const unsigned char & unknown_cost, const unsigned int & unknown_threshold, const unsigned int & marked_threshold, unsigned char * costmap__) {
 
     for (unsigned int y = 0; y < size_y_; y++) {
@@ -220,20 +151,6 @@ void VoxelGrid::transferToCostmap(const unsigned char & lethal_cost, const unsig
                 costmap__[offset] = free_cost;
             }
 
-//            if (costmap__[offset] == unknown_cost) {
-//                // if the costmap cell is unknown, we overwrite it
-//                if (column == asb_voxel_grid::MARKED) {
-//                    costmap__[offset] = lethal_cost;
-//                } else if (column == asb_voxel_grid::FREE) {
-//                    costmap__[offset] = free_cost;
-//                }
-//            } else {
-//                // if the costmap cell is free or lethal, we only overwrite if the column is marked (lethal cost has priority on free cost)
-//                if (column == asb_voxel_grid::MARKED) {
-//                    costmap__[offset] = lethal_cost;
-//                }
-//                // no need to check for the case column == asb_voxel_grid::FREE, the costmap cell is either free (writing would have no effect), or lethal (do not overwrite)
-//            }
         }
     }
 }
@@ -253,27 +170,4 @@ unsigned int VoxelGrid::sizeZ() {
     return size_z_;
 }
 
-void VoxelGrid::printVoxelGrid() {
-
-    for (unsigned int z = 0; z < size_z_; z++) {
-        printf("Layer z = %u:\n", z);
-        for (unsigned int y = 0; y < size_y_; y++) {
-            for (unsigned int x = 0; x < size_x_; x++) {
-                printf((getVoxel(x, y, z)) == asb_voxel_grid::MARKED ? "#" : " ");
-            }
-            printf("|\n");
-        }
-    }
-}
-
-void VoxelGrid::printColumnGrid() {
-
-    printf("Column view:\n");
-    for (unsigned int y = 0; y < size_y_; y++) {
-        for (unsigned int x = 0; x < size_x_; x++) {
-            printf((getVoxelColumn(x, y, 16, 0) == asb_voxel_grid::MARKED) ? "#" : " ");
-        }
-        printf("|\n");
-    }
-}
 }  // namespace asb_voxel_grid
