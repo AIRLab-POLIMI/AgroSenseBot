@@ -141,7 +141,7 @@ protected:
     /**
      * @brief Use ray casting between 2 points to clear freespace
      */
-    virtual void raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y);
+//    virtual void raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y);
 
     bool publish_voxel_;
     rclcpp_lifecycle::LifecyclePublisher<nav2_msgs::msg::VoxelGrid>::SharedPtr voxel_pub_;
@@ -150,6 +150,17 @@ protected:
     int unknown_threshold_, mark_threshold_, size_z_;
     rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr clearing_endpoints_pub_;
     rclcpp_lifecycle::LifecyclePublisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
+
+    bool getObservations(std::vector<nav2_costmap_2d::Observation> & observations) const {
+        bool current = true;
+        for (unsigned int i = 0; i < observation_buffers_.size(); ++i) {
+            observation_buffers_[i]->lock();
+            observation_buffers_[i]->getObservations(observations);
+            current = observation_buffers_[i]->isCurrent() && current;
+            observation_buffers_[i]->unlock();
+        }
+        return current;
+    }
 
     /**
      * @brief Convert world coordinates into map coordinates

@@ -135,7 +135,8 @@ void VoxelLayer::resetMaps() {
 void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y) {
 
     std::lock_guard<Costmap2D::mutex_t> guard(*getMutex());
-    auto execution_start = std::chrono::high_resolution_clock::now();
+    auto update_bounds_start = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> raytracing_duration_s(0);
 
     if (rolling_window_) {
         updateOrigin(robot_x - getSizeInMetersX() / 2, robot_y - getSizeInMetersY() / 2);
@@ -145,40 +146,48 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     }
     useExtraBounds(min_x, min_y, max_x, max_y);
 
-    bool current = true;
-    std::vector<nav2_costmap_2d::Observation> observations, clearing_observations;
+//    bool current = true;
+//    std::vector<nav2_costmap_2d::Observation> marking_observations, clearing_observations;
 
-    // get the marking observations
-    current = getMarkingObservations(observations) && current;
+    std::vector<nav2_costmap_2d::Observation> observations;
+    bool current = getObservations(observations);
 
-    // get the clearing observations
-    current = getClearingObservations(clearing_observations) && current;
+//    // get the marking observations
+//    current = getMarkingObservations(marking_observations) && current;
+//
+//    // get the clearing observations
+//    current = getClearingObservations(clearing_observations) && current;
 
     // update the global current status
     current_ = current;
 
-    voxel_grid_.reset();
+    for (unsigned int i = 0; i < observations.size(); ++i) {
+        const nav2_costmap_2d::Observation &obs = observations[i];
+        voxel_grid_.reset();
 
-    for (std::vector<nav2_costmap_2d::Observation>::const_iterator it = observations.begin(); it != observations.end(); ++it) {
-        const nav2_costmap_2d::Observation &obs = *it;
+        //**********************************************//
+        //                                              //
+        //                mark obstacles                //
+        //                                              //
+        //**********************************************//
 
         const sensor_msgs::msg::PointCloud2 &cloud = *(obs.cloud_);
 
         double sq_obstacle_max_range = obs.obstacle_max_range_ * obs.obstacle_max_range_;
         double sq_obstacle_min_range = obs.obstacle_min_range_ * obs.obstacle_min_range_;
 
-        sensor_msgs::PointCloud2ConstIterator<float> iter_x(cloud, "x");
-        sensor_msgs::PointCloud2ConstIterator<float> iter_y(cloud, "y");
-        sensor_msgs::PointCloud2ConstIterator<float> iter_z(cloud, "z");
+        sensor_msgs::PointCloud2ConstIterator<float> iter_m_x(cloud, "x");
+        sensor_msgs::PointCloud2ConstIterator<float> iter_m_y(cloud, "y");
+        sensor_msgs::PointCloud2ConstIterator<float> iter_m_z(cloud, "z");
 
-        for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
+        for (; iter_m_x != iter_m_x.end(); ++iter_m_x, ++iter_m_y, ++iter_m_z) {
             // if the obstacle is too high or too far away from the robot we won't add it
-            if (*iter_z > max_obstacle_height_) {
+            if (*iter_m_z > max_obstacle_height_) {
                 continue;
             }
 
             // compute the squared distance from the hit point to the point cloud's origin
-            double sq_dist = (*iter_x - obs.origin_.x) * (*iter_x - obs.origin_.x) + (*iter_y - obs.origin_.y) * (*iter_y - obs.origin_.y) + (*iter_z - obs.origin_.z) * (*iter_z - obs.origin_.z);
+            double sq_dist = (*iter_m_x - obs.origin_.x) * (*iter_m_x - obs.origin_.x) + (*iter_m_y - obs.origin_.y) * (*iter_m_y - obs.origin_.y) + (*iter_m_z - obs.origin_.z) * (*iter_m_z - obs.origin_.z);
 
             // if the point is far enough away... we won't consider it
             if (sq_dist >= sq_obstacle_max_range) {
@@ -192,11 +201,11 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
 
             // now we need to compute the map coordinates for the observation
             unsigned int mx, my, mz;
-            if (*iter_z < origin_z_) {
-                if (!worldToMap3D(*iter_x, *iter_y, origin_z_, mx, my, mz)) {
+            if (*iter_m_z < origin_z_) {
+                if (!worldToMap3D(*iter_m_x, *iter_m_y, origin_z_, mx, my, mz)) {
                     continue;
                 }
-            } else if (!worldToMap3D(*iter_x, *iter_y, *iter_z, mx, my, mz)) {
+            } else if (!worldToMap3D(*iter_m_x, *iter_m_y, *iter_m_z, mx, my, mz)) {
                 continue;
             }
 
@@ -205,19 +214,164 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
                 unsigned int index = getIndex(mx, my);
 
                 costmap_[index] = LETHAL_OBSTACLE;
-                touch(static_cast<double>(*iter_x), static_cast<double>(*iter_y), min_x, min_y, max_x, max_y);
+                touch(static_cast<double>(*iter_m_x), static_cast<double>(*iter_m_y), min_x, min_y, max_x, max_y);
             }
         }
-    }
 
-    // raytrace freespace
-    auto execution_raytracing_start = std::chrono::high_resolution_clock::now();
-    for (unsigned int i = 0; i < clearing_observations.size(); ++i) {
-        raytraceFreespace(clearing_observations[i], min_x, min_y, max_x, max_y);
-    }
-    std::chrono::duration<double> execution_raytracing_duration_s = std::chrono::high_resolution_clock::now() - execution_raytracing_start;
+        //**********************************************//
+        //                     end                      //
+        //                mark obstacles                //
+        //                                              //
+        //**********************************************//
 
-    voxel_grid_.transferToCostmap(LETHAL_OBSTACLE, FREE_SPACE, NO_INFORMATION, unknown_threshold_, mark_threshold_, costmap_);
+        //**********************************************//
+        //                                              //
+        //              raytrace freespace              //
+        //                                              //
+        //**********************************************//
+
+        auto raytracing_start = std::chrono::high_resolution_clock::now();
+
+        auto clearing_endpoints_ = std::make_unique<sensor_msgs::msg::PointCloud2>();
+
+        if (obs.cloud_->height == 0 || obs.cloud_->width == 0) {
+            continue;
+        }
+
+        double sensor_x, sensor_y, sensor_z;
+        double ox = obs.origin_.x;
+        double oy = obs.origin_.y;
+        double oz = obs.origin_.z;
+
+        if (!worldToMap3DFloat(ox, oy, oz, sensor_x, sensor_y, sensor_z)) {
+            RCLCPP_WARN(logger_, "Sensor origin at (%.2f, %.2f %.2f) is out of map bounds "
+                                 "(%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f). "
+                                 "The costmap cannot raytrace for it.", ox, oy, oz, origin_x_, origin_y_, origin_z_, origin_x_ + getSizeInMetersX(), origin_y_ + getSizeInMetersY(), origin_z_ + getSizeInMetersZ());
+
+            continue;
+        }
+
+        bool publish_clearing_points;
+
+        {
+            auto node = node_.lock();
+            if (!node) {
+                throw std::runtime_error{"Failed to lock node"};
+            }
+            publish_clearing_points = (node->count_subscribers("clearing_endpoints") > 0);
+        }
+
+        clearing_endpoints_->data.clear();
+        clearing_endpoints_->width = obs.cloud_->width;
+        clearing_endpoints_->height = obs.cloud_->height;
+        clearing_endpoints_->is_dense = true;
+        clearing_endpoints_->is_bigendian = false;
+
+        sensor_msgs::PointCloud2Modifier modifier(*clearing_endpoints_);
+        modifier.setPointCloud2Fields(3, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1, sensor_msgs::msg::PointField::FLOAT32, "z", 1, sensor_msgs::msg::PointField::FLOAT32);
+
+        sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_x(*clearing_endpoints_, "x");
+        sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_y(*clearing_endpoints_, "y");
+        sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_z(*clearing_endpoints_, "z");
+
+        // we can pre-compute the end points of the map outside the inner loop... we'll need these later
+        double map_end_x = origin_x_ + getSizeInMetersX();
+        double map_end_y = origin_y_ + getSizeInMetersY();
+        double map_end_z = origin_z_ + getSizeInMetersZ();
+
+        sensor_msgs::PointCloud2ConstIterator<float> iter_x(*(obs.cloud_), "x");
+        sensor_msgs::PointCloud2ConstIterator<float> iter_y(*(obs.cloud_), "y");
+        sensor_msgs::PointCloud2ConstIterator<float> iter_z(*(obs.cloud_), "z");
+
+        for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
+            double wpx = *iter_x;
+            double wpy = *iter_y;
+            double wpz = *iter_z;
+
+            double distance = dist(ox, oy, oz, wpx, wpy, wpz);
+            double scaling_fact = 1.0;
+            scaling_fact = std::max(std::min(scaling_fact, (distance - 2 * resolution_) / distance), 0.0);
+            wpx = scaling_fact * (wpx - ox) + ox;
+            wpy = scaling_fact * (wpy - oy) + oy;
+            wpz = scaling_fact * (wpz - oz) + oz;
+
+            double a = wpx - ox;
+            double b = wpy - oy;
+            double c = wpz - oz;
+            double t = 1.0;
+
+            // rescale the endpoint if z is outside of map boundaries
+            if (wpz < origin_z_) {
+                t = std::min(t, (origin_z_ - oz) / c);
+            } else if (wpz > map_end_z) {
+                t = std::max(0.0, std::min(t, (map_end_z - 0.01 - oz) / c));
+            }
+
+            // rescale the endpoint if x is outside of map boundaries
+            if (wpx < origin_x_) {
+                t = std::min(t, (origin_x_ - ox) / a);
+            } else if (wpx > map_end_x) {
+                t = std::min(t, (map_end_x - ox) / a);
+            }
+
+            // rescale the endpoint if y is outside of map boundaries
+            if (wpy < origin_y_) {
+                t = std::min(t, (origin_y_ - oy) / b);
+            } else if (wpy > map_end_y) {
+                t = std::min(t, (map_end_y - oy) / b);
+            }
+
+            double wpx_scaled = ox + a * t;
+            double wpy_scaled = oy + b * t;
+            double wpz_scaled = oz + c * t;
+
+            double point_x, point_y, point_z;
+            if (worldToMap3DFloat(wpx_scaled, wpy_scaled, wpz_scaled, point_x, point_y, point_z)) {
+                unsigned int cell_raytrace_max_range = cellDistance(obs.raytrace_max_range_);
+                unsigned int cell_raytrace_min_range = cellDistance(obs.raytrace_min_range_);
+
+                unsigned int mx = static_cast<unsigned int>(point_x), my = static_cast<unsigned int>(point_y), mz = static_cast<unsigned int>(point_z);  // raytracing endpoint
+
+                // do not ray trace if the raytracing endpoint has already been cleared (a ray has already been traced between this observation's origin and approximately in the same direction)
+                if(!voxel_grid_.isVoxelCleared(mx ,my, mz)){
+                    voxel_grid_.clearVoxelLine(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, cell_raytrace_max_range, cell_raytrace_min_range);
+                }
+
+                updateRaytraceBounds(ox, oy, wpx_scaled, wpy_scaled, obs.raytrace_max_range_, obs.raytrace_min_range_, min_x, min_y, max_x, max_y);
+
+                if (publish_clearing_points) {
+                    *clearing_endpoints_iter_x = wpx_scaled;
+                    *clearing_endpoints_iter_y = wpy_scaled;
+                    *clearing_endpoints_iter_z = wpz_scaled;
+
+                    ++clearing_endpoints_iter_x;
+                    ++clearing_endpoints_iter_y;
+                    ++clearing_endpoints_iter_z;
+                }
+            }
+        }
+
+        if (publish_clearing_points) {
+            clearing_endpoints_->header.frame_id = global_frame_;
+            clearing_endpoints_->header.stamp = obs.cloud_->header.stamp;
+
+            clearing_endpoints_pub_->publish(std::move(clearing_endpoints_));
+        }
+
+        raytracing_duration_s += std::chrono::high_resolution_clock::now() - raytracing_start;
+
+        //**********************************************//
+        //                     end                      //
+        //              raytrace freespace              //
+        //                                              //
+        //**********************************************//
+
+//        auto transfer_start = std::chrono::high_resolution_clock::now();
+        voxel_grid_.transferToCostmap(LETHAL_OBSTACLE, FREE_SPACE, NO_INFORMATION, unknown_threshold_, mark_threshold_, costmap_);
+//        std::chrono::duration<double, std::milli> transfer_duration = std::chrono::high_resolution_clock::now() - transfer_start;
+//        RCLCPP_INFO(logger_, "transfer_duration: %.3f ms", transfer_duration.count());
+
+    }
 
     if (publish_voxel_) {
         auto grid_msg = std::make_unique<nav2_msgs::msg::VoxelGrid>();
@@ -243,148 +397,24 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
 
     updateFootprint(robot_x, robot_y, robot_yaw, min_x, min_y, max_x, max_y);
 
-    std::chrono::duration<double> execution_duration_s = std::chrono::high_resolution_clock::now() - execution_start;
+    std::chrono::duration<double> update_bounds_duration_s = std::chrono::high_resolution_clock::now() - update_bounds_start;
     auto node = node_.lock();
     if (!node) {
         throw std::runtime_error{"Failed to lock node"};
     }
     auto now = node->get_clock()->now();
 
-    asb_msgs::msg::ExecutionDurationStamped execution_duration_raytracing_msg;
-    execution_duration_raytracing_msg.stamp = now;
-    execution_duration_raytracing_msg.execution_duration = rclcpp::Duration::from_seconds((execution_raytracing_duration_s).count());
-    execution_duration_raytracing_msg.label = "raytracing";
-    benchmarking_execution_duration_publisher_->publish(execution_duration_raytracing_msg);
+    asb_msgs::msg::ExecutionDurationStamped raytracing_duration_msg;
+    raytracing_duration_msg.stamp = now;
+    raytracing_duration_msg.execution_duration = rclcpp::Duration::from_seconds((raytracing_duration_s).count());
+    raytracing_duration_msg.label = "raytracing";
+    benchmarking_execution_duration_publisher_->publish(raytracing_duration_msg);
 
-    asb_msgs::msg::ExecutionDurationStamped execution_duration_msg;
-    execution_duration_msg.stamp = node->get_clock()->now();
-    execution_duration_msg.execution_duration = rclcpp::Duration::from_seconds((execution_duration_s).count());
-    execution_duration_msg.label = "update_bounds";
-    benchmarking_execution_duration_publisher_->publish(execution_duration_msg);
-}
-
-void VoxelLayer::raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y) {
-
-    auto clearing_endpoints_ = std::make_unique<sensor_msgs::msg::PointCloud2>();
-
-    if (clearing_observation.cloud_->height == 0 || clearing_observation.cloud_->width == 0) {
-        return;
-    }
-
-    double sensor_x, sensor_y, sensor_z;
-    double ox = clearing_observation.origin_.x;
-    double oy = clearing_observation.origin_.y;
-    double oz = clearing_observation.origin_.z;
-
-    if (!worldToMap3DFloat(ox, oy, oz, sensor_x, sensor_y, sensor_z)) {
-        RCLCPP_WARN(logger_, "Sensor origin at (%.2f, %.2f %.2f) is out of map bounds "
-                             "(%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f). "
-                             "The costmap cannot raytrace for it.", ox, oy, oz, origin_x_, origin_y_, origin_z_, origin_x_ + getSizeInMetersX(), origin_y_ + getSizeInMetersY(), origin_z_ + getSizeInMetersZ());
-
-        return;
-    }
-
-    bool publish_clearing_points;
-
-    {
-        auto node = node_.lock();
-        if (!node) {
-            throw std::runtime_error{"Failed to lock node"};
-        }
-        publish_clearing_points = (node->count_subscribers("clearing_endpoints") > 0);
-    }
-
-    clearing_endpoints_->data.clear();
-    clearing_endpoints_->width = clearing_observation.cloud_->width;
-    clearing_endpoints_->height = clearing_observation.cloud_->height;
-    clearing_endpoints_->is_dense = true;
-    clearing_endpoints_->is_bigendian = false;
-
-    sensor_msgs::PointCloud2Modifier modifier(*clearing_endpoints_);
-    modifier.setPointCloud2Fields(3, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1, sensor_msgs::msg::PointField::FLOAT32, "z", 1, sensor_msgs::msg::PointField::FLOAT32);
-
-    sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_x(*clearing_endpoints_, "x");
-    sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_y(*clearing_endpoints_, "y");
-    sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_z(*clearing_endpoints_, "z");
-
-    // we can pre-compute the end points of the map outside the inner loop... we'll need these later
-    double map_end_x = origin_x_ + getSizeInMetersX();
-    double map_end_y = origin_y_ + getSizeInMetersY();
-    double map_end_z = origin_z_ + getSizeInMetersZ();
-
-    sensor_msgs::PointCloud2ConstIterator<float> iter_x(*(clearing_observation.cloud_), "x");
-    sensor_msgs::PointCloud2ConstIterator<float> iter_y(*(clearing_observation.cloud_), "y");
-    sensor_msgs::PointCloud2ConstIterator<float> iter_z(*(clearing_observation.cloud_), "z");
-
-    for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
-        double wpx = *iter_x;
-        double wpy = *iter_y;
-        double wpz = *iter_z;
-
-        double distance = dist(ox, oy, oz, wpx, wpy, wpz);
-        double scaling_fact = 1.0;
-        scaling_fact = std::max(std::min(scaling_fact, (distance - 2 * resolution_) / distance), 0.0);
-        wpx = scaling_fact * (wpx - ox) + ox;
-        wpy = scaling_fact * (wpy - oy) + oy;
-        wpz = scaling_fact * (wpz - oz) + oz;
-
-        double a = wpx - ox;
-        double b = wpy - oy;
-        double c = wpz - oz;
-        double t = 1.0;
-
-        // rescale the endpoint if z is outside of map boundaries
-        if (wpz < origin_z_) {
-            t = std::min(t, (origin_z_ - oz) / c);
-        } else if (wpz > map_end_z) {
-            t = std::max(0.0, std::min(t, (map_end_z - 0.01 - oz) / c));
-        }
-
-        // rescale the endpoint if x is outside of map boundaries
-        if (wpx < origin_x_) {
-            t = std::min(t, (origin_x_ - ox) / a);
-        } else if (wpx > map_end_x) {
-            t = std::min(t, (map_end_x - ox) / a);
-        }
-
-        // rescale the endpoint if y is outside of map boundaries
-        if (wpy < origin_y_) {
-            t = std::min(t, (origin_y_ - oy) / b);
-        } else if (wpy > map_end_y) {
-            t = std::min(t, (map_end_y - oy) / b);
-        }
-
-        double wpx_scaled = ox + a * t;
-        double wpy_scaled = oy + b * t;
-        double wpz_scaled = oz + c * t;
-
-        double point_x, point_y, point_z;
-        if (worldToMap3DFloat(wpx_scaled, wpy_scaled, wpz_scaled, point_x, point_y, point_z)) {
-            unsigned int cell_raytrace_max_range = cellDistance(clearing_observation.raytrace_max_range_);
-            unsigned int cell_raytrace_min_range = cellDistance(clearing_observation.raytrace_min_range_);
-
-            voxel_grid_.clearVoxelLine(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, cell_raytrace_max_range, cell_raytrace_min_range);
-
-            updateRaytraceBounds(ox, oy, wpx_scaled, wpy_scaled, clearing_observation.raytrace_max_range_, clearing_observation.raytrace_min_range_, min_x, min_y, max_x, max_y);
-
-            if (publish_clearing_points) {
-                *clearing_endpoints_iter_x = wpx_scaled;
-                *clearing_endpoints_iter_y = wpy_scaled;
-                *clearing_endpoints_iter_z = wpz_scaled;
-
-                ++clearing_endpoints_iter_x;
-                ++clearing_endpoints_iter_y;
-                ++clearing_endpoints_iter_z;
-            }
-        }
-    }
-
-    if (publish_clearing_points) {
-        clearing_endpoints_->header.frame_id = global_frame_;
-        clearing_endpoints_->header.stamp = clearing_observation.cloud_->header.stamp;
-
-        clearing_endpoints_pub_->publish(std::move(clearing_endpoints_));
-    }
+    asb_msgs::msg::ExecutionDurationStamped update_bounds_duration_msg;
+    update_bounds_duration_msg.stamp = node->get_clock()->now();
+    update_bounds_duration_msg.execution_duration = rclcpp::Duration::from_seconds((update_bounds_duration_s).count());
+    update_bounds_duration_msg.label = "update_bounds";
+    benchmarking_execution_duration_publisher_->publish(update_bounds_duration_msg);
 }
 
 void VoxelLayer::updateOrigin(double new_origin_x, double new_origin_y) {

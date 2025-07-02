@@ -170,6 +170,16 @@ public:
         return bit_count;
     }
 
+    inline bool isVoxelCleared(unsigned int x, unsigned int y, unsigned int z) {
+
+        if (x >= size_x_ || y >= size_y_ || z >= size_z_) {
+            return false;
+        }
+
+        uint32_t full_z_mask = (uint32_t) 1 << (z + 16) | (1 << z);
+        return (data_[y * size_x_ + x] & full_z_mask) == 0;
+    }
+
     inline bool isVoxelMarked(unsigned int x, unsigned int y, unsigned int z) {
 
         if (x >= size_x_ || y >= size_y_ || z >= size_z_) {
@@ -215,6 +225,8 @@ public:
 
     // Are there any obstacles at that (x, y) location in the grid?
     VoxelStatus getVoxelColumn(unsigned int x, unsigned int y, unsigned int unknown_threshold = 0, unsigned int marked_threshold = 0);
+
+//    void transferTo(VoxelGrid & other);
 
     void transferToCostmap(const unsigned char & lethal_cost, const unsigned char & free_cost, const unsigned char & unknown_cost, const unsigned int & unknown_threshold, const unsigned int & marked_threshold, unsigned char * costmap__);
 

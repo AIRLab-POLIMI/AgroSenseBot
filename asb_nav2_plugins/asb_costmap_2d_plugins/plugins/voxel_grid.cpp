@@ -189,19 +189,51 @@ VoxelStatus VoxelGrid::getVoxelColumn(unsigned int x, unsigned int y, unsigned i
     return FREE;
 }
 
+//void VoxelGrid::transferTo(VoxelGrid & other) {
+//
+//    for (unsigned int offset = 0; offset < size_x_ * size_y_; ++offset) {
+//        for (unsigned int z = 0; z < size_z_; z++) {
+//
+//            auto this_column = getVoxel(x, y, unknown_threshold, marked_threshold);
+//
+//            if (this_column == asb_voxel_grid::MARKED) {
+//                costmap__[offset] = lethal_cost;
+//            } else if (this_column == asb_voxel_grid::FREE) {
+//                costmap__[offset] = free_cost;
+//            }
+//
+//        }
+//    }
+//}
+
 void VoxelGrid::transferToCostmap(const unsigned char & lethal_cost, const unsigned char & free_cost, const unsigned char & unknown_cost, const unsigned int & unknown_threshold, const unsigned int & marked_threshold, unsigned char * costmap__) {
 
     for (unsigned int y = 0; y < size_y_; y++) {
         for (unsigned int x = 0; x < size_x_; x++) {
             unsigned int offset = y * size_x_ + x;
             auto column = getVoxelColumn(x, y, unknown_threshold, marked_threshold);
-            if(column == asb_voxel_grid::MARKED) {
+
+            // overwrite the costmap if the voxel grid column is free or marked (
+            if (column == asb_voxel_grid::MARKED) {
                 costmap__[offset] = lethal_cost;
-            } else if (column == asb_voxel_grid::UNKNOWN) {
-                costmap__[offset] = unknown_cost;
-            } else {
+            } else if (column == asb_voxel_grid::FREE) {
                 costmap__[offset] = free_cost;
             }
+
+//            if (costmap__[offset] == unknown_cost) {
+//                // if the costmap cell is unknown, we overwrite it
+//                if (column == asb_voxel_grid::MARKED) {
+//                    costmap__[offset] = lethal_cost;
+//                } else if (column == asb_voxel_grid::FREE) {
+//                    costmap__[offset] = free_cost;
+//                }
+//            } else {
+//                // if the costmap cell is free or lethal, we only overwrite if the column is marked (lethal cost has priority on free cost)
+//                if (column == asb_voxel_grid::MARKED) {
+//                    costmap__[offset] = lethal_cost;
+//                }
+//                // no need to check for the case column == asb_voxel_grid::FREE, the costmap cell is either free (writing would have no effect), or lethal (do not overwrite)
+//            }
         }
     }
 }
