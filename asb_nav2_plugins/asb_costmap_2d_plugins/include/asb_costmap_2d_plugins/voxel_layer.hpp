@@ -80,6 +80,7 @@ public:
      * @brief Voxel Layer constructor
      */
     VoxelLayer() : voxel_grid_(0, 0, 0) {
+
         costmap_ = NULL;  // this is the unsigned char* member of parent class's parent class Costmap2D
     }
 
@@ -103,7 +104,7 @@ public:
      * @param max_x X max map coord of the window to update
      * @param max_y Y max map coord of the window to update
      */
-    virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y);
+    virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double * min_x, double * min_y, double * max_x, double * max_y);
 
     /**
      * @brief Update the layer's origin to a new pose, often when in a rolling costmap
@@ -114,6 +115,7 @@ public:
      * @brief If layer is discretely populated
      */
     bool isDiscretized() {
+
         return true;
     }
 
@@ -147,6 +149,7 @@ protected:
     rclcpp_lifecycle::LifecyclePublisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
 
     bool getObservations(std::vector<nav2_costmap_2d::Observation> & observations) const {
+
         bool current = true;
         for (unsigned int i = 0; i < observation_buffers_.size(); ++i) {
             observation_buffers_[i]->lock();
@@ -160,7 +163,8 @@ protected:
     /**
      * @brief Convert world coordinates into map coordinates
      */
-    inline bool worldToMap3DFloat(double wx, double wy, double wz, double &mx, double &my, double &mz) {
+    inline bool worldToMap3DFloat(double wx, double wy, double wz, double & mx, double & my, double & mz) {
+
         if (wx < origin_x_ || wy < origin_y_ || wz < origin_z_) {
             return false;
         }
@@ -178,7 +182,8 @@ protected:
     /**
      * @brief Convert world coordinates into map coordinates
      */
-    inline bool worldToMap3D(double wx, double wy, double wz, unsigned int &mx, unsigned int &my, unsigned int &mz) {
+    inline bool worldToMap3D(double wx, double wy, double wz, unsigned int & mx, unsigned int & my, unsigned int & mz) {
+
         if (wx < origin_x_ || wy < origin_y_ || wz < origin_z_) {
             return false;
         }
@@ -195,19 +200,10 @@ protected:
     }
 
     /**
-     * @brief Convert map coordinates into world coordinates
-     */
-    inline void mapToWorld3D(unsigned int mx, unsigned int my, unsigned int mz, double &wx, double &wy, double &wz) {
-        // returns the center point of the cell
-        wx = origin_x_ + (mx + 0.5) * resolution_;
-        wy = origin_y_ + (my + 0.5) * resolution_;
-        wz = origin_z_ + (mz + 0.5) * z_resolution_;
-    }
-
-    /**
      * @brief Find L2 norm distance in 3D
      */
-    inline double dist(double x0, double y0, double z0, double x1, double y1, double z1) {
+    static inline double dist(double x0, double y0, double z0, double x1, double y1, double z1) {
+
         return sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + (z1 - z0) * (z1 - z0));
     }
 
@@ -215,6 +211,7 @@ protected:
      * @brief Get the height of the voxel sizes in meters
      */
     double getSizeInMetersZ() const {
+
         return (size_z_ - 1 + 0.5) * z_resolution_;
     }
 
@@ -226,6 +223,7 @@ protected:
 
     // Dynamic parameters handler
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
+
 };
 
 }  // namespace asb_costmap_2d_plugins

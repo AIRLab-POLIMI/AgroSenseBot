@@ -132,7 +132,7 @@ void VoxelLayer::resetMaps() {
     voxel_grid_.reset();
 }
 
-void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y) {
+void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, double * min_x, double * min_y, double * max_x, double * max_y) {
 
     std::lock_guard<Costmap2D::mutex_t> guard(*getMutex());
     auto update_bounds_start = std::chrono::high_resolution_clock::now();
@@ -157,7 +157,7 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     voxel_grid_.reset();
 
     for (unsigned int i = 0; i < observations.size(); ++i) {
-        const nav2_costmap_2d::Observation &obs = observations[i];
+        const nav2_costmap_2d::Observation & obs = observations[i];
         asb_voxel_grid::VoxelGrid voxel_grid_obs(voxel_grid_.sizeX(), voxel_grid_.sizeY(), voxel_grid_.sizeZ());
 
         //**********************************************//
@@ -166,7 +166,7 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
         //                                              //
         //**********************************************//
 
-        const sensor_msgs::msg::PointCloud2 &cloud = *(obs.cloud_);
+        const sensor_msgs::msg::PointCloud2 & cloud = *(obs.cloud_);
 
         double sq_obstacle_max_range = obs.obstacle_max_range_ * obs.obstacle_max_range_;
         double sq_obstacle_min_range = obs.obstacle_min_range_ * obs.obstacle_min_range_;
@@ -214,12 +214,6 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
         }
 
         //**********************************************//
-        //                     end                      //
-        //                mark obstacles                //
-        //                                              //
-        //**********************************************//
-
-        //**********************************************//
         //                                              //
         //              raytrace freespace              //
         //                                              //
@@ -233,15 +227,23 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
             continue;
         }
 
-        double sensor_x, sensor_y, sensor_z;
-        double ox = obs.origin_.x;
-        double oy = obs.origin_.y;
-        double oz = obs.origin_.z;
+        double sensor_origin_x = obs.origin_.x;
+        double sensor_origin_y = obs.origin_.y;
+        double sensor_origin_z = obs.origin_.z;
 
-        if (!worldToMap3DFloat(ox, oy, oz, sensor_x, sensor_y, sensor_z)) {
-            RCLCPP_WARN(logger_, "Sensor origin at (%.2f, %.2f %.2f) is out of map bounds "
-                                 "(%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f). "
-                                 "The costmap cannot raytrace for it.", ox, oy, oz, origin_x_, origin_y_, origin_z_, origin_x_ + getSizeInMetersX(), origin_y_ + getSizeInMetersY(), origin_z_ + getSizeInMetersZ());
+        double map_end_x = origin_x_ + getSizeInMetersX();
+        double map_end_y = origin_y_ + getSizeInMetersY();
+        double map_end_z = origin_z_ + getSizeInMetersZ();
+
+        double sensor_origin_m_x, sensor_origin_m_y, sensor_origin_m_z;
+        if (!worldToMap3DFloat(sensor_origin_x, sensor_origin_y, sensor_origin_z, sensor_origin_m_x, sensor_origin_m_y, sensor_origin_m_z)) {
+            RCLCPP_WARN(logger_,
+                    "Sensor origin at (%.2f, %.2f %.2f) is out of map bounds "
+                    "(%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f). "
+                    "The costmap cannot raytrace for it.",
+                    sensor_origin_x, sensor_origin_y, sensor_origin_z,
+                    origin_x_, origin_y_, origin_z_,
+                    map_end_x, map_end_y, map_end_z);
 
             continue;
         }
@@ -269,91 +271,78 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
         sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_y(*clearing_endpoints_, "y");
         sensor_msgs::PointCloud2Iterator<float> clearing_endpoints_iter_z(*clearing_endpoints_, "z");
 
-        // we can pre-compute the end points of the map outside the inner loop... we'll need these later
-        double map_end_x = origin_x_ + getSizeInMetersX();
-        double map_end_y = origin_y_ + getSizeInMetersY();
-        double map_end_z = origin_z_ + getSizeInMetersZ();
+        unsigned int raytrace_max_range_m = cellDistance(obs.raytrace_max_range_);
+        unsigned int raytrace_min_range_m = cellDistance(obs.raytrace_min_range_);
 
         sensor_msgs::PointCloud2ConstIterator<float> iter_x(*(obs.cloud_), "x");
         sensor_msgs::PointCloud2ConstIterator<float> iter_y(*(obs.cloud_), "y");
         sensor_msgs::PointCloud2ConstIterator<float> iter_z(*(obs.cloud_), "z");
-
         for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
-            double wpx = *iter_x;
-            double wpy = *iter_y;
-            double wpz = *iter_z;
+            // raytracing endpoint in world coordinates
+            double endpoint_x = *iter_x;
+            double endpoint_y = *iter_y;
+            double endpoint_z = *iter_z;
 
-            double distance = dist(ox, oy, oz, wpx, wpy, wpz);
+            double distance = dist(sensor_origin_x, sensor_origin_y, sensor_origin_z, endpoint_x, endpoint_y, endpoint_z);
             double scaling_fact = 1.0;
             scaling_fact = std::max(std::min(scaling_fact, (distance - 2 * resolution_) / distance), 0.0);
-            wpx = scaling_fact * (wpx - ox) + ox;
-            wpy = scaling_fact * (wpy - oy) + oy;
-            wpz = scaling_fact * (wpz - oz) + oz;
+            endpoint_x = scaling_fact * (endpoint_x - sensor_origin_x) + sensor_origin_x;
+            endpoint_y = scaling_fact * (endpoint_y - sensor_origin_y) + sensor_origin_y;
+            endpoint_z = scaling_fact * (endpoint_z - sensor_origin_z) + sensor_origin_z;
 
-            double a = wpx - ox;
-            double b = wpy - oy;
-            double c = wpz - oz;
+            double a = endpoint_x - sensor_origin_x;
+            double b = endpoint_y - sensor_origin_y;
+            double c = endpoint_z - sensor_origin_z;
             double t = 1.0;
 
             // rescale the endpoint if z is outside of map boundaries
-            if (wpz < origin_z_) {
-                t = std::min(t, (origin_z_ - oz) / c);
-            } else if (wpz > map_end_z) {
-                t = std::max(0.0, std::min(t, (map_end_z - 0.01 - oz) / c));
+            if (endpoint_z < origin_z_) {
+                t = std::min(t, (origin_z_ - sensor_origin_z) / c);
+            } else if (endpoint_z > map_end_z) {
+                t = std::max(0.0, std::min(t, (map_end_z - 0.01 - sensor_origin_z) / c));
             }
 
             // rescale the endpoint if x is outside of map boundaries
-            if (wpx < origin_x_) {
-                t = std::min(t, (origin_x_ - ox) / a);
-            } else if (wpx > map_end_x) {
-                t = std::min(t, (map_end_x - ox) / a);
+            if (endpoint_x < origin_x_) {
+                t = std::min(t, (origin_x_ - sensor_origin_x) / a);
+            } else if (endpoint_x > map_end_x) {
+                t = std::min(t, (map_end_x - sensor_origin_x) / a);
             }
 
             // rescale the endpoint if y is outside of map boundaries
-            if (wpy < origin_y_) {
-                t = std::min(t, (origin_y_ - oy) / b);
-            } else if (wpy > map_end_y) {
-                t = std::min(t, (map_end_y - oy) / b);
+            if (endpoint_y < origin_y_) {
+                t = std::min(t, (origin_y_ - sensor_origin_y) / b);
+            } else if (endpoint_y > map_end_y) {
+                t = std::min(t, (map_end_y - sensor_origin_y) / b);
             }
 
-            double wpx_scaled = ox + a * t;
-            double wpy_scaled = oy + b * t;
-            double wpz_scaled = oz + c * t;
+            endpoint_x = sensor_origin_x + a * t;
+            endpoint_y = sensor_origin_y + b * t;
+            endpoint_z = sensor_origin_z + c * t;
 
-            double point_x, point_y, point_z;
-            if (worldToMap3DFloat(wpx_scaled, wpy_scaled, wpz_scaled, point_x, point_y, point_z)) {
-                unsigned int cell_raytrace_max_range = cellDistance(obs.raytrace_max_range_);
-                unsigned int cell_raytrace_min_range = cellDistance(obs.raytrace_min_range_);
-
-                unsigned int mx = static_cast<unsigned int>(point_x), my = static_cast<unsigned int>(point_y), mz = static_cast<unsigned int>(point_z);  // raytracing endpoint
+            double endpoint_m_x, endpoint_m_y, endpoint_m_z;
+            if (worldToMap3DFloat(endpoint_x, endpoint_y, endpoint_z, endpoint_m_x, endpoint_m_y, endpoint_m_z)) {
 
                 // do not ray trace if the raytracing endpoint has already been cleared (a ray has already been traced between this observation's origin and approximately in the same direction)
-                if(!voxel_grid_obs.isVoxelCleared(mx ,my, mz)){
-                    voxel_grid_obs.clearVoxelLine(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, cell_raytrace_max_range, cell_raytrace_min_range);
+                if (!voxel_grid_obs.isVoxelCleared(static_cast<unsigned int>(endpoint_m_x), static_cast<unsigned int>(endpoint_m_y), static_cast<unsigned int>(endpoint_m_z))) {
+                    voxel_grid_obs.clearVoxelLine(sensor_origin_m_x, sensor_origin_m_y, sensor_origin_m_z, endpoint_m_x, endpoint_m_y, endpoint_m_z, raytrace_max_range_m, raytrace_min_range_m);
                     rays_traced++;
                 } else {
                     rays_not_retraced++;
                 }
 
-                updateRaytraceBounds(ox, oy, wpx_scaled, wpy_scaled, obs.raytrace_max_range_, obs.raytrace_min_range_, min_x, min_y, max_x, max_y);
+                updateRaytraceBounds(sensor_origin_x, sensor_origin_y, endpoint_x, endpoint_y, obs.raytrace_max_range_, obs.raytrace_min_range_, min_x, min_y, max_x, max_y);
 
                 if (publish_clearing_points) {
-                    *clearing_endpoints_iter_x = wpx_scaled;
-                    *clearing_endpoints_iter_y = wpy_scaled;
-                    *clearing_endpoints_iter_z = wpz_scaled;
+                    *clearing_endpoints_iter_x = endpoint_x;
+                    *clearing_endpoints_iter_y = endpoint_y;
+                    *clearing_endpoints_iter_z = endpoint_z;
 
                     ++clearing_endpoints_iter_x;
                     ++clearing_endpoints_iter_y;
                     ++clearing_endpoints_iter_z;
                 }
             }
-        }
-
-        if (publish_clearing_points) {
-            clearing_endpoints_->header.frame_id = global_frame_;
-            clearing_endpoints_->header.stamp = obs.cloud_->header.stamp;
-
-            clearing_endpoints_pub_->publish(std::move(clearing_endpoints_));
         }
 
         raytracing_duration_s += std::chrono::high_resolution_clock::now() - raytracing_start;
@@ -363,6 +352,13 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
         //              raytrace freespace              //
         //                                              //
         //**********************************************//
+
+        if (publish_clearing_points) {
+            clearing_endpoints_->header.frame_id = global_frame_;
+            clearing_endpoints_->header.stamp = obs.cloud_->header.stamp;
+
+            clearing_endpoints_pub_->publish(std::move(clearing_endpoints_));
+        }
 
         voxel_grid_obs.transferTo(voxel_grid_);
 
@@ -394,7 +390,7 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
 
     updateFootprint(robot_x, robot_y, robot_yaw, min_x, min_y, max_x, max_y);
 
-    RCLCPP_INFO(logger_, "rays_not_retraced %.2f:   rays_traced: %i   rays_not_retraced: %i", 100 * rays_not_retraced/(float)(rays_traced + rays_not_retraced),  rays_traced, rays_not_retraced);
+//    RCLCPP_INFO(logger_, "rays_not_retraced %.2f:   rays_traced: %i   rays_not_retraced: %i", 100 * rays_not_retraced/(float)(rays_traced + rays_not_retraced),  rays_traced, rays_not_retraced);
 
     std::chrono::duration<double> update_bounds_duration_s = std::chrono::high_resolution_clock::now() - update_bounds_start;
     auto node = node_.lock();
@@ -429,8 +425,8 @@ void VoxelLayer::updateOrigin(double new_origin_x, double new_origin_y) {
     new_grid_oy = origin_y_ + cell_oy * resolution_;
 
     // To save casting from unsigned int to int a bunch of times
-    int size_x = size_x_;
-    int size_y = size_y_;
+    int size_x = static_cast<int>(size_x_);
+    int size_y = static_cast<int>(size_y_);
 
     // we need to compute the overlap of the new and existing windows
     int lower_left_x, lower_left_y, upper_right_x, upper_right_y;
@@ -443,9 +439,9 @@ void VoxelLayer::updateOrigin(double new_origin_x, double new_origin_y) {
     unsigned int cell_size_y = upper_right_y - lower_left_y;
 
     // we need a map to store the obstacles in the window temporarily
-    unsigned char *local_map = new unsigned char[cell_size_x * cell_size_y];
-    unsigned int *local_voxel_map = new unsigned int[cell_size_x * cell_size_y];
-    unsigned int *voxel_map = voxel_grid_.getData();
+    unsigned char * local_map = new unsigned char[cell_size_x * cell_size_y];
+    unsigned int * local_voxel_map = new unsigned int[cell_size_x * cell_size_y];
+    unsigned int * voxel_map = voxel_grid_.getData();
 
     // copy the local window in the costmap to the local map
     copyMapRegion(costmap_, lower_left_x, lower_left_y, size_x_, local_map, 0, 0, cell_size_x, cell_size_x, cell_size_y);
@@ -482,8 +478,8 @@ rcl_interfaces::msg::SetParametersResult VoxelLayer::dynamicParametersCallback(s
     bool resize_map_needed = false;
 
     for (auto parameter: parameters) {
-        const auto &param_type = parameter.get_type();
-        const auto &param_name = parameter.get_name();
+        const auto & param_type = parameter.get_type();
+        const auto & param_name = parameter.get_name();
 
         if (param_type == ParameterType::PARAMETER_DOUBLE) {
             if (param_name == name_ + "." + "max_obstacle_height") {

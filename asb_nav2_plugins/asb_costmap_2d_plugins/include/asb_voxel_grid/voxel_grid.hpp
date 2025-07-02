@@ -82,7 +82,7 @@ public:
 
     void reset();
 
-    uint32_t *getData() { return data_; }
+    uint32_t * getData() { return data_; }
 
     inline bool markVoxel(unsigned int x, unsigned int y, unsigned int z, unsigned int marked_threshold) {
 
@@ -225,7 +225,7 @@ public:
 private:
     // the real work is done here... 3D bresenham implementation
     template<class ActionType, class OffA, class OffB, class OffC>
-    inline void bresenham3D(ActionType at, OffA off_a, OffB off_b, OffC off_c, unsigned int abs_da, unsigned int abs_db, unsigned int abs_dc, int error_b, int error_c, int offset_a, int offset_b, int offset_c, unsigned int &offset, uint32_t &full_z_mask, unsigned int max_length = UINT_MAX) {
+    inline void bresenham3D(ActionType at, OffA off_a, OffB off_b, OffC off_c, unsigned int abs_da, unsigned int abs_db, unsigned int abs_dc, int error_b, int error_c, int offset_a, int offset_b, int offset_c, unsigned int & offset, uint32_t & full_z_mask, unsigned int max_length = UINT_MAX) {
 
         unsigned int end = std::min(max_length, abs_da);
         bool continue_tracing = true;
@@ -257,12 +257,12 @@ private:
     }
 
     unsigned int size_x_, size_y_, size_z_;
-    uint32_t *data_;
+    uint32_t * data_;
     rclcpp::Logger logger;
 
     class MonotonicClearVoxel {
     public:
-        explicit MonotonicClearVoxel(uint32_t *data) : data_(data) {}
+        explicit MonotonicClearVoxel(uint32_t * data) : data_(data) {}
 
         inline bool operator()(unsigned int offset, uint32_t full_z_mask) {
 
@@ -277,12 +277,12 @@ private:
         }
 
     private:
-        uint32_t *data_;
+        uint32_t * data_;
     };
 
     class GridOffset {
     public:
-        explicit GridOffset(unsigned int &offset) : offset_(offset) {}
+        explicit GridOffset(unsigned int & offset) : offset_(offset) {}
 
         inline void operator()(int offset_val) {
 
@@ -290,12 +290,12 @@ private:
         }
 
     private:
-        unsigned int &offset_;
+        unsigned int & offset_;
     };
 
     class ZOffset {
     public:
-        explicit ZOffset(unsigned int &full_z_mask) : full_z_mask_(full_z_mask) {}
+        explicit ZOffset(unsigned int & full_z_mask) : full_z_mask_(full_z_mask) {}
 
         inline void operator()(int offset_val) {
 
@@ -303,7 +303,7 @@ private:
         }
 
     private:
-        unsigned int &full_z_mask_;
+        unsigned int & full_z_mask_;
     };
 };
 

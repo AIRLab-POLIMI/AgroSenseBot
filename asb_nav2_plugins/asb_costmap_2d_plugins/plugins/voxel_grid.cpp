@@ -52,7 +52,7 @@ VoxelGrid::VoxelGrid(unsigned int size_x, unsigned int size_y, unsigned int size
 
     data_ = new uint32_t[size_x_ * size_y_];
     uint32_t unknown_col = 0;
-    uint32_t *col = data_;
+    uint32_t * col = data_;
     for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
         *col = unknown_col;
         ++col;
@@ -78,7 +78,7 @@ void VoxelGrid::resize(unsigned int size_x, unsigned int size_y, unsigned int si
 
     data_ = new uint32_t[size_x_ * size_y_];
     uint32_t unknown_col = 0;
-    uint32_t *col = data_;
+    uint32_t * col = data_;
     for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
         *col = unknown_col;
         ++col;
@@ -93,7 +93,7 @@ VoxelGrid::~VoxelGrid() {
 void VoxelGrid::reset() {
 
     uint32_t unknown_col = 0;
-    uint32_t *col = data_;
+    uint32_t * col = data_;
     for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
         *col = unknown_col;
         ++col;
@@ -119,7 +119,7 @@ VoxelStatus VoxelGrid::getVoxelColumn(unsigned int x, unsigned int y, unsigned i
         return UNKNOWN;
     }
 
-    uint32_t *col = &data_[y * size_x_ + x];
+    uint32_t * col = &data_[y * size_x_ + x];
 
     uint16_t clear_col_bits = uint16_t(*col);
     uint16_t mark_col_bits = uint16_t(*col >> 16);
