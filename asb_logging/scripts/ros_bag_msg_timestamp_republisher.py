@@ -47,16 +47,16 @@ class RepublishWithCurrentTime(Node):
             now = self.get_clock().now().to_msg()
             new_msg.header.stamp = now
 
-        self.get_logger().info(f"republishing {topic_name}")
         self.pubs[topic_name].publish(new_msg)
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = RepublishWithCurrentTime()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':

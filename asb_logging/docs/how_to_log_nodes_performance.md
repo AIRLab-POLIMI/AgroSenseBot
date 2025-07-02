@@ -17,7 +17,23 @@ rb record -o scan_multilayer_test_data --regex /update_timestamp/scan_front_mult
 This bag must be long enough to allow the performance measurement (13 s plus some margin by default)
 
 
-# Benchmarking the nodes
+# Benchmarking the nodes (with automatic rosbag play)
+Disable the lidar sensors of the simulator (in asb_webots/config/asb_webots_robot.urdf).
+
+In terminal 1, run the simulation (or any launch file with the navigation stack and lidar filter):
+```bash
+sim
+```
+
+In terminal 2:
+```bash
+rl asb_logging run_performance_measurement.launch.py
+```
+
+After around 13 seconds, the computed metrics are saved to `~/asb_logs/performance_measurements/`
+
+
+# Benchmarking the nodes (with manual rosbag play)
 Disable the lidar sensors of the simulator (in asb_webots/config/asb_webots_robot.urdf).
 
 In terminal 1, run the simulation (or any launch file with the navigation stack and lidar filter):
