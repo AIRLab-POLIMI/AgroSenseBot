@@ -51,7 +51,7 @@ VoxelGrid::VoxelGrid(unsigned int size_x, unsigned int size_y, unsigned int size
     }
 
     data_ = new uint32_t[size_x_ * size_y_];
-    uint32_t unknown_col = ~((uint32_t) 0) >> 16;
+    uint32_t unknown_col = 0;
     uint32_t *col = data_;
     for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
         *col = unknown_col;
@@ -77,7 +77,7 @@ void VoxelGrid::resize(unsigned int size_x, unsigned int size_y, unsigned int si
     }
 
     data_ = new uint32_t[size_x_ * size_y_];
-    uint32_t unknown_col = ~((uint32_t) 0) >> 16;
+    uint32_t unknown_col = 0;
     uint32_t *col = data_;
     for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
         *col = unknown_col;
@@ -92,7 +92,7 @@ VoxelGrid::~VoxelGrid() {
 
 void VoxelGrid::reset() {
 
-    uint32_t unknown_col = ~((uint32_t) 0) >> 16;
+    uint32_t unknown_col = 0;
     uint32_t *col = data_;
     for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
         *col = unknown_col;
@@ -108,7 +108,7 @@ void VoxelGrid::clearVoxelLine(double x0, double y0, double z0, double x1, doubl
         return;
     }
 
-    ClearVoxel cv(data_);
+    MonotonicClearVoxel cv(data_);
     raytraceLine(cv, x0, y0, z0, x1, y1, z1, max_length, min_length);
 }
 
@@ -121,11 +121,14 @@ VoxelStatus VoxelGrid::getVoxelColumn(unsigned int x, unsigned int y, unsigned i
 
     uint32_t *col = &data_[y * size_x_ + x];
 
-    unsigned int unknown_bits = uint16_t(*col >> 16) ^ uint16_t(*col);
-    unsigned int marked_bits = *col >> 16;
+    uint16_t clear_col_bits = uint16_t(*col);
+    uint16_t mark_col_bits = uint16_t(*col >> 16);
+
+    uint16_t unknown_bits = ~clear_col_bits & ~mark_col_bits;
+//    unsigned int marked_bits = mark_col_bits;
 
     // check if the number of marked bits qualifies the col as marked
-    if (!bitsBelowThreshold(marked_bits, marked_threshold)) {
+    if (!bitsBelowThreshold(mark_col_bits, marked_threshold)) {
         return MARKED;
     }
 

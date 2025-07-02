@@ -84,21 +84,24 @@ public:
 
     uint32_t *getData() { return data_; }
 
-    inline bool markVoxelInMap(unsigned int x, unsigned int y, unsigned int z, unsigned int marked_threshold) {
+    inline bool markVoxel(unsigned int x, unsigned int y, unsigned int z, unsigned int marked_threshold) {
 
         if (x >= size_x_ || y >= size_y_ || z >= size_z_) {
             RCLCPP_DEBUG(logger, "Error, voxel out of bounds.\n");
             return false;
         }
 
+        // mark voxel, set mark bit to 1 (a voxel is marked if the mark bit is 1, and the clear bit is either 1 or 0)
         uint32_t & col = data_[y * size_x_ + x];
-        uint32_t full_mask = ((uint32_t) 1 << (z + 16)) | (1 << z);
-        col |= full_mask;  // mark voxel, set bits 11
-        unsigned int mark_bits = col >> 16;
+        uint32_t mark_mask = (uint32_t) 1 << (z + 16);
+        col |= mark_mask;
+
+        // count the marked voxels in this column
+        uint16_t mark_bits = uint16_t(col >> 16);
         return !bitsBelowThreshold(mark_bits, marked_threshold);
     }
 
-    inline bool bitsBelowThreshold(unsigned int n, unsigned int bit_threshold) {
+    static inline bool bitsBelowThreshold(uint16_t n, unsigned int bit_threshold) {
 
         unsigned int bit_count;
         for (bit_count = 0; n;) {
@@ -117,21 +120,29 @@ public:
             return false;
         }
 
-        uint32_t full_z_mask = (uint32_t) 1 << (z + 16) | (1 << z);
-        return (data_[y * size_x_ + x] & full_z_mask) == 0;
-    }
+        uint32_t & col = data_[y * size_x_ + x];
+        uint16_t half_z_mask = (uint16_t) 1 << z;
 
-    static inline bool isVoxelMarked(unsigned int & data, unsigned int full_z_mask) {
+        uint16_t clear_bits = uint16_t(col) & half_z_mask;
+        uint16_t mark_bits = uint16_t(col >> 16) & half_z_mask;
 
-        std::uint32_t mark_bits = full_z_mask << 16;
-        return (mark_bits & data) > 0;
+        // a voxel is cleared if and only if the clear bit is 1 and the mark bit is 0
+        return clear_bits & ~mark_bits;
     }
 
     void clearVoxelLine(double x0, double y0, double z0, double x1, double y1, double z1, unsigned int max_length = UINT_MAX, unsigned int min_length = 0);
 
     VoxelStatus getVoxelColumn(unsigned int x, unsigned int y, unsigned int unknown_threshold = 0, unsigned int marked_threshold = 0);
 
-//    void transferTo(VoxelGrid & other);
+    void transferTo(VoxelGrid & other) {
+
+        for (unsigned int offset = 0; offset < size_x_ * size_y_; ++offset) {
+            auto & this_column = data_[offset];
+            auto & other_column = other.data_[offset];
+            other_column |= this_column;
+        }
+    }
+
 
     void transferToCostmap(const unsigned char & lethal_cost, const unsigned char & free_cost, const unsigned char & unknown_cost, const unsigned int & unknown_threshold, const unsigned int & marked_threshold, unsigned char * costmap__);
 
@@ -180,7 +191,7 @@ public:
         int offset_dy = sign(dy) * size_x_;
         int offset_dz = sign(dz);
 
-        unsigned int full_z_mask = ((1 << 16) | 1) << (unsigned int) min_z0;
+        uint32_t full_z_mask = (((uint32_t) 1 << 16) | (uint32_t) 1) << (unsigned int) min_z0;
         unsigned int offset = (unsigned int) min_y0 * size_x_ + (unsigned int) min_x0;
 
         GridOffset grid_off(offset);
@@ -214,7 +225,7 @@ public:
 private:
     // the real work is done here... 3D bresenham implementation
     template<class ActionType, class OffA, class OffB, class OffC>
-    inline void bresenham3D(ActionType at, OffA off_a, OffB off_b, OffC off_c, unsigned int abs_da, unsigned int abs_db, unsigned int abs_dc, int error_b, int error_c, int offset_a, int offset_b, int offset_c, unsigned int &offset, unsigned int &full_z_mask, unsigned int max_length = UINT_MAX) {
+    inline void bresenham3D(ActionType at, OffA off_a, OffB off_b, OffC off_c, unsigned int abs_da, unsigned int abs_db, unsigned int abs_dc, int error_b, int error_c, int offset_a, int offset_b, int offset_c, unsigned int &offset, uint32_t &full_z_mask, unsigned int max_length = UINT_MAX) {
 
         unsigned int end = std::min(max_length, abs_da);
         bool continue_tracing = true;
@@ -249,20 +260,20 @@ private:
     uint32_t *data_;
     rclcpp::Logger logger;
 
-    // Aren't functors so much fun... used to recreate the Bresenham macro Eric
-    // wrote in the original version, but in "proper" c++
-
-    class ClearVoxel {
+    class MonotonicClearVoxel {
     public:
-        explicit ClearVoxel(uint32_t *data) : data_(data) {}
+        explicit MonotonicClearVoxel(uint32_t *data) : data_(data) {}
 
-        inline bool operator()(unsigned int offset, unsigned int full_z_mask) {
+        inline bool operator()(unsigned int offset, uint32_t full_z_mask) {
 
-            if(!isVoxelMarked(data_[offset], full_z_mask)){  // keep going (return true) as long as we encounter free or unknown cells
-                data_[offset] &= ~(full_z_mask);  // clear unknown and clear cell
-                return true;
-            }
-            return false;  // otherwise return false (so that bresenham stops the ray tracing)
+            uint32_t & col = data_[offset];
+
+            // set clear bit to 1, setting the voxel to cleared if it was unknown or already cleared, if it was marked it will stay marked
+            uint32_t clear_z_mask = full_z_mask >> 16;
+            col |= clear_z_mask;
+
+            std::uint32_t mark_mask = full_z_mask << 16;
+            return !(mark_mask & col);  // keep going (return true) as long as we encounter free or unknown cells
         }
 
     private:

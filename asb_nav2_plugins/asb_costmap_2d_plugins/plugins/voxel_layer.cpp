@@ -137,6 +137,8 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     std::lock_guard<Costmap2D::mutex_t> guard(*getMutex());
     auto update_bounds_start = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> raytracing_duration_s(0);
+    int rays_traced = 0;
+    int rays_not_retraced = 0;
 
     if (rolling_window_) {
         updateOrigin(robot_x - getSizeInMetersX() / 2, robot_y - getSizeInMetersY() / 2);
@@ -146,24 +148,17 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     }
     useExtraBounds(min_x, min_y, max_x, max_y);
 
-//    bool current = true;
-//    std::vector<nav2_costmap_2d::Observation> marking_observations, clearing_observations;
-
     std::vector<nav2_costmap_2d::Observation> observations;
     bool current = getObservations(observations);
-
-//    // get the marking observations
-//    current = getMarkingObservations(marking_observations) && current;
-//
-//    // get the clearing observations
-//    current = getClearingObservations(clearing_observations) && current;
 
     // update the global current status
     current_ = current;
 
+    voxel_grid_.reset();
+
     for (unsigned int i = 0; i < observations.size(); ++i) {
         const nav2_costmap_2d::Observation &obs = observations[i];
-        voxel_grid_.reset();
+        asb_voxel_grid::VoxelGrid voxel_grid_obs(voxel_grid_.sizeX(), voxel_grid_.sizeY(), voxel_grid_.sizeZ());
 
         //**********************************************//
         //                                              //
@@ -210,7 +205,7 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
             }
 
             // mark the cell in the voxel grid and check if we should also mark it in the costmap
-            if (voxel_grid_.markVoxelInMap(mx, my, mz, mark_threshold_)) {
+            if (voxel_grid_obs.markVoxel(mx, my, mz, mark_threshold_)) {
                 unsigned int index = getIndex(mx, my);
 
                 costmap_[index] = LETHAL_OBSTACLE;
@@ -333,8 +328,11 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
                 unsigned int mx = static_cast<unsigned int>(point_x), my = static_cast<unsigned int>(point_y), mz = static_cast<unsigned int>(point_z);  // raytracing endpoint
 
                 // do not ray trace if the raytracing endpoint has already been cleared (a ray has already been traced between this observation's origin and approximately in the same direction)
-                if(!voxel_grid_.isVoxelCleared(mx ,my, mz)){
-                    voxel_grid_.clearVoxelLine(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, cell_raytrace_max_range, cell_raytrace_min_range);
+                if(!voxel_grid_obs.isVoxelCleared(mx ,my, mz)){
+                    voxel_grid_obs.clearVoxelLine(sensor_x, sensor_y, sensor_z, point_x, point_y, point_z, cell_raytrace_max_range, cell_raytrace_min_range);
+                    rays_traced++;
+                } else {
+                    rays_not_retraced++;
                 }
 
                 updateRaytraceBounds(ox, oy, wpx_scaled, wpy_scaled, obs.raytrace_max_range_, obs.raytrace_min_range_, min_x, min_y, max_x, max_y);
@@ -366,12 +364,11 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
         //                                              //
         //**********************************************//
 
-//        auto transfer_start = std::chrono::high_resolution_clock::now();
-        voxel_grid_.transferToCostmap(LETHAL_OBSTACLE, FREE_SPACE, NO_INFORMATION, unknown_threshold_, mark_threshold_, costmap_);
-//        std::chrono::duration<double, std::milli> transfer_duration = std::chrono::high_resolution_clock::now() - transfer_start;
-//        RCLCPP_INFO(logger_, "transfer_duration: %.3f ms", transfer_duration.count());
+        voxel_grid_obs.transferTo(voxel_grid_);
 
     }
+
+    voxel_grid_.transferToCostmap(LETHAL_OBSTACLE, FREE_SPACE, NO_INFORMATION, unknown_threshold_, mark_threshold_, costmap_);
 
     if (publish_voxel_) {
         auto grid_msg = std::make_unique<nav2_msgs::msg::VoxelGrid>();
@@ -396,6 +393,8 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     }
 
     updateFootprint(robot_x, robot_y, robot_yaw, min_x, min_y, max_x, max_y);
+
+    RCLCPP_INFO(logger_, "rays_not_retraced %.2f:   rays_traced: %i   rays_not_retraced: %i", 100 * rays_not_retraced/(float)(rays_traced + rays_not_retraced),  rays_traced, rays_not_retraced);
 
     std::chrono::duration<double> update_bounds_duration_s = std::chrono::high_resolution_clock::now() - update_bounds_start;
     auto node = node_.lock();
