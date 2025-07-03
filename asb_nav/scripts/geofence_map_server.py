@@ -19,7 +19,7 @@ import tf2_geometry_msgs
 from tf2_ros import TransformException
 
 OCCUPIED = 100
-FREE = 0
+UNKNOWN = 255
 
 
 class GeofenceMapServer(Node):
@@ -56,7 +56,7 @@ class GeofenceMapServer(Node):
         # clear the occupancy inside the geofence
         geofence_polygon_points_im = list(map(self.world_to_image_coordinates, geofence_polygon_points))
         geofence_polygon_points_im_np = np.array([geofence_polygon_points_im], dtype=np.int32)
-        cv2.fillPoly(self.img, geofence_polygon_points_im_np, FREE)
+        cv2.fillPoly(self.img, geofence_polygon_points_im_np, UNKNOWN)
 
         # TF2
         self.tf_buffer = tf2_ros.Buffer()

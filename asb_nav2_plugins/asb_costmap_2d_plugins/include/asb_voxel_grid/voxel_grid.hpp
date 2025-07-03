@@ -78,9 +78,9 @@ public:
      * @param size_y The y size of the grid
      * @param size_z The z size of the grid, only sizes <= 16 are supported
      */
-    void resize(unsigned int size_x, unsigned int size_y, unsigned int size_z);
+    void resize(unsigned int size_x, unsigned int size_y, unsigned int size_z, bool fill_cleared);
 
-    void reset();
+    void reset(bool fill_cleared);
 
     uint32_t * getData() { return data_; }
 
@@ -98,20 +98,20 @@ public:
 
         // count the marked voxels in this column
         uint16_t mark_bits = uint16_t(col >> 16);
-        return !bitsBelowThreshold(mark_bits, marked_threshold);
+        return bit_count_grater_than(mark_bits, marked_threshold);
     }
 
-    static inline bool bitsBelowThreshold(uint16_t n, unsigned int bit_threshold) {
+    static inline bool bit_count_grater_than(uint16_t n, unsigned int bit_threshold) {
 
         unsigned int bit_count;
         for (bit_count = 0; n;) {
             ++bit_count;
             if (bit_count > bit_threshold) {
-                return false;
+                return true;
             }
             n &= n - 1;  // clear the least significant bit
         }
-        return true;
+        return false;
     }
 
     inline bool isVoxelCleared(unsigned int x, unsigned int y, unsigned int z) {

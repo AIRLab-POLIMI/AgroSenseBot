@@ -79,7 +79,7 @@ public:
     /**
      * @brief Voxel Layer constructor
      */
-    VoxelLayer() : voxel_grid_(0, 0, 0) {
+    VoxelLayer() : voxel_grid_(0, 0, 0), volatile_update_(false), publish_voxel_(false), origin_z_(0.0), size_z_(16), z_resolution_(0.1), unknown_threshold_(15), mark_threshold_(1) {
 
         costmap_ = NULL;  // this is the unsigned char* member of parent class's parent class Costmap2D
     }
@@ -106,40 +106,9 @@ public:
      */
     virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double * min_x, double * min_y, double * max_x, double * max_y);
 
-    /**
-     * @brief Update the layer's origin to a new pose, often when in a rolling costmap
-     */
-    void updateOrigin(double new_origin_x, double new_origin_y);
-
-    /**
-     * @brief If layer is discretely populated
-     */
-    bool isDiscretized() {
-
-        return true;
-    }
-
-    /**
-     * @brief Match the size of the master costmap
-     */
-    virtual void matchSize();
-
-    /**
-     * @brief Reset this costmap
-     */
-    virtual void reset();
-
-    /**
-     * @brief If clearing operations should be processed on this layer or not
-     */
-    virtual bool isClearable() { return true; }
-
 protected:
-    /**
-     * @brief Reset internal maps
-     */
-    virtual void resetMaps();
 
+    bool volatile_update_;
     bool publish_voxel_;
     rclcpp_lifecycle::LifecyclePublisher<nav2_msgs::msg::VoxelGrid>::SharedPtr voxel_pub_;
     asb_voxel_grid::VoxelGrid voxel_grid_;
@@ -219,7 +188,7 @@ protected:
      * @brief Callback executed when a parameter change is detected
      * @param event ParameterEvent message
      */
-    rcl_interfaces::msg::SetParametersResult dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters);
+    rcl_interfaces::msg::SetParametersResult voxelLayerDynamicParametersCallback(const std::vector<rclcpp::Parameter>& parameters);
 
     // Dynamic parameters handler
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;

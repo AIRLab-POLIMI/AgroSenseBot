@@ -59,10 +59,10 @@ VoxelGrid::VoxelGrid(unsigned int size_x, unsigned int size_y, unsigned int size
     }
 }
 
-void VoxelGrid::resize(unsigned int size_x, unsigned int size_y, unsigned int size_z) {
+void VoxelGrid::resize(unsigned int size_x, unsigned int size_y, unsigned int size_z, bool fill_cleared) {
     // if we're not actually changing the size, we can just reset things
     if (size_x == size_x_ && size_y == size_y_ && size_z == size_z_) {
-        reset();
+        reset(fill_cleared);
         return;
     }
 
@@ -77,12 +77,7 @@ void VoxelGrid::resize(unsigned int size_x, unsigned int size_y, unsigned int si
     }
 
     data_ = new uint32_t[size_x_ * size_y_];
-    uint32_t unknown_col = 0;
-    uint32_t * col = data_;
-    for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
-        *col = unknown_col;
-        ++col;
-    }
+    reset(fill_cleared);
 }
 
 VoxelGrid::~VoxelGrid() {
@@ -90,12 +85,14 @@ VoxelGrid::~VoxelGrid() {
     delete[] data_;
 }
 
-void VoxelGrid::reset() {
+void VoxelGrid::reset(bool fill_cleared) {
 
     uint32_t unknown_col = 0;
+    uint32_t cleared_col = ~((uint32_t) 0) >> 16;
+
     uint32_t * col = data_;
     for (unsigned int i = 0; i < size_x_ * size_y_; ++i) {
-        *col = unknown_col;
+        *col = fill_cleared ? cleared_col : unknown_col;
         ++col;
     }
 }
@@ -125,15 +122,14 @@ VoxelStatus VoxelGrid::getVoxelColumn(unsigned int x, unsigned int y, unsigned i
     uint16_t mark_col_bits = uint16_t(*col >> 16);
 
     uint16_t unknown_bits = ~clear_col_bits & ~mark_col_bits;
-//    unsigned int marked_bits = mark_col_bits;
 
     // check if the number of marked bits qualifies the col as marked
-    if (!bitsBelowThreshold(mark_col_bits, marked_threshold)) {
+    if (bit_count_grater_than(mark_col_bits, marked_threshold)) {
         return MARKED;
     }
 
     // check if the number of unknown bits qualifies the col as unknown
-    if (!bitsBelowThreshold(unknown_bits, unknown_threshold)) {
+    if (bit_count_grater_than(unknown_bits, unknown_threshold)) {
         return UNKNOWN;
     }
 
