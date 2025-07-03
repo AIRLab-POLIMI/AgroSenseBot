@@ -4,12 +4,10 @@ import os
 import launch
 import launch.actions
 import launch.events
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, LogInfo, EmitEvent
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler, LogInfo, EmitEvent
 from launch.event_handlers import OnProcessExit
 from launch.events import Shutdown
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-from ament_index_python import get_package_share_directory as pkg
 from launch_ros.actions import Node
 
 
@@ -23,7 +21,7 @@ def generate_launch_description():
     )
 
     play_node = launch.actions.ExecuteProcess(
-        cmd="xterm -e ros2 bag play".split() + [PathJoinSubstitution([bag_name_launch_configuration])],
+        cmd="ros2 bag play --wait-for-all-acked 1000".split() + [PathJoinSubstitution([bag_name_launch_configuration])],
         cwd=os.path.expanduser("~/asb_logs/test_data/"),
         output='screen',
     )
