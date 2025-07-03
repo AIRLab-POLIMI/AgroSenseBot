@@ -46,7 +46,7 @@ VoxelGrid::VoxelGrid(unsigned int size_x, unsigned int size_y, unsigned int size
     size_z_ = size_z;
 
     if (size_z_ > 16) {
-        RCLCPP_INFO(logger, "Error, this implementation can only support up to 16 z values (%d)", size_z_);
+        RCLCPP_ERROR(logger, "Error, this implementation can only support up to 16 z values (%d)", size_z_);
         size_z_ = 16;
     }
 
@@ -72,7 +72,7 @@ void VoxelGrid::resize(unsigned int size_x, unsigned int size_y, unsigned int si
     size_z_ = size_z;
 
     if (size_z_ > 16) {
-        RCLCPP_INFO(logger, "Error, this implementation can only support up to 16 z values (%d)", size_z);
+        RCLCPP_ERROR(logger, "Error, this implementation can only support up to 16 z values (%d)", size_z);
         size_z_ = 16;
     }
 
@@ -100,7 +100,7 @@ void VoxelGrid::reset(bool fill_cleared) {
 void VoxelGrid::clearVoxelLine(double x0, double y0, double z0, double x1, double y1, double z1, unsigned int max_length, unsigned int min_length) {
 
     if (x0 >= size_x_ || y0 >= size_y_ || z0 >= size_z_ || x1 >= size_x_ || y1 >= size_y_ || z1 >= size_z_) {
-        RCLCPP_DEBUG(logger, "Error, line endpoint out of bounds. "
+        RCLCPP_ERROR(logger, "Error, line endpoint out of bounds. "
                              "(%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f),  size: (%d, %d, %d)", x0, y0, z0, x1, y1, z1, size_x_, size_y_, size_z_);
         return;
     }
@@ -109,10 +109,21 @@ void VoxelGrid::clearVoxelLine(double x0, double y0, double z0, double x1, doubl
     raytraceLine(cv, x0, y0, z0, x1, y1, z1, max_length, min_length);
 }
 
+void VoxelGrid::clearColumn(const unsigned int & x, const unsigned int & y) {
+
+    if (x >= size_x_ || y >= size_y_) {
+        RCLCPP_ERROR(logger, "Error, voxel column out of bounds. (%d, %d)\n", x, y);
+        return;
+    }
+
+    uint32_t cleared_col = ~((uint32_t) 0) >> 16;
+    data_[y * size_x_ + x] = cleared_col;
+}
+
 VoxelStatus VoxelGrid::getVoxelColumn(unsigned int x, unsigned int y, unsigned int unknown_threshold, unsigned int marked_threshold) {
 
     if (x >= size_x_ || y >= size_y_) {
-        RCLCPP_DEBUG(logger, "Error, voxel out of bounds. (%d, %d)\n", x, y);
+        RCLCPP_ERROR(logger, "Error, voxel out of bounds. (%d, %d)\n", x, y);
         return UNKNOWN;
     }
 

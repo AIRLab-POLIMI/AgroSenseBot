@@ -132,6 +132,8 @@ public:
 
     void clearVoxelLine(double x0, double y0, double z0, double x1, double y1, double z1, unsigned int max_length = UINT_MAX, unsigned int min_length = 0);
 
+    void clearColumn(const unsigned int & x, const unsigned int & y);
+
     VoxelStatus getVoxelColumn(unsigned int x, unsigned int y, unsigned int unknown_threshold = 0, unsigned int marked_threshold = 0);
 
     void transferTo(VoxelGrid & other) {

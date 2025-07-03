@@ -243,6 +243,11 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
     nav2_costmap_2d::Costmap2D *costmap = costmap_ros_->getCostmap();
     std::unique_lock<nav2_costmap_2d::Costmap2D::mutex_t> lock(*(costmap->getMutex()));
 
+    if(!costmap_ros_->isCurrent()){
+        RCLCPP_ERROR(logger_, "costmap is not current");
+        throw nav2_core::ControllerException("costmap is not current");
+    }
+
     // Update for the current goal checker's state
     geometry_msgs::msg::Pose pose_tolerance;
     geometry_msgs::msg::Twist vel_tolerance;

@@ -134,6 +134,9 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     // resize the voxel grid (this also resets it)
     voxel_grid_.resize(size_x_, size_y_, size_z_, volatile_update_);
 
+    updateVoxelLayerFootprint(robot_x, robot_y, robot_yaw, min_x, min_y, max_x, max_y);
+    clearFootprint(transformed_footprint_, voxel_grid_);
+
     for (unsigned int i = 0; i < observations.size(); ++i) {
         const nav2_costmap_2d::Observation & obs = observations[i];
         asb_voxel_grid::VoxelGrid voxel_grid_obs(voxel_grid_.sizeX(), voxel_grid_.sizeY(), voxel_grid_.sizeZ());
@@ -380,6 +383,43 @@ void VoxelLayer::updateBounds(double robot_x, double robot_y, double robot_yaw, 
     update_bounds_duration_msg.execution_duration = rclcpp::Duration::from_seconds((update_bounds_duration_s).count());
     update_bounds_duration_msg.label = "update_bounds";
     benchmarking_execution_duration_publisher_->publish(update_bounds_duration_msg);
+
+}
+
+void VoxelLayer::updateVoxelLayerFootprint(double robot_x, double robot_y, double robot_yaw, double * min_x, double * min_y, double * max_x, double * max_y) {
+
+    nav2_costmap_2d::transformFootprint(robot_x, robot_y, robot_yaw, getFootprint(), transformed_footprint_);
+
+    for (unsigned int i = 0; i < transformed_footprint_.size(); i++) {
+        touch(transformed_footprint_[i].x, transformed_footprint_[i].y, min_x, min_y, max_x, max_y);
+    }
+}
+
+/**
+  * @brief Set all voxels included in the footprint to clear if unknown, does not change marked voxels.
+  */
+bool VoxelLayer::clearFootprint(const std::vector<geometry_msgs::msg::Point> & polygon_footprint, asb_voxel_grid::VoxelGrid & voxel_grid) {
+
+    std::vector<nav2_costmap_2d::MapLocation> polygon_footprint_m;
+    for (unsigned int i = 0; i < polygon_footprint.size(); ++i) {
+        nav2_costmap_2d::MapLocation loc;
+        if (!worldToMap(polygon_footprint[i].x, polygon_footprint[i].y, loc.x, loc.y)) {
+            RCLCPP_ERROR(logger_, "footprint polygon point out of bounds. (%f, %f). Cannot clear footprint.\n", polygon_footprint[i].x, polygon_footprint[i].y);
+            return false;
+        }
+        polygon_footprint_m.push_back(loc);
+    }
+
+    // get the cells that fill the polygon
+    std::vector<nav2_costmap_2d::MapLocation> polygon_footprint_cells;
+    convexFillCells(polygon_footprint_m, polygon_footprint_cells);
+
+    // clear the entire columns for each cell
+    for (unsigned int i = 0; i < polygon_footprint_cells.size(); ++i) {
+        voxel_grid.clearColumn(polygon_footprint_cells[i].x, polygon_footprint_cells[i].y);
+    }
+
+    return true;
 }
 
 /**

@@ -57,9 +57,11 @@
 #include "asb_msgs/msg/execution_duration_stamped.hpp"
 
 #include <nav2_costmap_2d/layer.hpp>
+#include <nav2_costmap_2d/costmap_2d.hpp>
 #include <nav2_costmap_2d/layered_costmap.hpp>
 #include <nav2_costmap_2d/obstacle_layer.hpp>
 #include <nav2_costmap_2d/observation_buffer.hpp>
+#include "nav2_costmap_2d/footprint.hpp"
 #include <asb_voxel_grid/voxel_grid.hpp>
 
 #include "pluginlib/class_list_macros.hpp"
@@ -116,6 +118,13 @@ protected:
     int unknown_threshold_, mark_threshold_, size_z_;
     rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr clearing_endpoints_pub_;
     rclcpp_lifecycle::LifecyclePublisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
+
+    /**
+     * @brief Clear costmap layer info below the robot's footprint
+     */
+    void updateVoxelLayerFootprint(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y);
+
+    bool clearFootprint(const std::vector<geometry_msgs::msg::Point> & polygon_footprint, asb_voxel_grid::VoxelGrid & voxel_grid);
 
     bool getObservations(std::vector<nav2_costmap_2d::Observation> & observations) const {
 
@@ -188,7 +197,7 @@ protected:
      * @brief Callback executed when a parameter change is detected
      * @param event ParameterEvent message
      */
-    rcl_interfaces::msg::SetParametersResult voxelLayerDynamicParametersCallback(const std::vector<rclcpp::Parameter>& parameters);
+    rcl_interfaces::msg::SetParametersResult voxelLayerDynamicParametersCallback(const std::vector<rclcpp::Parameter> & parameters);
 
     // Dynamic parameters handler
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
