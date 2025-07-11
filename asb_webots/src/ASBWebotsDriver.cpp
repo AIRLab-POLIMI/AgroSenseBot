@@ -36,6 +36,22 @@ namespace asb_webots_driver {
         RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "sim_state_cmd_topic: %s", sim_state_cmd_topic_.c_str());
 
         try{
+            node->declare_parameter<std::string>("ground_truth_position_topic", "ground_truth_position");
+            ground_truth_position_topic_ = node->get_parameter("ground_truth_position_topic").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "ground_truth_position_topic: %s", ground_truth_position_topic_.c_str());
+
+        try{
+            node->declare_parameter<std::string>("ground_truth_position_frame_id", "");
+            ground_truth_position_frame_id_ = node->get_parameter("ground_truth_position_frame_id").as_string();
+        } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
+            RCLCPP_ERROR(rclcpp::get_logger("ASBWebotsDriver"), "%s", e.what());
+        }
+        RCLCPP_INFO(rclcpp::get_logger("ASBWebotsDriver"), "ground_truth_position_frame_id: %s", ground_truth_position_frame_id_.c_str());
+
+        try{
             node->declare_parameter<std::string>("gnss_1_topic", "gps_1/fix");
             gnss_1_topic_ = node->get_parameter("gnss_1_topic").as_string();
         } catch (rclcpp::exceptions::InvalidParameterTypeException &e) {
@@ -184,6 +200,12 @@ namespace asb_webots_driver {
             "gyro_covariance_diagonal: %f, %f, %f",
             gyro_covariance_diagonal_[0], gyro_covariance_diagonal_[1], gyro_covariance_diagonal_[2]);
 
+        robot_node_ = wb_supervisor_node_get_from_def("ROBOT_NODE");
+        if (robot_node_ == NULL) {
+            fprintf(stderr, "No DEF ROBOT_NODE node found in the current world file\n");
+            exit(1);
+        }
+
         gnss_1_ = wb_robot_get_device(gnss_1_frame_id_.c_str());
         gnss_2_ = wb_robot_get_device(gnss_2_frame_id_.c_str());
         inertial_unit_ = wb_robot_get_device(inertial_unit_child_frame_id_.c_str());
@@ -214,6 +236,9 @@ namespace asb_webots_driver {
         sim_state_publisher_ = node->create_publisher<asb_msgs::msg::SimState>(
             sim_state_topic_, rclcpp::SensorDataQoS().reliable());
 
+        ground_truth_position_publisher_ = node->create_publisher<geometry_msgs::msg::PointStamped>(
+            ground_truth_position_topic_, rclcpp::SensorDataQoS().reliable());
+
         gnss_1_publisher_ = node->create_publisher<sensor_msgs::msg::NavSatFix>(
             gnss_1_topic_, rclcpp::SensorDataQoS().reliable());
 
@@ -229,6 +254,7 @@ namespace asb_webots_driver {
         last_gnss_fix_ = rclcpp::Clock().now();
         last_inertial_unit_update_ = rclcpp::Clock().now();
         last_imu_update_ = rclcpp::Clock().now();
+
     }
 
     void ASBWebotsDriver::sim_state_cmd_callback(const asb_msgs::msg::SimStateCmd::SharedPtr msg) {
@@ -236,6 +262,7 @@ namespace asb_webots_driver {
     }
 
     void ASBWebotsDriver::step() {
+
         ring_buffer_index_++;
 
         double left_motor_speed_ref = sim_state_cmd_msg_.left_motor_speed_ref;
@@ -263,6 +290,16 @@ namespace asb_webots_driver {
         sim_state_publisher_->publish(sim_state_msg);
 
         auto now = rclcpp::Clock().now();
+
+        WbFieldRef robot_translation_field = wb_supervisor_node_get_field(robot_node_, "translation");
+        const double * robot_translation = wb_supervisor_field_get_sf_vec3f(robot_translation_field);
+        geometry_msgs::msg::PointStamped ground_truth_position_msg;
+        ground_truth_position_msg.header.frame_id = ground_truth_position_frame_id_;
+        ground_truth_position_msg.header.stamp = now;
+        ground_truth_position_msg.point.x = robot_translation[0];
+        ground_truth_position_msg.point.y = robot_translation[1];
+        ground_truth_position_msg.point.z = robot_translation[2];
+        ground_truth_position_publisher_->publish(ground_truth_position_msg);
 
         if(now - last_gnss_fix_ > rclcpp::Duration::from_seconds(1/gnss_update_rate_)) {
             last_gnss_fix_ = now;
