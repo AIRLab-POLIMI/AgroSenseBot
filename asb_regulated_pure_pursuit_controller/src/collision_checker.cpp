@@ -127,11 +127,9 @@ bool CollisionChecker::inCollision(const double &x, const double &y, const doubl
     }
 
     double footprint_cost = footprint_collision_checker_->footprintCostAtPose(x, y, theta, costmap_ros_->getRobotFootprint());
-    if (footprint_cost == static_cast<double>(NO_INFORMATION) && costmap_ros_->getLayeredCostmap()->isTrackingUnknown()) {
-        return false;
-    }
 
-    // if occupied or unknown and not to traverse unknown space
+    // if the cost is LETHAL_OBSTACLE, then there is a collision
+    // if the cost is NO_INFORMATION (which is greater than LETHAL_OBSTACLE), then the costmap is tracking unknown space and it should be considered a collision as well
     return footprint_cost >= static_cast<double>(LETHAL_OBSTACLE);
 }
 

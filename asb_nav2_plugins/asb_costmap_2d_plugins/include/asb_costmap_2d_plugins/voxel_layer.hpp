@@ -57,9 +57,11 @@
 #include "asb_msgs/msg/execution_duration_stamped.hpp"
 
 #include <nav2_costmap_2d/layer.hpp>
+#include <nav2_costmap_2d/costmap_2d.hpp>
 #include <nav2_costmap_2d/layered_costmap.hpp>
 #include <nav2_costmap_2d/obstacle_layer.hpp>
 #include <nav2_costmap_2d/observation_buffer.hpp>
+#include "nav2_costmap_2d/footprint.hpp"
 #include <asb_voxel_grid/voxel_grid.hpp>
 
 #include "pluginlib/class_list_macros.hpp"
@@ -79,7 +81,8 @@ public:
     /**
      * @brief Voxel Layer constructor
      */
-    VoxelLayer() : voxel_grid_(0, 0, 0) {
+    VoxelLayer() : voxel_grid_(0, 0, 0), volatile_update_(false), publish_voxel_(false), origin_z_(0.0), size_z_(16), z_resolution_(0.1), unknown_threshold_(15), mark_threshold_(1) {
+
         costmap_ = NULL;  // this is the unsigned char* member of parent class's parent class Costmap2D
     }
 
@@ -103,46 +106,11 @@ public:
      * @param max_x X max map coord of the window to update
      * @param max_y Y max map coord of the window to update
      */
-    virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y);
-
-    /**
-     * @brief Update the layer's origin to a new pose, often when in a rolling costmap
-     */
-    void updateOrigin(double new_origin_x, double new_origin_y);
-
-    /**
-     * @brief If layer is discretely populated
-     */
-    bool isDiscretized() {
-        return true;
-    }
-
-    /**
-     * @brief Match the size of the master costmap
-     */
-    virtual void matchSize();
-
-    /**
-     * @brief Reset this costmap
-     */
-    virtual void reset();
-
-    /**
-     * @brief If clearing operations should be processed on this layer or not
-     */
-    virtual bool isClearable() { return true; }
+    virtual void updateBounds(double robot_x, double robot_y, double robot_yaw, double * min_x, double * min_y, double * max_x, double * max_y);
 
 protected:
-    /**
-     * @brief Reset internal maps
-     */
-    virtual void resetMaps();
 
-    /**
-     * @brief Use ray casting between 2 points to clear freespace
-     */
-    virtual void raytraceFreespace(const nav2_costmap_2d::Observation &clearing_observation, double *min_x, double *min_y, double *max_x, double *max_y);
-
+    bool volatile_update_;
     bool publish_voxel_;
     rclcpp_lifecycle::LifecyclePublisher<nav2_msgs::msg::VoxelGrid>::SharedPtr voxel_pub_;
     asb_voxel_grid::VoxelGrid voxel_grid_;
@@ -152,9 +120,29 @@ protected:
     rclcpp_lifecycle::LifecyclePublisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
 
     /**
+     * @brief Clear costmap layer info below the robot's footprint
+     */
+    void updateVoxelLayerFootprint(double robot_x, double robot_y, double robot_yaw, double *min_x, double *min_y, double *max_x, double *max_y);
+
+    bool clearFootprint(const std::vector<geometry_msgs::msg::Point> & polygon_footprint, asb_voxel_grid::VoxelGrid & voxel_grid);
+
+    bool getObservations(std::vector<nav2_costmap_2d::Observation> & observations) const {
+
+        bool current = true;
+        for (unsigned int i = 0; i < observation_buffers_.size(); ++i) {
+            observation_buffers_[i]->lock();
+            observation_buffers_[i]->getObservations(observations);
+            current = observation_buffers_[i]->isCurrent() && current;
+            observation_buffers_[i]->unlock();
+        }
+        return current;
+    }
+
+    /**
      * @brief Convert world coordinates into map coordinates
      */
-    inline bool worldToMap3DFloat(double wx, double wy, double wz, double &mx, double &my, double &mz) {
+    inline bool worldToMap3DFloat(double wx, double wy, double wz, double & mx, double & my, double & mz) {
+
         if (wx < origin_x_ || wy < origin_y_ || wz < origin_z_) {
             return false;
         }
@@ -172,7 +160,8 @@ protected:
     /**
      * @brief Convert world coordinates into map coordinates
      */
-    inline bool worldToMap3D(double wx, double wy, double wz, unsigned int &mx, unsigned int &my, unsigned int &mz) {
+    inline bool worldToMap3D(double wx, double wy, double wz, unsigned int & mx, unsigned int & my, unsigned int & mz) {
+
         if (wx < origin_x_ || wy < origin_y_ || wz < origin_z_) {
             return false;
         }
@@ -189,19 +178,10 @@ protected:
     }
 
     /**
-     * @brief Convert map coordinates into world coordinates
-     */
-    inline void mapToWorld3D(unsigned int mx, unsigned int my, unsigned int mz, double &wx, double &wy, double &wz) {
-        // returns the center point of the cell
-        wx = origin_x_ + (mx + 0.5) * resolution_;
-        wy = origin_y_ + (my + 0.5) * resolution_;
-        wz = origin_z_ + (mz + 0.5) * z_resolution_;
-    }
-
-    /**
      * @brief Find L2 norm distance in 3D
      */
-    inline double dist(double x0, double y0, double z0, double x1, double y1, double z1) {
+    static inline double dist(double x0, double y0, double z0, double x1, double y1, double z1) {
+
         return sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + (z1 - z0) * (z1 - z0));
     }
 
@@ -209,6 +189,7 @@ protected:
      * @brief Get the height of the voxel sizes in meters
      */
     double getSizeInMetersZ() const {
+
         return (size_z_ - 1 + 0.5) * z_resolution_;
     }
 
@@ -216,10 +197,11 @@ protected:
      * @brief Callback executed when a parameter change is detected
      * @param event ParameterEvent message
      */
-    rcl_interfaces::msg::SetParametersResult dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters);
+    rcl_interfaces::msg::SetParametersResult voxelLayerDynamicParametersCallback(const std::vector<rclcpp::Parameter> & parameters);
 
     // Dynamic parameters handler
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
+
 };
 
 }  // namespace asb_costmap_2d_plugins
