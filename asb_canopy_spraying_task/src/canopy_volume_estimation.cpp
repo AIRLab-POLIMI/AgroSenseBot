@@ -13,26 +13,50 @@
 // limitations under the License.
 
 #include "canopy_volume_estimation/canopy_volume_estimation.h"
-#include "pcl_conversions/pcl_conversions.h"
-#include "octomap_msgs/conversions.h"
-#include "octomap_ros/conversions.hpp"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
 
 CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimation") {
 
-    res_ = declare_parameter("resolution", 0.05);
-    max_range_ = declare_parameter("max_range", 10.0);
-    hit_count_threshold_ = declare_parameter("hit_count_threshold", 100);
-    print_timing_ = declare_parameter("print_timing", false);
+    this->declare_parameter("resolution", rclcpp::ParameterType::PARAMETER_DOUBLE);
+    res_ = this->get_parameter("resolution").as_double();
+
+    this->declare_parameter("max_range", rclcpp::ParameterType::PARAMETER_DOUBLE);
+    max_range_ = this->get_parameter("max_range").as_double();
+
+    this->declare_parameter("hit_count_threshold", rclcpp::ParameterType::PARAMETER_INTEGER);
+    hit_count_threshold_ = this->get_parameter("hit_count_threshold").as_int();
+
+    this->declare_parameter("print_timing", rclcpp::ParameterType::PARAMETER_BOOL);
+    print_timing_ = this->get_parameter("print_timing").as_bool();
+
+    this->declare_parameter("enable_canopy_estimation", rclcpp::ParameterType::PARAMETER_BOOL);
+    enable_canopy_estimation_ = this->get_parameter("enable_canopy_estimation").as_bool();
+
+    this->declare_parameter("canopy_data_dir_path", rclcpp::ParameterType::PARAMETER_STRING);
+    canopy_data_dir_path_ = this->get_parameter("canopy_data_dir_path").as_string();
+
+    if (!fs::exists(canopy_data_dir_path_)) {
+        if (!fs::create_directories(canopy_data_dir_path_)) {
+            RCLCPP_FATAL(this->get_logger(), "failed to create canopy data directory: %s", canopy_data_dir_path_.c_str());
+            throw std::runtime_error("failed to create directory: " + canopy_data_dir_path_.string());
+        }
+    } else if (!fs::is_directory(canopy_data_dir_path_)) {
+        RCLCPP_FATAL(this->get_logger(), "failed to create canopy data directory, path exists but is not a directory: %s", canopy_data_dir_path_.c_str());
+        throw std::runtime_error("path exists but is not a directory: " + canopy_data_dir_path_.string());
+    }
 
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    points_in_subscriber_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-            "points_in", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
-            std::bind(&CanopyVolumeEstimation::points_in_callback, this, _1));
+    if (enable_canopy_estimation_) {
+        points_in_subscriber_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+                "points_in", rclcpp::SensorDataQoS().durability_volatile().reliable().keep_last(1),
+                std::bind(&CanopyVolumeEstimation::points_in_callback, this, _1));
+    } else {
+        publish_canopy_data_timer_ = this->create_timer(std::chrono::milliseconds(100), std::bind(&CanopyVolumeEstimation::publish_canopy_data_timer_callback, this));
+    }
 
     initialize_canopy_region_service_ = this->create_service<InitializeCanopyRegion>(
             "initialize_canopy_region", std::bind(&CanopyVolumeEstimation::initialize_canopy_region, this, _1, _2));
@@ -123,6 +147,21 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
         canopy_maps[request->canopy_id].viz_marker_array = MarkerArray();
         canopy_maps[request->canopy_id].octree = std::make_unique<OcTree>(res_);
 
+        if (!enable_canopy_estimation_) {
+            fs::path octree_filename(request->canopy_id + ".bt");
+            fs::path octree_file_path = canopy_data_dir_path_ / octree_filename;
+
+            auto read_octree_start = std::chrono::high_resolution_clock::now();
+            if (canopy_maps[request->canopy_id].octree->readBinary(octree_file_path)) {
+                std::chrono::duration<double, std::milli> read_octree_duration_ms = std::chrono::high_resolution_clock::now() - read_octree_start;
+                RCLCPP_INFO(this->get_logger(), "read octree from file [row_id: %s]. It took %.1f ms", request->canopy_id.c_str(), read_octree_duration_ms.count());
+            } else {
+                RCLCPP_ERROR(this->get_logger(), "failed to read octree from file: %s [row_id: %s]", octree_file_path.c_str(), request->canopy_id.c_str());
+                response->result = false;
+                return;
+            }
+        }
+
         // compute the occupancy probability threshold such that nodes are considered occupied after the n-th hit
         double p = 0.51;
         long n = hit_count_threshold_;
@@ -139,8 +178,26 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
 void CanopyVolumeEstimation::suspend_canopy_region(const std::shared_ptr<SuspendCanopyRegion::Request> request, std::shared_ptr<SuspendCanopyRegion::Response> response) {
 
     if (canopy_maps.contains(request->canopy_id)) {
-        RCLCPP_INFO(this->get_logger(), "received suspend canopy region request, row_id: %s", request->canopy_id.c_str());
-        canopy_maps[request->canopy_id].suspended = true;
+        if (!canopy_maps[request->canopy_id].suspended) {
+            RCLCPP_INFO(this->get_logger(), "received suspend canopy region request, row_id: %s", request->canopy_id.c_str());
+            canopy_maps[request->canopy_id].suspended = true;
+
+            if(enable_canopy_estimation_) {
+                fs::path octree_filename(request->canopy_id + ".bt");
+                fs::path octree_file_path = canopy_data_dir_path_ / octree_filename;
+
+                auto write_octree_start = std::chrono::high_resolution_clock::now();
+                if (canopy_maps[request->canopy_id].octree->writeBinaryConst(octree_file_path)) {
+                    std::chrono::duration<double, std::milli> write_octree_duration_ms = std::chrono::high_resolution_clock::now() - write_octree_start;
+                    RCLCPP_INFO(this->get_logger(), "written octree to file [row_id: %s]. It took %.1f ms", request->canopy_id.c_str(), write_octree_duration_ms.count());
+                } else {
+                    RCLCPP_ERROR(this->get_logger(), "failed to write octree to file: %s [row_id: %s]", octree_file_path.c_str(), request->canopy_id.c_str());
+                }
+            }
+        } else {
+            RCLCPP_WARN(this->get_logger(), "received suspend canopy region request [row_id: %s] but it was already suspended", request->canopy_id.c_str());
+        }
+
         response->result = true;
         return;
     } else {
@@ -208,6 +265,20 @@ void CanopyVolumeEstimation::points_in_callback(const sensor_msgs::msg::PointClo
         if (print_timing_) {
             RCLCPP_INFO(get_logger(), "%s:\t %zu points,\t %.3f s", canopy_map.canopy_id.c_str(), pc.size(), (rclcpp::Clock{}.now() - start_time).seconds());
         }
+    }
+
+    canopy_data_array_publisher_->publish(canopy_data_array_msg);
+
+}
+
+void CanopyVolumeEstimation::publish_canopy_data_timer_callback() {
+
+    CanopyDataArray canopy_data_array_msg = CanopyDataArray();
+
+    for (auto & [canopy_id, canopy_map]: canopy_maps) {
+        if (canopy_map.suspended) continue;
+        canopy_data_array_msg.canopy_data_array.emplace_back();
+        update_canopy_volume(canopy_map, canopy_data_array_msg.canopy_data_array.back(), this->get_clock()->now());
     }
 
     canopy_data_array_publisher_->publish(canopy_data_array_msg);

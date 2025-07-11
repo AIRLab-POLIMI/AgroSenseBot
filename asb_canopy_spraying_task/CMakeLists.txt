@@ -32,6 +32,7 @@ find_package(pcl_ros REQUIRED)
 add_executable(canopy_volume_estimation_node
     src/canopy_volume_estimation_node.cpp
     src/canopy_volume_estimation.cpp
+    include/canopy_volume_estimation/canopy_volume_estimation.h
 )
 
 target_include_directories(canopy_volume_estimation_node PUBLIC

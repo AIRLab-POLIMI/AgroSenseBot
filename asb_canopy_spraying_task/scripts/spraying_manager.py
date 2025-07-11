@@ -92,6 +92,9 @@ class SprayingManager:
         self._node.declare_parameter('enable_pump', rclpy.Parameter.Type.BOOL)
         self._enable_pump = self._node.get_parameter('enable_pump').get_parameter_value().bool_value
 
+        self._node.declare_parameter('enable_spray_actuation', rclpy.Parameter.Type.BOOL)
+        self._enable_spray_actuation = self._node.get_parameter('enable_spray_actuation').get_parameter_value().bool_value
+
         # parameters from task plan configuration
         self._fan_velocity_threshold_rpm = self._node.task_plan.fan_velocity_threshold_rpm
         self._fan_velocity_target_rpm = self._node.task_plan.fan_velocity_target_rpm
@@ -135,7 +138,9 @@ class SprayingManager:
                 raise TypeError("one or more parameters have the wrong type")
 
             if not self._canopy_layer_bounds[0] < nozzle_configuration['spray_height'] < self._canopy_layer_bounds[-1]:
-                self._node.get_logger().warn(f"nozzle [nozzle_id={nozzle_configuration['id']}] will never be used: spray_height [{nozzle_configuration['spray_height']}] is outside any layer bound [min: {self._canopy_layer_bounds[0]}, max: {self._canopy_layer_bounds[-1]}] in file {nozzles_configuration_file_path}.")
+                self._node.get_logger().warn(
+                    f"nozzle [nozzle_id={nozzle_configuration['id']}] will never be used: spray_height [{nozzle_configuration['spray_height']}] "
+                    f"is outside any layer bound [min: {self._canopy_layer_bounds[0]}, max: {self._canopy_layer_bounds[-1]}] in file {nozzles_configuration_file_path}.")
 
             for z_1, z_2 in self._canopy_layer_bound_pairs:
                 if z_1 <= nozzle_configuration['spray_height'] < z_2:
@@ -162,9 +167,6 @@ class SprayingManager:
         if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.keys()))) > 0):
             self._node.get_logger().fatal(f"desired nozzle flow rate values (dict keys) in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
-        # if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.values()))) > 0):
-        #     self._node.get_logger().fatal(f"values in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
-        #     raise ValueError("one or more parameters are not correct")
         min_lut_key = np.min(list(nozzle_rate_lookup_table.keys()))
         if min_lut_key < 0.0:
             self._node.get_logger().fatal(f"smallest desired nozzle flow rate (dict key) of nozzle_rate_lookup_table [{min_lut_key}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
@@ -261,6 +263,11 @@ class SprayingManager:
             zero_all_cmds()
             return
 
+        if not self._enable_spray_actuation:
+            zero_all_cmds()
+            self.spraying_status = SprayingStatus.STARTED
+            return
+
         # if the velocity is not available, go to FAILED state
         velocity_age = self._node.get_clock().now() - self._last_velocity_time
         if velocity_age > self._velocity_timeout:
@@ -287,7 +294,7 @@ class SprayingManager:
 
         # if everything is ok, compute the nozzle command for the requested sides
         nozzle_command_msg = NozzleCommandArray(stamp=self._node.get_clock().now().to_msg())
-        for row_id, spraying_request in self._active_spraying_requests.items():  ### TODO RuntimeError: dictionary changed size during iteration
+        for row_id, spraying_request in self._active_spraying_requests.items():
 
             # if we didn't receive any canopy data since initialization, there is a problem
             if spraying_request.last_canopy_data_msg is None:

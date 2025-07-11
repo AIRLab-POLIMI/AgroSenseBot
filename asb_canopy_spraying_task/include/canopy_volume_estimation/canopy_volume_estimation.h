@@ -37,14 +37,18 @@
 #include "pcl_ros/transforms.hpp"
 
 #include "octomap/OcTree.h"
+#include "octomap_msgs/conversions.h"
+#include "octomap_ros/conversions.hpp"
 
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
 #include <map>
+#include <filesystem>
 
 using namespace std::chrono_literals;
+namespace fs = std::filesystem;
 using PCLPoint = pcl::PointXYZ;
 using PCLPointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using octomap::OcTree;
@@ -78,11 +82,13 @@ public:
 
 private:
 
-    void initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response);
+    void initialize_canopy_region(std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response);
 
-    void suspend_canopy_region(const std::shared_ptr<SuspendCanopyRegion::Request> request, std::shared_ptr<SuspendCanopyRegion::Response> response);
+    void suspend_canopy_region(std::shared_ptr<SuspendCanopyRegion::Request> request, std::shared_ptr<SuspendCanopyRegion::Response> response);
 
-    void points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
+    void points_in_callback(sensor_msgs::msg::PointCloud2::SharedPtr points_in_msg);
+
+    void publish_canopy_data_timer_callback();
 
     bool transform_region_of_interest(const CanopyRegionOfInterest & roi, const Header & target_header, CanopyRegionOfInterest & roi_transformed);
 
@@ -94,6 +100,7 @@ private:
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
     rclcpp::Subscription<PointCloud2>::SharedPtr points_in_subscriber_;
+    rclcpp::TimerBase::SharedPtr publish_canopy_data_timer_;
 
     rclcpp::Service<InitializeCanopyRegion>::SharedPtr initialize_canopy_region_service_;
     rclcpp::Service<SuspendCanopyRegion>::SharedPtr suspend_canopy_region_service_;
@@ -108,6 +115,8 @@ private:
     double max_range_;
     long hit_count_threshold_;
     bool print_timing_;
+    bool enable_canopy_estimation_;
+    fs::path canopy_data_dir_path_;
 
 };
 

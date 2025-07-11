@@ -1,6 +1,8 @@
 <launch>
 
+  <arg name="enable_spray_actuation" default="true" />
   <arg name="enable_pump" default="false" />
+  <arg name="enable_canopy_estimation" default="true" />
   <arg name="auto_set_control_mode_once" default="false" />
   <arg name="auto_set_control_mode" default="false" />
   <arg name="dry_run" default="false" />
@@ -12,10 +14,14 @@
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_volume_estimation_node" name="canopy_volume_estimation">
     <remap from="points_in" to="/scan_front_multilayer/points_filtered"/>
+
+    <param name="enable_canopy_estimation" value="$(var enable_canopy_estimation)" />
+    <param name="canopy_data_dir_path" value="$(env HOME)/asb_logs/canopy_data/arcagna/"/>
     <param name="use_sim_time" value="$(var use_sim_time)" />
     <param name="resolution" value="0.05" />
     <param name="hit_count_threshold" value="5" />
     <param name="max_range" value="5.0" />
+    <param name="print_timing" value="false" />
   </node>
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_viz.py" name="canopy_viz" />
@@ -48,6 +54,7 @@
     <!-- spraying params -->
     <param name="nozzles_configuration_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/arcagna/nozzles_configuration.yaml" />
     <param name="nozzle_rate_lookup_table_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/arcagna/nozzle_rate_lookup_table.yaml" />
+    <param name="enable_spray_actuation" value="$(var enable_spray_actuation)" />
     <param name="enable_pump" value="$(var enable_pump)" />
     <param name="velocity_timeout" value="0.1" />
     <param name="fan_rpm_timeout" value="0.5" />
