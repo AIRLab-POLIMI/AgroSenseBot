@@ -32,6 +32,7 @@ from typing_extensions import Self
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from spraying_task_sm import SprayingTaskPlanExecutor
+    from canopy_estimation_from_bag import CanopyEstimationFromBag
 
 np.set_printoptions(precision=2)
 
@@ -68,7 +69,7 @@ class SprayingRequest:
 
 class SprayingManager:
 
-    def __init__(self, node: SprayingTaskPlanExecutor):
+    def __init__(self, node: SprayingTaskPlanExecutor | CanopyEstimationFromBag):
         self._node = node
 
         self._node.declare_parameter('canopy_data_timeout', rclpy.Parameter.Type.DOUBLE)
@@ -234,8 +235,9 @@ class SprayingManager:
         while not self._init_canopy_region_client.wait_for_service(timeout_sec=0.1):
             self._node.get_logger().info('initialize_canopy_region service not available, waiting...', throttle_duration_sec=5.0)
 
-        while self._last_velocity_time is None:
-            self._node.get_logger().info(f"waiting to receive velocity message...", throttle_duration_sec=5.0)
+        if self._enable_spray_actuation:
+            while self._last_velocity_time is None:
+                self._node.get_logger().info(f"waiting to receive velocity message...", throttle_duration_sec=5.0)
 
     def _timer_callback(self) -> None:
 

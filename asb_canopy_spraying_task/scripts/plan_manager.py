@@ -15,11 +15,12 @@ from spraying_task_plan import TaskPlanItem, TaskPlanItemType
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from spraying_task_sm import SprayingTaskPlanExecutor
+    from canopy_estimation_from_bag import CanopyEstimationFromBag
 
 
 class PlanManager:
 
-    def __init__(self, node: SprayingTaskPlanExecutor):
+    def __init__(self, node: SprayingTaskPlanExecutor | CanopyEstimationFromBag):
         self._node = node
         self._tf_static_broadcaster = StaticTransformBroadcaster(self._node)
 
