@@ -94,7 +94,7 @@ DEF VINE_POSE Pose {
 }
 
 DEF ROBOT_NODE Robot {
-  translation -27.3 -9.9 0.43
+  translation -27.3 -9.9 1.1
   rotation 0 0 1 1.93
   name "asb_webots_robot"
   controller "<extern>"
