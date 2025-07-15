@@ -37,6 +37,9 @@ CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimatio
     this->declare_parameter("canopy_data_dir_path", rclcpp::ParameterType::PARAMETER_STRING);
     canopy_data_dir_path_ = this->get_parameter("canopy_data_dir_path").as_string();
 
+    this->declare_parameter("enable_viz_topics", rclcpp::ParameterType::PARAMETER_BOOL);
+    enable_viz_topics_ = this->get_parameter("enable_viz_topics").as_bool();
+
     if (!fs::exists(canopy_data_dir_path_)) {
         if (!fs::create_directories(canopy_data_dir_path_)) {
             RCLCPP_FATAL(this->get_logger(), "failed to create canopy data directory: %s", canopy_data_dir_path_.c_str());
@@ -67,29 +70,31 @@ CanopyVolumeEstimation::CanopyVolumeEstimation() : Node("canopy_volume_estimatio
     canopy_data_array_publisher_ = this->create_publisher<CanopyDataArray>(
             "canopy_data", rclcpp::SensorDataQoS().reliable().transient_local());
 
-    viz_publisher_ = this->create_publisher<MarkerArray>(
+    benchmarking_execution_duration_publisher_ = this->create_publisher<asb_msgs::msg::ExecutionDurationStamped>("~/benchmarking/execution_duration", rclcpp::SensorDataQoS().transient_local().reliable().keep_last(10));
+
+    canopy_viz_publisher_ = this->create_publisher<MarkerArray>(
             "canopy_visualization_markers", rclcpp::SensorDataQoS().reliable().transient_local());
 
 }
 
-void CanopyVolumeEstimation::add_viz_marker(CanopyMap & canopy_map, size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z) {
+void CanopyVolumeEstimation::add_viz_marker(CanopyStruct & canopy_struct, size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z) {
 
-    canopy_map.viz_marker_array.markers[marker_id].pose.position.x = x;
-    canopy_map.viz_marker_array.markers[marker_id].pose.position.y = (y_min + y_max) / 2;
-    canopy_map.viz_marker_array.markers[marker_id].pose.position.z = z;
-    canopy_map.viz_marker_array.markers[marker_id].pose.orientation.w = 1;
-    canopy_map.viz_marker_array.markers[marker_id].header = header;
-    canopy_map.viz_marker_array.markers[marker_id].ns = canopy_map.canopy_id;
-    canopy_map.viz_marker_array.markers[marker_id].id = (int) marker_id;
-    canopy_map.viz_marker_array.markers[marker_id].type = Marker::CUBE;
-    canopy_map.viz_marker_array.markers[marker_id].action = Marker::ADD;
-    canopy_map.viz_marker_array.markers[marker_id].scale.x = size;
-    canopy_map.viz_marker_array.markers[marker_id].scale.y = size + y_max - y_min;
-    canopy_map.viz_marker_array.markers[marker_id].scale.z = size;
-    canopy_map.viz_marker_array.markers[marker_id].color.r = 0.1;
-    canopy_map.viz_marker_array.markers[marker_id].color.g = 0.7;
-    canopy_map.viz_marker_array.markers[marker_id].color.b = 0.1;
-    canopy_map.viz_marker_array.markers[marker_id].color.a = 1.0;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].pose.position.x = x;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].pose.position.y = (y_min + y_max) / 2;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].pose.position.z = z;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].pose.orientation.w = 1;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].header = header;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].ns = canopy_struct.canopy_id + "/roi_depth";
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].id = (int) marker_id;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].type = Marker::CUBE;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].action = Marker::ADD;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].scale.x = size;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].scale.y = size + y_max - y_min;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].scale.z = size;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].color.r = 0.1;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].color.g = 0.7;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].color.b = 0.1;
+    canopy_struct.roi_depth_viz_marker_array.markers[marker_id].color.a = 1.0;
 }
 
 bool CanopyVolumeEstimation::transform_region_of_interest(const CanopyRegionOfInterest & roi, const Header & target_header, CanopyRegionOfInterest & roi_transformed) {
@@ -128,31 +133,31 @@ bool CanopyVolumeEstimation::transform_region_of_interest(const CanopyRegionOfIn
 
 void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<InitializeCanopyRegion::Request> request, std::shared_ptr<InitializeCanopyRegion::Response> response) {
 
-    if (canopy_maps.contains(request->canopy_id)) {
+    if (canopy_structs.contains(request->canopy_id)) {
         RCLCPP_INFO(this->get_logger(), "received initialize canopy region request, row_id: %s (was suspended, re-enabling)", request->canopy_id.c_str());
-        canopy_maps[request->canopy_id].suspended = false;
+        canopy_structs[request->canopy_id].suspended = false;
     } else {
         RCLCPP_INFO(this->get_logger(), "received initialize canopy region request, row_id: %s (did not exist, initializing)", request->canopy_id.c_str());
-        canopy_maps[request->canopy_id] = CanopyMap();
-        canopy_maps[request->canopy_id].canopy_id = request->canopy_id;
-        canopy_maps[request->canopy_id].suspended = false;
-        canopy_maps[request->canopy_id].canopy_frame_id = request->canopy_frame_id;
-        canopy_maps[request->canopy_id].point_cloud_min_x = request->min_x;
-        canopy_maps[request->canopy_id].point_cloud_max_x = request->max_x;
-        canopy_maps[request->canopy_id].point_cloud_min_y = request->min_y;
-        canopy_maps[request->canopy_id].point_cloud_max_y = request->max_y;
-        canopy_maps[request->canopy_id].point_cloud_min_z = request->min_z;
-        canopy_maps[request->canopy_id].point_cloud_max_z = request->max_z;
-        canopy_maps[request->canopy_id].roi = request->roi;
-        canopy_maps[request->canopy_id].viz_marker_array = MarkerArray();
-        canopy_maps[request->canopy_id].octree = std::make_unique<OcTree>(res_);
+        canopy_structs[request->canopy_id] = CanopyStruct();
+        canopy_structs[request->canopy_id].canopy_id = request->canopy_id;
+        canopy_structs[request->canopy_id].suspended = false;
+        canopy_structs[request->canopy_id].canopy_frame_id = request->canopy_frame_id;
+        canopy_structs[request->canopy_id].point_cloud_min_x = request->min_x;
+        canopy_structs[request->canopy_id].point_cloud_max_x = request->max_x;
+        canopy_structs[request->canopy_id].point_cloud_min_y = request->min_y;
+        canopy_structs[request->canopy_id].point_cloud_max_y = request->max_y;
+        canopy_structs[request->canopy_id].point_cloud_min_z = request->min_z;
+        canopy_structs[request->canopy_id].point_cloud_max_z = request->max_z;
+        canopy_structs[request->canopy_id].roi = request->roi;
+        canopy_structs[request->canopy_id].roi_depth_viz_marker_array = MarkerArray();
+        canopy_structs[request->canopy_id].octree = std::make_unique<OcTree>(res_);
 
         if (!enable_canopy_estimation_) {
             fs::path octree_filename(request->canopy_id + ".bt");
             fs::path octree_file_path = canopy_data_dir_path_ / octree_filename;
 
             auto read_octree_start = std::chrono::high_resolution_clock::now();
-            if (canopy_maps[request->canopy_id].octree->readBinary(octree_file_path)) {
+            if (canopy_structs[request->canopy_id].octree->readBinary(octree_file_path)) {
                 std::chrono::duration<double, std::milli> read_octree_duration_ms = std::chrono::high_resolution_clock::now() - read_octree_start;
                 RCLCPP_INFO(this->get_logger(), "read octree from file [row_id: %s]. It took %.1f ms", request->canopy_id.c_str(), read_octree_duration_ms.count());
             } else {
@@ -167,9 +172,9 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
         long n = hit_count_threshold_;
         double th = pow(p / (1 - p), n) / (1 + pow(p / (1 - p), n));
         double th_clamp = pow(p / (1 - p), n + 1) / (1 + pow(p / (1 - p), n + 1));
-        canopy_maps[request->canopy_id].octree->setProbHit(p);
-        canopy_maps[request->canopy_id].octree->setOccupancyThres(th);
-        canopy_maps[request->canopy_id].octree->setClampingThresMax(th_clamp);
+        canopy_structs[request->canopy_id].octree->setProbHit(p);
+        canopy_structs[request->canopy_id].octree->setOccupancyThres(th);
+        canopy_structs[request->canopy_id].octree->setClampingThresMax(th_clamp);
     }
 
     response->result = true;
@@ -177,17 +182,17 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
 
 void CanopyVolumeEstimation::suspend_canopy_region(const std::shared_ptr<SuspendCanopyRegion::Request> request, std::shared_ptr<SuspendCanopyRegion::Response> response) {
 
-    if (canopy_maps.contains(request->canopy_id)) {
-        if (!canopy_maps[request->canopy_id].suspended) {
+    if (canopy_structs.contains(request->canopy_id)) {
+        if (!canopy_structs[request->canopy_id].suspended) {
             RCLCPP_INFO(this->get_logger(), "received suspend canopy region request, row_id: %s", request->canopy_id.c_str());
-            canopy_maps[request->canopy_id].suspended = true;
+            canopy_structs[request->canopy_id].suspended = true;
 
-            if(enable_canopy_estimation_) {
+            if (enable_canopy_estimation_) {
                 fs::path octree_filename(request->canopy_id + ".bt");
                 fs::path octree_file_path = canopy_data_dir_path_ / octree_filename;
 
                 auto write_octree_start = std::chrono::high_resolution_clock::now();
-                if (canopy_maps[request->canopy_id].octree->writeBinaryConst(octree_file_path)) {
+                if (canopy_structs[request->canopy_id].octree->writeBinaryConst(octree_file_path)) {
                     std::chrono::duration<double, std::milli> write_octree_duration_ms = std::chrono::high_resolution_clock::now() - write_octree_start;
                     RCLCPP_INFO(this->get_logger(), "written octree to file [row_id: %s]. It took %.1f ms", request->canopy_id.c_str(), write_octree_duration_ms.count());
                 } else {
@@ -209,10 +214,12 @@ void CanopyVolumeEstimation::suspend_canopy_region(const std::shared_ptr<Suspend
 
 void CanopyVolumeEstimation::points_in_callback(const sensor_msgs::msg::PointCloud2::SharedPtr cloud) {
 
+    auto execution_start = std::chrono::high_resolution_clock::now();
+
     CanopyDataArray canopy_data_array_msg = CanopyDataArray();
 
-    for (auto & [canopy_id, canopy_map]: canopy_maps) {
-        if (canopy_map.suspended) continue;
+    for (auto & [canopy_id, canopy_struct]: canopy_structs) {
+        if (canopy_struct.suspended) continue;
         const auto start_time = rclcpp::Clock{}.now();
 
         PCLPointCloud pc;
@@ -220,7 +227,7 @@ void CanopyVolumeEstimation::points_in_callback(const sensor_msgs::msg::PointClo
 
         geometry_msgs::msg::TransformStamped sensor_to_canopy_transform_stamped;
         try {
-            sensor_to_canopy_transform_stamped = tf_buffer_->lookupTransform(canopy_map.canopy_frame_id, cloud->header.frame_id, cloud->header.stamp, rclcpp::Duration::from_seconds(0.1));
+            sensor_to_canopy_transform_stamped = tf_buffer_->lookupTransform(canopy_struct.canopy_frame_id, cloud->header.frame_id, cloud->header.stamp, rclcpp::Duration::from_seconds(0.1));
         } catch (const tf2::TransformException & ex) {
             RCLCPP_WARN(this->get_logger(), "%s", ex.what());
             return;
@@ -229,13 +236,13 @@ void CanopyVolumeEstimation::points_in_callback(const sensor_msgs::msg::PointClo
         // set up filter for height range, also removes NANs:
         pcl::PassThrough<PCLPoint> pass_x;
         pass_x.setFilterFieldName("x");
-        pass_x.setFilterLimits((float) canopy_map.point_cloud_min_x, (float) canopy_map.point_cloud_max_x);
+        pass_x.setFilterLimits((float) canopy_struct.point_cloud_min_x, (float) canopy_struct.point_cloud_max_x);
         pcl::PassThrough<PCLPoint> pass_y;
         pass_y.setFilterFieldName("y");
-        pass_y.setFilterLimits((float) canopy_map.point_cloud_min_y, (float) canopy_map.point_cloud_max_y);
+        pass_y.setFilterLimits((float) canopy_struct.point_cloud_min_y, (float) canopy_struct.point_cloud_max_y);
         pcl::PassThrough<PCLPoint> pass_z;
         pass_z.setFilterFieldName("z");
-        pass_z.setFilterLimits((float) canopy_map.point_cloud_min_z, (float) canopy_map.point_cloud_max_z);
+        pass_z.setFilterLimits((float) canopy_struct.point_cloud_min_z, (float) canopy_struct.point_cloud_max_z);
 
         // directly transform to canopy frame:
         pcl_ros::transformPointCloud(pc, pc, sensor_to_canopy_transform_stamped);
@@ -255,85 +262,91 @@ void CanopyVolumeEstimation::points_in_callback(const sensor_msgs::msg::PointClo
             octomap::point3d point(it.x, it.y, it.z);
             if ((point - sensor_origin).norm() <= max_range_) {
                 octomap::OcTreeKey key;
-                if (canopy_map.octree->coordToKeyChecked(point, key)) canopy_map.octree->updateNode(key, true);
+                if (canopy_struct.octree->coordToKeyChecked(point, key)) canopy_struct.octree->updateNode(key, true);
             }
         }
 
         canopy_data_array_msg.canopy_data_array.emplace_back();
-        update_canopy_volume(canopy_map, canopy_data_array_msg.canopy_data_array.back(), cloud->header.stamp);
+        update_canopy_volume(canopy_struct, canopy_data_array_msg.canopy_data_array.back(), cloud->header.stamp);
 
         if (print_timing_) {
-            RCLCPP_INFO(get_logger(), "%s:\t %zu points,\t %.3f s", canopy_map.canopy_id.c_str(), pc.size(), (rclcpp::Clock{}.now() - start_time).seconds());
+            RCLCPP_INFO(get_logger(), "%s:\t %zu points,\t %.3f s", canopy_struct.canopy_id.c_str(), pc.size(), (rclcpp::Clock{}.now() - start_time).seconds());
         }
     }
 
     canopy_data_array_publisher_->publish(canopy_data_array_msg);
 
+    std::chrono::duration<double> execution_duration_s = std::chrono::high_resolution_clock::now() - execution_start;
+    asb_msgs::msg::ExecutionDurationStamped execution_duration;
+    execution_duration.stamp = this->get_clock()->now();
+    execution_duration.execution_duration = rclcpp::Duration::from_seconds((execution_duration_s).count());
+    execution_duration.label = "";
+    benchmarking_execution_duration_publisher_->publish(execution_duration);
 }
 
 void CanopyVolumeEstimation::publish_canopy_data_timer_callback() {
 
     CanopyDataArray canopy_data_array_msg = CanopyDataArray();
 
-    for (auto & [canopy_id, canopy_map]: canopy_maps) {
-        if (canopy_map.suspended) continue;
+    for (auto & [canopy_id, canopy_struct]: canopy_structs) {
+        if (canopy_struct.suspended) continue;
         canopy_data_array_msg.canopy_data_array.emplace_back();
-        update_canopy_volume(canopy_map, canopy_data_array_msg.canopy_data_array.back(), this->get_clock()->now());
+        update_canopy_volume(canopy_struct, canopy_data_array_msg.canopy_data_array.back(), this->get_clock()->now());
     }
 
     canopy_data_array_publisher_->publish(canopy_data_array_msg);
 
 }
 
-void CanopyVolumeEstimation::update_canopy_volume(CanopyMap & canopy_map, CanopyData & canopy_data_msg, const rclcpp::Time & ros_time) {
+void CanopyVolumeEstimation::update_canopy_volume(CanopyStruct & canopy_struct, CanopyData & canopy_data_msg, const rclcpp::Time & ros_time) {
 
-    bool publish_viz_marker_array = viz_publisher_->get_subscription_count() > 0;
+    bool publish_canopy_viz_ = enable_viz_topics_ && (canopy_viz_publisher_->get_subscription_count() + canopy_viz_publisher_->get_intra_process_subscription_count() > 0);
 
     // expand the tree to make sure all leaf nodes are the same size (resolution)
-    canopy_map.octree->expand();
+    canopy_struct.octree->expand();
 
-    canopy_data_msg.canopy_id = canopy_map.canopy_id;
-    canopy_data_msg.header.frame_id = canopy_map.canopy_frame_id;
+    canopy_data_msg.canopy_id = canopy_struct.canopy_id;
+    canopy_data_msg.header.frame_id = canopy_struct.canopy_frame_id;
     canopy_data_msg.header.stamp = ros_time;
-    canopy_data_msg.resolution = (float) canopy_map.octree->getResolution();
+    canopy_data_msg.resolution = (float) canopy_struct.octree->getResolution();
 
     double bb_x_min, bb_y_min, bb_z_min, bb_x_max, bb_y_max, bb_z_max;
-    canopy_map.octree->getMetricMin(bb_x_min, bb_y_min, bb_z_min);
-    canopy_map.octree->getMetricMax(bb_x_max, bb_y_max, bb_z_max);
+    canopy_struct.octree->getMetricMin(bb_x_min, bb_y_min, bb_z_min);
+    canopy_struct.octree->getMetricMax(bb_x_max, bb_y_max, bb_z_max);
 
     Header roi_header = Header();
-    roi_header.frame_id = canopy_map.canopy_frame_id;
+    roi_header.frame_id = canopy_struct.canopy_frame_id;
     roi_header.stamp = ros_time;
-    bool roi_result = transform_region_of_interest(canopy_map.roi, roi_header, canopy_map.roi_transformed);
+    bool roi_result = transform_region_of_interest(canopy_struct.roi, roi_header, canopy_struct.roi_transformed);
     if (!roi_result) return;
 
-    canopy_data_msg.roi = canopy_map.roi_transformed;
+    canopy_data_msg.roi = canopy_struct.roi_transformed;
 
     // sort the region of interest x_1, x_2 values so that x_min <= x_max, otherwise the bounding box will be considered empty
-    bb_x_min = std::min(canopy_map.roi_transformed.x_1, canopy_map.roi_transformed.x_2);
-    bb_x_max = std::max(canopy_map.roi_transformed.x_1, canopy_map.roi_transformed.x_2);
+    bb_x_min = std::min(canopy_struct.roi_transformed.x_1, canopy_struct.roi_transformed.x_2);
+    bb_x_max = std::max(canopy_struct.roi_transformed.x_1, canopy_struct.roi_transformed.x_2);
 
     // collect y values for each x, z coordinate
     auto bbx_min = octomap::point3d((float) bb_x_min, (float) bb_y_min, (float) bb_z_min);
     auto bbx_max = octomap::point3d((float) bb_x_max, (float) bb_y_max, (float) bb_z_max);
     std::map<std::pair<double, double>, std::vector<double>> y_vector_map;
-    for (auto v = canopy_map.octree->begin_leafs_bbx(bbx_min, bbx_max), end = canopy_map.octree->end_leafs_bbx(); v != end; ++v) {
-        if (canopy_map.octree->isNodeOccupied(*v)) {
+    for (auto v = canopy_struct.octree->begin_leafs_bbx(bbx_min, bbx_max), end = canopy_struct.octree->end_leafs_bbx(); v != end; ++v) {
+        if (canopy_struct.octree->isNodeOccupied(*v)) {
             auto x_z = std::pair(v.getX(), v.getZ());
             y_vector_map[x_z].emplace_back(v.getY());
         }
     }
 
-    if (publish_viz_marker_array) {
-        if (y_vector_map.size() > canopy_map.viz_marker_array.markers.size()) {
-            canopy_map.viz_marker_array.markers.resize(y_vector_map.size());
+    if (publish_canopy_viz_) {
+        if (y_vector_map.size() > canopy_struct.roi_depth_viz_marker_array.markers.size()) {
+            canopy_struct.roi_depth_viz_marker_array.markers.resize(y_vector_map.size());
         }
     }
 
     // compute y_depth for each x, z coordinate
     // Note: adding voxel_length to y_depth because y_depth is computed from the centroids of the voxels (otherwise the
     // volume of a 1-voxel deep region would be 0 m^3)
-    double voxel_length = canopy_map.octree->getResolution();
+    double voxel_length = canopy_struct.octree->getResolution();
     std::map<std::pair<double, double>, double> y_depth_map;
     int marker_id = 0;
     for (auto [x_z, y_vector]: y_vector_map) {
@@ -345,17 +358,19 @@ void CanopyVolumeEstimation::update_canopy_volume(CanopyMap & canopy_map, Canopy
         canopy_data_msg.depth_y_array.emplace_back(y_depth_map[x_z]);
         canopy_data_msg.depth_z_array.emplace_back(z);
 
-        if (publish_viz_marker_array) {
-            add_viz_marker(canopy_map, marker_id, roi_header, voxel_length, x, *y_vector_min, *y_vector_max, z);
+        if (publish_canopy_viz_) {
+            add_viz_marker(canopy_struct, marker_id, roi_header, voxel_length, x, *y_vector_min, *y_vector_max, z);
             marker_id++;
         }
     }
 
-    if (publish_viz_marker_array) {
-        for (size_t further_marker_id = marker_id; further_marker_id < canopy_map.viz_marker_array.markers.size(); further_marker_id++) {
-            canopy_map.viz_marker_array.markers[further_marker_id].action = Marker::DELETE;
+    if (publish_canopy_viz_) {
+        for (size_t further_marker_id = marker_id; further_marker_id < canopy_struct.roi_depth_viz_marker_array.markers.size(); further_marker_id++) {
+            canopy_struct.roi_depth_viz_marker_array.markers[further_marker_id].action = Marker::DELETE;
         }
-        viz_publisher_->publish(canopy_map.viz_marker_array);
+        canopy_viz_publisher_->publish(canopy_struct.roi_depth_viz_marker_array);
+
+        publish_octomap_marker_array(canopy_struct, ros_time);
     }
 
     // compute volume for each x coordinate
@@ -371,4 +386,135 @@ void CanopyVolumeEstimation::update_canopy_volume(CanopyMap & canopy_map, Canopy
         canopy_data_msg.volume_y_array.emplace_back(volume);
     }
 
+}
+
+void CanopyVolumeEstimation::publish_octomap_marker_array(const CanopyStruct & canopy_struct, const rclcpp::Time & rostime) {
+
+    auto octomap_marker_array_start = std::chrono::high_resolution_clock::now();
+
+    const size_t octomap_size = canopy_struct.octree->size();
+    if (octomap_size <= 1) {
+        return;
+    }
+
+    MarkerArray marker_array;
+    marker_array.markers.resize(canopy_struct.octree->getTreeDepth() + 1);
+
+    for (OcTree::iterator it = canopy_struct.octree->begin(), end = canopy_struct.octree->end(); it != end; ++it) {
+
+        if (canopy_struct.octree->isNodeOccupied(*it)) {
+            double z = it.getZ();
+            double x = it.getX();
+            double y = it.getY();
+
+            unsigned idx = it.getDepth();
+            assert(idx < marker_array.markers.size());
+
+            geometry_msgs::msg::Point cube_center;
+            cube_center.x = x;
+            cube_center.y = y;
+            cube_center.z = z;
+
+            marker_array.markers[idx].points.push_back(cube_center);
+            double min_x, min_y, min_z, max_x, max_y, max_z;
+            canopy_struct.octree->getMetricMin(min_x, min_y, min_z);
+            canopy_struct.octree->getMetricMax(max_x, max_y, max_z);
+
+            double color_factor_ = 0.8;
+            double h = (1.0 - std::clamp((cube_center.z - min_z) / (max_z - min_z), 0.0, 1.0)) * color_factor_;
+            marker_array.markers[idx].colors.push_back(height_color_map(h));
+        }
+    }
+
+    for (size_t i = 0; i < marker_array.markers.size(); ++i) {
+        double size = canopy_struct.octree->getNodeSize(i);
+
+        marker_array.markers[i].header.frame_id = canopy_struct.canopy_frame_id;
+        marker_array.markers[i].header.stamp = rostime;
+        marker_array.markers[i].ns = canopy_struct.canopy_id + "/octomap";
+        marker_array.markers[i].id = static_cast<int>(i);
+        marker_array.markers[i].type = visualization_msgs::msg::Marker::CUBE_LIST;
+        marker_array.markers[i].scale.x = size;
+        marker_array.markers[i].scale.y = size;
+        marker_array.markers[i].scale.z = size;
+
+        if (!marker_array.markers[i].points.empty()) {
+            marker_array.markers[i].action = visualization_msgs::msg::Marker::ADD;
+        } else {
+            marker_array.markers[i].action = visualization_msgs::msg::Marker::DELETE;
+        }
+    }
+
+    canopy_viz_publisher_->publish(marker_array);
+
+    std::chrono::duration<double, std::milli> octomap_marker_array_duration_ms = std::chrono::high_resolution_clock::now() - octomap_marker_array_start;
+    RCLCPP_INFO(get_logger(), "created octomap marker array in %.2f ms", octomap_marker_array_duration_ms.count());
+}
+
+
+ColorRGBA CanopyVolumeEstimation::height_color_map(double h) {
+
+    ColorRGBA color;
+    color.a = 1.0;
+    // blend over HSV-values (more colors)
+
+    double s = 1.0;
+    double v = 1.0;
+
+    h -= floor(h);
+    h *= 6;
+    int i;
+    double m;
+    double n;
+    double f;
+
+    i = floor(h);
+    f = h - i;
+    if (!(i & 1)) {
+        // if i is even
+        f = 1 - f;
+    }
+    m = v * (1 - s);
+    n = v * (1 - s * f);
+
+    switch (i) {
+        case 6:
+        case 0:
+            color.r = static_cast<float>(v);
+            color.g = static_cast<float>(n);
+            color.b = static_cast<float>(m);
+            break;
+        case 1:
+            color.r = static_cast<float>(n);
+            color.g = static_cast<float>(v);
+            color.b = static_cast<float>(m);
+            break;
+        case 2:
+            color.r = static_cast<float>(m);
+            color.g = static_cast<float>(v);
+            color.b = static_cast<float>(n);
+            break;
+        case 3:
+            color.r = static_cast<float>(m);
+            color.g = static_cast<float>(n);
+            color.b = static_cast<float>(v);
+            break;
+        case 4:
+            color.r = static_cast<float>(n);
+            color.g = static_cast<float>(m);
+            color.b = static_cast<float>(v);
+            break;
+        case 5:
+            color.r = static_cast<float>(v);
+            color.g = static_cast<float>(m);
+            color.b = static_cast<float>(n);
+            break;
+        default:
+            color.r = 1;
+            color.g = 0.5;
+            color.b = 0.5;
+            break;
+    }
+
+    return color;
 }

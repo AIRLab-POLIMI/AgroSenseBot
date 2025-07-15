@@ -5,6 +5,7 @@
   <arg name="use_sim_time" default="true" />
   <arg name="enable_spray_actuation" default="false" />
   <arg name="enable_pump" default="false" />
+  <arg name="enable_viz_topics" default="true" />
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_volume_estimation_node" name="canopy_volume_estimation">
     <remap from="points_in" to="/scan_front_multilayer/points_filtered"/>
@@ -16,6 +17,7 @@
     <param name="hit_count_threshold" value="5" />
     <param name="max_range" value="5.0" />
     <param name="print_timing" value="false" />
+    <param name="enable_viz_topics" value="$(var enable_viz_topics)" />
   </node>
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_viz.py" name="canopy_viz" >

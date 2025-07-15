@@ -7,6 +7,7 @@
   <arg name="auto_set_control_mode" default="false" />
   <arg name="dry_run" default="false" />
   <arg name="loop" default="false" />
+  <arg name="enable_viz_topics" default="true" />
 
   <arg name="task_plan" default="repeated_straight_alignment" />
 
@@ -22,6 +23,7 @@
     <param name="hit_count_threshold" value="5" />
     <param name="max_range" value="5.0" />
     <param name="print_timing" value="false" />
+    <param name="enable_viz_topics" value="$(var enable_viz_topics)" />
   </node>
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_viz.py" name="canopy_viz" />

@@ -65,7 +65,8 @@ class CanopyDataViz(Node):
             for xi, zi in self._canopy_data[canopy_id].keys():
                 x_im = xi - self._x_min[canopy_id]
                 z_im = self._z_max[canopy_id] - zi
-                di = int(self._canopy_data[canopy_id][(xi, zi)] / 1.2 * 255)
+                df = self._canopy_data[canopy_id][(xi, zi)] / 1.2
+                di = int(min(df, 1.0) * 255)
                 if di == 0:
                     im[z_im, x_im] = background
                 elif di == 255:

@@ -21,6 +21,9 @@
 #include "asb_msgs/msg/canopy_region_of_interest.hpp"
 #include "asb_msgs/srv/initialize_canopy_region.hpp"
 #include "asb_msgs/srv/suspend_canopy_region.hpp"
+#include "asb_msgs/msg/execution_duration_stamped.hpp"
+
+#include "std_msgs/msg/color_rgba.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -53,6 +56,7 @@ using PCLPoint = pcl::PointXYZ;
 using PCLPointCloud = pcl::PointCloud<pcl::PointXYZ>;
 using octomap::OcTree;
 using std_msgs::msg::Header;
+using std_msgs::msg::ColorRGBA;
 using asb_msgs::msg::CanopyData;
 using asb_msgs::msg::CanopyDataArray;
 using asb_msgs::msg::CanopyRegionOfInterest;
@@ -63,7 +67,7 @@ using sensor_msgs::msg::PointCloud2;
 using visualization_msgs::msg::MarkerArray;
 using visualization_msgs::msg::Marker;
 
-class CanopyMap {
+class CanopyStruct {
 public:
     std::string canopy_id;
     bool suspended;
@@ -73,7 +77,7 @@ public:
     double point_cloud_min_z, point_cloud_max_z;
     CanopyRegionOfInterest roi, roi_transformed;
     std::unique_ptr<OcTree> octree;
-    MarkerArray viz_marker_array;
+    MarkerArray roi_depth_viz_marker_array;
 };
 
 class CanopyVolumeEstimation : public rclcpp::Node {
@@ -92,9 +96,13 @@ private:
 
     bool transform_region_of_interest(const CanopyRegionOfInterest & roi, const Header & target_header, CanopyRegionOfInterest & roi_transformed);
 
-    void update_canopy_volume(CanopyMap & canopy_map, CanopyData & canopy_data_msg, const rclcpp::Time & ros_time);
+    void update_canopy_volume(CanopyStruct & canopy_struct, CanopyData & canopy_data_msg, const rclcpp::Time & ros_time);
 
-    static void add_viz_marker(CanopyMap & canopy_map, size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z);
+    static void add_viz_marker(CanopyStruct & canopy_struct, size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z);
+
+    void publish_octomap_marker_array(const CanopyStruct & canopy_struct, const rclcpp::Time & rostime);
+
+    static ColorRGBA height_color_map(double h);
 
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -105,10 +113,12 @@ private:
     rclcpp::Service<InitializeCanopyRegion>::SharedPtr initialize_canopy_region_service_;
     rclcpp::Service<SuspendCanopyRegion>::SharedPtr suspend_canopy_region_service_;
 
-    rclcpp::Publisher<CanopyDataArray>::SharedPtr canopy_data_array_publisher_;
-    rclcpp::Publisher<MarkerArray>::SharedPtr viz_publisher_;
+    rclcpp::Publisher<asb_msgs::msg::ExecutionDurationStamped>::SharedPtr benchmarking_execution_duration_publisher_;
 
-    std::map<std::string, CanopyMap> canopy_maps;
+    rclcpp::Publisher<CanopyDataArray>::SharedPtr canopy_data_array_publisher_;
+    rclcpp::Publisher<MarkerArray>::SharedPtr canopy_viz_publisher_;
+
+    std::map<std::string, CanopyStruct> canopy_structs;
 
     // node parameters
     double res_;
@@ -117,6 +127,7 @@ private:
     bool print_timing_;
     bool enable_canopy_estimation_;
     fs::path canopy_data_dir_path_;
+    bool enable_viz_topics_;
 
 };
 
