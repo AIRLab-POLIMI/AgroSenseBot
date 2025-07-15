@@ -64,7 +64,7 @@ class SprayingRequest:
         self.side: SprayingSide = side
         self.init_time: Time = init_time
         self.last_canopy_data_msg: CanopyData | None = None
-        self.mean_depth: defaultdict[float, float] = defaultdict(float)
+        self.aggregate_depth: defaultdict[float, float] = defaultdict(float)
 
 
 class SprayingManager:
@@ -105,6 +105,7 @@ class SprayingManager:
         self._canopy_layer_bounds = self._node.task_plan.canopy_layer_bounds
         self._hectare_ref_volume = self._node.task_plan.hectare_ref_volume
         self._canopy_ref_depth = self._node.task_plan.canopy_ref_depth
+        self._canopy_min_depth = self._node.task_plan.canopy_min_depth
         self._inter_row = self._node.task_plan.inter_row
 
         # canopy layer bound configuration variables
@@ -155,34 +156,45 @@ class SprayingManager:
         # nozzle rate function variables
         with open(nozzle_rate_lookup_table_file_path, 'r') as f:
             nozzle_rate_lookup_table = yaml.safe_load(f)
+
         if not isinstance(nozzle_rate_lookup_table, dict):
             self._node.get_logger().fatal(f"nozzle_rate_lookup_table is not of type dict in file {nozzle_rate_lookup_table_file_path}")
             raise TypeError("one or more parameters have the wrong type")
+
         for k, v in nozzle_rate_lookup_table.items():
             if not isinstance(k, (float, int)) or not isinstance(v, (float, int)):
                 self._node.get_logger().fatal(f"desired nozzle flow rate (dict key) or nozzle valve rate command (dict value) in nozzle_rate_lookup_table is not of type float or int in file {nozzle_rate_lookup_table_file_path}")
                 raise TypeError("one or more parameters have the wrong type")
+
         if len(nozzle_rate_lookup_table) < 2:
             self._node.get_logger().fatal(f"less than 2 key-value pairs specified in nozzle_rate_lookup_table in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
+
         if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.keys()))) > 0):
             self._node.get_logger().fatal(f"desired nozzle flow rate values (dict keys) in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
+
+        if not np.all(np.diff(np.array(list(nozzle_rate_lookup_table.values()))) > 0):
+            self._node.get_logger().fatal(f"nozzle valve rate command (dict value) in nozzle_rate_lookup_table are not monotonically increasing in file {nozzle_rate_lookup_table_file_path}")
+            raise ValueError("one or more parameters are not correct")
+
         min_lut_key = np.min(list(nozzle_rate_lookup_table.keys()))
         if min_lut_key < 0.0:
             self._node.get_logger().fatal(f"smallest desired nozzle flow rate (dict key) of nozzle_rate_lookup_table [{min_lut_key}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
+
         min_lut_value = np.min(list(nozzle_rate_lookup_table.values()))
         if min_lut_value < 0.0:
             self._node.get_logger().fatal(f"minimum nozzle valve rate command (dict value) of nozzle_rate_lookup_table [{min_lut_value}] is not greater or equal to 0 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
+
         max_lut_value = np.max(list(nozzle_rate_lookup_table.values()))
         if max_lut_value > 1.0:
             self._node.get_logger().fatal(f"maximum nozzle valve rate command (dict value) of nozzle_rate_lookup_table [{max_lut_value}] is not less or equal to 1 in file {nozzle_rate_lookup_table_file_path}")
             raise ValueError("one or more parameters are not correct")
 
-        self._nozzle_rate_lookup_table_keys = np.array(list(nozzle_rate_lookup_table.keys()))  # desired nozzle flow rate [L/s]
-        self._nozzle_rate_lookup_table_values = np.array(list(nozzle_rate_lookup_table.values()))  # nozzle valve rate command [0...1]
+        self._lookup_table_nozzle_flow_rate = np.array(list(nozzle_rate_lookup_table.keys()))  # desired nozzle flow rate [L/s]
+        self._lookup_table_valve_command = np.array(list(nozzle_rate_lookup_table.values()))  # nozzle valve rate command [0...1]
 
         # spraying variables
         self.spraying_status: SprayingStatus = SprayingStatus.NOT_SPRAYING
@@ -321,13 +333,21 @@ class SprayingManager:
 
             # compute nozzle flow rates for each canopy layer
             for z_1, _ in self._canopy_layer_bound_pairs:
-                mean_depth = spraying_request.mean_depth[z_1]
+                current_depth = spraying_request.aggregate_depth[z_1]
                 flow_rate = (
-                        (self._current_velocity * mean_depth * self._inter_row * self._hectare_ref_volume) /
+                        (self._current_velocity * current_depth * self._inter_row * self._hectare_ref_volume) /
                         (2E4 * self._canopy_ref_depth * len(self._canopy_layer_bound_pairs))
                 )  # [L/s]  TODO this may need the number of nozzles per layer to be always one
 
-                nozzle_rate = np.interp(flow_rate, self._nozzle_rate_lookup_table_keys, self._nozzle_rate_lookup_table_values, left=0.0)
+                # compute the nozzle rate
+                if flow_rate == 0.0:
+                    # when there is no canopy in the roi, the flow rate is exactly 0.0, so we can set the nozzle rate to 0.0
+                    nozzle_rate = 0.0
+                else:
+                    # otherwise we compute the nozzle rate by interpolating the lookup table
+                    # since we interpolate with left=None and right=None, nozzle_rate will be clamped between min(self._lookup_table_valve_command) and max(self._lookup_table_valve_command)
+                    nozzle_rate = np.interp(flow_rate, self._lookup_table_nozzle_flow_rate, self._lookup_table_valve_command, left=None, right=None)
+
                 nozzles = self._nozzles_by_side_layer[(spraying_request.side, z_1)]
                 for nozzle in nozzles:
                     nozzle_command_msg.nozzle_command_array.append(NozzleCommand(
@@ -353,18 +373,20 @@ class SprayingManager:
             if canopy_data_msg.canopy_id in self._active_spraying_requests:
                 self._active_spraying_requests[canopy_data_msg.canopy_id].last_canopy_data_msg = canopy_data_msg
 
-                layer_depth_sum_count = defaultdict(lambda: [0.0, 0])
+                layer_depth_values: defaultdict[float, list[float]] = defaultdict(list)  # list of depth values for each layer
                 for _, y_depth, z in zip(canopy_data_msg.depth_x_array, canopy_data_msg.depth_y_array, canopy_data_msg.depth_z_array):
-                    for layer_z_1, layer_z_2 in self._canopy_layer_bound_pairs:
-                        if layer_z_1 < z < layer_z_2:
-                            layer_depth_sum_count[layer_z_1][0] += y_depth
-                            layer_depth_sum_count[layer_z_1][1] += 1
+                    if y_depth >= self._canopy_min_depth:
+                        for layer_z_1, layer_z_2 in self._canopy_layer_bound_pairs:
+                            if layer_z_1 < z < layer_z_2:
+                                layer_depth_values[layer_z_1].append(y_depth)
 
                 x = (canopy_data_msg.roi.x_1 + canopy_data_msg.roi.x_2) / 2
                 x_round = np.round(x / canopy_data_msg.resolution) * canopy_data_msg.resolution
                 for layer_z_1, _ in self._canopy_layer_bound_pairs:
-                    depth_sum, count = layer_depth_sum_count[layer_z_1]
-                    self._active_spraying_requests[canopy_data_msg.canopy_id].mean_depth[layer_z_1] = (depth_sum / count) if count > 0 else 0.0
+                    depth_values = layer_depth_values[layer_z_1]
+                    max_depth = max(depth_values) if len(depth_values) else 0.0
+
+                    self._active_spraying_requests[canopy_data_msg.canopy_id].aggregate_depth[layer_z_1] = max_depth
 
                 canopy_layer_depth = CanopyLayerDepth(
                     canopy_id=canopy_data_msg.canopy_id,
@@ -372,7 +394,7 @@ class SprayingManager:
                     roi=canopy_data_msg.roi,
                     resolution=canopy_data_msg.resolution,
                     x=x_round,
-                    mean_depth=self._active_spraying_requests[canopy_data_msg.canopy_id].mean_depth.values(),
+                    aggregate_depth=self._active_spraying_requests[canopy_data_msg.canopy_id].aggregate_depth.values(),
                     canopy_layer_bounds=self._canopy_layer_bounds,
                 )
                 canopy_layer_depth_array_msg.canopy_layer_depth_array.append(canopy_layer_depth)

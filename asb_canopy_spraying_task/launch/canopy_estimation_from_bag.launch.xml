@@ -23,6 +23,8 @@
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_viz.py" name="canopy_viz" if="$(var enable_viz_topics)">
     <param name="use_sim_time" value="$(var use_sim_time)" />
+    <param name="task_plan_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/arcagna/task_plan_$(var task_plan).yaml"/>
+    <param name="nozzle_rate_lookup_table_file_path" value="$(find-pkg-share asb_canopy_spraying_task)/config/local_data/arcagna/nozzle_rate_lookup_table.yaml" />
   </node>
 
   <node pkg="asb_canopy_spraying_task" exec="canopy_estimation_from_bag.py" name="canopy_estimation_from_bag">
