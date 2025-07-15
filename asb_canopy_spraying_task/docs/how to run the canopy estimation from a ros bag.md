@@ -7,3 +7,8 @@ In terminal 2:
 ```shell
 rl asb_canopy_spraying_task canopy_estimation_from_bag.launch.xml
 ```
+
+In terminal 3:
+```shell
+rv-ust
+```
