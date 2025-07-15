@@ -54,6 +54,7 @@ namespace asb_rviz_plugins
     std::vector<QString> control_mode_string = {"STOP", "MANUAL", "AUTO", "OVERRIDE"};
     QString yel_bg = "QLabel {background-color: yellow;}";
     QString red_bg = "QLabel {background-color: red;}";
+    QString blue_bg = "QLabel {background-color: cyan;}";
     QString no_bg = "QLabel {}";
 
   };
