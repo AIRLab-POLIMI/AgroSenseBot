@@ -104,6 +104,8 @@ private:
 
     static ColorRGBA height_color_map(double h);
 
+    static std::string replace_substring(const std::string & str, const std::string & from, const std::string & to);
+
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 

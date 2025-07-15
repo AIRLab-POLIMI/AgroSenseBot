@@ -445,7 +445,7 @@ class SprayingTaskPlan:
     def get_item_ids(self) -> list[str]:
         return list(map(lambda x: x.get_item_id(), self.items))
 
-    def get_row(self, row_id: str):
+    def get_row(self, row_id: str) -> TaskPlanRow:
         if not isinstance(row_id, str):
             raise TypeError(f"get_row: trying to get a row by row_id, but the type of the row_id requested is different than string [{row_id}]")
         found_rows = [x for x in self.rows if x.get_row_id() == row_id]

@@ -153,7 +153,7 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
         canopy_structs[request->canopy_id].octree = std::make_unique<OcTree>(res_);
 
         if (!enable_canopy_estimation_) {
-            fs::path octree_filename(request->canopy_id + ".bt");
+            fs::path octree_filename(replace_substring(request->canopy_id, "/", "__") + ".bt");
             fs::path octree_file_path = canopy_data_dir_path_ / octree_filename;
 
             auto read_octree_start = std::chrono::high_resolution_clock::now();
@@ -188,7 +188,7 @@ void CanopyVolumeEstimation::suspend_canopy_region(const std::shared_ptr<Suspend
             canopy_structs[request->canopy_id].suspended = true;
 
             if (enable_canopy_estimation_) {
-                fs::path octree_filename(request->canopy_id + ".bt");
+                fs::path octree_filename(replace_substring(request->canopy_id, "/", "__") + ".bt");
                 fs::path octree_file_path = canopy_data_dir_path_ / octree_filename;
 
                 auto write_octree_start = std::chrono::high_resolution_clock::now();
@@ -517,4 +517,14 @@ ColorRGBA CanopyVolumeEstimation::height_color_map(double h) {
     }
 
     return color;
+}
+
+std::string CanopyVolumeEstimation::replace_substring(const std::string & str, const std::string & from, const std::string & to) {
+    std::string res = str;
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        res.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Advance past the replacement
+    }
+    return res;
 }

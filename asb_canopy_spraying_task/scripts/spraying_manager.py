@@ -26,7 +26,7 @@ from asb_msgs.srv import InitializeCanopyRegion, InitializeCanopyRegion_Request,
 from collections import defaultdict
 import numpy as np
 
-from spraying_task_plan import TaskPlanItem
+from spraying_task_plan import TaskPlanItem, TaskPlanRow
 
 from typing_extensions import Self
 from typing import TYPE_CHECKING
@@ -296,17 +296,17 @@ class SprayingManager:
 
         # if everything is ok, compute the nozzle command for the requested sides
         nozzle_command_msg = NozzleCommandArray(stamp=self._node.get_clock().now().to_msg())
-        for row_id, spraying_request in self._active_spraying_requests.items():
+        for canopy_id, spraying_request in self._active_spraying_requests.items():
 
             # if we didn't receive any canopy data since initialization, there is a problem
             if spraying_request.last_canopy_data_msg is None:
                 canopy_data_init_wait_time = self._node.get_clock().now() - spraying_request.init_time
                 if canopy_data_init_wait_time <= self._canopy_data_timeout:
-                    self._node.get_logger().warn(f"still waiting for first canopy data [{canopy_data_init_wait_time.nanoseconds/1e9} s] for row {row_id}, can not compute spray regulation")
+                    self._node.get_logger().warn(f"still waiting for first canopy data [{canopy_data_init_wait_time.nanoseconds/1e9} s] for canopy {canopy_id}, can not compute spray regulation")
                     continue
                 else:
                     # if we still didn't receive the canopy data after the timeout, go to failure state
-                    self._node.get_logger().error(f"waited for first canopy data [{canopy_data_init_wait_time.nanoseconds/1e9} s] longer than timeout [{self._canopy_data_timeout.nanoseconds / 1e9} s] for row {row_id}")
+                    self._node.get_logger().error(f"waited for first canopy data [{canopy_data_init_wait_time.nanoseconds/1e9} s] longer than timeout [{self._canopy_data_timeout.nanoseconds / 1e9} s] for canopy {canopy_id}")
                     self.spraying_status = SprayingStatus.FAILURE
                     zero_all_cmds()
                     return
@@ -314,7 +314,7 @@ class SprayingManager:
             # if we didn't receive the canopy data for longer than timeout, there is a problem, go to failure state
             canopy_data_age = self._node.get_clock().now() - Time.from_msg(spraying_request.last_canopy_data_msg.header.stamp)
             if canopy_data_age > self._canopy_data_timeout:
-                self._node.get_logger().error(f"canopy data age [{canopy_data_age.nanoseconds/1e9} s] older than timeout [{self._canopy_data_timeout.nanoseconds / 1e9} s]. Can not compute spray regulation for row {row_id}.")
+                self._node.get_logger().error(f"canopy data age [{canopy_data_age.nanoseconds/1e9} s] older than timeout [{self._canopy_data_timeout.nanoseconds / 1e9} s]. Can not compute spray regulation for canopy {canopy_id}.")
                 self.spraying_status = SprayingStatus.FAILURE
                 zero_all_cmds()
                 return
@@ -381,44 +381,48 @@ class SprayingManager:
 
     def start_spray_regulator(self, item: TaskPlanItem) -> None:
         if len(self._active_spraying_requests) > 0:
-            self._node.get_logger().error(f"start row spraying while already spraying")
+            self._node.get_logger().error(f"start canopy spraying while already spraying")
+            # TODO self.spraying_status = SprayingStatus.NOT_SPRAYING
+            # TODO return
 
         if item.get_left_row_id() is None and item.get_right_row_id() is None:
-            self._node.get_logger().error(f"neither left nor right row spraying in row item [{item.get_item_id()}]")
+            self._node.get_logger().error(f"neither left nor right canopy spraying in item [{item.get_item_id()}]")
 
         if item.get_left_row_id() is not None:
-            left_row = self._node.task_plan.get_row(item.get_left_row_id())
-            self._node.get_logger().info(f"starting spray regulator for left row [{left_row.get_row_id()}]")
+            left_row: TaskPlanRow = self._node.task_plan.get_row(item.get_left_row_id())
+            left_canopy_id: str = f"{left_row.get_row_id()}/{item.get_item_id()}"
+            self._node.get_logger().info(f"starting spray regulator for canopy {left_canopy_id} on left side")
 
             self._init_canopy_volume_estimation(
-                row_id=left_row.get_row_id(),
+                canopy_id=left_canopy_id,
                 side=SprayingSide.LEFT,
                 p_1=left_row.get_start_point(),
                 p_2=left_row.get_end_point()
             )
 
         if item.get_right_row_id() is not None:
-            right_row = self._node.task_plan.get_row(item.get_right_row_id())
-            self._node.get_logger().info(f"starting spray regulator for right row [{right_row.get_row_id()}]")
+            right_row: TaskPlanRow = self._node.task_plan.get_row(item.get_right_row_id())
+            right_canopy_id: str = f"{right_row.get_row_id()}/{item.get_item_id()}"
+            self._node.get_logger().info(f"starting spray regulator for canopy {right_canopy_id} on right side")
 
             self._init_canopy_volume_estimation(
-                row_id=right_row.get_row_id(),
+                canopy_id=right_canopy_id,
                 side=SprayingSide.RIGHT,
                 p_1=right_row.get_start_point(),
                 p_2=right_row.get_end_point()
             )
 
-    def _init_canopy_volume_estimation(self, row_id: str, side: SprayingSide, p_1: PointStamped, p_2: PointStamped):
+    def _init_canopy_volume_estimation(self, canopy_id: str, side: SprayingSide, p_1: PointStamped, p_2: PointStamped):
         canopy_radius = self._max_canopy_width / 2
         canopy_length = np.linalg.norm(np.array([p_2.point.x, p_2.point.y]) - np.array([p_1.point.x, p_1.point.y]))
         canopy_yaw = np.arctan2(p_2.point.y - p_1.point.y, p_2.point.x - p_1.point.x)
         canopy_q = quaternion_from_euler(0, 0, canopy_yaw)
 
-        self._broadcast_static_transform(child_frame_id=row_id, p=p_1, q=canopy_q)
+        self._broadcast_static_transform(child_frame_id=canopy_id, p=p_1, q=canopy_q)
 
         request = InitializeCanopyRegion_Request(
-            canopy_id=row_id,
-            canopy_frame_id=row_id,
+            canopy_id=canopy_id,
+            canopy_frame_id=canopy_id,
             min_x=-canopy_radius,
             max_x=canopy_length + canopy_radius,
             min_y=-canopy_radius,
@@ -432,91 +436,91 @@ class SprayingManager:
             ),
         )
 
-        self._init_canopy_region_timeout_counter[row_id] = 0
-        if row_id in self._init_canopy_region_timeout_timer:
-            self._init_canopy_region_timeout_timer[row_id].cancel()
+        self._init_canopy_region_timeout_counter[canopy_id] = 0
+        if canopy_id in self._init_canopy_region_timeout_timer:
+            self._init_canopy_region_timeout_timer[canopy_id].cancel()
 
         init_canopy_region_response_future = self._init_canopy_region_client.call_async(request)
-        self._init_canopy_region_timeout_timer[row_id] = self._node.create_timer(1.0, lambda: self._init_canopy_region_timeout_callback(request, row_id, side))
-        init_canopy_region_response_future.add_done_callback(lambda f: self._init_canopy_region_response_callback(f, row_id, side))
+        self._init_canopy_region_timeout_timer[canopy_id] = self._node.create_timer(1.0, lambda: self._init_canopy_region_timeout_callback(request=request, canopy_id=canopy_id, side=side))
+        init_canopy_region_response_future.add_done_callback(lambda f: self._init_canopy_region_response_callback(future=f, canopy_id=canopy_id, spraying_side=side))
 
-    def _init_canopy_region_timeout_callback(self, request: InitializeCanopyRegion_Request, row_id: str, side: SprayingSide):
-        self._init_canopy_region_timeout_timer[row_id].cancel()
-        self._init_canopy_region_timeout_counter[row_id] += 1
+    def _init_canopy_region_timeout_callback(self, request: InitializeCanopyRegion_Request, canopy_id: str, side: SprayingSide):
+        self._init_canopy_region_timeout_timer[canopy_id].cancel()
+        self._init_canopy_region_timeout_counter[canopy_id] += 1
 
-        if self._init_canopy_region_timeout_counter[row_id] < self._service_call_max_attempts:
-            self._node.get_logger().warn(f"init_canopy_region service call timeout, retrying (retry attempt {self._init_canopy_region_timeout_counter[row_id]} of {self._service_call_max_attempts}). [row_id={row_id}]")
+        if self._init_canopy_region_timeout_counter[canopy_id] < self._service_call_max_attempts:
+            self._node.get_logger().warn(f"init_canopy_region service call timeout, retrying (retry attempt {self._init_canopy_region_timeout_counter[canopy_id]} of {self._service_call_max_attempts}). [canopy_id={canopy_id}]")
         else:
             self.spraying_status = SprayingStatus.FAILURE
-            self._init_canopy_region_timeout_counter[row_id] = 0
-            self._node.get_logger().error(f"init_canopy_region service call timeout, max attempts reached [{self._service_call_max_attempts}] [row_id={row_id}].")
+            self._init_canopy_region_timeout_counter[canopy_id] = 0
+            self._node.get_logger().error(f"init_canopy_region service call timeout, max attempts reached [{self._service_call_max_attempts}] [canopy_id={canopy_id}].")
             return
 
         # retry
         init_canopy_region_response_future = self._init_canopy_region_client.call_async(request)
-        self._init_canopy_region_timeout_timer[row_id] = self._node.create_timer(1.0, lambda: self._init_canopy_region_timeout_callback(request, row_id, side))
-        init_canopy_region_response_future.add_done_callback(lambda f: self._init_canopy_region_response_callback(f, row_id, side))
+        self._init_canopy_region_timeout_timer[canopy_id] = self._node.create_timer(1.0, lambda: self._init_canopy_region_timeout_callback(request=request, canopy_id=canopy_id, side=side))
+        init_canopy_region_response_future.add_done_callback(lambda f: self._init_canopy_region_response_callback(future=f, canopy_id=canopy_id, spraying_side=side))
 
-    def _init_canopy_region_response_callback(self, future: Future, row_id: str, spraying_side: SprayingSide) -> None:
-        self._init_canopy_region_timeout_counter[row_id] = 0
-        self._init_canopy_region_timeout_timer[row_id].cancel()
+    def _init_canopy_region_response_callback(self, future: Future, canopy_id: str, spraying_side: SprayingSide) -> None:
+        self._init_canopy_region_timeout_counter[canopy_id] = 0
+        self._init_canopy_region_timeout_timer[canopy_id].cancel()
 
         result = future.result().result
         if result:
-            self._node.get_logger().info(f"started spraying [row_id: {row_id}, side: {spraying_side.name}]")
-            self._active_spraying_requests[row_id] = SprayingRequest(side=spraying_side, init_time=self._node.get_clock().now())
+            self._node.get_logger().info(f"started spraying [canopy_id: {canopy_id}, side: {spraying_side.name}]")
+            self._active_spraying_requests[canopy_id] = SprayingRequest(side=spraying_side, init_time=self._node.get_clock().now())
         else:
-            self._node.get_logger().error(f"init_canopy_region_response: row_id: {row_id} result: {result}")
+            self._node.get_logger().error(f"init_canopy_region_response: canopy_id: {canopy_id} result: {result}")
             self.spraying_status = SprayingStatus.FAILURE
 
     def stop_spray_regulator(self) -> None:
-        for row_id in self._init_canopy_region_timeout_timer.keys():
-            self._init_canopy_region_timeout_counter[row_id] = 0
-            self._init_canopy_region_timeout_timer[row_id].cancel()
+        for canopy_id in self._init_canopy_region_timeout_timer.keys():
+            self._init_canopy_region_timeout_counter[canopy_id] = 0
+            self._init_canopy_region_timeout_timer[canopy_id].cancel()
 
         if len(self._active_spraying_requests) == 0:
-            self._node.get_logger().warn(f"stop row spraying while already not spraying")
-            return
+            self._node.get_logger().warn(f"stop canopy spraying while already not spraying")
+            return  # TODO remove this return, so we execute self.spraying_status = SprayingStatus.NOT_SPRAYING anyway
 
-        for row_id in list(self._active_spraying_requests.keys()):
-            self._node.get_logger().info(f"stopping spraying row {row_id}")
-            self._active_spraying_requests.pop(row_id)
-            self._suspend_canopy_volume_estimation(row_id)
+        for canopy_id in list(self._active_spraying_requests.keys()):
+            self._node.get_logger().info(f"stopping spraying canopy {canopy_id}")
+            self._active_spraying_requests.pop(canopy_id)
+            self._suspend_canopy_volume_estimation(canopy_id)
 
         self.spraying_status = SprayingStatus.NOT_SPRAYING
 
-    def _suspend_canopy_volume_estimation(self, row_id):
-        self._suspend_canopy_region_timeout_counter[row_id] = 0
-        if row_id in self._suspend_canopy_region_timeout_timer:
-            self._suspend_canopy_region_timeout_timer[row_id].cancel()
+    def _suspend_canopy_volume_estimation(self, canopy_id):
+        self._suspend_canopy_region_timeout_counter[canopy_id] = 0
+        if canopy_id in self._suspend_canopy_region_timeout_timer:
+            self._suspend_canopy_region_timeout_timer[canopy_id].cancel()
 
-        suspend_canopy_region_response_future = self._suspend_canopy_region_client.call_async(SuspendCanopyRegion_Request(canopy_id=row_id))
-        self._suspend_canopy_region_timeout_timer[row_id] = self._node.create_timer(1.0, lambda: self._suspend_canopy_region_timeout_callback(row_id))
-        suspend_canopy_region_response_future.add_done_callback(lambda f: self._suspend_canopy_region_response_callback(f, row_id))
+        suspend_canopy_region_response_future = self._suspend_canopy_region_client.call_async(SuspendCanopyRegion_Request(canopy_id=canopy_id))
+        self._suspend_canopy_region_timeout_timer[canopy_id] = self._node.create_timer(1.0, lambda: self._suspend_canopy_region_timeout_callback(canopy_id=canopy_id))
+        suspend_canopy_region_response_future.add_done_callback(lambda f: self._suspend_canopy_region_response_callback(future=f, canopy_id=canopy_id))
 
-    def _suspend_canopy_region_timeout_callback(self, row_id: str):
-        self._suspend_canopy_region_timeout_timer[row_id].cancel()
-        self._suspend_canopy_region_timeout_counter[row_id] += 1
-        if self._suspend_canopy_region_timeout_counter[row_id] < self._service_call_max_attempts:
-            self._node.get_logger().warn(f"suspend_canopy_region service call timeout, retrying (retry attempt {self._suspend_canopy_region_timeout_counter[row_id]} of {self._service_call_max_attempts}). [row_id={row_id}]")
+    def _suspend_canopy_region_timeout_callback(self, canopy_id: str):
+        self._suspend_canopy_region_timeout_timer[canopy_id].cancel()
+        self._suspend_canopy_region_timeout_counter[canopy_id] += 1
+        if self._suspend_canopy_region_timeout_counter[canopy_id] < self._service_call_max_attempts:
+            self._node.get_logger().warn(f"suspend_canopy_region service call timeout, retrying (retry attempt {self._suspend_canopy_region_timeout_counter[canopy_id]} of {self._service_call_max_attempts}). [canopy_id={canopy_id}]")
         else:
             self.spraying_status = SprayingStatus.FAILURE
-            self._suspend_canopy_region_timeout_counter[row_id] = 0
-            self._node.get_logger().error(f"suspend_canopy_region service call timeout, max attempts reached [{self._service_call_max_attempts}]. [row_id={row_id}]")
+            self._suspend_canopy_region_timeout_counter[canopy_id] = 0
+            self._node.get_logger().error(f"suspend_canopy_region service call timeout, max attempts reached [{self._service_call_max_attempts}]. [canopy_id={canopy_id}]")
             return
 
         # retry
-        suspend_canopy_region_response_future = self._suspend_canopy_region_client.call_async(SuspendCanopyRegion_Request(canopy_id=row_id))
-        self._suspend_canopy_region_timeout_timer[row_id] = self._node.create_timer(1.0, lambda: self._suspend_canopy_region_timeout_callback(row_id))
-        suspend_canopy_region_response_future.add_done_callback(lambda f: self._suspend_canopy_region_response_callback(f, row_id))
+        suspend_canopy_region_response_future = self._suspend_canopy_region_client.call_async(SuspendCanopyRegion_Request(canopy_id=canopy_id))
+        self._suspend_canopy_region_timeout_timer[canopy_id] = self._node.create_timer(1.0, lambda: self._suspend_canopy_region_timeout_callback(canopy_id=canopy_id))
+        suspend_canopy_region_response_future.add_done_callback(lambda f: self._suspend_canopy_region_response_callback(future=f, canopy_id=canopy_id))
 
-    def _suspend_canopy_region_response_callback(self, future: Future, row_id: str) -> None:
-        self._suspend_canopy_region_timeout_counter[row_id] = 0
-        self._suspend_canopy_region_timeout_timer[row_id].cancel()
+    def _suspend_canopy_region_response_callback(self, future: Future, canopy_id: str) -> None:
+        self._suspend_canopy_region_timeout_counter[canopy_id] = 0
+        self._suspend_canopy_region_timeout_timer[canopy_id].cancel()
 
         result = future.result().result
         if not result:
-            self._node.get_logger().error(f"suspend_canopy_region_response_callback: row_id: {row_id} result: {result}")
+            self._node.get_logger().error(f"suspend_canopy_region_response_callback: canopy_id: {canopy_id} result: {result}")
 
     def _broadcast_static_transform(self, child_frame_id: str, p: PointStamped, q: list[float]) -> None:
         t = TransformStamped()
