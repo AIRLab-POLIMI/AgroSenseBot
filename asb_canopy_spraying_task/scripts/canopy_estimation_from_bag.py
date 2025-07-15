@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os.path
+from collections import defaultdict
 
 import rclpy
 from rclpy.time import Time
@@ -36,12 +37,28 @@ class CanopyEstimationFromBag(Node):
 
         # run time variables
         self.item_index: int = 0
-        self.current_item: TaskPlanItem | None = None
+        self.current_item: TaskPlanItem = self.task_plan.items[self.item_index]
 
-        self.started_estimation: bool = False
-        self.finished_estimation: bool = False
-        self.start_estimation_time: float = 1750667126.68
-        self.stop_estimation_time: float = 1750667238.08
+        self.started_estimation: defaultdict[str, bool] = defaultdict(lambda: False)
+        self.finished_estimation: defaultdict[str, bool] = defaultdict(lambda: False)
+
+        # ~/asb_logs/2025-06-23/d_4_rosbag2_2025-06-23__11-33-25_all/
+        self.start_estimation_time: dict[str, float] = {
+            'inter_row_10_c': 1750671233.92,
+            'inter_row_10_b': 1750671533.11,
+        }
+        self.stop_estimation_time: dict[str, float] = {
+            'inter_row_10_c': 1750671343.63,
+            'inter_row_10_b': 1750671643.38,
+        }
+
+        # ~/asb_logs/2025-06-23/d_0_rosbag2_2025-06-23__10-24-32_all/
+        # self.start_estimation_time: dict[str, float] = {
+        #     'inter_row_10_c': 1750667126.68,
+        # }
+        # self.stop_estimation_time: dict[str, float] = {
+        #     'inter_row_10_c': 1750667238.08,
+        # }
 
         # managers
         self.dry_run = False
@@ -49,23 +66,17 @@ class CanopyEstimationFromBag(Node):
         self.spraying_manager = SprayingManager(node=self)
 
         # setup
-        # self.plan_manager.setup()
-        # self.get_logger().info(f"self.plan_manager.setup")
-
         self.spraying_manager.setup()
         self.get_logger().info(f"self.spraying_manager.setup")
-
-        self.current_item = self.task_plan.items[self.item_index]
 
         self.create_timer(0.1, self.timer_callback)
 
     def timer_callback(self):
         now_s = self.get_clock().now().nanoseconds/1E9
 
-        self.get_logger().info(f"ros time: {now_s:.3f}")
+        if not self.started_estimation[self.current_item.get_item_id()] and now_s > self.start_estimation_time[self.current_item.get_item_id()]:
+            self.started_estimation[self.current_item.get_item_id()] = True
 
-        if not self.started_estimation and now_s > self.start_estimation_time:
-            self.started_estimation = True
             self.spraying_manager.start_spray_regulator(self.current_item)
 
             if self.spraying_manager.spraying_status in [SprayingStatus.NOT_SPRAYING, SprayingStatus.STARTING]:
@@ -75,9 +86,15 @@ class CanopyEstimationFromBag(Node):
                 self.get_logger().error(f"spraying failed")
                 return
 
-        if not self.finished_estimation and self.started_estimation and now_s > self.stop_estimation_time:
-            self.finished_estimation = True
+        if not self.finished_estimation[self.current_item.get_item_id()] and self.started_estimation[self.current_item.get_item_id()] and now_s > self.stop_estimation_time[self.current_item.get_item_id()]:
+            self.finished_estimation[self.current_item.get_item_id()] = True
             self.spraying_manager.stop_spray_regulator()
+
+            self.item_index += 1
+            if self.item_index >= len(self.task_plan.items):
+                return
+
+            self.current_item = self.task_plan.items[self.item_index]
 
 
 def main(args=None):

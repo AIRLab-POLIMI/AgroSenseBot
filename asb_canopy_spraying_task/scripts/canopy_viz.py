@@ -40,7 +40,7 @@ class CanopyDataViz(Node):
         canopy_data_msg: CanopyData
         for canopy_data_msg in canopy_data_array_msg.canopy_data_array:
 
-            canopy_id = canopy_data_msg.canopy_id
+            canopy_id = canopy_data_msg.canopy_id.replace('/', '__')
             res = canopy_data_msg.resolution
 
             if canopy_id not in self._canopy_data_viz_pubs:
@@ -58,6 +58,7 @@ class CanopyDataViz(Node):
             im_height = self._z_max[canopy_id] - self._z_min[canopy_id] + 1
             im_width = self._x_max[canopy_id] - self._x_min[canopy_id] + 1
             if im_height == 0 or im_width == 0:
+                self.get_logger().warn(f"im_height == 0 or im_width == 0")
                 continue
 
             background: tuple[int, int, int] = (0, 0, 0)  # (B, G, R)

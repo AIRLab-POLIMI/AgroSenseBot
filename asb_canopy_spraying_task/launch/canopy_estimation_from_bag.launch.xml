@@ -18,9 +18,10 @@
     <param name="max_range" value="5.0" />
     <param name="print_timing" value="false" />
     <param name="enable_viz_topics" value="$(var enable_viz_topics)" />
+    <param name="octomap_viz_publish_period" value="5.0" />
   </node>
 
-  <node pkg="asb_canopy_spraying_task" exec="canopy_viz.py" name="canopy_viz" >
+  <node pkg="asb_canopy_spraying_task" exec="canopy_viz.py" name="canopy_viz" if="$(var enable_viz_topics)">
     <param name="use_sim_time" value="$(var use_sim_time)" />
   </node>
 

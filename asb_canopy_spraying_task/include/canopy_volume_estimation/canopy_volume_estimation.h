@@ -78,6 +78,7 @@ public:
     CanopyRegionOfInterest roi, roi_transformed;
     std::unique_ptr<OcTree> octree;
     MarkerArray roi_depth_viz_marker_array;
+    MarkerArray octomap_viz_marker_array;
 };
 
 class CanopyVolumeEstimation : public rclcpp::Node {
@@ -98,9 +99,11 @@ private:
 
     void update_canopy_volume(CanopyStruct & canopy_struct, CanopyData & canopy_data_msg, const rclcpp::Time & ros_time);
 
-    static void add_viz_marker(CanopyStruct & canopy_struct, size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z);
+    static void add_roi_depth_viz_marker(CanopyStruct & canopy_struct, size_t marker_id, Header header, double size, double x, double y_min, double y_max, double z);
 
-    void publish_octomap_marker_array(const CanopyStruct & canopy_struct, const rclcpp::Time & rostime);
+    static void add_octomap_marker_array_voxel(const double & x, const double & y, const double & z, CanopyStruct & canopy_struct);
+
+    void publish_octomap_marker_array(const rclcpp::Time & rostime, CanopyStruct & canopy_struct);
 
     static ColorRGBA height_color_map(double h);
 
@@ -130,6 +133,7 @@ private:
     bool enable_canopy_estimation_;
     fs::path canopy_data_dir_path_;
     bool enable_viz_topics_;
+    double octomap_viz_publish_period_;
 
 };
 
