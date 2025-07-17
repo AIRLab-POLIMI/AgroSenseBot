@@ -47,7 +47,7 @@ public:
     CollisionChecker(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros, Parameters *params);
 
     /**
-     * @brief Destrructor for asb_regulated_pure_pursuit_controller::CollisionChecker
+     * @brief Destructor for asb_regulated_pure_pursuit_controller::CollisionChecker
      */
     ~CollisionChecker() = default;
 

@@ -73,10 +73,7 @@ controller_server:
       regulated_linear_scaling_min_radius: 3.0
 
       # unused features
-      use_adaptive_lookahead_dist: false
-      adaptive_lookahead_path_distance_margin: 0.3
       use_velocity_scaled_lookahead_dist: false
-      use_fixed_curvature_lookahead: false
       use_rotate_to_heading: false
 
       # unused features params
@@ -84,7 +81,6 @@ controller_server:
 #      max_lookahead_dist: 0.5
 #      lookahead_time: 1.5
 #      rotate_to_heading_angular_vel: 0.0
-#      curvature_lookahead_dist: 1.0
 #      rotate_to_heading_min_angle: 0.785
 #      max_angular_accel: 3.2
 
@@ -116,10 +112,7 @@ controller_server:
       regulated_linear_scaling_min_radius: 3.0
 
       # unused features
-      use_adaptive_lookahead_dist: false
-      adaptive_lookahead_path_distance_margin: 0.3
       use_velocity_scaled_lookahead_dist: false
-      use_fixed_curvature_lookahead: false
       use_rotate_to_heading: false
 
       # unused features params
@@ -127,6 +120,5 @@ controller_server:
 #      max_lookahead_dist: 0.5
 #      lookahead_time: 1.5
 #      rotate_to_heading_angular_vel: 0.0
-#      curvature_lookahead_dist: 1.0
 #      rotate_to_heading_min_angle: 0.785
 #      max_angular_accel: 3.2

@@ -194,7 +194,7 @@ protected:
      * @param lookahead_dist the lookahead distance
      * @return the extended lookahead pose
      */
-    static geometry_msgs::msg::PoseStamped getExtendedLookaheadPose(const geometry_msgs::msg::PoseStamped &next_stop_pose, const double lookahead_dist);
+    static geometry_msgs::msg::PoseStamped getExtendedLookaheadPose(const geometry_msgs::msg::PoseStamped &next_stop_pose, double lookahead_dist);
 
     /**
      * @brief find the next cusp in the transformed plan
@@ -204,40 +204,25 @@ protected:
      */
     static geometry_msgs::msg::PoseStamped findStopPose(const nav_msgs::msg::Path &transformed_plan);
 
-    bool goal_checker_isGoalReached(const geometry_msgs::msg::PoseStamped &robot_pose, const Pose &query_pose, const Pose &goal_pose, const Twist &);
-    tf2::Transform goal_checker_getRobotToGoalTransform(const Pose &goal_pose, const Pose &robot_pose);
-    bool goal_checker_findRadiusPoseIntersection(const Pose &p, const double &r, Point &p_int);
-    Point goal_checker_getExtendedLookaheadPoint(const Pose &path_pose, bool &valid_solution) const;
-    double goal_checker_getLookaheadCurvature(Point lookahead_point) const;
-    Pose goal_checker_get_pose_c_to_r(const Point &point_in_c, const tf2::Transform &tf_r_to_c);
-
     rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
     std::shared_ptr<tf2_ros::Buffer> tf_;
     std::string plugin_name_;
     std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
-    nav2_costmap_2d::Costmap2D *costmap_;
+    nav2_costmap_2d::Costmap2D *costmap_ = nullptr;
     rclcpp::Logger logger_{rclcpp::get_logger("RegulatedPurePursuitController")};
 
-    Parameters *params_;
-    double goal_dist_tol_, goal_yaw_tol_;
-    bool in_goal_proximity_, forward_;
-    double control_duration_;
-    double travelled_distance_;
+    Parameters *params_ = nullptr;
+    double goal_dist_tol_ = 0.25;  // init to reasonable value before configure is called
+    double control_duration_ = 1.0 / 20;  // init to reasonable value before configure is called
+    double travelled_distance_ = 0.0;
     rclcpp::Time last_call_time_;
 
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> global_path_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> carrot_pose_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> angle_lookahead_pose_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> goal_pose_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>> stop_pose_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PointStamped>> constraint_intersection_poses_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>> lookahead_circle_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>> constraints_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> lookahead_arc_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> path_lookahead_arc_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> angle_priority_arc_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> goal_checker_arc_pub_;
-    std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>> goal_checker_intersection_arc_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> lookahead_curvature_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> min_curvature_pub_;
     std::shared_ptr<rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Float64>> max_curvature_pub_;

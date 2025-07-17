@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <algorithm>
 #include <string>
-#include <limits>
 #include <memory>
 #include <vector>
 #include <utility>
@@ -56,7 +54,7 @@ bool CollisionChecker::isCollisionImminent(const geometry_msgs::msg::PoseStamped
     pose_msg.header.frame_id = arc_pts_msg.header.frame_id;
     pose_msg.header.stamp = arc_pts_msg.header.stamp;
 
-    double projection_time = 0.0;
+    double projection_time;
     if (fabs(linear_vel) < 0.01 && fabs(angular_vel) > 0.01) {
         // rotating to heading at goal or toward path
         // Equation finds the angular distance required for the largest
@@ -139,7 +137,7 @@ double CollisionChecker::costAtPose(const double &x, const double &y) {
 
     if (!costmap_->worldToMap(x, y, mx, my)) {
         RCLCPP_FATAL(logger_, "The dimensions of the costmap is too small to fully include your robot's footprint, "
-                              "thusly the robot cannot proceed further");
+                              "the robot cannot proceed further");
         throw nav2_core::ControllerException("RegulatedPurePursuitController: Dimensions of the costmap are too small "
                                              "to encapsulate the robot footprint at current speeds!");
     }

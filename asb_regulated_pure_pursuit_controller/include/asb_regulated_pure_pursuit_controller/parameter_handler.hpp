@@ -39,12 +39,8 @@ struct Parameters {
     double min_lookahead_dist;
     double lookahead_time;
     bool use_velocity_scaled_lookahead_dist;
-    bool use_angular_approach;
-    bool use_adaptive_lookahead_dist;
-    double adaptive_lookahead_path_distance_margin;
     double min_approach_linear_velocity;
     double min_departure_linear_velocity;
-    double angular_approach_dist;
     double approach_velocity_scaling_dist;
     double departure_velocity_scaling_dist;
     double max_allowed_time_to_collision_up_to_carrot;
@@ -55,8 +51,6 @@ struct Parameters {
     double inflation_cost_scaling_factor;
     double regulated_linear_scaling_min_radius;
     double regulated_linear_scaling_min_speed;
-    bool use_fixed_curvature_lookahead;
-    double curvature_lookahead_dist;
     bool use_rotate_to_heading;
     double max_angular_accel;
     double rotate_to_heading_min_angle;
@@ -77,7 +71,7 @@ public:
     /**
      * @brief Constructor for asb_regulated_pure_pursuit_controller::ParameterHandler
      */
-    ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::string &plugin_name, rclcpp::Logger &logger, const double costmap_size_x);
+    ParameterHandler(rclcpp_lifecycle::LifecycleNode::SharedPtr node, std::string &plugin_name, rclcpp::Logger &logger, double costmap_size_x);
 
     /**
      * @brief Destructor for asb_regulated_pure_pursuit_controller::ParameterHandler
@@ -98,7 +92,7 @@ protected:
     // Dynamic parameters handler
     std::mutex mutex_;
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
-    Parameters params_;
+    Parameters params_{};
     std::string plugin_name_;
     rclcpp::Logger logger_{rclcpp::get_logger("RegulatedPurePursuitController")};
 };

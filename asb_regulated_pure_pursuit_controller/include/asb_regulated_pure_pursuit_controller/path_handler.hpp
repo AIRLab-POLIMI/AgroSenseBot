@@ -56,7 +56,7 @@ public:
      * @param max_robot_pose_search_dist Distance to search for matching nearest path point
      * @return Path in new frame
      */
-    nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist, bool prune);
+    nav_msgs::msg::Path transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist);
 
     /**
      * @brief Transform a pose to another frame.
@@ -65,13 +65,9 @@ public:
      * @param out_pose transformed output
      * @return bool if successful
      */
-    bool transformPose(const std::string frame, const geometry_msgs::msg::PoseStamped &in_pose, geometry_msgs::msg::PoseStamped &out_pose) const;
+    bool transformPose(std::string frame, const geometry_msgs::msg::PoseStamped &in_pose, geometry_msgs::msg::PoseStamped &out_pose) const;
 
     void setPlan(const nav_msgs::msg::Path &path) { global_plan_ = path; }
-
-    nav_msgs::msg::Path getPlan() { return global_plan_; }
-
-    geometry_msgs::msg::Pose getGoalInFixedFrame();
 
 protected:
     /**

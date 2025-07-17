@@ -36,9 +36,19 @@ set(library_name asb_regulated_pure_pursuit_controller)
 
 add_library(${library_name} SHARED
     src/regulated_pure_pursuit_controller.cpp
+    include/asb_regulated_pure_pursuit_controller/regulated_pure_pursuit_controller.hpp
+
     src/collision_checker.cpp
+    include/asb_regulated_pure_pursuit_controller/collision_checker.hpp
+
     src/parameter_handler.cpp
-    src/path_handler.cpp)
+    include/asb_regulated_pure_pursuit_controller/parameter_handler.hpp
+
+    src/path_handler.cpp
+    include/asb_regulated_pure_pursuit_controller/path_handler.hpp
+
+    include/asb_regulated_pure_pursuit_controller/regulation_functions.hpp
+)
 
 ament_target_dependencies(${library_name}
     ${dependencies}

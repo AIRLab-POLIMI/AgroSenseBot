@@ -36,11 +36,7 @@ double PathHandler::getCostmapMaxExtent() const {
     return max_costmap_dim_meters / 2.0;
 }
 
-geometry_msgs::msg::Pose PathHandler::getGoalInFixedFrame() {
-    return global_plan_.poses.back().pose;
-}
-
-nav_msgs::msg::Path PathHandler::transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist, bool prune) {
+nav_msgs::msg::Path PathHandler::transformGlobalPlan(const geometry_msgs::msg::PoseStamped &pose, double max_robot_pose_search_dist) {
     if (global_plan_.poses.empty()) {
         throw nav2_core::InvalidPath("Received plan with zero length");
     }
@@ -89,9 +85,7 @@ nav_msgs::msg::Path PathHandler::transformGlobalPlan(const geometry_msgs::msg::P
 
     // Remove the portion of the global plan that we've already passed, so we don't
     // process it on the next iteration (this is called path pruning)
-    if(prune) {
-        global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
-    }
+    global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
 
     if (transformed_plan.poses.empty()) {
         throw nav2_core::InvalidPath("Resulting plan has 0 poses in it.");
