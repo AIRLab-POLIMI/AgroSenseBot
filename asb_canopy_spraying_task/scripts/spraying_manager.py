@@ -403,9 +403,8 @@ class SprayingManager:
 
     def start_spray_regulator(self, item: TaskPlanItem) -> None:
         if len(self._active_spraying_requests) > 0:
-            self._node.get_logger().error(f"start canopy spraying while already spraying")
-            # TODO self.spraying_status = SprayingStatus.NOT_SPRAYING
-            # TODO return
+            self._node.get_logger().error(f"start canopy spraying called while already spraying, doing nothing.")
+            return
 
         if item.get_left_row_id() is None and item.get_right_row_id() is None:
             self._node.get_logger().error(f"neither left nor right canopy spraying in item [{item.get_item_id()}]")
@@ -502,7 +501,6 @@ class SprayingManager:
 
         if len(self._active_spraying_requests) == 0:
             self._node.get_logger().warn(f"stop canopy spraying while already not spraying")
-            return  # TODO remove this return, so we execute self.spraying_status = SprayingStatus.NOT_SPRAYING anyway
 
         for canopy_id in list(self._active_spraying_requests.keys()):
             self._node.get_logger().info(f"stopping spraying canopy {canopy_id}")
