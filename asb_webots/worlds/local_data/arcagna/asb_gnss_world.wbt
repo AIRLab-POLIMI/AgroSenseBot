@@ -38,7 +38,7 @@ Viewpoint {
 TexturedBackground {}
 TexturedBackgroundLight {}
 
-DEF FIELD_POSE Pose {
+DEF FIELD Pose {
   translation 11.0712308883667 1.3643907308578491 0
   rotation 0 0 1 -1.2081266384267435
   children [
@@ -83,7 +83,7 @@ DEF FIELD_POSE Pose {
       children [
         Shape {
           geometry Cylinder {
-            height 1.5
+            height 1
             radius 0.2
             subdivision 8
           }
