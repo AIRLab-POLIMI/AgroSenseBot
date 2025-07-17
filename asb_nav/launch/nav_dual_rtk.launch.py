@@ -14,6 +14,8 @@ from launch_ros.actions import Node
 def generate_launch_description():
     pkg = get_package_share_directory
 
+    location_env_var = os.environ['ASB_LOCATION']
+
     use_sim_time_launch_configuration = LaunchConfiguration('use_sim_time')
     use_sim_time_launch_argument = DeclareLaunchArgument(
         'use_sim_time',
@@ -34,7 +36,7 @@ def generate_launch_description():
         name="ekf_filter_map_odom",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", location_env_var, "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -49,7 +51,7 @@ def generate_launch_description():
         name="navsat_transform_1",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", location_env_var, "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -67,7 +69,7 @@ def generate_launch_description():
         name="navsat_transform_2",
         output="screen",
         parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", location_env_var, "robot_localization_ekf_dual_rtk.yaml"),
             {"use_sim_time": use_sim_time_launch_configuration},
         ],
         remappings=[
@@ -85,7 +87,7 @@ def generate_launch_description():
         name="asb_static_transform_broadcaster",
         output="screen",
         parameters=[
-            {"transform_list_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "arcagna", "static_transforms.yaml")},
+            {"transform_list_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", location_env_var, "static_transforms.yaml")},
         ],
     )
 

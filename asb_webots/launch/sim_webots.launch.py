@@ -11,9 +11,11 @@ from webots_ros2_driver.webots_controller import WebotsController
 
 def generate_launch_description():
 
+    location_env_var = os.environ['ASB_LOCATION']
+
     webots_launcher = WebotsLauncher(
         gui=False,
-        world=os.path.join(pkg('asb_webots'), 'worlds', 'local_data', 'arcagna', 'asb_gnss_world.wbt')
+        world=os.path.join(pkg('asb_webots'), 'worlds', 'local_data', location_env_var, 'asb_gnss_world.wbt')
     )
 
     webots_controller = WebotsController(

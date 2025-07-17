@@ -28,92 +28,6 @@ def generate_launch_description():
         description='Whether to start RViz',
     )
 
-    ekf_filter_node = Node(
-        package="robot_localization",
-        executable="ekf_node",
-        name="ekf_filter_map_odom",
-        output="screen",
-        parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
-            {"use_sim_time": use_sim_time_launch_configuration},
-        ],
-        remappings=[
-            ("odometry/filtered", "/ekf_filter_map_odometry"),  # Published. A nav_msgs/Odometry message of the robot’s current position, used by navsat_transform_node.
-            ("odometry/gps", "/gnss_2/navsat_odometry"),  # Subscribed. A nav_msgs/Odometry message from navsat_transform_node containing the GNSS coordinates of the robot.
-        ],
-    )
-
-    navsat_transform_1_node = Node(
-        package="robot_localization",
-        executable="navsat_transform_node",
-        name="navsat_transform_1",
-        output="screen",
-        parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
-            {"use_sim_time": use_sim_time_launch_configuration},
-        ],
-        remappings=[
-            ("odometry/filtered", "/ekf_filter_map_odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
-            ("gps/fix", "/gnss_1/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GNSS coordinates as LLH.
-            ("odometry/gps", "/gnss_1/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GNSS coordinates, transformed into its world coordinate frame.
-            ("/toLL", "/gnss_1/toLL"),  # Service. Translate map frame coordinates into GNSS coordinates.
-            ("/fromLL", "/gnss_1/fromLL"),  # Service. Translate GNSS coordinates into map frame coordinates.
-        ],
-    )
-
-    navsat_transform_2_node = Node(
-        package="robot_localization",
-        executable="navsat_transform_node",
-        name="navsat_transform_2",
-        output="screen",
-        parameters=[
-            os.path.join(pkg("asb_nav"), "config", "robot_localization_params", "local_data", "arcagna", "robot_localization_ekf_dual_rtk.yaml"),
-            {"use_sim_time": use_sim_time_launch_configuration},
-        ],
-        remappings=[
-            ("odometry/filtered", "/ekf_filter_map_odometry"),  # Subscribed. A nav_msgs/Odometry message of the robot’s current position. This is needed in the event that the first GNSS reading comes after your robot has attained some non-zero pose.
-            ("gps/fix", "/gnss_2/llh_position"),  # Subscribed. A sensor_msgs/NavSatFix message containing your robot’s GNSS coordinates as LLH.
-            ("odometry/gps", "/gnss_2/navsat_odometry"),  # Published. A nav_msgs/Odometry message containing the GNSS coordinates, transformed into its world coordinate frame.
-            ("/toLL", "/gnss_2/toLL"),  # Service. Translate map frame coordinates into GNSS coordinates.
-            ("/fromLL", "/gnss_2/fromLL"),  # Service. Translate GNSS coordinates into map frame coordinates.
-        ],
-    )
-
-    static_transform_broadcaster_node = Node(
-        package="asb_nav",
-        executable="static_transform_broadcaster.py",
-        name="asb_static_transform_broadcaster",
-        output="screen",
-        parameters=[
-            {"transform_list_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "arcagna", "static_transforms.yaml")},
-        ],
-    )
-
-    curvature_publisher_node = Node(
-        package="asb_etc",
-        executable="curvature_publisher.py",
-        name="curvature_publisher",
-        output="screen",
-    )
-
-    zero_publisher_node = Node(
-        package="asb_etc",
-        executable="zero_publisher.py",
-        name="zero_publisher",
-        output="screen",
-    )
-
-    global_path_distance_publisher_node = Node(
-        package="asb_etc",
-        executable="global_path_distance_publisher.py",
-        name="global_path_distance_publisher",
-        output="screen",
-    )
-
-    geofence_map_server_include = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "../../asb_nav/launch/geofence_map_server.launch.py")),
-    )
-
     nav2_bringup_include = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(pkg("asb_nav"), "launch", "../../asb_nav/launch/nav2_navigation_launch.py")),
         launch_arguments={
@@ -138,18 +52,8 @@ def generate_launch_description():
     ld.add_action(use_sim_time_launch_argument)
     ld.add_action(rviz_launch_argument)
 
-    # localization
-    # ld.add_action(ekf_filter_node)
-    # ld.add_action(navsat_transform_1_node)
-    # ld.add_action(navsat_transform_2_node)
-    # ld.add_action(static_transform_broadcaster_node)
-    # ld.add_action(curvature_publisher_node)
-    # ld.add_action(zero_publisher_node)
-
     # navigation
-    # ld.add_action(geofence_map_server_include)
     ld.add_action(nav2_bringup_include)
-    # ld.add_action(global_path_distance_publisher_node)
 
     # viz
     ld.add_action(rviz_include)

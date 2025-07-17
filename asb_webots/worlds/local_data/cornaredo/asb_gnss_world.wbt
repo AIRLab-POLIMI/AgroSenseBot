@@ -71,9 +71,14 @@ DEF FIELD_POSE Pose {
   ]
 }
 
-Robot {
+DEF ROBOT_NODE Robot {
   translation 12.3 13.1 0.8
   rotation 0 0 1 -2.8
+
+  name "asb_webots_robot"
+  controller "<extern>"
+  supervisor TRUE
+
   children [
 
     # SENSORS
@@ -975,7 +980,7 @@ Robot {
       geometriesCount 121
     }
   ]
-  name "asb_webots_robot"
+
   boundingObject Group {
      children [
       USE ITEM_H_LEFT
@@ -1041,5 +1046,4 @@ Robot {
     density -1
     mass 40
   }
-  controller "<extern>"
 }

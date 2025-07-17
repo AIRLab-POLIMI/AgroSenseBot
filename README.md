@@ -32,6 +32,9 @@ cd ~/w/agrosensebot_ws/ &&
 colcon build --symlink-install
 ```
 
+The environment variable `ASB_LOCATION` should be set before launching the robot software.
+It is configured in `asb_etc/files/.bashrc`. To use this file, replace `~/.bashrc` with it.
+
 Installing openssh-server and byobu is only necessary on the onboard computer.
 
 To use the MicroStrain 3DM-GQ7-GNSS/INS and RTK NTRIP client it is necessary to create a file at `~/NTRIP_caster_password` 

@@ -10,13 +10,15 @@ from launch_ros.actions import Node
 def generate_launch_description():
     pkg = get_package_share_directory
 
+    location_env_var = os.environ['ASB_LOCATION']
+
     geofence_map_server_node = Node(
         package="asb_nav",
         executable="geofence_map_server.py",
         name="geofence_map_server",
         output="screen",
         parameters=[
-            {"geofence_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", "arcagna", "geofence.yaml")},
+            {"geofence_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", location_env_var, "geofence.yaml")},
             os.path.join(pkg("asb_nav"), "config", "geofence_map_publisher_params", "geofence_map_publisher_params.yaml"),
         ],
         remappings=[

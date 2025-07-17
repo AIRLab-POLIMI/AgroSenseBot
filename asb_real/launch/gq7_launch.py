@@ -12,6 +12,8 @@ def generate_launch_description():
     with open(ntrip_caster_password_file_path, mode='r') as ntrip_caster_password_file:
         ntrip_caster_password = ntrip_caster_password_file.read()
 
+    location_env_var = os.environ['ASB_LOCATION']
+
     return LaunchDescription([
 
         # Microstrain driver node
@@ -20,7 +22,7 @@ def generate_launch_description():
             launch_arguments={
                 'configure': 'true',
                 'activate': 'true',
-                'params_file': os.path.join(pkg('asb_real'), 'config', 'local_data', 'arcagna', 'gq7.yml'),
+                'params_file': os.path.join(pkg('asb_real'), 'config', 'local_data', location_env_var, 'gq7.yml'),
                 'namespace': '/',
             }.items()
         ),
