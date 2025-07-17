@@ -94,12 +94,12 @@ DEF FIELD_POSE Pose {
 }
 
 DEF ROBOT_NODE Robot {
-  # start of first inter-row path
-  translation -23.608203398702805 -8.117335542996495 1.1
-  rotation 0.0011788178610124193 0.0006467763224241778 -0.999999096034011 1.1312505122685825
-#  # end of last inter-row path
-#  translation -27.3 -9.9 1.1
-#  rotation 0 0 1 1.93
+#  # start of first inter-row path
+#  translation -23.608203398702805 -8.117335542996495 1.1
+#  rotation 0.0011788178610124193 0.0006467763224241778 -0.999999096034011 1.1312505122685825
+  # end of last inter-row path
+  translation -27.3 -9.9 1.1
+  rotation 0 0 1 1.93
 
   name "asb_webots_robot"
   controller "<extern>"
@@ -126,8 +126,7 @@ DEF ROBOT_NODE Robot {
             GPS {
               name "gnss_1_link"
               type "satellite"
-              accuracy 0
-#              accuracy 0.05
+              accuracy 0.05
               noiseCorrelation 0
               resolution -1
               speedNoise 0
@@ -142,8 +141,7 @@ DEF ROBOT_NODE Robot {
             GPS {
               name "gnss_2_link"
               type "satellite"
-              accuracy 0
-#              accuracy 0.05
+              accuracy 0.05
               noiseCorrelation 0
               resolution -1
               speedNoise 0
