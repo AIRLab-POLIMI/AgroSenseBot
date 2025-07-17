@@ -162,8 +162,7 @@ class CanopyDataViz(Node):
 
                 im_height = self._z_max[canopy_id] - self._z_min[canopy_id] + 1
                 im_width = self._x_max[canopy_id] - self._x_min[canopy_id] + 1
-                if im_height == 0 or im_width == 0:
-                    self.get_logger().warn(f"im_height == 0 or im_width == 0")
+                if im_height <= 1 or im_width <= 1:
                     continue
 
                 # command canopy image
@@ -210,10 +209,15 @@ class CanopyDataViz(Node):
                         im_natural_enlarged = np.zeros((im_height, new_width, 3), dtype=im_natural.dtype)
                         im_natural_enlarged[:, x_offset:x_offset+im_width, :] = im_natural
 
-                        if 0 < x_roi_1 < new_width:
+                        if 0 < x_roi_1 + x_offset < new_width:
                             im_natural_enlarged[:, x_roi_1+x_offset] = (255, 255, 255)  # white
-                        if 0 < x_roi_2 < new_width:
+                        else:
+                            self.get_logger().error(f"im_width: {im_width}  new_width: {new_width}    x_roi_1 + x_offset: {x_roi_1 + x_offset}")
+
+                        if 0 < x_roi_2 + x_offset < new_width:
                             im_natural_enlarged[:, x_roi_2+x_offset] = (0, 255, 255)   # yellow
+                        else:
+                            self.get_logger().error(f"im_width: {im_width}  new_width: {new_width}    x_roi_2 + x_offset: {x_roi_2 + x_offset}")
 
                         if x_roi > prev_x_roi:
                             x_crop_min = min(x_roi_1, x_roi_2) - int(self._crop_size / res)
