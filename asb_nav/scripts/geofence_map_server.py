@@ -26,10 +26,10 @@ class GeofenceMapServer(Node):
     def __init__(self):
         super().__init__('geofence_map_server')
 
-        self.declare_parameter("map_resolution", 0.05)  # [m/pixel]
+        self.declare_parameter("map_resolution", rclpy.Parameter.Type.DOUBLE)  # [m/pixel]
         self.map_resolution = self.get_parameter("map_resolution").get_parameter_value().double_value
 
-        self.declare_parameter("map_margin", 1.0)  # [m]
+        self.declare_parameter("map_margin", rclpy.Parameter.Type.DOUBLE)  # [m]
         self.map_margin = self.get_parameter("map_margin").get_parameter_value().double_value
 
         self.declare_parameter("geofence_file_path", rclpy.Parameter.Type.STRING)

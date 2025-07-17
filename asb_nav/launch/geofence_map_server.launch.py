@@ -19,7 +19,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {"geofence_file_path": os.path.join(pkg("asb_nav"), "config", "local_data", location_env_var, "geofence.yaml")},
-            os.path.join(pkg("asb_nav"), "config", "geofence_map_publisher_params", "geofence_map_publisher_params.yaml"),
+            os.path.join(pkg("asb_nav"), "config", "geofence_map_server_params", "geofence_map_server_params.yaml"),
         ],
         remappings=[
             ("polygons_in", "/geofence_polygons"),
