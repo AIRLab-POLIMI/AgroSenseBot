@@ -1,12 +1,12 @@
 
-- child_frame_id: apple_orchard
+- child_frame_id: field  # reference frame oriented with its x-axis parallel to the rows
   frame_id: map
   x: 11.0712308883667
   y: 1.3643907308578491
   yaw: -1.2081266384267435
 
-- child_frame_id: apple_orchard_view
-  frame_id: apple_orchard
+- child_frame_id: field_view
+  frame_id: field
   x: 9.95243
   y: -1.09584
   yaw: 0.0

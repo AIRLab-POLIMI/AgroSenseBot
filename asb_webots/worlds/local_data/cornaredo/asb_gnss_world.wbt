@@ -38,7 +38,7 @@ Viewpoint {
 TexturedBackground {}
 TexturedBackgroundLight {}
 
-DEF VINE_POSE Pose {
+DEF FIELD_POSE Pose {
   translation 0 0 0
   rotation 0 0 1 0
   children [

@@ -19,7 +19,7 @@ class RowPointsLogger(Node):
         self.declare_parameter('row_points_file_path', os.path.expanduser('~/tmp/row_points.yaml'))
         self.row_points_file_path = self.get_parameter('row_points_file_path').get_parameter_value().string_value
 
-        self.declare_parameter('frame_id', 'apple_orchard')
+        self.declare_parameter('frame_id', 'field')
         self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
 
         self.declare_parameter('row_axis', 'x')

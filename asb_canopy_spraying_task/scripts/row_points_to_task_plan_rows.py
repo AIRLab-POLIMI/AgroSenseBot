@@ -22,7 +22,7 @@ class RowPointsLogger(Node):
         self.declare_parameter('task_plan_points_file_path', os.path.expanduser('~/tmp/task_plan_points.yaml'))
         self.task_plan_points_file_path = self.get_parameter('task_plan_points_file_path').get_parameter_value().string_value
 
-        self.declare_parameter('frame_id', 'apple_orchard')
+        self.declare_parameter('frame_id', 'field')
         self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
 
         self.declare_parameter('row_axis', 'x')

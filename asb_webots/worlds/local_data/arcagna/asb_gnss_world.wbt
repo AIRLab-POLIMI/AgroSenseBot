@@ -38,7 +38,7 @@ Viewpoint {
 TexturedBackground {}
 TexturedBackgroundLight {}
 
-DEF VINE_POSE Pose {
+DEF FIELD_POSE Pose {
   translation 11.0712308883667 1.3643907308578491 0
   rotation 0 0 1 -1.2081266384267435
   children [
@@ -94,8 +94,13 @@ DEF VINE_POSE Pose {
 }
 
 DEF ROBOT_NODE Robot {
-  translation -27.3 -9.9 1.1
-  rotation 0 0 1 1.93
+  # start of first inter-row path
+  translation -23.608203398702805 -8.117335542996495 1.1
+  rotation 0.0011788178610124193 0.0006467763224241778 -0.999999096034011 1.1312505122685825
+#  # end of last inter-row path
+#  translation -27.3 -9.9 1.1
+#  rotation 0 0 1 1.93
+
   name "asb_webots_robot"
   controller "<extern>"
   supervisor TRUE

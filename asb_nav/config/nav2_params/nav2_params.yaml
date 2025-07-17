@@ -22,7 +22,7 @@ local_costmap:
       update_frequency: 10.0
       always_send_full_costmap: True
       publish_frequency: 5.0
-      global_frame: apple_orchard
+      global_frame: field
       robot_base_frame: base_footprint
       rolling_window: true
       width: 10
@@ -95,7 +95,7 @@ global_costmap:
       update_frequency: 1.0
       always_send_full_costmap: True
       publish_frequency: 1.0
-      global_frame: apple_orchard
+      global_frame: field
       robot_base_frame: base_footprint
 
       footprint: "[[1.0, 0.81], [1.0, -0.81], [-1.2, -0.81], [-1.2, 0.81]]"

@@ -26,7 +26,7 @@ class TestPolygonPublisher(Node):
 
         header = Header()
         header.stamp = self.get_clock().now().to_msg()
-        header.frame_id = 'vineyard'
+        header.frame_id = 'field'
 
         # Create two rectangles as example polygons
         polygon1 = PolygonStamped()
