@@ -84,7 +84,7 @@ def generate_launch_description():
         output="screen",
         parameters=[{
             'workspace_install_dir_path': "~/w/agrosensebot_ws/install",
-            'log_dir_path': os.path.join(indexed_log_dir, "workspace_packages_share"),
+            'log_dir_path': indexed_log_dir,
         }],
     )
 
