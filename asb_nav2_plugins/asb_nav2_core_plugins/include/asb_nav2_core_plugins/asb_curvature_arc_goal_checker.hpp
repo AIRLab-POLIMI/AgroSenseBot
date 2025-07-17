@@ -90,8 +90,6 @@ protected:
 
     double getLookaheadCurvature(Point lookahead_point) const;
 
-    static Pose get_pose_c_to_r(const Point &point_in_c, const tf2::Transform &tf_r_to_c);
-
     /**
      * @brief Callback executed when a parameter change is detected
      * @param parameters list of changed parameters

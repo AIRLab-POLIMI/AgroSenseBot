@@ -35,13 +35,22 @@ set(dependencies
     pluginlib
 )
 
-add_library(asb_goal_checker SHARED plugins/asb_goal_checker.cpp)
+add_library(asb_goal_checker SHARED
+    plugins/asb_goal_checker.cpp
+    include/asb_nav2_core_plugins/asb_goal_checker.hpp
+)
 ament_target_dependencies(asb_goal_checker ${dependencies})
 
-add_library(asb_rotate_to_path_goal_checker SHARED plugins/asb_rotate_to_path_goal_checker.cpp)
+add_library(asb_rotate_to_path_goal_checker SHARED
+    plugins/asb_rotate_to_path_goal_checker.cpp
+    include/asb_nav2_core_plugins/asb_rotate_to_path_goal_checker.hpp
+)
 ament_target_dependencies(asb_rotate_to_path_goal_checker ${dependencies})
 
-add_library(asb_curvature_arc_goal_checker SHARED plugins/asb_curvature_arc_goal_checker.cpp)
+add_library(asb_curvature_arc_goal_checker SHARED
+    plugins/asb_curvature_arc_goal_checker.cpp
+    include/asb_nav2_core_plugins/asb_curvature_arc_goal_checker.hpp
+)
 ament_target_dependencies(asb_curvature_arc_goal_checker ${dependencies})
 
 install(TARGETS asb_goal_checker asb_rotate_to_path_goal_checker asb_curvature_arc_goal_checker

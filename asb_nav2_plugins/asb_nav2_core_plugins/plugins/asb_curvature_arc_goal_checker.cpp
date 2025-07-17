@@ -88,12 +88,8 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
     tf2::Transform tf_r_to_g = getRobotToGoalTransform(goal_pose, query_pose);
     Pose g_in_r;
     toMsg(tf_r_to_g, g_in_r);
-    RCLCPP_INFO(logger_, "query in fixed frame  x: %+.3f  y: %+.3f  theta: %+.3f", query_pose.position.x, query_pose.position.y, tf2::getYaw(query_pose.orientation));
-    RCLCPP_INFO(logger_, "goal in fixed frame   x: %+.3f  y: %+.3f  theta: %+.3f", goal_pose.position.x, goal_pose.position.y, tf2::getYaw(goal_pose.orientation));
-    RCLCPP_INFO(logger_, "goal in robot frame   x: %+.3f  y: %+.3f  theta: %+.3f", g_in_r.position.x, g_in_r.position.y, tf2::getYaw(g_in_r.orientation));
 
     if (std::hypot(g_in_r.position.x, g_in_r.position.y) > xy_goal_tolerance_) {
-        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
         return false;
     }
 
@@ -101,13 +97,10 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
     bool valid_solution;
     Point lookahead_point = getExtendedLookaheadPoint(g_in_r, valid_solution);
     if (!valid_solution) {
-        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
         return false;
     }
 
     double c = getLookaheadCurvature(lookahead_point);
-
-    RCLCPP_INFO(logger_, "curvature   c: %+.3f  ", c);
 
     tf2::Transform tf_g_to_clx(tf2::Quaternion(tf2::Vector3(0, 0, 1), 0), tf2::Vector3(path_constraint_x_, path_constraint_y_, 0));
     tf2::Transform tf_g_to_cly(tf2::Quaternion(tf2::Vector3(0, 0, 1), M_PI / 2), tf2::Vector3(path_constraint_x_, path_constraint_y_, 0));
@@ -151,17 +144,10 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
     toMsg(tf_c_to_l, p_l_in_c);
 
     if (c == 0.0) {
-        RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
-        return false;  // in the extremely rare case in which the curvature is exactly 0, return
+        return false;  // in the extremely rare case (in the real world) in which the curvature is exactly 0, return
     }
 
     double r = std::fabs(1 / c);  // curvature radius
-    if (r > 100) {
-        RCLCPP_WARN(logger_, "radius: %+.3f", r);
-    } else {
-        RCLCPP_INFO(logger_, "radius: %+.3f", r);
-    }
-
 
     Pose p_clx_in_c, p_cly_in_c, p_crx_in_c, p_cry_in_c;  // constraint poses in center of rotation frame
     tf2::Transform tf_c_to_clx = tf_c_to_r * tf_r_to_g * tf_g_to_clx;
@@ -183,7 +169,6 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
         theta_1 = theta_l;
         theta_2 = theta_o;
     }
-    RCLCPP_INFO(logger_, "int angles   theta_1: %+.3f    theta_2: %+.3f\n", theta_1, theta_2);
 
     // find the intersection points of the curvature arc with the constraint segments (in the center of rotation frame)
     Point p_clx_int_in_c;
@@ -191,14 +176,8 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
         // find intersection angle
         double theta_int = std::atan2(p_clx_int_in_c.y, p_clx_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
-            RCLCPP_INFO(logger_, "int   clx   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_clx_int_in_c.x, p_clx_int_in_c.y);
-            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
-        } else {
-            RCLCPP_INFO(logger_, "int   clx");
         }
-    } else {
-        RCLCPP_INFO(logger_, "int   clx");
     }
 
     Point p_cly_int_in_c;
@@ -206,14 +185,8 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
         // find intersection angle
         double theta_int = std::atan2(p_cly_int_in_c.y, p_cly_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
-            RCLCPP_INFO(logger_, "int   cly   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_cly_int_in_c.x, p_cly_int_in_c.y);
-            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
-        } else {
-            RCLCPP_INFO(logger_, "int   cly");
         }
-    } else {
-        RCLCPP_INFO(logger_, "int   cly");
     }
 
     Point p_crx_int_in_c;
@@ -221,14 +194,8 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
         // find intersection angle
         double theta_int = std::atan2(p_crx_int_in_c.y, p_crx_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
-            RCLCPP_INFO(logger_, "int   crx   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_crx_int_in_c.x, p_crx_int_in_c.y);
-            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
-        } else {
-            RCLCPP_INFO(logger_, "int   crx");
         }
-    } else {
-        RCLCPP_INFO(logger_, "int   crx");
     }
 
     Point p_cry_int_in_c;
@@ -236,18 +203,10 @@ bool ASBCurvatureArcGoalChecker::isGoalReached(const Pose &query_pose, const Pos
         // find intersection angle
         double theta_int = std::atan2(p_cry_int_in_c.y, p_cry_int_in_c.x);
         if (theta_1 < theta_int && theta_int < theta_2) {
-            RCLCPP_INFO(logger_, "int   cry   theta_int: %+.3f   x: %+.3f y: %+.3f", theta_int, p_cry_int_in_c.x, p_cry_int_in_c.y);
-            RCLCPP_INFO(logger_, "GOAL NOT REACHED\n\n");
             return false;
-        } else {
-            RCLCPP_INFO(logger_, "int   cry");
         }
-    } else {
-        RCLCPP_INFO(logger_, "int   cry");
     }
 
-    RCLCPP_INFO(logger_, "*********************  GOAL REACHED  *********************");
-    RCLCPP_INFO(logger_, "\n");
     return true;
 }
 
