@@ -2,7 +2,7 @@
 
   <arg name="enable_spray_actuation" default="true" />
   <arg name="enable_pump" default="false" />
-  <arg name="enable_canopy_estimation" default="true" />
+  <arg name="enable_canopy_estimation" default="false" />
   <arg name="auto_set_control_mode_once" default="false" />
   <arg name="auto_set_control_mode" default="false" />
   <arg name="dry_run" default="false" />
