@@ -230,19 +230,10 @@ class NavigationManager:
 
         approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
 
-        if self._node.task_plan.straight_approach_controller_id == "FollowPath":  # repeated straight path alignment
-            start_pose_stamped = make_pose_stamped(0.0)
-            mid_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
-            goal_pose_stamped = make_pose_stamped(0.0)
-            straight_approach_path = self._make_path([start_pose_stamped, mid_pose_stamped, goal_pose_stamped])
-        elif self._node.task_plan.straight_approach_controller_id == "RotateToPath":  # rotate to path
-            start_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
-            goal_pose_stamped = make_pose_stamped(self._node.task_plan.row_approach_margin)
-            straight_approach_path = self._make_path([start_pose_stamped, goal_pose_stamped])
-        else:
-            start_pose_stamped = make_pose_stamped(0.0)
-            goal_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
-            straight_approach_path = self._make_path([start_pose_stamped, goal_pose_stamped])
+        start_pose_stamped = make_pose_stamped(0.0)
+        mid_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
+        goal_pose_stamped = make_pose_stamped(0.0)
+        straight_approach_path = self._make_path([start_pose_stamped, mid_pose_stamped, goal_pose_stamped])
 
         self._approach_poses_viz.poses = [goal_pose_stamped.pose]
         self._approach_poses_viz.header.frame_id = goal_pose_stamped.header.frame_id
