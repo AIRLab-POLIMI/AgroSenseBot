@@ -13,13 +13,17 @@ asb_webots_robot:
     gnss_update_rate: 1.0
     gnss_covariance_diagonal: [0.2, 0.2, 0.2]
 
+    # The (simulated) inertial unit publishes the angular position measurement.
+    # In the real robot, this data is computed by the EKF filter of the GQ7 sensor with the IMU and dual antenna GNSS compassing.
     # TODO rename topic, it's not really an odometry
     inertial_unit_topic: /ekf/odometry_map
     inertial_unit_parent_frame_id: map
-    inertial_unit_child_frame_id: inertial_link  # in the real robot, this message refers to imu_link
-    inertial_unit_update_rate: 2.0
+    inertial_unit_child_frame_id: inertial_link  # in the real robot, this message refers to the imu_link frame
+    inertial_unit_update_rate: 10.0
     inertial_unit_covariance_diagonal: [0.2, 0.2, 0.2]
 
+    # The (simulated) imu publishes the angular velocity measurement.
+    # In the real robot, this is data is measured by the gyroscope of the GQ7 sensor.
     imu_topic: /imu
     imu_update_rate: 100.0
     imu_frame_id: imu_link
