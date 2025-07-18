@@ -19,6 +19,7 @@
  */
 
 #include "diff_drive_controller/odometry.hpp"
+#include "rclcpp/logging.hpp"
 
 namespace diff_drive_controller
 {
@@ -27,16 +28,14 @@ Odometry::Odometry(size_t velocity_rolling_window_size)
   x_(0.0),
   y_(0.0),
   heading_(0.0),
-  linear_(0.0),
-  angular_(0.0),
+  linear_vel_(0.0),
+  angular_vel_(0.0),
   wheel_separation_(0.0),
   left_wheel_radius_(0.0),
   right_wheel_radius_(0.0),
   left_wheel_old_pos_(0.0),
   right_wheel_old_pos_(0.0),
-  velocity_rolling_window_size_(velocity_rolling_window_size),
-  linear_accumulator_(velocity_rolling_window_size),
-  angular_accumulator_(velocity_rolling_window_size)
+  velocity_rolling_window_size_(velocity_rolling_window_size)
 {
 }
 
@@ -47,10 +46,10 @@ void Odometry::init(const rclcpp::Time & time)
   timestamp_ = time;
 }
 
-bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & time)
+bool Odometry::update(double left_pos, double right_pos, double dt, const rclcpp::Time & time)
 {
   // We cannot estimate the speed with very small time intervals:
-  const double dt = time.seconds() - timestamp_.seconds();
+//  const double dt = time.seconds() - timestamp_.seconds();
   if (dt < 0.0001)
   {
     return false;  // Interval too small to integrate with
@@ -68,20 +67,19 @@ bool Odometry::update(double left_pos, double right_pos, const rclcpp::Time & ti
   left_wheel_old_pos_ = left_wheel_cur_pos;
   right_wheel_old_pos_ = right_wheel_cur_pos;
 
-  updateFromVelocity(left_wheel_est_vel, right_wheel_est_vel, time);
+  updateFromVelocity(left_wheel_est_vel, right_wheel_est_vel, dt, time);
 
   return true;
 }
 
-bool Odometry::update(double left_pos, double right_pos, double imu_angular_velocity, const rclcpp::Time & time)
+bool Odometry::update(double left_pos, double right_pos, double imu_angular_velocity, double dt, const rclcpp::Time & time)
 {
   // We cannot estimate the speed with very small time intervals:
-  const double dt = time.seconds() - timestamp_.seconds();
+//  const double dt = time.seconds() - timestamp_.seconds();
   if (dt < 0.0001)
   {
     return false;  // Interval too small to integrate with
   }
-
   // Get current wheel joint positions:
   const double left_wheel_cur_pos = left_pos * left_wheel_radius_;
   const double right_wheel_cur_pos = right_pos * right_wheel_radius_;
@@ -89,19 +87,20 @@ bool Odometry::update(double left_pos, double right_pos, double imu_angular_velo
   // Estimate velocity of wheels using old and current position:
   const double left_wheel_est_vel = left_wheel_cur_pos - left_wheel_old_pos_;
   const double right_wheel_est_vel = right_wheel_cur_pos - right_wheel_old_pos_;
+    RCLCPP_INFO(rclcpp::get_logger("odometry"), "dt = %0.5f left_wheel_est_vel = %0.3f, left_wheel_cur_pos = %0.3f, left_wheel_old_pos_ = %0.3f", dt, left_wheel_est_vel, left_wheel_cur_pos, left_wheel_old_pos_);
 
-  // Update old position with current:
-  left_wheel_old_pos_ = left_wheel_cur_pos;
-  right_wheel_old_pos_ = right_wheel_cur_pos;
+    // Update old position with current:
+    left_wheel_old_pos_ = left_wheel_cur_pos;
+    right_wheel_old_pos_ = right_wheel_cur_pos;
 
-  updateFromVelocity(left_wheel_est_vel, right_wheel_est_vel, imu_angular_velocity, time);
+  updateFromVelocity(left_wheel_est_vel, right_wheel_est_vel, imu_angular_velocity, dt, time);
 
   return true;
 }
 
-bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcpp::Time & time)
+bool Odometry::updateFromVelocity(double left_vel, double right_vel, double dt, const rclcpp::Time & time)
 {
-  const double dt = time.seconds() - timestamp_.seconds();
+//  const double dt = time.seconds() - timestamp_.seconds();
 
   // Compute linear and angular diff:
   const double linear = (left_vel + right_vel) * 0.5;
@@ -113,34 +112,26 @@ bool Odometry::updateFromVelocity(double left_vel, double right_vel, const rclcp
 
   timestamp_ = time;
 
-  // Estimate speeds using a rolling mean to filter them out:
-  linear_accumulator_.accumulate(linear / dt);
-  angular_accumulator_.accumulate(angular / dt);
-
-  linear_ = linear_accumulator_.getRollingMean();
-  angular_ = angular_accumulator_.getRollingMean();
+  linear_vel_ = linear / dt;
+  angular_vel_ = angular / dt;
 
   return true;
 }
 
-bool Odometry::updateFromVelocity(double left_vel, double right_vel, double imu_angular_velocity, const rclcpp::Time & time)
+bool Odometry::updateFromVelocity(double left_vel, double right_vel, double imu_angular_velocity, double dt, const rclcpp::Time & time)
 {
-  const double dt = time.seconds() - timestamp_.seconds();
+//  const double dt = time.seconds() - timestamp_.seconds();
 
   // Compute linear and angular diff:
   const double linear = (left_vel + right_vel) * 0.5;
-  // Now there is a bug about scout angular velocity
 
   // Integrate odometry:
   integrateExact(linear, imu_angular_velocity * dt);
 
   timestamp_ = time;
 
-  // Estimate speeds using a rolling mean to filter them out:
-  linear_accumulator_.accumulate(linear / dt);
-
-  linear_ = linear_accumulator_.getRollingMean();
-  angular_ = imu_angular_velocity;
+  linear_vel_ = linear / dt;
+  angular_vel_ = imu_angular_velocity;
 
   return true;
 }
@@ -148,8 +139,8 @@ bool Odometry::updateFromVelocity(double left_vel, double right_vel, double imu_
 void Odometry::updateOpenLoop(double linear, double angular, const rclcpp::Time & time)
 {
   /// Save last linear and angular velocity:
-  linear_ = linear;
-  angular_ = angular;
+  linear_vel_ = linear;
+  angular_vel_ = angular;
 
   /// Integrate odometry:
   const double dt = time.seconds() - timestamp_.seconds();
@@ -208,8 +199,7 @@ void Odometry::integrateExact(double linear, double angular)
 
 void Odometry::resetAccumulators()
 {
-  linear_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
-  angular_accumulator_ = RollingMeanAccumulator(velocity_rolling_window_size_);
+
 }
 
 }  // namespace diff_drive_controller

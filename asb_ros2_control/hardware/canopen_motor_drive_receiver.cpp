@@ -26,6 +26,7 @@
 
 // This function gets called every time an RPDO is received.
 void CANOpenMotorDriveReceiverNode::OnRpdo(int num, ::std::error_code /*ec*/, const void* /*p*/, ::std::size_t /*n*/) noexcept {
+  auto now = std::chrono::steady_clock::now();
 
   // RPDO 1 (from motor drive node)
   if (num == 1) {
@@ -33,7 +34,6 @@ void CANOpenMotorDriveReceiverNode::OnRpdo(int num, ::std::error_code /*ec*/, co
     motor_temperature_.store((*this)[IDX_RPDO1][SUB_IDX_RPDO1_2_motor_temperature]);
     motor_RPM_.store((*this)[IDX_RPDO1][SUB_IDX_RPDO1_3_motor_RPM]);
     battery_current_display_.store((*this)[IDX_RPDO1][SUB_IDX_RPDO1_4_battery_current_display]);
-    last_data_received_time_.store(std::chrono::steady_clock::now());
   }
 
   // RPDO 2 (from motor drive node)
@@ -42,7 +42,6 @@ void CANOpenMotorDriveReceiverNode::OnRpdo(int num, ::std::error_code /*ec*/, co
     BDI_percentage_.store((*this)[IDX_RPDO2][SUB_IDX_RPDO2_2_BDI_percentage]);
     keyswitch_voltage_.store((*this)[IDX_RPDO2][SUB_IDX_RPDO2_3_keyswitch_voltage]);
     zero_speed_threshold_.store((*this)[IDX_RPDO2][SUB_IDX_RPDO2_4_zero_speed_threshold]);
-    last_data_received_time_.store(std::chrono::steady_clock::now());
   }
 
   // RPDO 3 (from motor drive node)
@@ -50,13 +49,19 @@ void CANOpenMotorDriveReceiverNode::OnRpdo(int num, ::std::error_code /*ec*/, co
     uint16_t motor_drive_status = (*this)[IDX_RPDO3][SUB_IDX_RPDO3_1_motor_drive_status];
     bool interlock_status_bit = (motor_drive_status >> BIT_IDX_interlock_status) & 1;
     interlock_status_.store(interlock_status_bit);
-    last_data_received_time_.store(std::chrono::steady_clock::now());
   }
 
   // RPDO 4 (from motor drive node)
   if (num == 4) {
     rotor_position_.store((*this)[IDX_RPDO4][SUB_IDX_RPDO4_1_rotor_position]);
-    last_data_received_time_.store(std::chrono::steady_clock::now());
+
+    std::chrono::duration<double> delta_s = now - last_data_received_time_;
+//    std::cout << node_name_ << "   RPDO 4  " << delta_s.count() << " s" << std::endl;
+    dt_.store(delta_s.count());
+    last_data_received_time_ = now;
+
+    rotor_position_read_index_local_++;
+    rotor_position_read_index_.store(rotor_position_read_index_local_);
   }
 
 }

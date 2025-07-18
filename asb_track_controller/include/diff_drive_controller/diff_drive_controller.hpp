@@ -119,17 +119,23 @@ public:
 protected:
   struct WheelHandle
   {
+    std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback_dt;
+    std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback_read_index;
     std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback;
     std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity;
   };
 
   const char * feedback_type() const;
   controller_interface::CallbackReturn configure_side(
-    const std::string & side, const std::vector<std::string> & wheel_names,
-    std::vector<WheelHandle> & registered_handles);
+          const std::string & side,
+          const std::vector<std::string> & wheel_names,
+          std::vector<WheelHandle> & registered_handles);
 
   std::vector<WheelHandle> registered_left_wheel_handles_;
   std::vector<WheelHandle> registered_right_wheel_handles_;
+
+  double prev_left_feedback_read_index_ = 0.0;
+  double prev_right_feedback_read_index_ = 0.0;
 
   // Parameters from ROS for diff_drive_controller
   std::shared_ptr<ParamListener> param_listener_;

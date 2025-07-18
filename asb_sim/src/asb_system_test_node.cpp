@@ -54,7 +54,7 @@ ASBSystemTestNode::on_activate(const rclcpp_lifecycle::State &) {
   last_GCU_message_time_ = this->get_clock()->now();
   last_GCU_alive_bit_change_time_ = this->get_clock()->now();
 
-  std::chrono::duration test_loop_timer_period_ = 10ms;  // must be higher than the timer loop period of the VCU
+  std::chrono::duration test_loop_timer_period_ = 40ms;  // must be higher than the timer loop period of the VCU
   test_loop_timer_ = rclcpp::create_timer(
           this, this->get_clock(), rclcpp::Duration(test_loop_timer_period_),
           std::bind(&ASBSystemTestNode::test_loop_timer_ros2_callback, this));

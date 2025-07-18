@@ -32,7 +32,7 @@ public:
   std::string node_name_;
 
   // comm variables
-  std::atomic<std::chrono::steady_clock::time_point> last_data_received_time_;
+  std::chrono::steady_clock::time_point last_data_received_time_;
 
   // RPDO 1
   std::atomic<int16_t> controller_temperature_ = 0;
@@ -51,6 +51,10 @@ public:
 
   // RPDO 4
   std::atomic<int32_t> rotor_position_ = 0;
+  std::atomic<uint8_t> rotor_position_read_index_ = 0;
+  uint8_t rotor_position_read_index_local_ = 0;
+
+  std::atomic<double> dt_ = 0;
 
 };
 

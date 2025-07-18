@@ -110,10 +110,14 @@ InterfaceConfiguration DiffDriveController::state_interface_configuration() cons
   std::vector<std::string> conf_names;
   for (const auto & joint_name : params_.left_wheel_names)
   {
+    conf_names.push_back(joint_name + "/dt");
+    conf_names.push_back(joint_name + "/read_index");
     conf_names.push_back(joint_name + "/" + feedback_type());
   }
   for (const auto & joint_name : params_.right_wheel_names)
   {
+    conf_names.push_back(joint_name + "/dt");
+    conf_names.push_back(joint_name + "/read_index");
     conf_names.push_back(joint_name + "/" + feedback_type());
   }
   return {interface_configuration_type::INDIVIDUAL, conf_names};
@@ -162,7 +166,7 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   const double left_wheel_radius = params_.left_wheel_radius_multiplier * params_.wheel_radius;
   const double right_wheel_radius = params_.right_wheel_radius_multiplier * params_.wheel_radius;
 
-  // update IMU angular velocity if we are using it
+  // update IMU angular velocity if we are using it TODO integrate IMU readings between platform updates?
   double last_imu_angular_velocity = 0.0;
   if(params_.use_angular_velocity_pid) {
     std::shared_ptr<Imu> last_imu_msg;
@@ -176,61 +180,94 @@ controller_interface::return_type DiffDriveController::update(const rclcpp::Time
   }
   else
   {
-    double left_feedback_mean = 0.0;
-    double right_feedback_mean = 0.0;
-    for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+//    double left_feedback_mean = 0.0;
+//    double right_feedback_mean = 0.0;
+//    for (size_t index = 0; index < static_cast<size_t>(params_.wheels_per_side); ++index)
+//    {
+//      const double left_feedback = registered_left_wheel_handles_[index].feedback.get().get_value();
+//
+//      const double right_feedback = registered_right_wheel_handles_[index].feedback.get().get_value();
+//
+//      if (std::isnan(left_feedback) || std::isnan(right_feedback))
+//      {
+//        RCLCPP_ERROR(logger, "Either the left or right wheel %s is invalid for index [%zu]", feedback_type(), index);
+//        return controller_interface::return_type::ERROR;
+//      }
+//
+//      left_feedback_mean += left_feedback;
+//      right_feedback_mean += right_feedback;
+//    }
+//    left_feedback_mean /= static_cast<double>(params_.wheels_per_side);
+//    right_feedback_mean /= static_cast<double>(params_.wheels_per_side);
+
+    const double left_feedback_dt = registered_left_wheel_handles_[0].feedback_dt.get().get_value();
+    const double left_feedback_read_index = registered_left_wheel_handles_[0].feedback_read_index.get().get_value();
+    const double left_feedback = registered_left_wheel_handles_[0].feedback.get().get_value();
+
+    const double right_feedback_dt = registered_right_wheel_handles_[0].feedback_dt.get().get_value();
+    const double right_feedback = registered_right_wheel_handles_[0].feedback.get().get_value();
+    const double right_feedback_read_index = registered_right_wheel_handles_[0].feedback_read_index.get().get_value();
+
+    if (std::isnan(left_feedback) || std::isnan(right_feedback))
     {
-      const double left_feedback = registered_left_wheel_handles_[index].feedback.get().get_value();
-      const double right_feedback = registered_right_wheel_handles_[index].feedback.get().get_value();
-
-      if (std::isnan(left_feedback) || std::isnan(right_feedback))
-      {
-        RCLCPP_ERROR(logger, "Either the left or right wheel %s is invalid for index [%zu]", feedback_type(), index);
-        return controller_interface::return_type::ERROR;
-      }
-
-      left_feedback_mean += left_feedback;
-      right_feedback_mean += right_feedback;
+      RCLCPP_ERROR(logger, "Either the left or right wheel joint %s is invalid", feedback_type());
+      return controller_interface::return_type::ERROR;
     }
-    left_feedback_mean /= static_cast<double>(params_.wheels_per_side);
-    right_feedback_mean /= static_cast<double>(params_.wheels_per_side);
 
-    if (params_.position_feedback)
+    double left_feedback_mean = left_feedback;
+    double right_feedback_mean = right_feedback;
+    double feedback_dt = (left_feedback_dt + right_feedback_dt) * 0.5;
+
+    bool left_feedback_update = left_feedback_read_index != prev_left_feedback_read_index_;
+    bool right_feedback_update = right_feedback_read_index != prev_right_feedback_read_index_;
+
+    RCLCPP_INFO(logger, " left_feedback_read_index: %.3f  right_feedback_read_index: %.3f", left_feedback_read_index, right_feedback_read_index);
+    prev_left_feedback_read_index_ = left_feedback_read_index;
+    prev_right_feedback_read_index_ = right_feedback_read_index;
+
+    if (!left_feedback_update || !right_feedback_update)
     {
-      if (params_.use_angular_velocity_pid)
-      {
+      return controller_interface::return_type::OK;
+    }
+
+    if (params_.position_feedback) {
+      if (params_.use_angular_velocity_pid) {
         odometry_.update(
-          left_feedback_mean,
-          right_feedback_mean,
-          last_imu_angular_velocity,
-          time);
-      }
-      else
-      {
+                left_feedback_mean,
+                right_feedback_mean,
+                last_imu_angular_velocity,  // TODO integrate angular velocity, see if error decreases. How to measure error?
+                feedback_dt,
+                time
+                );
+      } else {
         odometry_.update(
-          left_feedback_mean,
-          right_feedback_mean,
-          time);
+                left_feedback_mean,
+                right_feedback_mean,
+                feedback_dt,
+                time
+                );
+      }
+    } else {
+      if (params_.use_angular_velocity_pid) {
+        odometry_.updateFromVelocity(
+                left_feedback_mean * left_wheel_radius * left_feedback_dt,
+                right_feedback_mean * right_wheel_radius * right_feedback_dt,
+                last_imu_angular_velocity,
+                feedback_dt,
+                time
+                );
+      } else {
+        odometry_.updateFromVelocity(
+                left_feedback_mean * left_wheel_radius * left_feedback_dt,
+                right_feedback_mean * right_wheel_radius * right_feedback_dt,
+                feedback_dt,
+                time
+                );
       }
     }
-    else
-    {
-      if (params_.use_angular_velocity_pid)
-      {
-        odometry_.updateFromVelocity(
-          left_feedback_mean * left_wheel_radius * period.seconds(),
-          right_feedback_mean * right_wheel_radius * period.seconds(),
-          last_imu_angular_velocity,
-          time);
-      }
-      else
-      {
-        odometry_.updateFromVelocity(
-          left_feedback_mean * left_wheel_radius * period.seconds(),
-          right_feedback_mean * right_wheel_radius * period.seconds(),
-          time);
-      }
-    }
+
+    RCLCPP_INFO(logger, "left feedback: %.3f dt: %.4f right feedback: %.3f dt: %.4f getLinear(): %.3f", left_feedback_mean, left_feedback_dt, right_feedback_mean, right_feedback_dt, odometry_.getLinear());
+
   }
 
   tf2::Quaternion orientation;
@@ -583,20 +620,22 @@ controller_interface::CallbackReturn DiffDriveController::on_configure(const rcl
   if (params_.use_angular_velocity_pid)
   {
     imu_subscriber_ = get_node()->create_subscription<Imu>(
-      DEFAULT_IMU_TOPIC, rclcpp::SystemDefaultsQoS(),
-      [this](const std::shared_ptr<Imu> msg) -> void
-      {
-        if (!subscriber_is_active_)
-        {
-          return;
-        }
-        if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-        {
-          RCLCPP_WARN(get_node()->get_logger(), "Received Imu with zero timestamp, ignoring.");
-          return;
-        }
-        received_imu_msg_ptr_.set(std::move(msg));
-      });
+            DEFAULT_IMU_TOPIC, rclcpp::SystemDefaultsQoS(),
+            [this](const std::shared_ptr<Imu> msg) -> void
+            {
+              if (!subscriber_is_active_)
+              {
+                return;
+              }
+
+              if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
+              {
+                RCLCPP_WARN(get_node()->get_logger(), "Received Imu with zero timestamp, ignoring.");
+                return;
+              }
+
+              received_imu_msg_ptr_.set(std::move(msg));
+            });
 
     auto & pp = params_.angular_velocity_pid_params;
     angular_command_pid_.initPid(pp.p, pp.i, pp.d, pp.i_bound, -pp.i_bound, true);
@@ -755,7 +794,7 @@ void DiffDriveController::halt()
 }
 
 controller_interface::CallbackReturn DiffDriveController::configure_side(
-  const std::string & side, const std::vector<std::string> & wheel_names, std::vector<WheelHandle> & registered_handles)
+        const std::string & side, const std::vector<std::string> & wheel_names, std::vector<WheelHandle> & registered_handles)
 {
   auto logger = get_node()->get_logger();
 
@@ -769,14 +808,44 @@ controller_interface::CallbackReturn DiffDriveController::configure_side(
   registered_handles.reserve(wheel_names.size());
   for (const auto & wheel_name : wheel_names)
   {
+    const auto dt_interface_name = "dt";
+    const auto dt_state_handle = std::find_if(
+        state_interfaces_.cbegin(), state_interfaces_.cend(),
+        [&wheel_name, &dt_interface_name](const auto & interface)
+        {
+          return interface.get_prefix_name() == wheel_name &&
+                 interface.get_interface_name() == dt_interface_name;
+        });
+
+    if (dt_state_handle == state_interfaces_.cend())
+    {
+      RCLCPP_ERROR(logger, "Unable to obtain dt state handle for joint %s", wheel_name.c_str());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    const auto read_index_interface_name = "read_index";
+    const auto read_index_state_handle = std::find_if(
+        state_interfaces_.cbegin(), state_interfaces_.cend(),
+        [&wheel_name, &read_index_interface_name](const auto & interface)
+        {
+          return interface.get_prefix_name() == wheel_name &&
+                 interface.get_interface_name() == read_index_interface_name;
+        });
+
+    if (read_index_state_handle == state_interfaces_.cend())
+    {
+      RCLCPP_ERROR(logger, "Unable to obtain read_index state handle for joint %s", wheel_name.c_str());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
     const auto interface_name = feedback_type();
     const auto state_handle = std::find_if(
-      state_interfaces_.cbegin(), state_interfaces_.cend(),
-      [&wheel_name, &interface_name](const auto & interface)
-      {
-        return interface.get_prefix_name() == wheel_name &&
-               interface.get_interface_name() == interface_name;
-      });
+        state_interfaces_.cbegin(), state_interfaces_.cend(),
+        [&wheel_name, &interface_name](const auto & interface)
+        {
+          return interface.get_prefix_name() == wheel_name &&
+                 interface.get_interface_name() == interface_name;
+        });
 
     if (state_handle == state_interfaces_.cend())
     {
@@ -799,7 +868,12 @@ controller_interface::CallbackReturn DiffDriveController::configure_side(
     }
 
     registered_handles.emplace_back(
-      WheelHandle{std::ref(*state_handle), std::ref(*command_handle)});
+            WheelHandle{
+              std::ref(*dt_state_handle),
+              std::ref(*read_index_state_handle),
+              std::ref(*state_handle),
+              std::ref(*command_handle)
+            });
   }
 
   return controller_interface::CallbackReturn::SUCCESS;

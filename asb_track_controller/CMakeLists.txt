@@ -37,6 +37,8 @@ add_library(diff_drive_controller SHARED
   src/diff_drive_controller.cpp
   src/odometry.cpp
   src/speed_limiter.cpp
+    include/diff_drive_controller/odometry.hpp
+    include/diff_drive_controller/diff_drive_controller.hpp
 )
 target_compile_features(diff_drive_controller PUBLIC cxx_std_17)
 target_include_directories(diff_drive_controller PUBLIC

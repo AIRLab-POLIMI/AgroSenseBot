@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Environment1
         - /Environment1/grid major1/Offset1
         - /Sensors1/lidar front1
         - /Sensors1/lidar front1/pcl filtered1/Autocompute Value Bounds1
@@ -12,10 +13,10 @@ Panels:
         - /Sensors1/lidar rear1/pcl filtered1/Autocompute Value Bounds1
         - /Sensors1/lidar rear1/pcl no ground1/Autocompute Value Bounds1
         - /Global Planner1/expansions1/Namespaces1
-        - /Controller1/lookahead arc1/Status1
-        - /Controller1/goal_pose1/Status1
-        - /Controller1/lookahead_pose1/Status1
+        - /Localization1
         - /Localization1/Odometry position1/Shape1
+        - /Localization1/robot localization1/Shape1
+        - /Localization1/robot localization1/Covariance1
         - /Localization1/gnss 11/Covariance1
         - /Localization1/gnss 11/Covariance1/Position1
         - /Localization1/gnss 1 history1/Covariance1/Position1
@@ -26,7 +27,7 @@ Panels:
         - /Interactive1/circle text1/Namespaces1
         - /goal checker1/constraint_intersection_poses1/Topic1
         - /goal checker1/goal_checker_intersection_arc1
-      Splitter Ratio: 0.4424460530281067
+      Splitter Ratio: 0.5816831588745117
     Tree Height: 434
   - Class: rviz_common/Selection
     Name: Selection
@@ -117,10 +118,6 @@ Visualization Manager:
               Value: false
             inertial_link:
               Value: false
-            inter_row_10_b:
-              Value: false
-            inter_row_10_c:
-              Value: false
             left_track:
               Value: false
             map:
@@ -129,31 +126,19 @@ Visualization Manager:
               Value: false
             right_track:
               Value: false
-            row_10/inter_row_10_b:
-              Value: true
-            row_10/inter_row_10_c:
-              Value: true
             sat_map:
               Value: false
             sprayer_link:
               Value: false
-          Marker Scale: 1
+          Marker Scale: 0.10000000149011612
           Name: tf
           Show Arrows: false
           Show Axes: true
-          Show Names: true
+          Show Names: false
           Tree:
             map:
               field:
                 field_view:
-                  {}
-                inter_row_10_b:
-                  {}
-                inter_row_10_c:
-                  {}
-                row_10/inter_row_10_b:
-                  {}
-                row_10/inter_row_10_c:
                   {}
               odom:
                 base_footprint:
@@ -1333,8 +1318,8 @@ Visualization Manager:
               Color: 255; 255; 255
               Scale: 0.20000000298023224
               Value: true
-            Value: true
-          Enabled: false
+            Value: false
+          Enabled: true
           Keep: 100
           Name: robot localization
           Position Tolerance: 0
@@ -1343,10 +1328,10 @@ Visualization Manager:
             Axes Length: 1
             Axes Radius: 0.10000000149011612
             Color: 255; 255; 255
-            Head Length: 0.15000000596046448
-            Head Radius: 0.10000000149011612
-            Shaft Length: 0.5
-            Shaft Radius: 0.05000000074505806
+            Head Length: 0.009999999776482582
+            Head Radius: 0.009999999776482582
+            Shaft Length: 0
+            Shaft Radius: 0
             Value: Arrow
           Topic:
             Depth: 5
@@ -1355,7 +1340,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /ekf_filter_map_odometry
-          Value: false
+          Value: true
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1373,7 +1358,7 @@ Visualization Manager:
               Scale: 0.10000000149011612
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1
           Name: gnss 1
           Position Tolerance: 0
@@ -1394,7 +1379,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_1/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1451,7 +1436,7 @@ Visualization Manager:
               Scale: 0.10000000149011612
               Value: true
             Value: true
-          Enabled: true
+          Enabled: false
           Keep: 1
           Name: gnss 2
           Position Tolerance: 0
@@ -1472,7 +1457,7 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /gnss_2/navsat_odometry
-          Value: true
+          Value: false
         - Angle Tolerance: 0
           Class: rviz_default_plugins/Odometry
           Covariance:
@@ -1945,11 +1930,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 111.5759506225586
+      Scale: 1494.707763671875
       Target Frame: base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0.47838330268859863
-      Y: -0.01974468305706978
+      X: 0.06107040494680405
+      Y: 0.015160172246396542
     Saved: ~
 Window Geometry:
   AgroSenseBot:

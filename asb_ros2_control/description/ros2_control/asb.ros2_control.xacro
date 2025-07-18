@@ -19,12 +19,17 @@
         <param name="tracks_maximum_velocity_rpm">3000</param>  <!-- 3000/60*2*pi = 314.159265359 rad/s -->
         <param name="fan_maximum_velocity_rpm">2400</param>  <!-- 2400/60*2*pi = 251.327412287 rad/s -->
       </hardware>
+
       <joint name="left_track_joint">
+        <state_interface name="dt"/>
+        <state_interface name="read_index"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <command_interface name="velocity"/>
       </joint>
       <joint name="right_track_joint">
+        <state_interface name="dt"/>
+        <state_interface name="read_index"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <command_interface name="velocity"/>
@@ -34,6 +39,7 @@
         <state_interface name="velocity"/>
         <command_interface name="velocity"/>
       </joint>
+
       <gpio name="platform_state">
         <command_interface name="heartbeat_alive_bit"/>
 

@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 40  # Hz
+    update_rate: 100  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -41,7 +41,8 @@ asb_base_controller:
     cmd_vel_timeout: 0.2
     #publish_limited_velocity: true
     use_stamped_vel: false
-    #velocity_rolling_window_size: 10
+    velocity_rolling_window_size: 1
+    position_feedback: false
 
     use_angular_velocity_pid: true
     angular_velocity_pid_params:

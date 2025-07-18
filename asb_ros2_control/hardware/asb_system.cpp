@@ -131,32 +131,6 @@ hardware_interface::CallbackReturn ASBSystemHardware::on_init(const hardware_int
       return hardware_interface::CallbackReturn::ERROR;
     }
 
-    if (joint.state_interfaces.size() != 2)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("ASBSystemHardware"),
-        "Joint '%s' has %zu state interface. 2 expected.", joint.name.c_str(),
-        joint.state_interfaces.size());
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces[0].name != hardware_interface::HW_IF_POSITION)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("ASBSystemHardware"),
-        "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
-        joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-
-    if (joint.state_interfaces[1].name != hardware_interface::HW_IF_VELOCITY)
-    {
-      RCLCPP_FATAL(
-        rclcpp::get_logger("ASBSystemHardware"),
-        "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
-        joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY);
-      return hardware_interface::CallbackReturn::ERROR;
-    }
   }
 
   if (info_.gpios[0].name != "platform_state")
@@ -174,10 +148,14 @@ std::vector<hardware_interface::StateInterface> ASBSystemHardware::export_state_
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   // left joint
+  state_interfaces.emplace_back("left_track_joint", "dt", &track_left_dt_state_);
+  state_interfaces.emplace_back("left_track_joint", "read_index", &track_left_read_index_int_state_);
   state_interfaces.emplace_back("left_track_joint", hardware_interface::HW_IF_POSITION, &track_left_position_state_);
   state_interfaces.emplace_back("left_track_joint", hardware_interface::HW_IF_VELOCITY, &track_left_velocity_state_);
 
   // right joint
+  state_interfaces.emplace_back("right_track_joint", "dt", &track_right_dt_state_);
+  state_interfaces.emplace_back("right_track_joint", "read_index", &track_right_read_index_int_state_);
   state_interfaces.emplace_back("right_track_joint", hardware_interface::HW_IF_POSITION, &track_right_position_state_);
   state_interfaces.emplace_back("right_track_joint", hardware_interface::HW_IF_VELOCITY, &track_right_velocity_state_);
 
@@ -474,6 +452,8 @@ hardware_interface::return_type ASBSystemHardware::read(const rclcpp::Time & /*t
   prev_left_rotor_position_raw_ = left_rotor_position_raw;
 
   // left motor state
+  track_left_dt_state_ = motor_left_receiver_->dt_.load();
+  track_left_read_index_int_state_ = motor_left_receiver_->rotor_position_read_index_.load();
   track_left_position_state_ += (double)left_rotor_position_raw_delta * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
   track_left_velocity_state_ = motor_left_receiver_->motor_RPM_.load() * 2 * M_PI / 60.0;
   track_left_velocity_setpoint_state_ = track_left_velocity_command_;
@@ -494,6 +474,8 @@ hardware_interface::return_type ASBSystemHardware::read(const rclcpp::Time & /*t
   prev_right_rotor_position_raw_ = right_rotor_position_raw;
 
   // right motor state
+  track_right_dt_state_ = motor_right_receiver_->dt_.load();
+  track_right_read_index_int_state_ = motor_right_receiver_->rotor_position_read_index_.load();
   track_right_position_state_ += (double)right_rotor_position_raw_delta * 2 * M_PI * RAW_DATA_STEP_VALUE_rotor_position;
   track_right_velocity_state_ = motor_right_receiver_->motor_RPM_.load() * 2 * M_PI / 60;
   track_right_velocity_setpoint_state_ = track_right_velocity_command_;

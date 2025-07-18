@@ -145,6 +145,8 @@ private:
   double pump_bool_state_ = 0.0;
 
   // exported interface for left track control and additional motor drive information
+  double track_left_dt_state_ = 0;
+  double track_left_read_index_int_state_ = 0;
   double track_left_position_state_ = 0;
   double track_left_velocity_state_ = 0;
   double track_left_velocity_setpoint_state_ = 0;
@@ -159,6 +161,8 @@ private:
   double track_left_interlock_bool_state_ = 0;
 
   // exported interface for right track control and additional motor drive information
+  double track_right_dt_state_ = 0;
+  double track_right_read_index_int_state_ = 0;
   double track_right_position_state_ = 0;
   double track_right_velocity_state_ = 0;
   double track_right_velocity_setpoint_state_ = 0;
