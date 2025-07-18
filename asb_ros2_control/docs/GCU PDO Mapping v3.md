@@ -129,7 +129,7 @@ RPDO3_4 (UINT16, 2 byte) not used
 
 Size: 8 bytes
 
-## RPDO3 (from MDL/MDR/FAN)
+## RPDO4 (from MDL/MDR/FAN)
 
 ```
 Defined in: 0x1403, 0x1603
