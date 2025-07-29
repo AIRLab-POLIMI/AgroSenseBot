@@ -46,10 +46,10 @@ class LUTNozzlesPublisher(Node):
         #     15.0: 0.0,
         # }
 
-        self.other_nozzles_rate = 1.0
+        self.other_nozzles_rate = 0.0
 
         x = self.perc  # peak open cmd [0...1]
-        t0 = 5.0  # pre-peak closed duration [s]
+        t0 = 0.1  # pre-peak closed duration [s]
         t = 10.0  # open duration [s]
         t1 = 5.0  # post peak closed duration [s]
         lut = {
