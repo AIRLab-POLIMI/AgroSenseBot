@@ -186,7 +186,7 @@ DEF ROBOT_NODE Robot {
 
     DEF Imu Solid {
       translation 0.03385 -0.69 0.91
-      rotation 0 0 1 0  # TODO in real robot GQ7 publishes referring to this frame, it should also be facing forward?
+      rotation 0 0 1 0
       name "imu_link"
       physics Physics {
         mass 0.01
@@ -216,27 +216,49 @@ DEF ROBOT_NODE Robot {
     }
 
     # Front LIDAR
-    Solid {  # TODO the sensor frame needs to be measured
+    Solid {  # where the sensor is physically attached
       translation 0.8275 0 1.617
-      rotation 0 1 0 0.523598776
-      name "base_scan_front_multilayer"
+      rotation -0.019994 0.999788 0.004999 0.490100
+      name "base_scan_front_multilayer_plate_bottom"
     }
+    Solid {  # ouster reference frame (the base of the Ouster OS0 without the plate)
+      translation 0.838089 0.000225 1.636852
+      rotation -0.019994 0.999788 0.004999 0.490100
+      name "base_scan_front_multilayer_plate_top"
+    }
+    Solid {  # sensor optical center frame
+      translation 0.856063 0.000607 1.670550
+      rotation -0.019994 0.999788 0.004999 0.490100
+      name "base_scan_front_multilayer_optical_center"
+    }
+
     OusterOS0 {
-      translation 0.8275 0 1.617
-      rotation 0 1 0 0.523598776
+      translation 0.856063 0.000607 1.670550  # same as optical center
+      rotation -0.019994 0.999788 0.004999 0.490100
       name "base_scan_front_multilayer_sim"
       numberOfLayers 32
       version "32"
     }
 
     # Rear LIDAR
-    Solid {  # TODO base should be at x y z = -1.075 0 0.2559, but the sensor frame needs to be measured
-      translation -1.075 0 0.316
+    Solid {  # where the sensor is physically attached
+      translation -1.075 0 0.2559
       rotation 0 0 1 3.141592654
-      name "base_scan_rear_multilayer"
+      name "base_scan_rear_multilayer_plate_bottom"
     }
+    Solid {  # ouster reference frame (the base of the Ouster OS0 without the plate)
+      translation -1.075 0 0.2784
+      rotation 0 0 1 3.141592654
+      name "base_scan_rear_multilayer_plate_top"
+    }
+    Solid {  # sensor optical center frame
+      translation -1.075000 0 0.316595
+      rotation 0 0 1 3.141592654
+      name "base_scan_rear_multilayer_plate_optical_center"
+    }
+
     OusterOS0 {
-      translation -1.075 0 0.316
+      translation -1.075000 0 0.316595  # same as optical center
       rotation 0 0 1 3.141592654
       name "base_scan_rear_multilayer_sim"
       fieldOfView 4.71238898038469

@@ -62,27 +62,27 @@
         </geometry>
       </collision>
       <visual>
-        <origin xyz="0.175 0.06 1.555" rpy="0 0 0"/>
+        <origin xyz="0.165 0.04 1.555" rpy="0 0 0"/>
         <geometry>
-          <box size="1.37 0.04 0.04"/>
+          <box size="1.32 0.04 0.04"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0.175 0.06 1.555" rpy="0 0 0"/>
+        <origin xyz="0.165 0.04 1.555" rpy="0 0 0"/>
         <geometry>
-          <box size="1.37 0.04 0.04"/>
+          <box size="1.32 0.04 0.04"/>
         </geometry>
       </collision>
       <visual>
-        <origin xyz="0.175 -0.06 1.555" rpy="0 0 0"/>
+        <origin xyz="0.165 -0.04 1.555" rpy="0 0 0"/>
         <geometry>
-          <box size="1.37 0.04 0.04"/>
+          <box size="1.32 0.04 0.04"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0.175 -0.06 1.555" rpy="0 0 0"/>
+        <origin xyz="0.165 -0.04 1.555" rpy="0 0 0"/>
         <geometry>
-          <box size="1.37 0.04 0.04"/>
+          <box size="1.32 0.04 0.04"/>
         </geometry>
       </collision>
       <visual>
@@ -805,13 +805,13 @@
     </joint>
     <link name="base_scan_rear_multilayer_sim">
       <visual>
-        <origin xyz="0 0 0.04" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder radius="0.0435" length="0.0742"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0 0 0.04" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder radius="0.0435" length="0.0742"/>
         </geometry>
@@ -820,24 +820,38 @@
     <joint name="base_link_base_scan_rear_multilayer_sim_joint" type="fixed">
       <parent link="base_link"/>
       <child link="base_scan_rear_multilayer_sim"/>
-      <origin xyz="-1.075 0 0.2559" rpy="0 0 -3.141593"/>
+      <origin xyz="-1.075 0 0.316595" rpy="0 0 -3.141593"/>
     </joint>
-    <link name="base_scan_rear_multilayer">
+    <link name="base_scan_rear_multilayer_plate_optical_center">
     </link>
-    <joint name="base_link_base_scan_rear_multilayer_joint" type="fixed">
+    <joint name="base_link_base_scan_rear_multilayer_plate_optical_center_joint" type="fixed">
       <parent link="base_link"/>
-      <child link="base_scan_rear_multilayer"/>
+      <child link="base_scan_rear_multilayer_plate_optical_center"/>
+      <origin xyz="-1.075 0 0.316595" rpy="0 0 -3.141593"/>
+    </joint>
+    <link name="base_scan_rear_multilayer_plate_top">
+    </link>
+    <joint name="base_link_base_scan_rear_multilayer_plate_top_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_rear_multilayer_plate_top"/>
+      <origin xyz="-1.075 0 0.2784" rpy="0 0 -3.141593"/>
+    </joint>
+    <link name="base_scan_rear_multilayer_plate_bottom">
+    </link>
+    <joint name="base_link_base_scan_rear_multilayer_plate_bottom_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_rear_multilayer_plate_bottom"/>
       <origin xyz="-1.075 0 0.2559" rpy="0 0 -3.141593"/>
     </joint>
     <link name="base_scan_front_multilayer_sim">
       <visual>
-        <origin xyz="0 0 0.04" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder radius="0.0435" length="0.0742"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0 0 0.04" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
           <cylinder radius="0.0435" length="0.0742"/>
         </geometry>
@@ -846,14 +860,28 @@
     <joint name="base_link_base_scan_front_multilayer_sim_joint" type="fixed">
       <parent link="base_link"/>
       <child link="base_scan_front_multilayer_sim"/>
-      <origin xyz="0.8275 0 1.617" rpy="0 0.523599 0"/>
+      <origin xyz="0.856063 0.000607 1.67055" rpy="-0.01 0.49 0"/>
     </joint>
-    <link name="base_scan_front_multilayer">
+    <link name="base_scan_front_multilayer_optical_center">
     </link>
-    <joint name="base_link_base_scan_front_multilayer_joint" type="fixed">
+    <joint name="base_link_base_scan_front_multilayer_optical_center_joint" type="fixed">
       <parent link="base_link"/>
-      <child link="base_scan_front_multilayer"/>
-      <origin xyz="0.8275 0 1.617" rpy="0 0.523599 0"/>
+      <child link="base_scan_front_multilayer_optical_center"/>
+      <origin xyz="0.856063 0.000607 1.67055" rpy="-0.01 0.49 0"/>
+    </joint>
+    <link name="base_scan_front_multilayer_plate_top">
+    </link>
+    <joint name="base_link_base_scan_front_multilayer_plate_top_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_front_multilayer_plate_top"/>
+      <origin xyz="0.838089 0.000225 1.636852" rpy="-0.01 0.49 0"/>
+    </joint>
+    <link name="base_scan_front_multilayer_plate_bottom">
+    </link>
+    <joint name="base_link_base_scan_front_multilayer_plate_bottom_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_scan_front_multilayer_plate_bottom"/>
+      <origin xyz="0.8275 0 1.617" rpy="-0.01 0.49 0"/>
     </joint>
     <link name="imu_link">
     </link>

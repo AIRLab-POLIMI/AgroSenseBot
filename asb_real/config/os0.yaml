@@ -58,7 +58,7 @@ scan_front_multilayer/os_driver:
     imu_port: 0
 
     # sensor_frame[optional]: name to use when referring to the sensor frame.
-    sensor_frame: base_scan_front_multilayer
+    sensor_frame: base_scan_front_multilayer_plate_top
 
     # lidar_frame[optional]: name to use when referring to the lidar frame.
     lidar_frame: base_scan_front_multilayer_lidar
@@ -69,7 +69,9 @@ scan_front_multilayer/os_driver:
     # point_cloud_frame[optional]: which frame of reference to use when
     # generating PointCloud2 or LaserScan messages, select between the values of
     # lidar_frame and sensor_frame.
-    point_cloud_frame: base_scan_front_multilayer
+    point_cloud_frame: base_scan_front_multilayer_lidar
+
+    pub_static_tf: true
 
     # proc_mask[optional]: use any combination of the 4 flags IMG, PCL, IMU and
     # SCAN to enable or disable their respective messages.
@@ -84,6 +86,8 @@ scan_front_multilayer/os_driver:
     # data QoS. This is preferable for production but default QoS is needed for
     # rosbag. See: https://github.com/ros2/rosbag2/issues/125
     use_system_default_qos: true
+
+    attempt_reconnect: true
 
 scan_rear_multilayer/os_driver:
   ros__parameters:
@@ -145,7 +149,7 @@ scan_rear_multilayer/os_driver:
     imu_port: 0
 
     # sensor_frame[optional]: name to use when referring to the sensor frame.
-    sensor_frame: base_scan_rear_multilayer
+    sensor_frame: base_scan_rear_multilayer_plate_top
 
     # lidar_frame[optional]: name to use when referring to the lidar frame.
     lidar_frame: base_scan_rear_multilayer_lidar
@@ -156,7 +160,9 @@ scan_rear_multilayer/os_driver:
     # point_cloud_frame[optional]: which frame of reference to use when
     # generating PointCloud2 or LaserScan messages, select between the values of
     # lidar_frame and sensor_frame.
-    point_cloud_frame: base_scan_rear_multilayer
+    point_cloud_frame: base_scan_rear_multilayer_lidar
+
+    pub_static_tf: true
 
     # proc_mask[optional]: use any combination of the 4 flags IMG, PCL, IMU and
     # SCAN to enable or disable their respective messages.
@@ -171,3 +177,5 @@ scan_rear_multilayer/os_driver:
     # data QoS. This is preferable for production but default QoS is needed for
     # rosbag. See: https://github.com/ros2/rosbag2/issues/125
     use_system_default_qos: true
+
+    attempt_reconnect: true
