@@ -25,8 +25,6 @@ class LUTNozzlesPublisher(Node):
 
     def timer_callback(self):
         nozzle_rate = 1.0
-        nozzle_id = "1R"
-        self.get_logger().info(f"nozzle: {nozzle_id}  rate: {nozzle_rate:.4f}")
 
         nozzle_command_msg = NozzleCommandArray(
             stamp=self.get_clock().now().to_msg(),
