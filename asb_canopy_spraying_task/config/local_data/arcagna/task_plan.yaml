@@ -33,8 +33,8 @@ canopy_roi_x_2: 0.125
 hectare_ref_volume: 283.44  # [L/ha] amount of liquid to spray per hectare for a field with inter-row distance of inter_row and with a uniform canopy depth equal to canopy_ref_depth
 inter_row_target_velocity: 0.55  # [m/s] used to estimate the minimum canopy depth from the valve control function
 inter_row: 4.0  # [m] distance between rows
-canopy_ref_depth: 0.6  # [m]
-canopy_min_depth: 0.1  # [m] canopy depth below which the canopy is ignored
+canopy_ref_depth: 0.3  # [m]
+canopy_min_depth: 0.15  # [m] canopy depth below which the canopy is ignored
 
 canopy_layer_bounds: [0.4, 1.05, 1.25, 1.4, 1.65, 1.95, 2.3]
 

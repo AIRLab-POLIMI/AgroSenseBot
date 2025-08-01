@@ -8,9 +8,11 @@ Panels:
         - /Sensors1
         - /Sensors1/lidar front1
         - /Sensors1/lidar front1/pcl filtered1/Autocompute Value Bounds1
+        - /Sensors1/lidar front1/pcl no ground1
         - /Sensors1/lidar front1/pcl no ground1/Autocompute Value Bounds1
         - /Sensors1/lidar rear1
         - /Sensors1/lidar rear1/pcl filtered1/Autocompute Value Bounds1
+        - /Sensors1/lidar rear1/pcl no ground1
         - /Sensors1/lidar rear1/pcl no ground1/Autocompute Value Bounds1
         - /Global Planner1/expansions1/Namespaces1
         - /Localization1/Odometry position1/Shape1
@@ -93,19 +95,27 @@ Visualization Manager:
               Value: true
             base_link:
               Value: false
-            base_scan_front_multilayer:
-              Value: false
             base_scan_front_multilayer_imu:
               Value: true
             base_scan_front_multilayer_lidar:
               Value: true
+            base_scan_front_multilayer_optical_center:
+              Value: true
+            base_scan_front_multilayer_plate_bottom:
+              Value: true
+            base_scan_front_multilayer_plate_top:
+              Value: true
             base_scan_front_multilayer_sim:
-              Value: false
-            base_scan_rear_multilayer:
               Value: false
             base_scan_rear_multilayer_imu:
               Value: true
             base_scan_rear_multilayer_lidar:
+              Value: true
+            base_scan_rear_multilayer_plate_bottom:
+              Value: true
+            base_scan_rear_multilayer_plate_optical_center:
+              Value: true
+            base_scan_rear_multilayer_plate_top:
               Value: true
             base_scan_rear_multilayer_sim:
               Value: false
@@ -154,14 +164,22 @@ Visualization Manager:
               odom:
                 base_footprint:
                   base_link:
-                    base_scan_front_multilayer:
+                    base_scan_front_multilayer_optical_center:
+                      {}
+                    base_scan_front_multilayer_plate_bottom:
+                      {}
+                    base_scan_front_multilayer_plate_top:
                       base_scan_front_multilayer_imu:
                         {}
                       base_scan_front_multilayer_lidar:
                         {}
                     base_scan_front_multilayer_sim:
                       {}
-                    base_scan_rear_multilayer:
+                    base_scan_rear_multilayer_plate_bottom:
+                      {}
+                    base_scan_rear_multilayer_plate_optical_center:
+                      {}
+                    base_scan_rear_multilayer_plate_top:
                       base_scan_rear_multilayer_imu:
                         {}
                       base_scan_rear_multilayer_lidar:
@@ -226,7 +244,15 @@ Visualization Manager:
               Show Axes: false
               Show Trail: false
               Value: true
-            base_scan_front_multilayer:
+            base_scan_front_multilayer_optical_center:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_scan_front_multilayer_plate_bottom:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_scan_front_multilayer_plate_top:
               Alpha: 1
               Show Axes: false
               Show Trail: false
@@ -235,7 +261,15 @@ Visualization Manager:
               Show Axes: false
               Show Trail: false
               Value: true
-            base_scan_rear_multilayer:
+            base_scan_rear_multilayer_plate_bottom:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_scan_rear_multilayer_plate_optical_center:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            base_scan_rear_multilayer_plate_top:
               Alpha: 1
               Show Axes: false
               Show Trail: false
@@ -490,7 +524,7 @@ Visualization Manager:
               Color: 255; 255; 255
               Color Transformer: FlatColor
               Decay Time: 0
-              Enabled: false
+              Enabled: true
               Invert Rainbow: false
               Max Color: 255; 255; 255
               Max Intensity: 140041
@@ -501,7 +535,7 @@ Visualization Manager:
               Selectable: true
               Size (Pixels): 3
               Size (m): 0.029999999329447746
-              Style: Boxes
+              Style: Points
               Topic:
                 Depth: 5
                 Durability Policy: Volatile
@@ -511,7 +545,7 @@ Visualization Manager:
                 Value: /scan_front_multilayer/points_filtered_no_ground_ceiling
               Use Fixed Frame: true
               Use rainbow: false
-              Value: false
+              Value: true
             - Alpha: 1
               Autocompute Intensity Bounds: true
               Autocompute Value Bounds:
@@ -652,7 +686,7 @@ Visualization Manager:
               Use Fixed Frame: true
               Use rainbow: false
               Value: false
-            - Alpha: 0.5
+            - Alpha: 1
               Autocompute Intensity Bounds: true
               Autocompute Value Bounds:
                 Max Value: 0.5
@@ -661,10 +695,10 @@ Visualization Manager:
               Axis: Z
               Channel Name: range
               Class: rviz_default_plugins/PointCloud2
-              Color: 255; 0; 0
+              Color: 255; 255; 0
               Color Transformer: FlatColor
               Decay Time: 0
-              Enabled: false
+              Enabled: true
               Invert Rainbow: false
               Max Color: 255; 255; 255
               Max Intensity: 140041
@@ -685,7 +719,7 @@ Visualization Manager:
                 Value: /scan_rear_multilayer/points_filtered_no_ground_ceiling
               Use Fixed Frame: true
               Use rainbow: false
-              Value: false
+              Value: true
             - Alpha: 1
               Autocompute Intensity Bounds: true
               Autocompute Value Bounds:
@@ -961,7 +995,7 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /planned_footprints
           Value: false
-      Enabled: true
+      Enabled: false
       Name: Global Planner
     - Class: rviz_common/Group
       Displays:
@@ -1243,7 +1277,7 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: true
           Value: false
-      Enabled: true
+      Enabled: false
       Name: Controller
     - Class: rviz_common/Group
       Displays:
@@ -1559,7 +1593,7 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /ekf/odometry_map
           Value: false
-      Enabled: true
+      Enabled: false
       Name: Localization
     - Class: rviz_common/Group
       Displays:
@@ -1943,42 +1977,37 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz_default_plugins/Orbit
-      Distance: 6.487219333648682
+      Angle: -0.06000031158328056
+      Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: -1.380995512008667
-        Y: 1.014694094657898
-        Z: 0.6164281368255615
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8947973251342773
+      Scale: 322.5933532714844
       Target Frame: base_footprint
-      Value: Orbit (rviz_default_plugins)
-      Yaw: 1.720548391342163
+      Value: TopDownOrtho (rviz_default_plugins)
+      X: -2.2783451080322266
+      Y: -1.2751717567443848
     Saved: ~
 Window Geometry:
   AgroSenseBot:
     collapsed: false
   AgroSenseBotNozzles:
-    collapsed: false
+    collapsed: true
   Displays:
-    collapsed: false
+    collapsed: true
   Height: 1523
   Help:
     collapsed: false
-  Hide Left Dock: false
+  Hide Left Dock: true
   Hide Right Dock: false
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001960000055afc0200000010fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073010000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007301000000e700000328000000c900fffffffb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c006500730100000415000001820000015000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00fffffffb0000000800480065006c0070000000044d000000ad0000006e00ffffff00000001000001c10000055afc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d0000055a0000044800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000050000000082fc0100000005fb000000100072006f0077005f003100300020003200000000000000027d0000007300fffffffb000000100072006f0077005f003100300020003100000002830000027d0000007300fffffffb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000a0000000039fc0100000002fc0000000000000a00000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d006501000000000000045000000000000000000000069d0000055a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001960000055afc0200000010fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a00560069006500770073000000003d000000a4000000a400fffffffb000000100044006900730070006c00610079007300000000e700000328000000c900fffffffb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c006500730000000415000001820000015000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00fffffffb0000000800480065006c0070000000044d000000ad0000006e00ffffff00000001000001c10000055afc0200000003fb00000018004100670072006f00530065006e007300650042006f0074010000003d0000055a0000044800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000050000000082fc0100000005fb000000100072006f0077005f003100300020003200000000000000027d0000007300fffffffb000000100072006f0077005f003100300020003100000002830000027d0000007300fffffffb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000a0000000039fc0100000002fc0000000000000a00000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d00650100000000000004500000000000000000000008390000055a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -1986,7 +2015,7 @@ Window Geometry:
   Tool Properties:
     collapsed: false
   Views:
-    collapsed: false
+    collapsed: true
   Width: 2560
   X: 0
   Y: 40
