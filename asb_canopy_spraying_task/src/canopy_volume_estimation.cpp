@@ -154,7 +154,7 @@ void CanopyVolumeEstimation::initialize_canopy_region(const std::shared_ptr<Init
         canopy_structs[request->canopy_id].roi = request->roi;
         canopy_structs[request->canopy_id].roi_depth_viz_marker_array = MarkerArray();
         canopy_structs[request->canopy_id].octomap_viz_marker_array = MarkerArray();
-        canopy_structs[request->canopy_id].octomap_viz_marker_array.markers.resize(1);
+        canopy_structs[request->canopy_id].octomap_viz_marker_array.markers.resize(3);
         canopy_structs[request->canopy_id].octree = std::make_unique<OcTree>(res_);
 
         if (!enable_canopy_estimation_) {
@@ -439,6 +439,90 @@ void CanopyVolumeEstimation::publish_octomap_marker_array(const rclcpp::Time & r
     if (now_s - last_msg_s < octomap_viz_publish_period_) {
         return;
     }
+
+    canopy_struct.octomap_viz_marker_array.markers[1].header.frame_id = canopy_struct.canopy_frame_id;
+    canopy_struct.octomap_viz_marker_array.markers[1].header.stamp = rostime;
+    canopy_struct.octomap_viz_marker_array.markers[1].ns = canopy_struct.canopy_id + "/canopy_bounds";
+    canopy_struct.octomap_viz_marker_array.markers[1].id = 0;
+    canopy_struct.octomap_viz_marker_array.markers[1].type = visualization_msgs::msg::Marker::LINE_LIST;
+    canopy_struct.octomap_viz_marker_array.markers[1].scale.x = 0.03;
+    canopy_struct.octomap_viz_marker_array.markers[1].color.r = 0.9;
+    canopy_struct.octomap_viz_marker_array.markers[1].color.g = 0.9;
+    canopy_struct.octomap_viz_marker_array.markers[1].color.b = 0.0;
+    canopy_struct.octomap_viz_marker_array.markers[1].color.a=1.0;
+
+    double x_min, x_max, y_min, y_max, z_min, z_max;
+    canopy_struct.octree->getMetricMin(x_min, y_min, z_min);
+    canopy_struct.octree->getMetricMax(x_max, y_max, z_max);
+
+    // 8 vertices
+    std::vector<geometry_msgs::msg::Point> v(8);
+    v[0].x = x_min; v[0].y = y_min; v[0].z = z_min;
+    v[1].x = x_max; v[1].y = y_min; v[1].z = z_min;
+    v[2].x = x_max; v[2].y = y_max; v[2].z = z_min;
+    v[3].x = x_min; v[3].y = y_max; v[3].z = z_min;
+    v[4].x = x_min; v[4].y = y_min; v[4].z = z_max;
+    v[5].x = x_max; v[5].y = y_min; v[5].z = z_max;
+    v[6].x = x_max; v[6].y = y_max; v[6].z = z_max;
+    v[7].x = x_min; v[7].y = y_max; v[7].z = z_max;
+
+    // 12 edges as pairs
+    int edges[12][2] = {
+            {0,1},{1,2},{2,3},{3,0}, // bottom
+            {4,5},{5,6},{6,7},{7,4}, // top
+            {0,4},{1,5},{2,6},{3,7}  // vertical
+    };
+
+    canopy_struct.octomap_viz_marker_array.markers[1].points.clear();
+    for (int i = 0; i < 12; ++i) {
+        canopy_struct.octomap_viz_marker_array.markers[1].points.push_back(v[edges[i][0]]);
+        canopy_struct.octomap_viz_marker_array.markers[1].points.push_back(v[edges[i][1]]);
+    }
+
+
+    canopy_struct.octomap_viz_marker_array.markers[2].header.frame_id = canopy_struct.canopy_frame_id;
+    canopy_struct.octomap_viz_marker_array.markers[2].header.stamp = rostime;
+    canopy_struct.octomap_viz_marker_array.markers[2].ns = canopy_struct.canopy_id + "/roi_bounds";
+    canopy_struct.octomap_viz_marker_array.markers[2].id = 0;
+    canopy_struct.octomap_viz_marker_array.markers[2].type = visualization_msgs::msg::Marker::LINE_LIST;
+    canopy_struct.octomap_viz_marker_array.markers[2].scale.x = 0.04;
+    canopy_struct.octomap_viz_marker_array.markers[2].color.r = 1.0;
+    canopy_struct.octomap_viz_marker_array.markers[2].color.g = 0.0;
+    canopy_struct.octomap_viz_marker_array.markers[2].color.b = 1.0;
+    canopy_struct.octomap_viz_marker_array.markers[2].color.a = 1.0;
+
+    double roi_x_min = canopy_struct.roi_transformed.x_1;
+    double roi_x_max = canopy_struct.roi_transformed.x_2;
+    double roi_y_min = y_min;
+    double roi_y_max = y_max;
+    double roi_z_min = z_min;
+    double roi_z_max = z_max;
+
+    // 8 vertices
+    std::vector<geometry_msgs::msg::Point> v_roi(8);
+    v_roi[0].x = roi_x_min; v_roi[0].y = roi_y_min; v_roi[0].z = roi_z_min;
+    v_roi[1].x = roi_x_max; v_roi[1].y = roi_y_min; v_roi[1].z = roi_z_min;
+    v_roi[2].x = roi_x_max; v_roi[2].y = roi_y_max; v_roi[2].z = roi_z_min;
+    v_roi[3].x = roi_x_min; v_roi[3].y = roi_y_max; v_roi[3].z = roi_z_min;
+    v_roi[4].x = roi_x_min; v_roi[4].y = roi_y_min; v_roi[4].z = roi_z_max;
+    v_roi[5].x = roi_x_max; v_roi[5].y = roi_y_min; v_roi[5].z = roi_z_max;
+    v_roi[6].x = roi_x_max; v_roi[6].y = roi_y_max; v_roi[6].z = roi_z_max;
+    v_roi[7].x = roi_x_min; v_roi[7].y = roi_y_max; v_roi[7].z = roi_z_max;
+
+    // 12 edges as pairs
+    int roi_edges[12][2] = {
+            {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom
+            {4, 5},{5, 6}, {6, 7}, {7, 4}, // top
+            {0, 4}, {1, 5}, {2, 6}, {3, 7}  // vertical
+    };
+
+    canopy_struct.octomap_viz_marker_array.markers[2].points.clear();
+    for (int i = 0; i < 12; ++i) {
+        canopy_struct.octomap_viz_marker_array.markers[2].points.push_back(v_roi[roi_edges[i][0]]);
+        canopy_struct.octomap_viz_marker_array.markers[2].points.push_back(v_roi[roi_edges[i][1]]);
+    }
+
+
 
     canopy_struct.octomap_viz_marker_array.markers[0].header.frame_id = canopy_struct.canopy_frame_id;
     canopy_struct.octomap_viz_marker_array.markers[0].header.stamp = rostime;
