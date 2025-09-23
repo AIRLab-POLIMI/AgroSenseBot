@@ -6,7 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Environment1
         - /Environment1/tf1/Frames1
+        - /Environment1/robot model1
         - /Environment1/grid major1/Offset1
         - /Environment1/sat map1
         - /Sensors1/lidar front1
@@ -28,7 +30,7 @@ Panels:
         - /Interactive1/circle text1/Namespaces1
         - /ST VL53L81
       Splitter Ratio: 0.6049586534500122
-    Tree Height: 243
+    Tree Height: 134
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -204,105 +206,20 @@ Visualization Manager:
             History Policy: Keep Last
             Reliability Policy: Reliable
             Value: /robot_description
-          Enabled: true
+          Enabled: false
           Links:
             All Links Enabled: true
             Expand Joint Details: false
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            VL53L8:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            accelerometer_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_footprint:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_front_multilayer_optical_center:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_front_multilayer_plate_bottom:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_front_multilayer_plate_top:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_front_multilayer_sim:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan_rear_multilayer_plate_bottom:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_rear_multilayer_plate_optical_center:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_rear_multilayer_plate_top:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            base_scan_rear_multilayer_sim:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            gnss_1_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            gnss_2_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            gyro_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            inertial_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            left_track:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            right_track:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            sprayer_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
           Mass Properties:
             Inertia: false
             Mass: false
           Name: robot model
           TF Prefix: ""
           Update Interval: 0
-          Value: true
+          Value: false
           Visual Enabled: true
         - Alpha: 0.5
           Cell Size: 1
@@ -1842,8 +1759,8 @@ Visualization Manager:
             Value: true
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
-            Max Value: 1.3030000925064087
-            Min Value: 1.0380001068115234
+            Max Value: 3.202000141143799
+            Min Value: 2.7800002098083496
             Value: true
           Axis: Z
           Channel Name: intensity
@@ -1870,7 +1787,7 @@ Visualization Manager:
           Reliability Policy: Best effort
           Selectable: true
           Size (Pixels): 5
-          Style: Tiles
+          Style: Boxes
           Topic Filter: true
           Use Fixed Frame: false
           Use rainbow: true
@@ -1917,6 +1834,20 @@ Visualization Manager:
             Reliability Policy: Reliable
             Value: /ambient
           Value: true
+        - Class: rviz_default_plugins/Image
+          Enabled: true
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: status
+          Normalize Range: true
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /status
+          Value: true
       Enabled: true
       Name: ST VL53L8
   Enabled: true
@@ -1959,25 +1890,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 7.464572429656982
+      Distance: 6.1209259033203125
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.8629755973815918
-        Y: -0.4444567561149597
-        Z: 1.2851301431655884
+        X: 2.939093589782715
+        Y: -0.4257834553718567
+        Z: 1.2861418724060059
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3947972059249878
+      Pitch: 0.5347974300384521
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 3.6018118858337402
+      Yaw: 2.594933271408081
     Saved: ~
 Window Geometry:
   AgroSenseBot:
@@ -1993,7 +1924,7 @@ Window Geometry:
   Hide Right Dock: true
   Navigation 2:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000019600000377fc0200000010fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a005600690065007700730100000183000000a4000000a400fffffffb000000100044006900730070006c006100790073010000022d00000176000000c900fffffffb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c0065007301000003a9000001510000015000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00fffffffb0000000800480065006c0070000000044d000000ad0000006e00ffffff00000001000001c10000048ffc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000006b0000048f0000044800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000050000000140fc0100000008fb0000001000640069007300740061006e006300650100000000000001d70000006e00fffffffb0000000e0061006d006200690065006e007401000001dd000001910000006d00fffffffb0000000c007300690067006e0061006c01000003740000018c0000005c00fffffffb000000100072006f0077005f003100300020003200000000000000027d0000007300fffffffb000000100072006f0077005f00310030002000310000000000000005000000007300fffffffb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000050000000039fc0100000002fc0000000000000500000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d00650100000000000004500000000000000000000003640000037700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000019600000377fc0200000010fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000160072006f0077005f0031002000640065007000740068000000003d000000750000000000000000fb000000160072006f0077005f0030002000640065007000740068000000003d0000006f0000000000000000fb0000000a005600690065007700730100000183000000c8000000a400fffffffb000000100044006900730070006c006100790073010000025100000109000000c900fffffffb00000026004100670072006f00530065006e007300650042006f0074004e006f007a007a006c0065007301000003600000019a0000015000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000340000001ba000001ba00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001e005200650061006c00730065006e0073006500430061006d00650072006100000002c6000000c10000000000000000fb0000000800480065006c0070000000043d000000bd0000006e00fffffffb0000000800480065006c0070000000044d000000ad0000006e00ffffff00000001000001c10000048ffc0200000003fb00000018004100670072006f00530065006e007300650042006f0074000000006b0000048f0000044800fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000a0000000140fc0100000009fb0000001000640069007300740061006e006300650100000000000002c90000006e00fffffffb0000000c007300690067006e0061006c01000002cf0000026b0000005c00fffffffb0000000e0061006d006200690065006e007401000005400000025e0000006d00fffffffb0000000c00730074006100740075007301000007a40000025c0000005e00fffffffb000000100072006f0077005f003100300020003200000000000000027d0000007300fffffffb000000100072006f0077005f00310030002000310000000000000005000000007300fffffffb0000000a0049006d0061006700650000000000000005000000000000000000fb0000000c00430061006d006500720061000000000000000a000000000000000000fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000a0000000039fc0100000002fc0000000000000a00000002fb00fffffffa000000010200000002fb000000160072006f0077005f00300020006400650070007400680000000000ffffffff0000000000000000fb0000000800540069006d00650100000500000000390000003900fffffffb0000000800540069006d00650100000000000004500000000000000000000008640000037700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -2002,7 +1933,7 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1280
+  Width: 2560
   X: 0
   Y: 0
   ambient:
@@ -2014,4 +1945,6 @@ Window Geometry:
   row_10 2:
     collapsed: false
   signal:
+    collapsed: false
+  status:
     collapsed: false
