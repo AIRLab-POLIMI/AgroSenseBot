@@ -119,7 +119,7 @@ export ROS_TARGET_DISTRO=iron
 export ROS_WS=~/w/agrosensebot_ws
 export ROS_DOMAIN_ID=109
 
-export ASB_LOCATION=arcagna
+export ASB_LOCATION=cornaredo
 
 DO_NOT_CLEAR=false
 

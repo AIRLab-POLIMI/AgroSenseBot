@@ -18,3 +18,13 @@
   x: 9.95243
   y: -1.09584
   yaw: -1.5707963267948966
+- child_frame_id: qorvo_tag_1
+  frame_id: base_link
+  x: 0.13776
+  y: 0.77521
+  z: 1.96
+- child_frame_id: qorvo_tag_2
+  frame_id: base_link
+  x: -0.521
+  y: -0.76765
+  z: 1.96

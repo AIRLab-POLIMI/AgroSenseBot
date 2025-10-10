@@ -41,7 +41,7 @@ asb_base_controller:
     cmd_vel_timeout: 0.2
     #publish_limited_velocity: true
     use_stamped_vel: false
-    #velocity_rolling_window_size: 10
+    velocity_rolling_window_size: 1
 
     use_angular_velocity_pid: true
     angular_velocity_pid_params:
