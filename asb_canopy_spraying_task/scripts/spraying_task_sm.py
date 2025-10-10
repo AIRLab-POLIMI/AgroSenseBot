@@ -1011,14 +1011,15 @@ class SprayingTaskPlanExecutor(Node):
         if is_msg_timed_out(msg_name="gnss_dual_antenna_fix_status", stamp=Time.from_msg(self.last_gnss_dual_antenna_fix_status_msg.header.header.stamp), timeout=self.gnss_status_timeout):
             return False
 
-        if self.last_gnss_1_fix_status_msg.fix_type != MipGnssFixInfo.FIX_TYPE_FIX_RTK_FIXED:
-            self.get_logger().error(f"gnss_1_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED (RTK fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
-            return False
-        if self.last_gnss_2_fix_status_msg.fix_type != MipGnssFixInfo.FIX_TYPE_FIX_RTK_FIXED:
-            self.get_logger().error(f"gnss_2_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED (RTK fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+        # if self.last_gnss_1_fix_status_msg.fix_type < MipGnssFixInfo.FIX_TYPE_FIX_RTK_FLOAT:
+        #     self.get_logger().error(f"gnss_1_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED or FIX_TYPE_FIX_RTK_FLOAT  (RTK fixed or float) (message throttled to 10 s)", throttle_duration_sec=10.0)
+        #     return False
+        if self.last_gnss_2_fix_status_msg.fix_type < MipGnssFixInfo.FIX_TYPE_FIX_RTK_FLOAT:
+            self.get_logger().error(f"gnss_2_fix_status: {self.last_gnss_2_fix_status_msg.fix_type}  dual_antenna_fix_status: {self.last_gnss_dual_antenna_fix_status_msg.fix_type} (message throttled to 1 s)", throttle_duration_sec=1.0)
+            self.get_logger().error(f"gnss_2_fix_status fix type is not FIX_TYPE_FIX_RTK_FIXED or FIX_TYPE_FIX_RTK_FLOAT (RTK fixed or float) (message throttled to 1 s)", throttle_duration_sec=1.0)
             return False
         if self.last_gnss_dual_antenna_fix_status_msg.fix_type != MipFilterGnssDualAntennaStatus.FIX_TYPE_FIX_DA_FIXED:
-            self.get_logger().error(f"gnss_2_fix_status fix type is not FIX_TYPE_FIX_DA_FIXED (dual antenna fixed) (message throttled to 10 s)", throttle_duration_sec=10.0)
+            self.get_logger().error(f"dual_antenna_fix_status fix type is not FIX_TYPE_FIX_DA_FIXED (dual antenna fixed) (message throttled to 1 s)", throttle_duration_sec=1.0)
             return False
 
         return True

@@ -50,7 +50,7 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 1.5
+      min_turning_radius: 1.0
       desired_linear_vel: 0.6
       lookahead_dist: 1.0
       max_robot_path_dist: 0.5
@@ -89,7 +89,7 @@ controller_server:
       transform_tolerance: 0.1
       allow_reversing: true
       min_turning_radius: 1.7
-      desired_linear_vel: 0.55
+      desired_linear_vel: 1.0
       lookahead_dist: 2.8
       max_robot_path_dist: 1.0
       max_robot_pose_search_dist: 10.0
@@ -102,7 +102,7 @@ controller_server:
       cost_scaling_dist: 0.3
       cost_scaling_gain: 1.0
       inflation_cost_scaling_factor: 3.0
-      use_collision_detection: false  # [!!!]
+      use_collision_detection: true  # [!!!]
       use_interpolation: true
       use_cost_gradient_descent: true
 
