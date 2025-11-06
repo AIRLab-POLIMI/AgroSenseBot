@@ -28,3 +28,12 @@
   x: -0.521
   y: -0.76765
   z: 1.96
+
+- child_frame_id: livox_frame
+  frame_id: base_link
+  x: 0.78
+  y: -0.21
+  z: 1.5
+  roll: 3.141592653589793
+  pitch: -0.01
+  yaw: 0.02
