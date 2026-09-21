@@ -10,8 +10,8 @@
   qw: 0.819
 - child_frame_id: field  # reference frame oriented with its x-axis parallel to the rows
   frame_id: map
-  x: 14.6155
-  y: -3.58378
+  x: 44.0
+  y: 2.0
   yaw: 1.9608
 - child_frame_id: field_view
   frame_id: field

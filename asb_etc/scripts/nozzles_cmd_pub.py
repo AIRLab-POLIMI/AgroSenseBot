@@ -20,11 +20,20 @@ class LUTNozzlesPublisher(Node):
 
         publish_rate: float = 100.0
 
+        if len(sys.argv) == 2:
+            self.nozzle_rate = float(sys.argv[1])
+        else:
+            self.nozzle_rate = None
+
         self.nozzles_command_pub = self.create_publisher(NozzleCommandArray, '/nozzles_command', qos_profile=qos.qos_profile_sensor_data)
         self.create_timer(1.0/publish_rate, self.timer_callback)
 
     def timer_callback(self):
-        nozzle_rate = 1.0
+
+        if self.nozzle_rate is not None:
+            nozzle_rate = self.nozzle_rate
+        else:
+            nozzle_rate = 0.1
 
         nozzle_command_msg = NozzleCommandArray(
             stamp=self.get_clock().now().to_msg(),
