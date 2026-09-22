@@ -72,7 +72,7 @@ DEF FIELD_POSE Pose {
 }
 
 DEF ROBOT_NODE Robot {
-  translation 12.3 13.1 0.8
+  translation 40.3 18.75 0.75
   rotation 0 0 1 -2.8
 
   name "asb_webots_robot"
