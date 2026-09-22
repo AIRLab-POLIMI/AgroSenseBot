@@ -22,7 +22,12 @@ switch_direction: True
 
 row_path_external_dist: 1.25  # distance of inter-row path from row when navigating on the outside (as opposed to between two rows)
 row_path_margin: 2.0  # distance of the positioning pose to the beginning of the rows
-row_approach_margin: 1.0  # distance between the straightening and positioning approach pose
+row_approach_margin: 2.0  # distance between the straightening and positioning approach pose
+
+headland_row_distance: 4.0
+headland_post_turn_margin: 0.0
+external_first_row_distance: -11.0
+min_turning_radius: 4.0
 
 fan_velocity_target_rpm: 1200
 fan_velocity_threshold_rpm: 800

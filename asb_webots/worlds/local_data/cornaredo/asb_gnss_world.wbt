@@ -60,7 +60,7 @@ DEF FIELD_POSE Pose {
       }
     }
     DEF VINES Pose {
-      translation 14.9917 -4.49951 0.45
+      translation 44.4 1 0.45
       rotation 0 0 1 1.9608
       children [
         CadShape {
@@ -72,8 +72,8 @@ DEF FIELD_POSE Pose {
 }
 
 DEF ROBOT_NODE Robot {
-  translation 40.3 18.75 0.75
-  rotation 0 0 1 -2.8
+  translation  36.7 16.4 0.8
+  rotation 0 0 1 -1.18
 
   name "asb_webots_robot"
   controller "<extern>"

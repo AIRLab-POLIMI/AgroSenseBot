@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os.path
-from datetime import datetime
 
 import threading
 
@@ -152,7 +151,7 @@ class SprayingTaskPlanExecutor(Node):
         # load task plan
         self.task_plan: SprayingTaskPlan = SprayingTaskPlan.load(self.task_plan_file_path)
         if len(self.task_plan.items):
-            self.get_logger().info(f"loaded task plan with item: {self.task_plan.get_item_ids()}")
+            self.get_logger().info(f"loaded task plan with items: {self.task_plan.get_item_ids()}")
         else:
             self.task_plan.generate_items(only_inter_row_items=True)
             self.get_logger().info(f"loaded task plan with no items, auto generated items: {self.task_plan.get_item_ids()}")
@@ -221,44 +220,44 @@ class SprayingTaskPlanExecutor(Node):
 
         positioning_approach_sm = StateMachine(outcomes=['success', 'failure'])
         with positioning_approach_sm:
-            StateMachine.add(
-                label='start_planning_positioning_approach',
-                state=CallbackState(self.start_planning_positioning_approach_sm_cb, class_instance=self), transitions={
-                    'success': 'wait_planning_started',
-                    'failure': 'failure',
-                }
-            )
-            StateMachine.add(
-                label='wait_planning_started',
-                state=CallbackState(self.wait_planning_started_sm_cb, class_instance=self), transitions={
-                    'success': 'wait_planning_complete',
-                    'waiting': 'wait_planning_started',
-                    'failure': 'failure',
-                }
-            )
-            StateMachine.add(
-                label='wait_planning_complete',
-                state=CallbackState(self.wait_planning_complete_sm_cb, class_instance=self), transitions={
-                    'success': 'start_positioning_navigation',
-                    'waiting': 'wait_planning_complete',
-                    'cannot_plan': 'clear_global_costmap_for_replanning',
-                    'failure': 'failure',
-                }
-            )
-            StateMachine.add(
-                label='clear_global_costmap_for_replanning',
-                state=CallbackState(self.clear_global_costmap_for_replanning_sm_cb, class_instance=self), transitions={
-                    'success': 'clear_global_costmap_for_replanning_wait',
-                    'give_up': 'failure',
-                }
-            )
-            StateMachine.add(
-                label='clear_global_costmap_for_replanning_wait',
-                state=CallbackState(self.clear_global_costmap_for_replanning_wait_sm_cb, class_instance=self), transitions={
-                    'success': 'start_planning_positioning_approach',
-                    'wait': 'clear_global_costmap_for_replanning_wait',
-                }
-            )
+            # StateMachine.add(
+            #     label='start_planning_positioning_approach',
+            #     state=CallbackState(self.start_planning_positioning_approach_sm_cb, class_instance=self), transitions={
+            #         'success': 'wait_planning_started',
+            #         'failure': 'failure',
+            #     }
+            # )
+            # StateMachine.add(
+            #     label='wait_planning_started',
+            #     state=CallbackState(self.wait_planning_started_sm_cb, class_instance=self), transitions={
+            #         'success': 'wait_planning_complete',
+            #         'waiting': 'wait_planning_started',
+            #         'failure': 'failure',
+            #     }
+            # )
+            # StateMachine.add(
+            #     label='wait_planning_complete',
+            #     state=CallbackState(self.wait_planning_complete_sm_cb, class_instance=self), transitions={
+            #         'success': 'start_positioning_navigation',
+            #         'waiting': 'wait_planning_complete',
+            #         'cannot_plan': 'clear_global_costmap_for_replanning',
+            #         'failure': 'failure',
+            #     }
+            # )
+            # StateMachine.add(
+            #     label='clear_global_costmap_for_replanning',
+            #     state=CallbackState(self.clear_global_costmap_for_replanning_sm_cb, class_instance=self), transitions={
+            #         'success': 'clear_global_costmap_for_replanning_wait',
+            #         'give_up': 'failure',
+            #     }
+            # )
+            # StateMachine.add(
+            #     label='clear_global_costmap_for_replanning_wait',
+            #     state=CallbackState(self.clear_global_costmap_for_replanning_wait_sm_cb, class_instance=self), transitions={
+            #         'success': 'start_planning_positioning_approach',
+            #         'wait': 'clear_global_costmap_for_replanning_wait',
+            #     }
+            # )
             StateMachine.add(
                 label='start_positioning_navigation',
                 state=CallbackState(self.start_positioning_navigation_sm_cb, class_instance=self), transitions={
@@ -288,7 +287,7 @@ class SprayingTaskPlanExecutor(Node):
             StateMachine.add(
                 label='retry_positioning_navigation',
                 state=CallbackState(self.retry_positioning_navigation_sm_cb, class_instance=self), transitions={
-                    'retry': 'start_planning_positioning_approach',
+                    'retry': 'start_positioning_navigation',
                     'give_up': 'failure',
                 }
             )
@@ -577,74 +576,74 @@ class SprayingTaskPlanExecutor(Node):
             else:
                 return 'task_complete'
 
-    @cb_interface(outcomes=['success', 'failure'])
-    def start_planning_positioning_approach_sm_cb(self) -> str:
-        self.get_logger().info(f"\n***\nPOSITIONING")
-        self.start_planning_action_chrono = Chronometer()
-        self.planning_chrono = Chronometer()
-        self.navigation_manager.plan_positioning_approach(self.current_item)
-        return 'success'
+    # @cb_interface(outcomes=['success', 'failure'])
+    # def start_planning_positioning_approach_sm_cb(self) -> str:
+    #     self.get_logger().info(f"\n***\nPOSITIONING")
+    #     self.start_planning_action_chrono = Chronometer()
+    #     self.planning_chrono = Chronometer()
+    #     self.navigation_manager.plan_positioning_approach(self.current_item)
+    #     return 'success'
 
-    @cb_interface(outcomes=['success', 'waiting', 'failure'])
-    def wait_planning_started_sm_cb(self) -> str:
-        self.do_loop_operations_and_sleep(current_item=self.current_item)
+    # @cb_interface(outcomes=['success', 'waiting', 'failure'])
+    # def wait_planning_started_sm_cb(self) -> str:
+    #     self.do_loop_operations_and_sleep(current_item=self.current_item)
+    #
+    #     if self.start_planning_action_chrono.total() > self.start_navigation_action_timeout:
+    #         self.get_logger().error(f"planning could not be started before timeout [{self.start_navigation_action_timeout} s] for item {self.current_item.get_item_id()}")
+    #         return 'failure'
+    #
+    #     if self.navigation_manager.planning_action_status == NavigationActionStatus.FAILED_TO_START:
+    #         self.get_logger().error(f"planning could not be started for item {self.current_item.get_item_id()}")
+    #         return 'failure'
+    #
+    #     if self.navigation_manager.planning_action_status in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.REQUESTED]:
+    #         return 'waiting'
+    #
+    #     return 'success'
 
-        if self.start_planning_action_chrono.total() > self.start_navigation_action_timeout:
-            self.get_logger().error(f"planning could not be started before timeout [{self.start_navigation_action_timeout} s] for item {self.current_item.get_item_id()}")
-            return 'failure'
+    # @cb_interface(outcomes=['success', 'waiting', 'cannot_plan', 'failure'])
+    # def wait_planning_complete_sm_cb(self) -> str:
+    #     self.do_loop_operations_and_sleep(current_item=self.current_item)
+    #
+    #     if self.dry_run:
+    #         self.get_logger().info(f"planning completed in {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()} (DRY RUN)")  # TODO plan even in dry run
+    #         self.clear_global_costmap_for_replanning_count = 0
+    #         return 'success'
+    #
+    #     if self.navigation_manager.planning_action_status == NavigationActionStatus.SUCCEEDED:
+    #         self.get_logger().info(f"planning succeeded in {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+    #         self.clear_global_costmap_for_replanning_count = 0
+    #         return 'success'
+    #
+    #     if self.navigation_manager.planning_action_status == NavigationActionStatus.FAILED:
+    #         self.get_logger().warn(f"planning failed after {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+    #         return 'cannot_plan'
+    #
+    #     return 'waiting'
 
-        if self.navigation_manager.planning_action_status == NavigationActionStatus.FAILED_TO_START:
-            self.get_logger().error(f"planning could not be started for item {self.current_item.get_item_id()}")
-            return 'failure'
+    # @cb_interface(outcomes=['success', 'give_up'])
+    # def clear_global_costmap_for_replanning_sm_cb(self) -> str:
+    #     self.do_loop_operations_and_sleep(current_item=self.current_item)
+    #     self.clear_global_costmap_for_replanning_chrono = Chronometer()
+    #
+    #     if self.clear_global_costmap_for_replanning_count >= self.clear_global_costmap_for_replanning_max_retries:
+    #         self.get_logger().error(f"max attempts reached for clearing global costmap for replanning [{self.clear_global_costmap_for_replanning_max_retries}] for item {self.current_item.get_item_id()}")
+    #         self.clear_global_costmap_for_replanning_count = 0
+    #         return 'give_up'
+    #     else:
+    #         self.clear_global_costmap_for_replanning_count += 1
+    #         self.get_logger().info(f"clearing global costmap for replanning, attempt {self.clear_global_costmap_for_replanning_count} of {self.clear_global_costmap_for_replanning_max_retries} for item {self.current_item.get_item_id()}")
+    #         self.navigation_manager.clear_global_costmap()
+    #         return 'success'
 
-        if self.navigation_manager.planning_action_status in [NavigationActionStatus.NOT_STARTED, NavigationActionStatus.REQUESTED]:
-            return 'waiting'
-
-        return 'success'
-
-    @cb_interface(outcomes=['success', 'waiting', 'cannot_plan', 'failure'])
-    def wait_planning_complete_sm_cb(self) -> str:
-        self.do_loop_operations_and_sleep(current_item=self.current_item)
-
-        if self.dry_run:
-            self.get_logger().info(f"planning completed in {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()} (DRY RUN)")  # TODO plan even in dry run
-            self.clear_global_costmap_for_replanning_count = 0
-            return 'success'
-
-        if self.navigation_manager.planning_action_status == NavigationActionStatus.SUCCEEDED:
-            self.get_logger().info(f"planning succeeded in {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
-            self.clear_global_costmap_for_replanning_count = 0
-            return 'success'
-
-        if self.navigation_manager.planning_action_status == NavigationActionStatus.FAILED:
-            self.get_logger().warn(f"planning failed after {self.planning_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
-            return 'cannot_plan'
-
-        return 'waiting'
-
-    @cb_interface(outcomes=['success', 'give_up'])
-    def clear_global_costmap_for_replanning_sm_cb(self) -> str:
-        self.do_loop_operations_and_sleep(current_item=self.current_item)
-        self.clear_global_costmap_for_replanning_chrono = Chronometer()
-
-        if self.clear_global_costmap_for_replanning_count >= self.clear_global_costmap_for_replanning_max_retries:
-            self.get_logger().error(f"max attempts reached for clearing global costmap for replanning [{self.clear_global_costmap_for_replanning_max_retries}] for item {self.current_item.get_item_id()}")
-            self.clear_global_costmap_for_replanning_count = 0
-            return 'give_up'
-        else:
-            self.clear_global_costmap_for_replanning_count += 1
-            self.get_logger().info(f"clearing global costmap for replanning, attempt {self.clear_global_costmap_for_replanning_count} of {self.clear_global_costmap_for_replanning_max_retries} for item {self.current_item.get_item_id()}")
-            self.navigation_manager.clear_global_costmap()
-            return 'success'
-
-    @cb_interface(outcomes=['success', 'wait'])
-    def clear_global_costmap_for_replanning_wait_sm_cb(self) -> str:
-        self.do_loop_operations_and_sleep(current_item=self.current_item)
-
-        if self.clear_global_costmap_for_replanning_chrono.total() > self.clear_global_costmap_for_replanning_wait_time:
-            return 'success'
-        else:
-            return 'wait'
+    # @cb_interface(outcomes=['success', 'wait'])
+    # def clear_global_costmap_for_replanning_wait_sm_cb(self) -> str:
+    #     self.do_loop_operations_and_sleep(current_item=self.current_item)
+    #
+    #     if self.clear_global_costmap_for_replanning_chrono.total() > self.clear_global_costmap_for_replanning_wait_time:
+    #         return 'success'
+    #     else:
+    #         return 'wait'
 
     @cb_interface(outcomes=['success', 'waiting', 'failure'])
     def wait_navigation_started_sm_cb(self) -> str:
@@ -688,12 +687,12 @@ class SprayingTaskPlanExecutor(Node):
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()} (DRY RUN)")
             return 'success'
 
-        self.navigation_manager.check_plan_is_valid()
-
-        if self.navigation_manager.plan_validity in [NavigationPlanValidity.FAILED, NavigationPlanValidity.INVALID]:
-            self.get_logger().error(f"navigation failed due to invalidated plan after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
-            self.navigation_manager.plan_validity = NavigationPlanValidity.UNKNOWN
-            return 'plan_invalid'
+        # self.navigation_manager.check_plan_is_valid()
+        #
+        # if self.navigation_manager.plan_validity in [NavigationPlanValidity.FAILED, NavigationPlanValidity.INVALID]:
+        #     self.get_logger().error(f"navigation failed due to invalidated plan after {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")
+        #     self.navigation_manager.plan_validity = NavigationPlanValidity.UNKNOWN
+        #     return 'plan_invalid'
 
         if self.navigation_manager.navigation_action_status == NavigationActionStatus.SUCCEEDED:
             self.get_logger().info(f"navigation completed in {self.nav_chrono.total():.3f} s for item {self.current_item.get_item_id()}")

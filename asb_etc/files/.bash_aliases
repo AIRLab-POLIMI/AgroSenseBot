@@ -165,8 +165,20 @@ complete -F _complete_alias cb
 alias rt='ros2 topic'
 complete -F _complete_alias rt
 
+alias rte='ros2 topic echo'
+complete -F _complete_alias rte
+
+alias rti='ros2 topic info'
+complete -F _complete_alias rti
+
+alias rtl='ros2 topic list'
+complete -F _complete_alias rtl
+
 alias rs='ros2 service'
 complete -F _complete_alias rs
+
+alias rsc='ros2 service call'
+complete -F _complete_alias rsc
 
 alias ra='ros2 action'
 complete -F _complete_alias ra
@@ -176,6 +188,12 @@ complete -F _complete_alias ri
 
 alias rn='ros2 node'
 complete -F _complete_alias rn
+
+alias rnl='ros2 node list'
+complete -F _complete_alias rnl
+
+alias rni='ros2 node info'
+complete -F _complete_alias rni
 
 alias rl='ros2 launch'
 complete -F _complete_alias rl

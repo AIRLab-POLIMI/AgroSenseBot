@@ -87,6 +87,9 @@ class TaskPlanItem:
         self._left_row_id: str | None = None
         self._right_row_id: str | None = None
         self._result: TaskPlanItemResult | None = None
+        self._previous_item: TaskPlanItem | None = None
+        self._is_first_item: bool | None = None
+        self._is_last_item: bool | None = None
 
     @classmethod
     def from_dict(cls, d) -> Self:
@@ -214,6 +217,24 @@ class TaskPlanItem:
             raise TypeError(f"trying to set result of type {type(result)} in item [{self._item_id}], result type should be {type(TaskPlanItemResult)}")
         self._result = result
 
+    def get_previous_item(self) -> 'TaskPlanItem':
+        return self._previous_item
+
+    def set_previous_item(self, previous_item: 'TaskPlanItem'):
+        self._previous_item = previous_item
+
+    def is_first_item(self) -> bool | None:
+        return self._is_first_item
+
+    def set_is_first_item(self, is_first_item: bool):
+        self._is_first_item = is_first_item
+
+    def is_last_item(self) -> bool | None:
+        return self._is_last_item
+
+    def set_is_last_item(self, is_last_item: bool):
+        self._is_last_item = is_last_item
+
 
 class TaskPlanRow:
     def __init__(self, row_id: str, start_point: PointStamped, end_point: PointStamped):
@@ -304,6 +325,11 @@ class SprayingTaskPlan:
         self.row_path_margin: float = 1.0
         self.row_approach_margin: float = 1.0
 
+        self.headland_row_distance: float = 1.0
+        self.headland_post_turn_margin: float = 1.0
+        self.external_first_row_distance: float = 1.0
+        self.min_turning_radius: float = 1.0
+
         # parameters for spraying regulation
         self.fan_velocity_target_rpm: int = 1200
         self.fan_velocity_threshold_rpm: int = 800
@@ -345,6 +371,11 @@ class SprayingTaskPlan:
         t.row_path_external_dist = d['row_path_external_dist']
         t.row_path_margin = d['row_path_margin']
         t.row_approach_margin = d['row_approach_margin']
+
+        t.headland_row_distance = d['headland_row_distance']
+        t.headland_post_turn_margin = d['headland_post_turn_margin']
+        t.external_first_row_distance = d['external_first_row_distance']
+        t.min_turning_radius = d['min_turning_radius']
 
         t.fan_velocity_target_rpm = d['fan_velocity_target_rpm']
         t.fan_velocity_threshold_rpm = d['fan_velocity_threshold_rpm']
@@ -388,6 +419,11 @@ class SprayingTaskPlan:
             'row_path_external_dist': self.row_path_external_dist,
             'row_path_margin': self.row_path_margin,
             'row_approach_margin': self.row_approach_margin,
+
+            'headland_row_distance': self.headland_row_distance,
+            'headland_post_turn_margin': self.headland_post_turn_margin,
+            'external_first_row_distance': self.external_first_row_distance,
+            'min_turning_radius': self.min_turning_radius,
 
             'fan_velocity_target_rpm': self.fan_velocity_target_rpm,
             'fan_velocity_threshold_rpm': self.fan_velocity_threshold_rpm,
@@ -560,6 +596,10 @@ class SprayingTaskPlan:
                 self.items.append(approach_far)
             self.items.append(inter_row)
 
+        for i, item in enumerate(self.items):
+            item.set_previous_item(self.items[i-1])
+            item.set_is_last_item(i == (len(self.items) - 1))
+            item.set_is_first_item(i == 0)
 
 def transform_rows(r_1: TaskPlanRow | None, r_2: TaskPlanRow | None) -> (float, TaskPlanRow | None, TaskPlanRow | None):
     if r_1 is not None:

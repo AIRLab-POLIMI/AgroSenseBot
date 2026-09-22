@@ -20,7 +20,8 @@ from geometry_msgs.msg import Point, Pose, PoseStamped, PoseArray, Polygon, Poly
 from nav_msgs.msg import Path
 from std_msgs.msg import Header
 from action_msgs.msg import GoalStatus, GoalInfo
-from nav2_msgs.srv import ClearEntireCostmap, IsPathValid
+from nav2_msgs.srv import ClearEntireCostmap
+# from nav2_msgs.srv import ClearEntireCostmap, IsPathValid
 from nav2_msgs.action import FollowPath, ComputePathToPose
 
 from tf2_ros import TransformException
@@ -33,6 +34,7 @@ import tf2_geometry_msgs  # imports PoseStamped into tf2
 from enum import Enum
 
 from spraying_task_plan import TaskPlanItem, TaskPlanItemType, TaskPlanRow
+from path_utils import points_to_beveled_path, quaternion_from_yaw
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -100,10 +102,11 @@ class NavigationManager:
         # variables for task execution
         self.planning_action_status: NavigationActionStatus = NavigationActionStatus.NOT_STARTED
         self.navigation_action_status: NavigationActionStatus = NavigationActionStatus.NOT_STARTED
-        self.plan_validity: NavigationPlanValidity = NavigationPlanValidity.UNKNOWN
+        # self.plan_validity: NavigationPlanValidity = NavigationPlanValidity.UNKNOWN
         self._planned_path: Path | None = None
-        self._plan_is_valid_request_chrono: Chronometer = Chronometer()
+        # self._plan_is_valid_request_chrono: Chronometer = Chronometer()
         self._approach_poses_viz = PoseArray()
+        self._positioning_approach_poses_viz = PoseArray()
 
         # publishers, subscribers, timers and loop rate
         qos_reliable_transient_local_depth_10 = QoSProfile(
@@ -113,17 +116,22 @@ class NavigationManager:
             depth=10
         )
 
+        # benchmarking publishers
+        self._benchmarking_path_pub = self._node.create_publisher(Path, '/plan', qos_reliable_transient_local_depth_10)
+
         # viz publishers
         self._approach_poses_viz_pub = self._node.create_publisher(PoseArray, '/approach_poses', qos_reliable_transient_local_depth_10)
-        self._path_viz_pub = self._node.create_publisher(Path, '/plan', qos_reliable_transient_local_depth_10)
-        self._approach_path_viz_pub = self._node.create_publisher(Path, '/approach_plan', qos_reliable_transient_local_depth_10)
+        self._positioning_approach_poses_viz_pub = self._node.create_publisher(PoseArray, '/positioning_approach_poses', qos_reliable_transient_local_depth_10)
+        self._row_path_viz_pub = self._node.create_publisher(Path, '/row_plan', qos_reliable_transient_local_depth_10)
+        self._positioning_approach_path_viz_pub = self._node.create_publisher(Path, '/positioning_approach_plan', qos_reliable_transient_local_depth_10)
+        self._straightening_path_viz_pub = self._node.create_publisher(Path, '/straightening_approach_plan', qos_reliable_transient_local_depth_10)
         self._row_left_viz_pub = self._node.create_publisher(PolygonStamped, '/row_left_viz', qos_reliable_transient_local_depth_10)
         self._row_right_viz_pub = self._node.create_publisher(PolygonStamped, '/row_right_viz', qos_reliable_transient_local_depth_10)
 
         # navigation service, action, rate
         self._clear_local_costmap_service = self._node.create_client(ClearEntireCostmap, '/local_costmap/clear_entirely_local_costmap')
         self._clear_global_costmap_service = self._node.create_client(ClearEntireCostmap, '/global_costmap/clear_entirely_global_costmap')
-        self._is_path_valid_service = self._node.create_client(IsPathValid, '/is_path_valid')
+        # self._is_path_valid_service = self._node.create_client(IsPathValid, '/is_path_valid')
         self._compute_path_to_pose_client = ActionClient(self._node, ComputePathToPose, '/compute_path_to_pose')
         self._follow_path_client = ActionClient(self._node, FollowPath, '/follow_path')
         self._navigation_goal_handle: rclpy.action.client.ClientGoalHandle | None = None
@@ -136,54 +144,74 @@ class NavigationManager:
     def clear_global_costmap(self) -> None:
         self._clear_global_costmap_service.call_async(ClearEntireCostmap.Request())
 
-    def check_plan_is_valid(self) -> None:
-        if self._plan_is_valid_request_chrono.total() < 1/self._check_plan_validity_rate:
-            return
+    # def check_plan_is_valid(self) -> None:
+    #     if self._plan_is_valid_request_chrono.total() < 1/self._check_plan_validity_rate:
+    #         return
+    #
+    #     self._plan_is_valid_request_chrono = Chronometer()
+    #     if self._planned_path is None:
+    #         self._node.get_logger().error(f"trying to check if plan is valid, but planned path is None")
+    #         self.plan_validity = NavigationPlanValidity.FAILED  # eventually it will be externally set to NavigationPlanValidity.UNKNOWN
+    #         return
+    #
+    #     response_future = self._is_path_valid_service.call_async(IsPathValid.Request(path=self._planned_path))
+    #     response_future.add_done_callback(self._is_path_valid_response_callback)
+    #
+    # def _is_path_valid_response_callback(self, future: Future) -> None:
+    #     if future.result().is_valid:
+    #         self.plan_validity = NavigationPlanValidity.VALID
+    #     else:
+    #         self.plan_validity = NavigationPlanValidity.INVALID  # eventually it will be externally set to NavigationPlanValidity.UNKNOWN
 
-        self._plan_is_valid_request_chrono = Chronometer()
-        if self._planned_path is None:
-            self._node.get_logger().error(f"trying to check if plan is valid, but planned path is None")
-            self.plan_validity = NavigationPlanValidity.FAILED  # eventually it will be externally set to NavigationPlanValidity.UNKNOWN
-            return
-
-        response_future = self._is_path_valid_service.call_async(IsPathValid.Request(path=self._planned_path))
-        response_future.add_done_callback(self._is_path_valid_response_callback)
-
-    def _is_path_valid_response_callback(self, future: Future) -> None:
-        if future.result().is_valid:
-            self.plan_validity = NavigationPlanValidity.VALID
-        else:
-            self.plan_validity = NavigationPlanValidity.INVALID  # eventually it will be externally set to NavigationPlanValidity.UNKNOWN
-
-    def plan_positioning_approach(self, item: TaskPlanItem) -> None:
-        self.planning_action_status = NavigationActionStatus.NOT_STARTED
-
-        self._node.get_logger().info(f"PLANNING positioning approach navigation for {item.get_item_id()}")
-
-        approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
-        positioning_approach_pose_stamped = PoseStamped(
-            header=Header(
-                frame_id=approach_frame_id,
-                stamp=self._node.get_clock().now().to_msg(),
-            ),
-            pose=Pose(
-                position=Point(x=0.0, y=0.0),
-                orientation=Quaternion(w=1.0),
-            )
-        )
-
-        self._approach_poses_viz.poses = [positioning_approach_pose_stamped.pose]
-        self._approach_poses_viz.header.frame_id = positioning_approach_pose_stamped.header.frame_id
-        self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
-        self._approach_poses_viz_pub.publish(self._approach_poses_viz)
-
-        if self._node.dry_run:
-            self.planning_action_status = NavigationActionStatus.SUCCEEDED
-        else:
-            self._execute_compute_path_to_pose_action(
-                goal_pose=positioning_approach_pose_stamped,
-                planner_id=self._node.task_plan.positioning_approach_planner_id,
-            )
+    # def plan_positioning_approach(self, item: TaskPlanItem) -> None:
+    #     self.planning_action_status = NavigationActionStatus.NOT_STARTED
+    #
+    #     self._node.get_logger().info(f"PLANNING positioning approach navigation for {item.get_item_id()}")
+    #
+    #     approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
+    #     positioning_approach_pose_stamped = PoseStamped(
+    #         header=Header(
+    #             frame_id=approach_frame_id,
+    #             stamp=self._node.get_clock().now().to_msg(),
+    #         ),
+    #         pose=Pose(
+    #             position=Point(x=0.0, y=0.0),
+    #             orientation=Quaternion(w=1.0),
+    #         )
+    #     )
+    #
+    #     self._approach_poses_viz.poses = [positioning_approach_pose_stamped.pose]
+    #     self._approach_poses_viz.header.frame_id = positioning_approach_pose_stamped.header.frame_id
+    #     self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
+    #     self._approach_poses_viz_pub.publish(self._approach_poses_viz)
+    #
+    #     if self._node.dry_run:
+    #         self.planning_action_status = NavigationActionStatus.SUCCEEDED
+    #     else:
+    #         self._execute_compute_path_to_pose_action(
+    #             goal_pose=positioning_approach_pose_stamped,
+    #             planner_id=self._node.task_plan.positioning_approach_planner_id,
+    #         )
+    #
+    # def start_positioning_navigation(self, item: TaskPlanItem) -> None:
+    #     # NOTE: the navigation action functions set self.navigation_action_status to REQUESTED, and eventually to
+    #     # - NavigationActionStatus.FAILED_TO_START
+    #     # - NavigationActionStatus.IN_PROGRESS
+    #     # - NavigationActionStatus.SUCCEEDED
+    #     # - NavigationActionStatus.FAILED
+    #     self.navigation_action_status = NavigationActionStatus.NOT_STARTED
+    #
+    #     self._node.get_logger().info(f"STARTING positioning approach navigation for {item.get_item_id()}")
+    #
+    #     if self._node.dry_run:
+    #         self.navigation_action_status = NavigationActionStatus.SUCCEEDED
+    #     else:
+    #         self._execute_follow_path_action(
+    #             path=self._planned_path,
+    #             controller_id=self._node.task_plan.positioning_approach_controller_id,
+    #             goal_checker_id=self._node.task_plan.positioning_approach_goal_checker_id,
+    #             progress_checker_id=self._node.task_plan.positioning_approach_progress_checker_id,
+    #         )
 
     def start_positioning_navigation(self, item: TaskPlanItem) -> None:
         # NOTE: the navigation action functions set self.navigation_action_status to REQUESTED, and eventually to
@@ -195,11 +223,230 @@ class NavigationManager:
 
         self._node.get_logger().info(f"STARTING positioning approach navigation for {item.get_item_id()}")
 
+        headland_row_distance = self._node.task_plan.headland_row_distance
+        headland_post_turn_margin = self._node.task_plan.headland_post_turn_margin
+        min_turning_radius = self._node.task_plan.min_turning_radius
+
+        external_first_row_distance  = self._node.task_plan.external_first_row_distance
+
+        if headland_row_distance < min_turning_radius:
+            raise ValueError("headland_row_distance < min_turning_radius")
+
+        approach_frame_id = item.get_item_id()  # we plan and navigate in the frame of each inter-row, which are broadcasted by the plan manager
+
+        start_pose_stamped_prev_frame = item.get_previous_item().get_row_waypoints()[1]
+        start_pose_stamped_prev_frame.header.stamp = self._node.get_clock().now().to_msg()
+        start_pose_stamped = self._transform_pose_stamped(
+            pose_stamped=start_pose_stamped_prev_frame,
+            frame_id=approach_frame_id,
+        )
+
+        positioning_approach_pose_stamped = PoseStamped(
+            header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+            pose=Pose(
+                position=Point(
+                    x=0.0,
+                    y=0.0,
+                ),
+                orientation=quaternion_from_yaw(0.0),
+            )
+        )
+
+        if item.is_first_item():
+            # start_pose_stamped = PoseStamped(
+            #     header=positioning_approach_pose_stamped.header,
+            #     pose=Pose(
+            #         position=Point(
+            #             x=-1.0,
+            #             y=positioning_approach_pose_stamped.pose.position.y,
+            #         ),
+            #         orientation=positioning_approach_pose_stamped.pose.orientation,
+            #     )
+            # )
+            # positioning_approach_path = self._make_path([start_pose_stamped, positioning_approach_pose_stamped])
+            # positioning_approach_path.header = positioning_approach_pose_stamped.header
+
+            headland_intersect_start_pose_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=start_pose_stamped.pose.position.x + headland_row_distance,
+                        y=start_pose_stamped.pose.position.y,
+                    ),
+                    orientation=start_pose_stamped.pose.orientation,
+                )
+            )
+            headland_intersect_external_start_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=start_pose_stamped.pose.position.x + headland_row_distance,
+                        y=positioning_approach_pose_stamped.pose.position.y - external_first_row_distance,
+                    ),
+                    orientation=quaternion_from_yaw(-np.pi/2),  # TODO compute orientation
+                )
+            )
+            headland_intersect_external_approach_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=-headland_row_distance,
+                        y=positioning_approach_pose_stamped.pose.position.y - external_first_row_distance,
+                    ),
+                    orientation=quaternion_from_yaw(-np.pi/2),  # TODO compute orientation
+                )
+            )
+            headland_intersect_approach_pose_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=-headland_row_distance,
+                        y=positioning_approach_pose_stamped.pose.position.y,
+                    ),
+                    orientation=positioning_approach_pose_stamped.pose.orientation,
+                )
+            )
+
+            def pose_viz(p: PoseStamped):
+                self._positioning_approach_poses_viz.poses.append(
+                    self._transform_pose_stamped(pose_stamped=p, frame_id=self._node.task_plan.map_frame).pose
+                )
+            pose_viz(start_pose_stamped)
+            pose_viz(headland_intersect_start_pose_stamped)
+            pose_viz(headland_intersect_external_start_stamped)
+            pose_viz(headland_intersect_external_approach_stamped)
+            pose_viz(headland_intersect_approach_pose_stamped)
+            pose_viz(positioning_approach_pose_stamped)
+
+            self._positioning_approach_poses_viz.header.frame_id = self._node.task_plan.map_frame
+            self._positioning_approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
+            self._positioning_approach_poses_viz_pub.publish(self._positioning_approach_poses_viz)
+
+            positioning_approach_path = self._make_path_from_poly_line(
+                points_list=[
+                    start_pose_stamped.pose.position,
+                    headland_intersect_start_pose_stamped.pose.position,
+                    headland_intersect_external_start_stamped.pose.position,
+                    headland_intersect_external_approach_stamped.pose.position,
+                    headland_intersect_approach_pose_stamped.pose.position,
+                    positioning_approach_pose_stamped.pose.position,
+                ],
+                path_pose_distance=self._node.task_plan.path_pose_distance,
+                fixed_frame_id=approach_frame_id,
+                min_turning_radius=min_turning_radius,
+                invert_orientation=False,
+                drop_last=False,
+            )
+            positioning_approach_path.header.stamp = self._node.get_clock().now().to_msg()
+
+        else:
+            headland_intersect_start_pose_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=-headland_row_distance,
+                        y=start_pose_stamped.pose.position.y,
+                    ),
+                    orientation=start_pose_stamped.pose.orientation,
+                )
+            )
+            headland_continue_start_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=-headland_row_distance,
+                        y=start_pose_stamped.pose.position.y - (min_turning_radius + headland_post_turn_margin),
+                    ),
+                    orientation=quaternion_from_yaw(-np.pi/2),  # TODO compute orientation
+                )
+            )
+
+            headland_continue_approach_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=-headland_row_distance,
+                        y=positioning_approach_pose_stamped.pose.position.y + min_turning_radius + headland_post_turn_margin,
+                    ),
+                    orientation=quaternion_from_yaw(-np.pi/2),  # TODO compute orientation
+                )
+            )
+            headland_intersect_approach_pose_stamped = PoseStamped(
+                header=Header(frame_id=approach_frame_id, stamp=self._node.get_clock().now().to_msg()),
+                pose=Pose(
+                    position=Point(
+                        x=-headland_row_distance,
+                        y=positioning_approach_pose_stamped.pose.position.y,
+                    ),
+                    orientation=positioning_approach_pose_stamped.pose.orientation,
+                )
+            )
+
+            def pose_viz(p: PoseStamped):
+                self._positioning_approach_poses_viz.poses.append(
+                    self._transform_pose_stamped(pose_stamped=p, frame_id=self._node.task_plan.map_frame).pose
+                )
+            pose_viz(start_pose_stamped)
+            pose_viz(headland_continue_start_stamped)
+            pose_viz(headland_continue_approach_stamped)
+            pose_viz(positioning_approach_pose_stamped)
+
+            self._positioning_approach_poses_viz.header.frame_id = self._node.task_plan.map_frame
+            self._positioning_approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
+            self._positioning_approach_poses_viz_pub.publish(self._positioning_approach_poses_viz)
+
+            path_1 = self._make_path_from_poly_line(
+                points_list=[
+                    start_pose_stamped.pose.position,
+                    headland_intersect_start_pose_stamped.pose.position,
+                    headland_continue_start_stamped.pose.position,
+                ],
+                path_pose_distance=self._node.task_plan.path_pose_distance,
+                fixed_frame_id=approach_frame_id,
+                min_turning_radius=min_turning_radius,
+                invert_orientation=False,
+                drop_last=True,
+            )
+
+            path_2 = self._make_path_from_poly_line(
+                points_list=[
+                    headland_continue_start_stamped.pose.position,
+                    headland_continue_approach_stamped.pose.position,
+                ],
+                path_pose_distance=self._node.task_plan.path_pose_distance,
+                fixed_frame_id=approach_frame_id,
+                min_turning_radius=min_turning_radius,
+                invert_orientation=True,
+                drop_last=True,
+            )
+
+            path_3 = self._make_path_from_poly_line(
+                points_list=[
+                    headland_continue_approach_stamped.pose.position,
+                    headland_intersect_approach_pose_stamped.pose.position,
+                    positioning_approach_pose_stamped.pose.position,
+                ],
+                path_pose_distance=self._node.task_plan.path_pose_distance,
+                fixed_frame_id=approach_frame_id,
+                min_turning_radius=min_turning_radius,
+                invert_orientation=False,
+                drop_last=False,
+            )
+
+            positioning_approach_path = Path(
+                header=path_1.header,
+                poses=path_1.poses + path_2.poses + path_3.poses
+            )
+            positioning_approach_path.header.stamp = self._node.get_clock().now().to_msg()
+
+        self._positioning_approach_path_viz_pub.publish(positioning_approach_path)
+        self._benchmarking_path_pub.publish(positioning_approach_path)
+
         if self._node.dry_run:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
             self._execute_follow_path_action(
-                path=self._planned_path,
+                path=positioning_approach_path,
                 controller_id=self._node.task_plan.positioning_approach_controller_id,
                 goal_checker_id=self._node.task_plan.positioning_approach_goal_checker_id,
                 progress_checker_id=self._node.task_plan.positioning_approach_progress_checker_id,
@@ -233,25 +480,26 @@ class NavigationManager:
         start_pose_stamped = make_pose_stamped(0.0)
         mid_pose_stamped = make_pose_stamped(-self._node.task_plan.row_approach_margin)
         goal_pose_stamped = make_pose_stamped(0.0)
-        straight_approach_path = self._make_path([start_pose_stamped, mid_pose_stamped, goal_pose_stamped])
+        straightening_approach_path = self._make_path([start_pose_stamped, mid_pose_stamped, goal_pose_stamped])
 
         self._approach_poses_viz.poses = [goal_pose_stamped.pose]
         self._approach_poses_viz.header.frame_id = goal_pose_stamped.header.frame_id
         self._approach_poses_viz.header.stamp = self._node.get_clock().now().to_msg()
         self._approach_poses_viz_pub.publish(self._approach_poses_viz)
 
-        if straight_approach_path is None:
+        if straightening_approach_path is None:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
 
-        self._path_viz_pub.publish(straight_approach_path)
+        self._straightening_path_viz_pub.publish(straightening_approach_path)
+        self._benchmarking_path_pub.publish(straightening_approach_path)
 
         self._node.get_logger().info(f"starting straightening approach navigation for {item.get_item_id()} using controller_id={self._node.task_plan.straight_approach_controller_id} goal_checker_id={self._node.task_plan.straight_approach_goal_checker_id}")
         if self._node.dry_run:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
         else:
             self._execute_follow_path_action(
-                path=straight_approach_path,
+                path=straightening_approach_path,
                 controller_id=self._node.task_plan.straight_approach_controller_id,
                 goal_checker_id=self._node.task_plan.straight_approach_goal_checker_id,
                 progress_checker_id=self._node.task_plan.straight_approach_progress_checker_id,
@@ -312,7 +560,8 @@ class NavigationManager:
             self.navigation_action_status = NavigationActionStatus.FAILED_TO_START
             return
 
-        self._path_viz_pub.publish(row_path)
+        self._row_path_viz_pub.publish(row_path)
+        self._benchmarking_path_pub.publish(row_path)
 
         if self._node.dry_run:
             self.navigation_action_status = NavigationActionStatus.SUCCEEDED
@@ -353,7 +602,7 @@ class NavigationManager:
             self._node.get_logger().error(f"could not transform {self._base_frame} to {self._node.task_plan.map_frame}: {last_ex}")
         return None
 
-    def _transform_pose_stamped(self, pose_stamped: PoseStamped, frame_id: str, timeout: float) -> PoseStamped | None:
+    def _transform_pose_stamped(self, pose_stamped: PoseStamped, frame_id: str, timeout: float = 0.1) -> PoseStamped | None:
         transform_chrono = Chronometer()
         last_ex: TransformException | None = None
         while rclpy.ok() and transform_chrono.total() < timeout:
@@ -372,6 +621,50 @@ class NavigationManager:
         if last_ex is not None:
             self._node.get_logger().error(f"could not transform {self._base_frame} to {self._node.task_plan.map_frame}: {last_ex}")
         return None
+
+    @staticmethod
+    def _make_path_from_poly_line(
+            points_list: list[Point],
+            fixed_frame_id: str,
+            min_turning_radius: float,
+            path_pose_distance: float,
+            invert_orientation: bool,
+            drop_last: bool,
+            ) -> Path | None:
+
+        if len(points_list) < 2:
+            raise ValueError("path with less than 2 points")
+
+        points_list_np = np.array(list(map(lambda p: np.array([p.x, p.y]), points_list)))
+
+        path_points_np = points_to_beveled_path(
+            points=points_list_np,
+            min_turning_radius=min_turning_radius,
+            path_pose_distance=path_pose_distance
+        )
+
+        header = Header(frame_id=fixed_frame_id)  # stamp is left uninitialized
+        path = Path(header=header)
+
+        for x, y in list(zip(path_points_np[0, :], path_points_np[1, :])):
+            path.poses.append(PoseStamped(header=header, pose=Pose(position=Point(x=x, y=y, z=0.0))))
+
+        orientation_bias = np.pi if invert_orientation else 0
+        for p1, p2 in zip(path.poses[:-1], path.poses[1:]):
+            yaw = (
+                    orientation_bias +
+                    float(np.arctan2(
+                        p2.pose.position.y - p1.pose.position.y,
+                        p2.pose.position.x - p1.pose.position.x)
+                    )
+            )
+            p1.pose.orientation = quaternion_from_yaw(yaw)
+        path.poses[-1].pose.orientation = path.poses[-2].pose.orientation
+
+        if drop_last:
+            path.poses = path.poses[:-1]
+
+        return path
 
     def _make_path(self, poses_list: list[PoseStamped]) -> Path | None:
         path_header = Header(stamp=self._node.get_clock().now().to_msg(), frame_id=poses_list[0].header.frame_id)
@@ -407,18 +700,18 @@ class NavigationManager:
         return path
 
     def wait_navigation_stack_is_ready(self, timeout: float) -> bool:
-        if not self._wait_node_is_active("bt_navigator", timeout=timeout):
-            return False
+        # if not self._wait_node_is_active("bt_navigator", timeout=timeout):
+        #     return False
         if not self._wait_node_is_active("controller_server", timeout=timeout):
             return False
         if not self._wait_for_service(self._clear_local_costmap_service, timeout=timeout):
             return False
-        if not self._wait_for_service(self._clear_global_costmap_service, timeout=timeout):
-            return False
-        if not self._wait_for_service(self._is_path_valid_service, timeout=timeout):
-            return False
-        if not self._wait_action_server(self._compute_path_to_pose_client, "compute_path_to_pose", timeout=timeout):
-            return False
+        # if not self._wait_for_service(self._clear_global_costmap_service, timeout=timeout):
+        #     return False
+        # if not self._wait_for_service(self._is_path_valid_service, timeout=timeout):
+        #     return False
+        # if not self._wait_action_server(self._compute_path_to_pose_client, "compute_path_to_pose", timeout=timeout):
+        #     return False
         if not self._wait_action_server(self._follow_path_client, "follow_path", timeout=timeout):
             return False
         return True
