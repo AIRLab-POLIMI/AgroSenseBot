@@ -258,8 +258,18 @@ geometry_msgs::msg::TwistStamped RegulatedPurePursuitController::computeVelocity
                 cmd_vel.header = pose.header;
                 return cmd_vel;
             } else {
-                RCLCPP_INFO(logger_, "Reached end of plan, but goal is out of tolerance");
-                throw nav2_core::FailedToMakeProgress("Reached end of plan");
+                RCLCPP_WARN(
+                        logger_,
+                        "Reached end of plan, but goal is out of tolerance [theta = %.3f, goal_x = %.3f, goal_y = %.3f]",
+                        theta,
+                        goal_pose.pose.position.x,
+                        goal_pose.pose.position.y
+                        );
+//                throw nav2_core::FailedToMakeProgress("Reached end of plan");
+                // return zero velocity command
+                geometry_msgs::msg::TwistStamped cmd_vel;
+                cmd_vel.header = pose.header;
+                return cmd_vel;
             }
         }
     }

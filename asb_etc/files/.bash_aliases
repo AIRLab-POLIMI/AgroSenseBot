@@ -204,6 +204,9 @@ complete -F _complete_alias rr
 alias rb='ros2 bag'
 complete -F _complete_alias rb
 
+alias rbi='ros2 bag info'
+complete -F _complete_alias rbi
+
 alias rbp='ros2 bag play --clock --read-ahead-queue-size 100000'
 complete -F _complete_alias rbp
 
@@ -259,6 +262,12 @@ alias st='clr; cb && rl asb_canopy_spraying_task all.launch.xml auto_set_control
 complete -F _complete_alias st
 
 alias st-l='st loop:=true'
+
+# launch real and task
+alias r-t='clr; cb && rl asb_canopy_spraying_task all_real.launch.xml'
+complete -F _complete_alias r-t
+
+alias r-t-l='r-t loop:=true record_sensors:=false'
 
 # launch rviz
 alias rv='rl asb_nav rviz.launch.py'

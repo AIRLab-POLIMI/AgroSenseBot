@@ -9,6 +9,7 @@ controller_server:
       "simple_progress_checker",
     ]
     goal_checker_plugins: [
+      "nav2_simple_goal_checker",
       "asb_goal_checker",
       "asb_strict_goal_checker",
       "asb_rotate_to_path_goal_checker",
@@ -24,10 +25,15 @@ controller_server:
       required_movement_radius: 0.5
       movement_time_allowance: 30.0
 
+    nav2_simple_goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.4
+      yaw_goal_tolerance: 0.3
+
     asb_goal_checker:
       plugin: "asb_nav2_core_plugins::ASBGoalChecker"
-      xy_goal_tolerance: 0.3
-      yaw_goal_tolerance: 0.2
+      xy_goal_tolerance: 0.4
+      yaw_goal_tolerance: 0.3
 
     asb_strict_goal_checker:
       plugin: "asb_nav2_core_plugins::ASBGoalChecker"
@@ -50,7 +56,7 @@ controller_server:
       plugin: "asb_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       transform_tolerance: 0.1
       allow_reversing: true
-      min_turning_radius: 1.0
+      min_turning_radius: 3.0
       desired_linear_vel: 0.6
       lookahead_dist: 1.0
       max_robot_path_dist: 0.5
