@@ -18,10 +18,11 @@ from std_msgs.msg import String, Header
 
 from enum import Enum
 from typing_extensions import Self
+import time
 
 from control_mode_manager import ControlModeManager
 from plan_manager import PlanManager
-from navigation_manager import NavigationManager, NavigationActionStatus, NavigationPlanValidity
+from navigation_manager import NavigationManager, NavigationActionStatus
 from spraying_manager import SprayingManager, SprayingStatus
 from spraying_task_plan import SprayingTaskPlan, TaskPlanItem
 
@@ -217,6 +218,11 @@ class SprayingTaskPlanExecutor(Node):
         self.gnss_2_fix_status_sub = self.create_subscription(MipGnssFixInfo, '/mip/gnss_2/fix_info', self.gnss_2_fix_status_callback, qos_reliable_volatile_depth_1)
         self.gnss_dual_antenna_fix_status_sub = self.create_subscription(MipFilterGnssDualAntennaStatus, '/mip/ekf/gnss_dual_antenna_status', self.gnss_dual_antenna_fix_status_callback, qos_reliable_volatile_depth_1)
         self.loop_rate = self.create_rate(self.target_loop_rate)
+
+        # wait before starting the state machine to allow localization to initialize properly
+        # self.get_logger().info(BLUE+f"Waiting for 15 s...")
+        # time.sleep(15.0)
+        # self.get_logger().info(BLUE+f"Finished waiting")
 
         positioning_approach_sm = StateMachine(outcomes=['success', 'failure'])
         with positioning_approach_sm:

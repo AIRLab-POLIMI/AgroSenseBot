@@ -88,7 +88,7 @@ nav_msgs::msg::Path PathHandler::transformGlobalPlan(const geometry_msgs::msg::P
     global_plan_.poses.erase(begin(global_plan_.poses), transformation_begin);
 
     if (transformed_plan.poses.empty()) {
-        throw nav2_core::InvalidPath("Resulting plan has 0 poses in it.");
+        throw nav2_core::InvalidPath("Transformed plan has 0 poses.");
     }
 
     return transformed_plan;

@@ -79,6 +79,7 @@ void ASBGoalChecker::initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr &
 
 void ASBGoalChecker::reset() {
     in_goal_proximity_ = false;
+    RCLCPP_INFO(rclcpp::get_logger("ASB Goal Checker"), "RESET");
 }
 
 bool ASBGoalChecker::isGoalReached(const geometry_msgs::msg::Pose &query_pose, const geometry_msgs::msg::Pose &goal_pose, const geometry_msgs::msg::Twist &) {
@@ -86,22 +87,38 @@ bool ASBGoalChecker::isGoalReached(const geometry_msgs::msg::Pose &query_pose, c
     double dy = goal_pose.position.y - query_pose.position.y;
     double dyaw = angles::shortest_angular_distance(tf2::getYaw(query_pose.orientation), tf2::getYaw(goal_pose.orientation));
 
+    // compute the goal x coordinate in the robot frame
+    double theta = tf2::getYaw(query_pose.orientation);
+    double gx = dx * cos(-theta) - dy * sin(-theta);
+
+    RCLCPP_INFO(
+            rclcpp::get_logger("ASB Goal Checker"),
+            "        GOAL PROXIMITY   dx=%+.2f, dy=%+.2f, dyaw=%+.2f,   theta=%+.2f, gx=%+.2f",
+            dx, dy, dyaw, theta, gx);
+
     if ((dx * dx + dy * dy > xy_goal_tolerance_sq_) || (fabs(dyaw) > yaw_goal_tolerance_)) {
+        if (in_goal_proximity_) {
+            RCLCPP_INFO(
+                    rclcpp::get_logger("ASB Goal Checker"),
+                    "   LEFT GOAL PROXIMITY   dx=%+.2f, dy=%+.2f, dyaw=%+.2f,   theta=%+.2f, gx=%+.2f",
+                    dx, dy, dyaw, theta, gx);
+        }
+
         // We are outside the window
         in_goal_proximity_ = false;
         return false;
     }
-
-    // compute the goal x coordinate in the robot frame
-    double theta = tf2::getYaw(query_pose.orientation);
-    double gx = dx * cos(-theta) - dy * sin(-theta);
 
     if (!in_goal_proximity_) {
         // We just entered the window
         in_goal_proximity_ = true;
         // If the goal is in front, we must move forward to reach the goal
         forward_ = gx >= 0;
+
+        RCLCPP_INFO(rclcpp::get_logger("ASB Goal Checker"), "ENTERED GOAL PROXIMITY   dx=%+.2f, dy=%+.2f, dyaw=%+.2f,   theta=%+.2f, gx=%+.2f",
+                    dx, dy, dyaw, theta, gx);
     }
+
 
     // From now on, as soon as we pass the goal (disregarding the y coordinate),
     // we are as close to the goal as we are going to be

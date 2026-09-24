@@ -57,7 +57,7 @@ controller_server:
       transform_tolerance: 0.1
       allow_reversing: true
       min_turning_radius: 3.0
-      desired_linear_vel: 0.6
+      desired_linear_vel: 0.4
       lookahead_dist: 1.0
       max_robot_path_dist: 0.5
       max_robot_pose_search_dist: 100.0

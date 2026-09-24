@@ -12,7 +12,7 @@ straight_approach_progress_checker_id: simple_progress_checker
 max_straightening_navigation_attempts: 3
 
 row_path_controller_id: FollowStraightPath
-row_path_goal_checker_id: nav2_simple_goal_checker
+row_path_goal_checker_id: asb_goal_checker
 row_path_progress_checker_id: simple_progress_checker
 
 path_pose_distance: 0.1
@@ -25,7 +25,7 @@ row_path_margin: 2.0  # distance of the positioning pose to the beginning of the
 row_approach_margin: 2.0  # distance between the straightening and positioning approach pose
 
 headland_row_distance: 6.0
-headland_post_turn_margin: 2.0
+headland_post_turn_margin: 1.0
 external_first_row_distance: -11.0
 min_turning_radius: 4.0
 
