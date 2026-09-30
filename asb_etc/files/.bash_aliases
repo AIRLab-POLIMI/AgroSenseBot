@@ -264,10 +264,10 @@ complete -F _complete_alias st
 alias st-l='st loop:=true'
 
 # launch real and task
-alias r-t='clr; cb && rl asb_canopy_spraying_task all_real.launch.xml'
+alias r-t='clr; cb && rl asb_canopy_spraying_task all_real.launch.xml record_sensors:=false'
 complete -F _complete_alias r-t
 
-alias r-t-l='r-t loop:=true record_sensors:=false'
+alias r-t-l='r-t loop:=true'
 
 # launch rviz
 alias rv='rl asb_nav rviz.launch.py'

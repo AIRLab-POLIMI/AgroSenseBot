@@ -64,7 +64,7 @@
     <param name="enable_pump" value="$(var enable_pump)" />
     <param name="velocity_timeout" value="0.1" />
     <param name="fan_rpm_timeout" value="0.5" />
-    <param name="canopy_data_timeout" value="1.0" />
+    <param name="canopy_data_timeout" value="1.5" />
     <param name="canopy_roi_frame_id" value="sprayer_link" />
   </node>
 
